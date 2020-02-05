@@ -75,7 +75,7 @@ prepare_input_sofun <- function( settings_input,
         by = c("sitename", "date")
       )
     
-    ## Then, prepare climate input data files for sofun
+    ## Then, prepare climate input data files for sofun (unit conversions, etc ... )
     ddf_climate <- purrr::map(
       as.list(settings_sims$sitename),
       ~prepare_input_sofun_climate_bysite(

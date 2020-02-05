@@ -1,0 +1,101 @@
+---
+title: "Examples for ingestr"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(ingestr)
+library(readr)
+library(dplyr)
+library(lubridate)
+```
+
+## Example for FLUXNET 2015 sites
+
+Get site meta information and define a list of sites.
+```{r}
+mysites <- c("BE-Vie", "DE-Tha", "DK-Sor", "FI-Hyy", "IT-Col", "NL-Loo", "US-MMS", "US-WCr", "US-UMB", "US-Syv", "DE-Hai", "IT-MBo", "US-GLE", "FR-Fon", "NL-Hor", "US-UMd", "AU-Dry", "DE-Obe", "IT-Tor", "US-Wi4")
+
+siteinfo <- read_csv("~/data/FLUXNET-2015_Tier1/siteinfo_fluxnet2015_sofun+whc.csv") %>% 
+  rename(sitename = mysitename) %>% 
+  filter(sitename %in% mysites) %>% 
+  mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>% 
+  mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
+```
+
+### rsofun input data
+
+First read all FLUXNET meteo data.
+```{r message=FALSE, warning=FALSE}
+ddf_fluxnet <- ingest(
+  siteinfo = siteinfo,
+  source    = "fluxnet2015", 
+  getvars   = list(temp = "TA_F_DAY", prec = "P_F", vpd  = "VPD_F_DAY", swin =  "SW_IN_F", netrad = "NETRAD", patm = "PA_F"),
+  dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
+  settings  = list(dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", getswc = FALSE, threshold_GPP = 0.5),
+  timescale = "d"
+  )
+```
+
+Some meteo data is not available from FLUXNET. Extract it from WATCH-WFDEI global climate reanalysis files instead.
+```{r}
+ddf_watch <- ingest(
+  siteinfo = siteinfo,
+  source    = "watch_wfdei", 
+  getvars   = list(temp = "Tair"),
+  dir       = "~/data/watch_wfdei/"
+  )
+```
+
+Some meteo data is not available from FLUXNET. Extract it from CRU global climate files instead.
+```{r}
+ddf_cru <- ingest(
+  siteinfo = siteinfo,
+  source    = "cru", 
+  getvars   = list(ccov = "cld"),
+  dir       = "~/data/cru/ts_4.01/"
+  )
+```
+
+
+### Evaluation data
+
+```{r message=FALSE, warning=FALSE}
+## get data for idfferent time scales separately
+ddf_eval <- ingest(
+  siteinfo = siteinfo,
+  source    = "fluxnet2015", 
+  getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"),
+  dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
+  settings  = list(threshold_LE = 0.8, getswc = TRUE),
+  timescale = "d"
+  )
+mdf_eval <- ingest(
+  siteinfo = siteinfo,
+  source    = "fluxnet2015", 
+  getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"),
+  dir       = "~/data/FLUXNET-2015_Tier1/20191024/MM/",
+  settings  = list(threshold_LE = 0.8, getswc = TRUE),
+  timescale = "m"
+  )
+adf_eval <- ingest(
+  siteinfo = siteinfo,
+  source    = "fluxnet2015", 
+  getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"),
+  dir       = "~/data/FLUXNET-2015_Tier1/20191024/YY/",
+  settings  = list(threshold_LE = 0.8, getswc = TRUE),
+  timescale = "y"
+  )
+```
+
+Use rsofun to create a standardised object used for benchmarking the model output.
+```{r}
+settings_eval <- list(
+  benchmark = list( latenth = c("fluxnet2015") )
+  )
+obs_eval <- get_obs_eval2( settings_eval = settings_eval, adf = adf_eval, mdf = mdf_eval, ddf = ddf_eval )
+```
+
+### Calibration data
+
+tbc

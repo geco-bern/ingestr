@@ -47,7 +47,7 @@ get_vpd_day_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
   
   if (file.exists(filename_dd_vpd)){
     ## Daytime VPD file is already available, reading from file
-    print(paste("Reading daytime VPD from:", filename_dd_vpd))
+    # print(paste("Reading daytime VPD from:", filename_dd_vpd))
     df <- readr::read_csv(filename_dd_vpd)
     
   } else {
