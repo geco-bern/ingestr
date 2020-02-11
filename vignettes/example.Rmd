@@ -8,6 +8,7 @@ library(ingestr)
 library(readr)
 library(dplyr)
 library(lubridate)
+library(rsofun)
 ```
 
 ## Example for FLUXNET 2015 sites

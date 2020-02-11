@@ -102,17 +102,34 @@ ingest_bysite <- function(
 	){
 
 	## initialise data frame with all required dates
-  ddf <- init_dates_dataframe(
+  if (timescale=="d"){
+    freq = "days"
+  } else if (timescale=="m"){
+    freq = "months"
+  } else if (timescale=="y"){
+    freq = "years"
+  }
+
+  df <- init_dates_dataframe(
     year(date_start),
     year(date_end),
-    noleap = TRUE) %>%
+    noleap = TRUE,
+    freq = freq) %>%
     dplyr::select(-year_dec)
+
+  if (timescale=="m"){
+    df <- df %>%
+      mutate(month = lubridate::month(date), year = lubridate::year(date))
+  } else if (timescale=="y"){
+    df <- df %>%
+      mutate(year = lubridate::year(date))
+  }
 
 	##-----------------------------------------------------------
 	## FLUXNET 2015 readin
 	##-----------------------------------------------------------
 	if (source == "fluxnet2015"){
-    ddf <- get_obs_bysite_fluxnet2015(sitename,
+    df_tmp <- get_obs_bysite_fluxnet2015(sitename,
                                       path_fluxnet2015 = dir,
                                       path_fluxnet2015_hh = settings$dir_hh,
                                       timescale        = timescale,
@@ -120,12 +137,27 @@ ingest_bysite <- function(
                                       getswc           = settings$getswc,
                                       threshold_GPP    = settings$threshold_GPP,
                                       verbose          = verbose
-                                      ) %>%
-    			  	right_join(ddf, by = "date")
+                                      )
+    if (timescale=="m"){
+      df <- df_tmp %>%
+        mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%
+        dplyr::select(-date) %>%
+        right_join(df, by = c("year", "month"))
+
+    } else if (timescale=="y"){
+      df <- df_tmp %>%
+        mutate(year = lubridate::year(date)) %>%
+        dplyr::select(-date) %>%
+        right_join(df, by = "year")
+
+    } else if (timescale=="d"){
+      df <- df_tmp %>%
+        right_join(df, by = "date")
+    }
 
 	}
 
-  return( ddf )
+  return( df )
 
 }
 
