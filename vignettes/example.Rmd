@@ -1,6 +1,10 @@
 ---
 title: "Examples for ingestr"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
@@ -127,7 +131,7 @@ The library `gee_subset` by Koen Hufkens can be downloaded from this [link](http
 Then, carry out the follwing steps: 
 
 - In your terminal, change to where you want to have the repository. In this example, we're cloning it into our home directory:
-```{sh}
+```{sh, eval = FALSE}
 cd ~
 git clone https://github.com/khufkens/google_earth_engine_subsets.git
 ```
@@ -135,31 +139,31 @@ git clone https://github.com/khufkens/google_earth_engine_subsets.git
 To get access to using the Google Earth Engine API (required to use the `gee_subset` library), carry out the following steps in your terminal. This follows steps described [here](https://github.com/google/earthengine-api/issues/27).
 
 1. Install google API Python client
-```{sh}
+```{sh, eval = FALSE}
 sudo pip install --upgrade google-api-python-client
 ```
 I had an error and first had to do this here following [this link](https://github.com/pypa/pip/issues/3165):
-```{sh}
+```{sh, eval = FALSE}
 sudo pip install --ignore-installed six
 ```
 
 2. Install pyCrypto
-```{sh}
+```{sh, eval = FALSE}
 sudo pip install pyCrypto --upgrade
 ```
 
 3. Install Python GEE API
-```{sh}
+```{sh, eval = FALSE}
 sudo pip install earthengine-api
 ```
 
 4. Run authentification for GEE
-```{sh}
+```{sh, eval = FALSE}
 earthengine authenticate
 ```
 
 5. Finally, try if it works. This shouldn't return an error:
-```{sh}
+```{sh, eval = FALSE}
 python -c "import ee; ee.Initialize()"
 ```
 
@@ -203,20 +207,69 @@ df_gee_modis_fpar %>%
 ```
 
 
+## Examples for a site ensemble
 
+To collect data from an ensemble of sites, we have to define a meta data frame, here called `siteinfo`, with rows for each site and columns `lon` for longitude, `lat` for latitude, `date_start` and `date_end` for required dates (Dates are objects returned by a `lubridate::ymd()` function call - this stands for year-month-day). The function `ingest()` can then be used to collect all site-level data as a nested data frame corresponding to the metadata `siteinfo` with an added column named `data` where the time series of ingested data is nested inside.
 
-<!-- ## Examples for a site ensemble -->
+Note that extracting for an ensemble of sites at once is more efficient for data types that are global files (WATCH-WFDEI, and CRU). In this case, the `raster` package can be used to efficiently ingest data.
 
-<!-- Get site meta information and define a list of sites. -->
-<!-- ```{r} -->
-<!-- mysites <- c("BE-Vie", "DE-Tha", "DK-Sor", "FI-Hyy", "IT-Col", "NL-Loo", "US-MMS", "US-WCr", "US-UMB", "US-Syv", "DE-Hai", "IT-MBo", "US-GLE", "FR-Fon", "NL-Hor", "US-UMd", "AU-Dry", "DE-Obe", "IT-Tor", "US-Wi4") -->
+First, define a list of sites and get site meta information. The required meta information is provided in file `"~/data/FLUXNET-2015_Tier1/siteinfo_fluxnet2015_sofun+whc.csv"`. 
+```{r}
+mysites <- c("BE-Vie", "DE-Tha", "DK-Sor", "FI-Hyy", "IT-Col", "NL-Loo", "US-MMS", "US-WCr", "US-UMB", "US-Syv", "DE-Hai")
 
-<!-- siteinfo <- readr::read_csv("~/data/FLUXNET-2015_Tier1/siteinfo_fluxnet2015_sofun+whc.csv") %>% -->
-<!--   rename(sitename = mysitename) %>% -->
-<!--   filter(sitename %in% mysites) %>% -->
-<!--   mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>% -->
-<!--   mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31"))) -->
-<!-- ``` -->
+siteinfo <- readr::read_csv("~/data/FLUXNET-2015_Tier1/siteinfo_fluxnet2015_sofun+whc.csv") %>%
+  rename(sitename = mysitename) %>%
+  filter(sitename %in% mysites) %>%
+  mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
+  mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
+```
+
+Next, the data can be ingested for all sites at once. Let's do it for different data types again.
+
+### FLUXNET 2015
+
+```{r message=FALSE, warning=FALSE}
+ddf_fluxnet <- ingest(
+  siteinfo = siteinfo,
+  source    = "fluxnet2015",
+  getvars   = list(temp = "TA_F_DAY", prec = "P_F", vpd  = "VPD_F_DAY", swin =  "SW_IN_F", netrad = "NETRAD", patm = "PA_F"),
+  dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
+  settings  = list(dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", getswc = FALSE, threshold_GPP = 0.5),
+  timescale = "d"
+  )
+```
+
+### WATCH-WFDEI
+
+```{r echo = T, results = 'hide'}
+ddf_watch <- ingest(
+  siteinfo = siteinfo,
+  source    = "watch_wfdei",
+  getvars   = list(temp = "Tair"),
+  dir       = "~/data/watch_wfdei/"
+  )
+```
+
+### CRU
+
+```{r}
+ddf_cru <- ingest(
+  siteinfo = siteinfo,
+  source    = "cru",
+  getvars   = list(temp = "tmx"),
+  dir       = "~/data/cru/ts_4.01/"
+  )
+```
+
+Check it out for the first site (BE-Vie).
+```{r}
+ggplot() +
+  geom_line(data = ddf_fluxnet$data[[1]], aes(x = date, y = temp)) +
+  geom_line(data = ddf_watch$data[[1]], aes(x = date, y = temp), col = "royalblue") +
+  geom_line(data = ddf_cru$data[[1]], aes(x = date, y = temp), col = "red") +
+  xlim(ymd("2000-01-01"), ymd("2005-12-31"))
+```
+
 
 <!-- ### rsofun input data -->
 

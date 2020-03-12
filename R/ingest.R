@@ -28,8 +28,8 @@ ingest <- function(
 	getvars,
 	dir,
 	settings,
-	timescale                  = "d",
-	verbose                    = FALSE
+	timescale = "d",
+	verbose   = FALSE
   ){
 
 	if (source == "fluxnet2015"){
@@ -44,15 +44,12 @@ ingest <- function(
 											dir                        = dir,
 											settings                   = settings,
 											timescale                  = timescale,
-											date_start                 = siteinfo$date_start[.],
-											date_end                   = siteinfo$date_end[.],
+											year_start                 = lubridate::year(siteinfo$date_start[.]),
+											year_end                   = lubridate::year(siteinfo$date_end[.]),
 											verbose                    = verbose
 		  )
-		)
-
-		names(ddf) <- siteinfo$sitename
-		ddf <- ddf %>%
-		  bind_rows(.id = "sitename")
+		) %>%
+		bind_rows()
 
 
 	} else if (source == "cru" || source == "watch_wfdei"){
@@ -63,12 +60,16 @@ ingest <- function(
                                source = source,
                                dir = dir,
                                getvars = getvars,
-                               overwrite_csv = overwrite_csv_climate_lev2,
+                               timescale = timescale,
                                verbose = FALSE
     )
-    
-	}
 
-	return(ddf)
+	}
+  
+  ddf <- ddf %>% 
+    group_by(sitename) %>% 
+    nest()
+	
+  return(ddf)
 
 }
