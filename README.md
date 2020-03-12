@@ -44,5 +44,5 @@ The `ingestr` package relies heavily on the tidyverse. Dependencies are
 
 ## Example
 
-Are described in vignette `example`.
+Are described in vignette `example`, available [here](https://rpubs.com/stineb/ingestr). 
 
