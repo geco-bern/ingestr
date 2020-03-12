@@ -18,7 +18,7 @@
 #' Earth Engine.
 #' @export
 #'
-#' @examples settings_gee <- get_settings_gee( bundle = "modis_fpar" )
+#' @examples \dontrun{settings_gee <- get_settings_gee( bundle = "modis_fpar" )}
 #' 
 get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which python", intern = TRUE),
                               gee_path, data_path, splined, do_plot_interpolated, overwrite_raw = FALSE, overwrite_interpol = FALSE ){
