@@ -5,98 +5,292 @@ output: html_document
 
 ```{r setup, include=FALSE}
 library(ingestr)
-library(readr)
-library(dplyr)
-library(lubridate)
-library(rsofun)
+# library(readr)
+# library(dplyr)
+# library(lubridate)
+# library(rsofun)
 ```
 
-## Example for FLUXNET 2015 sites
+## Overview
 
-Get site meta information and define a list of sites.
-```{r}
-mysites <- c("BE-Vie", "DE-Tha", "DK-Sor", "FI-Hyy", "IT-Col", "NL-Loo", "US-MMS", "US-WCr", "US-UMB", "US-Syv", "DE-Hai", "IT-MBo", "US-GLE", "FR-Fon", "NL-Hor", "US-UMd", "AU-Dry", "DE-Obe", "IT-Tor", "US-Wi4")
+The package `ingestr` provides functions to extract (ingest) point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution. This can be done for a set of sites at once, given a data frame containing the meta info for each site (see data frame `siteinfo`, with columns `lon` for longitude, `lat` for latitude, `date_start` and `date_end` specifying required dates). The output for such a set of site-level data is a nested data frame with rows for each site and columns `lon`, `lat`, `date_start`, and `date_end` plus an added column where the time series of ingested data is nested inside.
 
-siteinfo <- read_csv("~/data/FLUXNET-2015_Tier1/siteinfo_fluxnet2015_sofun+whc.csv") %>% 
-  rename(sitename = mysitename) %>% 
-  filter(sitename %in% mysites) %>% 
-  mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>% 
-  mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
-```
+Data can be ingested for different data types (argument `source` in several functions), each dealing with a specific format of the original data and specific functions to read from respective files or remote servers. The following data types can be handled currently (more to be added by you if you like):
 
-### rsofun input data
+Meteo data:
 
-First read all FLUXNET meteo data.
-```{r message=FALSE, warning=FALSE}
-ddf_fluxnet <- ingest(
-  siteinfo = siteinfo,
-  source    = "fluxnet2015", 
-  getvars   = list(temp = "TA_F_DAY", prec = "P_F", vpd  = "VPD_F_DAY", swin =  "SW_IN_F", netrad = "NETRAD", patm = "PA_F"),
-  dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
-  settings  = list(dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", getswc = FALSE, threshold_GPP = 0.5),
-  timescale = "d"
+  - FLUXNET
+  - WATCH-WFDEI
+  - CRU
+
+Data on Google Earth Engine (using Koen Hufken's `gee_suset` library):
+
+  - MODIS FPAR
+  - MODIS EVI
+  - MODIS GPP
+
+MODIS data:
+
+  - RModisTools R package to access data on remote server ORNL DAAC (not yet implemented).
+  
+Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is descrbed in Section 'Example for a set of sites'.
+
+## Examples for a single site
+
+### FLUXNET 2015
+
+Reading from FLUXNET 2015 files offers additional settings to be used specifically. Here, we're specifying that no soil water content data is read, and that half-hourly data is stored in a separate directory. The latter specification is used to derive daytime VPD which is not given in FLUXNET 2015 data, but required here (see `getvars` element `vpd  = "VPD_F_DAY"`).
+```{r message=FALSE}
+settings_fluxnet <- list(
+  dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", 
+  getswc = FALSE)
+
+df_fluxnet <- ingestr::ingest_bysite(
+  sitename = "CH-Lae",
+  source = "fluxnet2015",
+  getvars = list(temp = "TA_F_DAY", 
+                 prec = "P_F", 
+                 vpd  = "VPD_F_DAY", 
+                 swin =  "SW_IN_F", 
+                 netrad = "NETRAD", 
+                 patm = "PA_F"),
+  dir = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
+  settings = settings_fluxnet,
+  timescale = "d",
+  year_start = 2010,
+  year_end = 2012,
+  verbose = FALSE
   )
+df_fluxnet
 ```
 
-Some meteo data is not available from FLUXNET. Extract it from WATCH-WFDEI global climate reanalysis files instead.
-```{r}
-ddf_watch <- ingest(
-  siteinfo = siteinfo,
-  source    = "watch_wfdei", 
+### WATCH-WFDEI
+
+Let's extract data for the location corresponding to FLUXNET site 'CH-Lae' (lon = 8.365, lat = 47.4781).
+```{r message=FALSE}
+df_watch <- ingest_bysite(
+  sitename = "CH-Lae",
+  source = "watch_wfdei",
   getvars   = list(temp = "Tair"),
-  dir       = "~/data/watch_wfdei/"
+  dir       = "~/data/watch_wfdei/",
+  timescale = "d",
+  year_start = 2010,
+  year_end = 2012,
+  lon = 8.365,
+  lat = 47.4781,
+  verbose = FALSE
   )
+df_watch
 ```
 
-Some meteo data is not available from FLUXNET. Extract it from CRU global climate files instead.
+### CRU
+
+As above, let's extract CRU data for the location corresponding to FLUXNET site 'CH-Lae' (lon = 8.365, lat = 47.4781). Note that we're using `tmx` (the daily maximum temperature).
+```{r message=FALSE}
+df_cru <- ingest_bysite(
+  sitename = "CH-Lae",
+  source = "cru",
+  getvars   = list(temp = "tmx"),
+  dir       = "~/data/cru/ts_4.01/",
+  timescale = "d",
+  year_start = 2010,
+  year_end = 2012,
+  lon = 8.365,
+  lat = 47.4781,
+  verbose = FALSE
+  )
+df_cru
+```
+
+We can compare the temperature recorded at the site and the temperature data extracted from WATCH-WFDEI.
 ```{r}
-ddf_cru <- ingest(
-  siteinfo = siteinfo,
-  source    = "cru", 
-  getvars   = list(ccov = "cld"),
-  dir       = "~/data/cru/ts_4.01/"
-  )
+df <- df_fluxnet %>% 
+  rename(temp_fluxnet = temp) %>% 
+  left_join(rename(df_watch, temp_watch = temp), by = c("sitename", "date")) %>% 
+  left_join(rename(df_cru, temp_cru = temp), by = c("sitename", "date")) %>% 
+  pivot_longer(cols = c(temp_fluxnet, temp_watch, temp_cru), names_to = "source", values_to = "temp", names_prefix = "temp_")
+
+library(ggplot2)
+df %>% 
+  ggplot(aes(x = date, y = temp, color = source)) +
+  geom_line()
+```
+Looks sweet.
+
+### Google Earth Engine
+
+The library `gee_subset` by Koen Hufkens can be downloaded from this [link](https://khufkens.github.io/gee_subset/) and used to extract data directly from Google Earth Engine. Note that this requires the following programmes to be available:
+
+- git: You can use [Homebrew](https://brew.sh/) to installing git by entering in your terminal: `brew install git`.
+- [python](https://www.python.org/)
+
+Then, carry out the follwing steps: 
+
+- In your terminal, change to where you want to have the repository. In this example, we're cloning it into our home directory:
+```{sh}
+cd ~
+git clone https://github.com/khufkens/google_earth_engine_subsets.git
+```
+
+To get access to using the Google Earth Engine API (required to use the `gee_subset` library), carry out the following steps in your terminal. This follows steps described [here](https://github.com/google/earthengine-api/issues/27).
+
+1. Install google API Python client
+```{sh}
+sudo pip install --upgrade google-api-python-client
+```
+I had an error and first had to do this here following [this link](https://github.com/pypa/pip/issues/3165):
+```{sh}
+sudo pip install --ignore-installed six
+```
+
+2. Install pyCrypto
+```{sh}
+sudo pip install pyCrypto --upgrade
+```
+
+3. Install Python GEE API
+```{sh}
+sudo pip install earthengine-api
+```
+
+4. Run authentification for GEE
+```{sh}
+earthengine authenticate
+```
+
+5. Finally, try if it works. This shouldn't return an error:
+```{sh}
+python -c "import ee; ee.Initialize()"
 ```
 
 
-### Evaluation data
+#### MODIS FPAR
 
-```{r message=FALSE, warning=FALSE}
-## get data for idfferent time scales separately
-ddf_eval <- ingest(
-  siteinfo = siteinfo,
-  source    = "fluxnet2015", 
-  getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"),
-  dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
-  settings  = list(threshold_LE = 0.8, getswc = TRUE),
-  timescale = "d"
-  )
-mdf_eval <- ingest(
-  siteinfo = siteinfo,
-  source    = "fluxnet2015", 
-  getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"),
-  dir       = "~/data/FLUXNET-2015_Tier1/20191024/MM/",
-  settings  = list(threshold_LE = 0.8, getswc = TRUE),
-  timescale = "m"
-  )
-adf_eval <- ingest(
-  siteinfo = siteinfo,
-  source    = "fluxnet2015", 
-  getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"),
-  dir       = "~/data/FLUXNET-2015_Tier1/20191024/YY/",
-  settings  = list(threshold_LE = 0.8, getswc = TRUE),
-  timescale = "y"
-  )
-```
-
-Use rsofun to create a standardised object used for benchmarking the model output.
+To facilitate the selection of data products and bands to be downloaded, you may use the function `get_settings_gee()` which defines defaults for different data bundles (`c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")` are available). The following example is for downloading MODIS FPAR data. 
 ```{r}
-settings_eval <- list(
-  benchmark = list( latenth = c("fluxnet2015") )
+settings_gee <- get_settings_gee( 
+  bundle = "modis_fpar", 
+  python_path = system("which python", intern = TRUE),
+  gee_path = "~/google_earth_engine_subsets/gee_subset/",
+  data_path = "~/data/gee_subsets/",
+  splined = TRUE,
+  do_plot_interpolated = FALSE,
+  overwrite_raw = FALSE,
+  overwrite_interpol = FALSE
   )
-obs_eval <- get_obs_eval2( settings_eval = settings_eval, adf = adf_eval, mdf = mdf_eval, ddf = ddf_eval )
 ```
 
-### Calibration data
+This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`.
+```{r}
+df_gee_modis_fpar <- ingest_bysite(
+  sitename = "CH-Lae",
+  source = "gee",
+  year_start = 2010,
+  year_end = 2012,
+  lon = 8.365,
+  lat = 47.4781,
+  settings = settings_gee,
+  verbose = FALSE
+  )
+```
 
-tbc
+Plot this data.
+```{r}
+df_gee_modis_fpar %>% 
+  ggplot(aes(x = date)) +
+  geom_point(aes(y = modisvar)) +
+  geom_line(aes(y = modisvar_interpol), col = 'red')
+```
+
+
+
+
+<!-- ## Examples for a site ensemble -->
+
+<!-- Get site meta information and define a list of sites. -->
+<!-- ```{r} -->
+<!-- mysites <- c("BE-Vie", "DE-Tha", "DK-Sor", "FI-Hyy", "IT-Col", "NL-Loo", "US-MMS", "US-WCr", "US-UMB", "US-Syv", "DE-Hai", "IT-MBo", "US-GLE", "FR-Fon", "NL-Hor", "US-UMd", "AU-Dry", "DE-Obe", "IT-Tor", "US-Wi4") -->
+
+<!-- siteinfo <- readr::read_csv("~/data/FLUXNET-2015_Tier1/siteinfo_fluxnet2015_sofun+whc.csv") %>% -->
+<!--   rename(sitename = mysitename) %>% -->
+<!--   filter(sitename %in% mysites) %>% -->
+<!--   mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>% -->
+<!--   mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31"))) -->
+<!-- ``` -->
+
+<!-- ### rsofun input data -->
+
+<!-- First read all FLUXNET meteo data. -->
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- ddf_fluxnet <- ingest( -->
+<!--   siteinfo = siteinfo, -->
+<!--   source    = "fluxnet2015", -->
+<!--   getvars   = list(temp = "TA_F_DAY", prec = "P_F", vpd  = "VPD_F_DAY", swin =  "SW_IN_F", netrad = "NETRAD", patm = "PA_F"), -->
+<!--   dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/", -->
+<!--   settings  = list(dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", getswc = FALSE, threshold_GPP = 0.5), -->
+<!--   timescale = "d" -->
+<!--   ) -->
+<!-- ``` -->
+
+<!-- Some meteo data is not available from FLUXNET. Extract it from WATCH-WFDEI global climate reanalysis files instead. -->
+<!-- ```{r} -->
+<!-- ddf_watch <- ingest( -->
+<!--   siteinfo = siteinfo, -->
+<!--   source    = "watch_wfdei", -->
+<!--   getvars   = list(temp = "Tair"), -->
+<!--   dir       = "~/data/watch_wfdei/" -->
+<!--   ) -->
+<!-- ``` -->
+
+<!-- Some meteo data is not available from FLUXNET. Extract it from CRU global climate files instead. -->
+<!-- ```{r} -->
+<!-- ddf_cru <- ingest( -->
+<!--   siteinfo = siteinfo, -->
+<!--   source    = "cru", -->
+<!--   getvars   = list(ccov = "cld"), -->
+<!--   dir       = "~/data/cru/ts_4.01/" -->
+<!--   ) -->
+<!-- ``` -->
+
+
+<!-- ### Evaluation data -->
+
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- ## get data for idfferent time scales separately -->
+<!-- ddf_eval <- ingest( -->
+<!--   siteinfo = siteinfo, -->
+<!--   source    = "fluxnet2015", -->
+<!--   getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"), -->
+<!--   dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/", -->
+<!--   settings  = list(threshold_LE = 0.8, getswc = TRUE), -->
+<!--   timescale = "d" -->
+<!--   ) -->
+<!-- mdf_eval <- ingest( -->
+<!--   siteinfo = siteinfo, -->
+<!--   source    = "fluxnet2015", -->
+<!--   getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"), -->
+<!--   dir       = "~/data/FLUXNET-2015_Tier1/20191024/MM/", -->
+<!--   settings  = list(threshold_LE = 0.8, getswc = TRUE), -->
+<!--   timescale = "m" -->
+<!--   ) -->
+<!-- adf_eval <- ingest( -->
+<!--   siteinfo = siteinfo, -->
+<!--   source    = "fluxnet2015", -->
+<!--   getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"), -->
+<!--   dir       = "~/data/FLUXNET-2015_Tier1/20191024/YY/", -->
+<!--   settings  = list(threshold_LE = 0.8, getswc = TRUE), -->
+<!--   timescale = "y" -->
+<!--   ) -->
+<!-- ``` -->
+
+<!-- Use rsofun to create a standardised object used for benchmarking the model output. -->
+<!-- ```{r} -->
+<!-- settings_eval <- list( -->
+<!--   benchmark = list( latenth = c("fluxnet2015") ) -->
+<!--   ) -->
+<!-- obs_eval <- get_obs_eval2( settings_eval = settings_eval, adf = adf_eval, mdf = mdf_eval, ddf = ddf_eval ) -->
+<!-- ``` -->
+
+<!-- ### Calibration data -->
+
+<!-- tbc -->

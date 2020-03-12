@@ -1,12 +1,53 @@
-##-----------------------------------------------------------
-## Returns a list of two data frames, one with data at original
-## modis dates (df), and one interpolated to all days (ddf).
-##-----------------------------------------------------------
-ingest_gee <- function( df_siteinfo, start_date,
-                        end_date, settings_sims, settings_input,
-                        overwrite_raw, overwrite_nice, overwrite_csv,
-                        band_var, band_qc, prod, prod_suffix, varnam, productnam, scale_factor, 
-                        period, do_plot_interpolated, python_path, gee_path){
+#' Defines settings for settings for Google Earth Engine download
+#'
+#' Returns a list of two data frames, one with data at original
+#' modis dates (df), and one interpolated to all days (ddf).
+#' 
+#' @param df_siteinfo xxx
+#' @param start_date xxx
+#' @param end_date xxx
+#' @param overwrite_raw xxx
+#' @param overwrite_interpol xxx
+#' @param band_var xxx
+#' @param band_qc xxx
+#' @param prod xxx
+#' @param prod_suffix xxx
+#' @param varnam xxx
+#' @param productnam xxx
+#' @param scale_factor xxx
+#' @param period xxx
+#' @param do_plot_interpolated xxx
+#' @param python_path xxx
+#' @param gee_path xxx
+#' @param data_path xxx
+#' @param splined xxx
+#' 
+#' @return A named list containing information required for download from Google
+#' Earth Engine.
+#' @export
+#'
+#' @examples settings_gee <- get_settings_gee( bundle = "modis_fpar" )
+#' 
+ingest_gee <- function( 
+  df_siteinfo, 
+  start_date,
+  end_date,
+  overwrite_raw,
+  overwrite_interpol,
+  band_var,
+  band_qc,
+  prod,
+  prod_suffix,
+  varnam,
+  productnam,
+  scale_factor,
+  period,
+  do_plot_interpolated,
+  python_path,
+  gee_path,
+  data_path,
+  splined
+  ){
   
   ##---------------------------------------------
   ## Define names
@@ -15,9 +56,9 @@ ingest_gee <- function( df_siteinfo, start_date,
   df_siteinfo <- slice(df_siteinfo, 1)
   #print(paste("getting fapar for site", sitename))
   
-  dirnam_daily_csv <- paste0(settings_input$path_input, "sitedata/fapar/", sitename)
-  dirnam_nice_csv <- settings_input[paste0("path_", stringr::str_replace(productnam ,"_gee", ""))] %>% unlist() %>% unname()
-  dirnam_raw_csv <- paste0( dirnam_nice_csv, "/raw/" )
+  dirnam_daily_csv <- data_path
+  dirnam_nice_csv <- data_path
+  dirnam_raw_csv <- paste0(data_path, "/raw/")  #paste0( dirnam_nice_csv, "/raw/" )
   
   if (!dir.exists(dirnam_daily_csv)) system( paste( "mkdir -p ", dirnam_daily_csv ) )
   if (!dir.exists(dirnam_nice_csv)) system( paste( "mkdir -p ", dirnam_nice_csv ) )
@@ -33,15 +74,15 @@ ingest_gee <- function( df_siteinfo, start_date,
   ## Save error code (0: no error, 1: error: file downloaded bu all data is NA, 2: file not downloaded)
   df_error <- tibble()
   
-  if (file.exists(filnam_daily_csv) && !overwrite_csv){
+  if (file.exists(filnam_daily_csv)){
     ##---------------------------------------------
     ## Read daily interpolated and gapfilled
     ##---------------------------------------------
-    out$ddf <- readr::read_csv( filnam_daily_csv, col_types = cols() )
+    out$ddf <- readr::read_csv( filnam_daily_csv )
     
   } else {
     
-    if (file.exists(filnam_nice_csv) && file.exists(filnam_daily_csv) && !overwrite_nice){
+    if (file.exists(filnam_nice_csv) && file.exists(filnam_daily_csv)){
       ##---------------------------------------------
       ## Read nicely formatted 8-daily      
       ##---------------------------------------------
@@ -50,16 +91,11 @@ ingest_gee <- function( df_siteinfo, start_date,
       
     } else {
       
-      if (file.exists(filnam_raw_csv) && !overwrite_raw){
-        ## Raw downloaded file will be read separately
-        # print( paste( "File exists already:", filnam_modis_raw_csv ) )
-        # print(paste("site", sitename))
-        
-      } else {
+      if (!file.exists(filnam_raw_csv) || overwrite_raw){
         ##---------------------------------------------
         ## Download via Google Earth Engine using the python function
         ##---------------------------------------------
-        path_info <- paste0(filnam_raw_csv, "info_lonlat.csv")
+        path_info <- paste0(dirnam_raw_csv, "info_lonlat.csv")
         write.csv( dplyr::select( df_siteinfo, site = sitename, latitude = lat, longitude = lon), file=path_info, row.names=FALSE )
         
         start = Sys.time()
@@ -72,7 +108,7 @@ ingest_gee <- function( df_siteinfo, start_date,
                        start_date,
                        end_date,
                        path_info,
-                       filnam_raw_csv
+                       dirnam_raw_csv
         ), wait = TRUE)
         
         end = Sys.time()
@@ -92,7 +128,7 @@ ingest_gee <- function( df_siteinfo, start_date,
       ##--------------------------------------------------------------------
       if (file.exists(filnam_raw_csv)){
         
-        df <- readr::read_csv( filnam_raw_csv, col_types = cols() ) %>%
+        df <- readr::read_csv( filnam_raw_csv ) %>%   #, col_types = cols()
           dplyr::mutate(  date_start = ymd(date) ) %>%
           dplyr::mutate(  date = date_start + days( as.integer(period/2) ),
                           doy = yday(date),
@@ -126,14 +162,14 @@ ingest_gee <- function( df_siteinfo, start_date,
         out <- gapfill_modis(
           df,
           sitename, 
-          year_start = df_siteinfo$year_start,
-          year_end   = df_siteinfo$year_end,
+          year_start = lubridate::year(df_siteinfo$date_start),
+          year_end   = lubridate::year(df_siteinfo$date_end),
           qc_name = band_qc, 
           prod = prod_suffix,
-          splined_fapar = settings_input$splined_fapar,
+          splined = splined,
           do_interpolate = TRUE,
           do_plot_interpolated = do_plot_interpolated,
-          dir = settings_input$path_input
+          dir = data_path
         )
         
         ##---------------------------------------------
@@ -185,7 +221,7 @@ ingest_gee <- function( df_siteinfo, start_date,
 }
 
 
-gapfill_modis <- function( df, sitename, year_start, year_end, qc_name, prod, splined_fapar, do_interpolate=FALSE, do_plot_interpolated=FALSE, dir = "./" ){
+gapfill_modis <- function( df, sitename, year_start, year_end, qc_name, prod, splined, do_interpolate=FALSE, do_plot_interpolated=FALSE, dir = "./" ){
   ##--------------------------------------
   ## Returns data frame containing data 
   ## (and year, moy, doy) for all available
@@ -703,7 +739,7 @@ gapfill_modis <- function( df, sitename, year_start, year_end, qc_name, prod, sp
     ##--------------------------------------
     ## DEFINE STANDARD: LINEAR INTERPOLATION OR SPLINE
     ##--------------------------------------
-    if (splined_fapar){
+    if (splined){
       ddf$modisvar_interpol <- ddf$spline
     } else {
       ddf$modisvar_interpol <- ddf$interpl

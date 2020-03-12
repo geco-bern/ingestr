@@ -189,59 +189,55 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
   ## Get daytime VPD separately
   merge_df_vpd_day_dd <- FALSE
   if ("VPD_F_DAY" %in% getvars && !(timescale == "hh")){
+    
+    ##-----------------------------------------------------------------
+    ## 1. Check whether daily file for daytime VPD is already available
+    ##-----------------------------------------------------------------
+    ## get file name(s) of file containing daily daytime VPD derived from half-hourly data
+    filename_dd_vpd <- list.files( path_fluxnet2015,
+                                   pattern = paste0("FLX_", sitename, ".*_VPD_DAY.csv"),
+                                   recursive = FALSE)
+    
+    # filename_dd_vpd <- filn_hh %>%
+    #   stringr::str_replace("HH", "DD") %>%
+    #   stringr::str_replace(".csv", "_VPD_DAY.csv")
+    
+    if (length(filename_dd_vpd)>0){
+      ##-----------------------------------------------------------------
+      ## Read available file
+      ##-----------------------------------------------------------------
+      if (length(filename_dd_vpd)>1){
+        file.info_getsize <- function(filn){
+          file.info(filn)$size
+        }
+        rlang::warn("Reading only largest daily VPD file available")
+        path_dd_vpd <- paste0(path_fluxnet2015_hh, filename_dd_vpd)
+        size_vec <- purrr::map_dbl(as.list(path_dd_vpd), ~file.info_getsize(.))
+        path_dd_vpd <- path_dd_vpd[which.max(size_vec)]
+        filename_dd_vpd <- basename(path_dd_vpd)
+      }
 
-    if (is.null(path_fluxnet2015_hh)){
-
-      rlang::warn("Argument path_fluxnet2015_hh is not provided. Daytime VPD could not be calculted.")
+      ## read directly
+      if (verbose) print(paste("Reading daytime VPD directly from:", paste0(path_fluxnet2015_hh, filename_dd_vpd)))
+      df_vpd_day_dd <- readr::read_csv(paste0(path_fluxnet2015, filename_dd_vpd))
+      merge_df_vpd_day_dd <- TRUE
 
     } else {
 
-      ## get half-hourly file name(s)
-      filn_hh <- list.files( path_fluxnet2015_hh,
-                             pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
-                             recursive = TRUE
-      )
-      if (length(filn_hh)>0){
-        use_hh <- TRUE
+      ##-----------------------------------------------------------------
+      ## Create new daily daytime-VPD file from half-hourly data
+      ##-----------------------------------------------------------------
+      if (is.null(path_fluxnet2015_hh)){
+
+        rlang::warn("Argument path_fluxnet2015_hh is not provided. Daytime VPD could not be calculated.")
+
       } else {
-        ## get hourly file name(s)
+
+        ## get half-hourly file name(s)
         filn_hh <- list.files( path_fluxnet2015_hh,
-                               pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HR.*.csv" ),
+                               pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
                                recursive = TRUE
-        )
-        use_hh <- FALSE
-
-      }
-
-      ## get file name(s) of file containing daily daytime VPD derived from half-hourly data
-      filename_dd_vpd <- list.files( path_fluxnet2015_hh,
-                                     pattern = paste0("FLX_", sitename, ".*_VPD_DAY.csv"),
-                                     recursive = FALSE)
-
-      # filename_dd_vpd <- filn_hh %>%
-      #   stringr::str_replace("HH", "DD") %>%
-      #   stringr::str_replace(".csv", "_VPD_DAY.csv")
-
-      if (length(filename_dd_vpd)>0){
-
-        if (length(filename_dd_vpd)>1){
-          file.info_getsize <- function(filn){
-            file.info(filn)$size
-          }
-          rlang::warn("Reading only largest daily VPD file available")
-          path_dd_vpd <- paste0(path_fluxnet2015_hh, filename_dd_vpd)
-          size_vec <- purrr::map_dbl(as.list(path_dd_vpd), ~file.info_getsize(.))
-          path_dd_vpd <- path_dd_vpd[which.max(size_vec)]
-          filename_dd_vpd <- basename(path_dd_vpd)
-        }
-
-        ## read directly
-        if (verbose) print(paste("Reading daytime VPD directly from:", paste0(path_fluxnet2015_hh, filename_dd_vpd)))
-        df_vpd_day_dd <- readr::read_csv(paste0(path_fluxnet2015_hh, filename_dd_vpd))
-        merge_df_vpd_day_dd <- TRUE
-
-      } else {
-
+                              )
         if (length(filn_hh)>0){
 
           path_hh <- paste0(path_fluxnet2015_hh, filn_hh)
@@ -260,70 +256,84 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
 
         } else {
 
-          if (length(filn_hh)==0) rlang::abort("No half-hourly files found (required to calculate VPD_DAY).")
+          ## get hourly file name(s)
+          filn_hr <- list.files( path_fluxnet2015_hr,
+                                 pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HR.*.csv" ),
+                                 recursive = TRUE
+                                )
+          if (length(filn_hr)>0){
 
-          # if (verbose) rlang::warn("No half-hourly data available. Cannot get vpd_day for this site.")
-          # getvars <- getvars[-which(str_detect(getvars, "VPD_F_DAY"))]
-          # # getvars <- c(getvars, "VPD_F", "VPD_F_QC")
+            path_hr <- paste0(path_fluxnet2015_hr, filn_hr)
 
+            if (length(filn_hr)>1){
+              file.info_getsize <- function(filn){
+                file.info(filn)$size
+              }
+              rlang::warn("Reading only largest half-hourly file available")
+              size_vec <- purrr::map_dbl(as.list(path_hr), ~file.info_getsize(.))
+              path_hr <- path_hr[which.max(size_vec)]
+            }
+
+            df_vpd_day_dd <- get_vpd_day_fluxnet2015_byfile(path_hr, write = TRUE)
+            merge_df_vpd_day_dd <- TRUE
+
+          }
         }
-
       }
-
-      if (merge_df_vpd_day_dd){
-
-        if (timescale=="d"){
-
-          # daily
-          df <- df %>% dplyr::left_join(df_vpd_day_dd, by="date")
-
-        } else if (timescale=="w"){
-
-          # weekly
-          df <- df_vpd_day_dd %>%
-            dplyr::mutate(year = lubridate::year(date),
-                          week = lubridate::week(date)) %>%
-            dplyr::group_by(sitename, year, week) %>%
-            dplyr::summarise(VPD_F_DAY        = mean(VPD_F, na.rm=TRUE),
-                             VPD_F_DAY_QC     = mean(VPD_F_QC, na.rm=TRUE),
-                             VPD_F_DAY_MDS    = mean(VPD_F_MDS, na.rm=TRUE),
-                             VPD_F_DAY_MDS_QC = mean(VPD_F_MDS_QC, na.rm=TRUE),
-                             VPD_DAY_ERA      = mean(VPD_ERA, na.rm=TRUE) ) %>%
-            dplyr::right_join(df, by="date")
-
-        } else if (timescale=="m"){
-
-          # monthly
-          df <- df_vpd_day_dd %>%
-            dplyr::mutate(year = lubridate::year(date),
-                          moy = lubridate::month(date)) %>%
-            dplyr::group_by(sitename, year, moy) %>%
-            dplyr::summarise(VPD_F_DAY        = mean(VPD_F, na.rm=TRUE),
-                             VPD_F_DAY_QC     = mean(VPD_F_QC, na.rm=TRUE),
-                             VPD_F_DAY_MDS    = mean(VPD_F_MDS, na.rm=TRUE),
-                             VPD_F_DAY_MDS_QC = mean(VPD_F_MDS_QC, na.rm=TRUE),
-                             VPD_DAY_ERA      = mean(VPD_ERA, na.rm=TRUE) ) %>%
-            dplyr::right_join(df, by="date")
-
-        } else if (timescale=="y"){
-
-          # annual
-          df <- df_vpd_day_dd %>%
-            dplyr::mutate(year = lubridate::year(date)) %>%
-            dplyr::group_by(sitename, year) %>%
-            dplyr::summarise(VPD_F_DAY        = mean(VPD_F, na.rm=TRUE),
-                             VPD_F_DAY_QC     = mean(VPD_F_QC, na.rm=TRUE),
-                             VPD_F_DAY_MDS    = mean(VPD_F_MDS, na.rm=TRUE),
-                             VPD_F_DAY_MDS_QC = mean(VPD_F_MDS_QC, na.rm=TRUE),
-                             VPD_DAY_ERA      = mean(VPD_ERA, na.rm=TRUE) ) %>%
-            dplyr::right_join(df, by="date")
-
-        }
-
-      }
-
     }
-
+    
+    if (merge_df_vpd_day_dd){
+      
+      if (timescale=="d"){
+        
+        # daily
+        df <- df %>% dplyr::left_join(df_vpd_day_dd, by="date")
+        
+      } else if (timescale=="w"){
+        
+        # weekly
+        df <- df_vpd_day_dd %>%
+          dplyr::mutate(year = lubridate::year(date),
+                        week = lubridate::week(date)) %>%
+          dplyr::group_by(sitename, year, week) %>%
+          dplyr::summarise(VPD_F_DAY        = mean(VPD_F, na.rm=TRUE),
+                           VPD_F_DAY_QC     = mean(VPD_F_QC, na.rm=TRUE),
+                           VPD_F_DAY_MDS    = mean(VPD_F_MDS, na.rm=TRUE),
+                           VPD_F_DAY_MDS_QC = mean(VPD_F_MDS_QC, na.rm=TRUE),
+                           VPD_DAY_ERA      = mean(VPD_ERA, na.rm=TRUE) ) %>%
+          dplyr::right_join(df, by="date")
+        
+      } else if (timescale=="m"){
+        
+        # monthly
+        df <- df_vpd_day_dd %>%
+          dplyr::mutate(year = lubridate::year(date),
+                        moy = lubridate::month(date)) %>%
+          dplyr::group_by(sitename, year, moy) %>%
+          dplyr::summarise(VPD_F_DAY        = mean(VPD_F, na.rm=TRUE),
+                           VPD_F_DAY_QC     = mean(VPD_F_QC, na.rm=TRUE),
+                           VPD_F_DAY_MDS    = mean(VPD_F_MDS, na.rm=TRUE),
+                           VPD_F_DAY_MDS_QC = mean(VPD_F_MDS_QC, na.rm=TRUE),
+                           VPD_DAY_ERA      = mean(VPD_ERA, na.rm=TRUE) ) %>%
+          dplyr::right_join(df, by="date")
+        
+      } else if (timescale=="y"){
+        
+        # annual
+        df <- df_vpd_day_dd %>%
+          dplyr::mutate(year = lubridate::year(date)) %>%
+          dplyr::group_by(sitename, year) %>%
+          dplyr::summarise(VPD_F_DAY        = mean(VPD_F, na.rm=TRUE),
+                           VPD_F_DAY_QC     = mean(VPD_F_QC, na.rm=TRUE),
+                           VPD_F_DAY_MDS    = mean(VPD_F_MDS, na.rm=TRUE),
+                           VPD_F_DAY_MDS_QC = mean(VPD_F_MDS_QC, na.rm=TRUE),
+                           VPD_DAY_ERA      = mean(VPD_ERA, na.rm=TRUE) ) %>%
+          dplyr::right_join(df, by="date")
+        
+      }
+      
+    }
+  
   }
 
   ## retain all getvars, plus soil moisture if required

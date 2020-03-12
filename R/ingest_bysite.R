@@ -27,7 +27,6 @@
 #' @param verbose if \code{TRUE}, additional messages are printed.
 #'
 #' @return A data frame (tibble) containing the time series of ingested data. 
-#' @import purrr dplyr
 #' @export
 #'
 #' @examples \dontrun{inputdata <- ingest_bysite()}  
@@ -35,8 +34,8 @@
 ingest_bysite <- function(
   sitename,
   source,
-  getvars,
-  dir,
+  getvars = NULL,
+  dir = NULL,
   settings = list(),
   timescale = "d",
   year_start,
@@ -115,26 +114,25 @@ ingest_bysite <- function(
       mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
       mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
     
-    prepare_input_sofun_fapar_bysite_GEE( 
+    df_tmp <- ingest_gee( 
       siteinfo, 
       start_date           = paste0(year_start, "-01-01"),
       end_date             = paste0(year_end, "-12-31"), 
-      settings_sims        = settings_sims, 
-      settings_input       = settings_input,
-      overwrite_raw        = FALSE,
-      overwrite_nice       = overwrite_csv_fapar,
-      overwrite_csv        = overwrite_csv_fapar,
-      band_var             = settings_input$settings_gee$band_var, 
-      band_qc              = settings_input$settings_gee$band_qc, 
-      prod                 = settings_input$settings_gee$prod, 
-      prod_suffix          = settings_input$settings_gee$prod_suffix, 
-      varnam               = settings_input$settings_gee$varnam, 
-      productnam           = settings_input$settings_gee$productnam, 
-      scale_factor         = settings_input$settings_gee$scale_factor, 
-      period               = settings_input$settings_gee$period, 
-      do_plot_interpolated = settings_input$settings_gee$do_plot_interpolated, 
-      python_path          = settings_input$settings_gee$python_path,
-      gee_path             = settings_input$settings_gee$gee_path
+      overwrite_raw        = settings$overwrite_raw,
+      overwrite_interpol   = settings$overwrite_interpol,
+      band_var             = settings$band_var, 
+      band_qc              = settings$band_qc, 
+      prod                 = settings$prod, 
+      prod_suffix          = settings$prod_suffix, 
+      varnam               = settings$varnam, 
+      productnam           = settings$productnam, 
+      scale_factor         = settings$scale_factor, 
+      period               = settings$period, 
+      do_plot_interpolated = settings$do_plot_interpolated, 
+      python_path          = settings$python_path,
+      gee_path             = settings$gee_path,
+      data_path            = settings$data_path,
+      splined              = settings$splined
     )
     
   }
