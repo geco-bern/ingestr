@@ -62,7 +62,14 @@
   </ul>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/stineb/ingestr">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -78,7 +85,7 @@
       <h1>Examples for ingestr</h1>
             
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/stineb/ingestr/blob/master/vignettes/example.Rmd"><code>vignettes/example.Rmd</code></a></small>
       <div class="hidden name"><code>example.Rmd</code></div>
 
     </div>
@@ -92,7 +99,7 @@
 <p>Data can be ingested for different data types (argument <code>source</code> in several functions), each dealing with a specific format of the original data and specific functions to read from respective files or remote servers. The following data types can be handled currently (more to be added by you if you like):</p>
 <p>Meteo data:</p>
 <ul>
-<li>FLUXNET</li>
+<li>FLUXNET (also flux data can be read in)</li>
 <li>WATCH-WFDEI</li>
 <li>CRU</li>
 </ul>
@@ -102,7 +109,7 @@
 <li>MODIS EVI</li>
 <li>MODIS GPP</li>
 </ul>
-<p>MODIS data:</p>
+<p>MODIS data (not yet implemented):</p>
 <ul>
 <li>RModisTools R package to access data on remote server ORNL DAAC (not yet implemented).</li>
 </ul>
@@ -513,7 +520,7 @@ siteinfo &lt;-<span class="st"> </span>readr<span class="op">::</span><span clas
 
 
       <footer><div class="copyright">
-  <p>Developed by The package maintainer.</p>
+  <p>Developed by Benjamin Stocker.</p>
 </div>
 
 <div class="pkgdown">

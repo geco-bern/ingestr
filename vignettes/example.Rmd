@@ -23,7 +23,7 @@ Data can be ingested for different data types (argument `source` in several func
 
 Meteo data:
 
-  - FLUXNET
+  - FLUXNET (also flux data can be read in)
   - WATCH-WFDEI
   - CRU
 
@@ -33,7 +33,7 @@ Data on Google Earth Engine (using Koen Hufken's `gee_suset` library):
   - MODIS EVI
   - MODIS GPP
 
-MODIS data:
+MODIS data (not yet implemented):
 
   - RModisTools R package to access data on remote server ORNL DAAC (not yet implemented).
   
