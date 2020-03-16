@@ -1,6 +1,5 @@
 library(dplyr)
 library(readr)
-load_dependencies_rsofun()
 
 prepare_metainfo_fluxnet2015 <- function( origfilpath, dir_DD_fluxnet2015, overwrite=FALSE, filn_elv_watch=NA ){
   ##--------------------------------------------------------------------
@@ -9,10 +8,10 @@ prepare_metainfo_fluxnet2015 <- function( origfilpath, dir_DD_fluxnet2015, overw
   widefiln <- paste0( dirname(origfilpath), "/FLX_AA-Flx_BIF_LATEST_WIDE.csv")
   
   if (!file.exists(origfilpath)){
-    warn( "FLUXNET 2015 meta info file missing." )
-    warn( paste0("Expected file path: ", longfiln ) )
-    warn( "Get it from CX1 (manually) and place it at path above. See you soon.")
-    abort("Aborting.")
+    rlang::warn( "FLUXNET 2015 meta info file missing." )
+    rlang::warn( paste0("Expected file path: ", origfilpath ) )
+    rlang::warn( "Get it from CX1 (manually) and place it at path above. See you soon.")
+    rlang::abort("Aborting.")
   }
   
   if (!file.exists(widefiln) || overwrite){
@@ -426,7 +425,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                                   df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                                   
                                 } else {
-                                  abort("fuck")
+                                  rlang::abort("fuck")
                                 }
                                 
                               } 
@@ -500,7 +499,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                                   df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                                   
                                   if (nrow(df_nduplicates)>0){
-                                    abort("shitfuck.")
+                                    rlang::abort("shitfuck.")
                                   }
                                 }
                               }
