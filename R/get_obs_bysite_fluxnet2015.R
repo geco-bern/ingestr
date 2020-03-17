@@ -11,6 +11,9 @@
 #' @param path_fluxnet2015_hh A character string specifying the local path of
 #' half-hourly FLUXNET 2015 data, required to get daytime VPD. Defaults to
 #' \code{NULL} (no daytime VPD is calculated).
+#' @param path_fluxnet2015_hr A character string specifying the local path of
+#' hourly FLUXNET 2015 data, required to get daytime VPD. Defaults to
+#' \code{NULL} (no daytime VPD is calculated).
 #' @param timescale A character specifying the time scale of FLUXNET 2015
 #' data. Any of \code{c("d", "w", "m", "y")} for daily, weekly, monthly,
 #' or yearly, respectively.
@@ -109,12 +112,12 @@
 #' @examples df <- get_obs_bysite_fluxnet2015
 #'
 get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet2015_hh=NULL,
-  timescale, getvars, getswc=TRUE,
-  threshold_GPP=0.0, threshold_LE=0.0, threshold_H=0.0, threshold_SWC=0.0,
-  threshold_WS=0.0, threshold_USTAR=0.0, threshold_T=0.0, threshold_NETRAD=0.0, 
-  filter_ntdt = FALSE, return_qc=FALSE,
-  remove_neg = FALSE, verbose=TRUE ){
-
+                                        path_fluxnet2015_hr = NULL, timescale, getvars, getswc=TRUE,
+                                        threshold_GPP=0.0, threshold_LE=0.0, threshold_H=0.0, threshold_SWC=0.0,
+                                        threshold_WS=0.0, threshold_USTAR=0.0, threshold_T=0.0, threshold_NETRAD=0.0, 
+                                        filter_ntdt = FALSE, return_qc=FALSE,
+                                        remove_neg = FALSE, verbose=TRUE ){
+  
   if (verbose) print(paste("Getting FLUXNET data for", sitename, "..."))
 
   ## make a vector
@@ -276,6 +279,7 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
                                pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
                                recursive = TRUE
                               )
+        
         if (length(filn_hh)>0){
 
           path_hh <- paste0(path_fluxnet2015_hh, filn_hh)
@@ -289,11 +293,14 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
             path_hh <- path_hh[which.max(size_vec)]
           }
 
+          rlang::inform("Reading half-hourly data to calculate daytime VPD ...")
           df_vpd_day_dd <- get_vpd_day_fluxnet2015_byfile(path_hh, write = TRUE)
           merge_df_vpd_day_dd <- TRUE
 
         } else {
 
+          rlang::warn(paste0("No half-hourly data found in ", path_fluxnet2015_hh, ". Looking for hourly data in ",  path_fluxnet2015_hr, "..."))
+          
           ## get hourly file name(s)
           filn_hr <- list.files( path_fluxnet2015_hr,
                                  pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HR.*.csv" ),
@@ -312,6 +319,7 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
               path_hr <- path_hr[which.max(size_vec)]
             }
 
+            rlang::inform("Reading hourly data to calculate daytime VPD ...")
             df_vpd_day_dd <- get_vpd_day_fluxnet2015_byfile(path_hr, write = TRUE)
             merge_df_vpd_day_dd <- TRUE
 

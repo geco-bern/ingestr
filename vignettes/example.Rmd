@@ -300,7 +300,8 @@ settings_fluxnet <- list(
   dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", 
   getswc = FALSE,
   filter_ntdt = TRUE,
-  threshold_GPP = 0.8
+  threshold_GPP = 0.8,
+  remove_neg = FALSE
   )
 
 ddf_fluxnet_gpp <- ingest(
@@ -431,41 +432,7 @@ df_co2 <- ingest(
 
 <!-- ### Evaluation data -->
 
-<!-- ```{r message=FALSE, warning=FALSE} -->
-<!-- ## get data for idfferent time scales separately -->
-<!-- ddf_eval <- ingest( -->
-<!--   siteinfo = siteinfo, -->
-<!--   source    = "fluxnet2015", -->
-<!--   getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"), -->
-<!--   dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/", -->
-<!--   settings  = list(threshold_LE = 0.8, getswc = TRUE), -->
-<!--   timescale = "d" -->
-<!--   ) -->
-<!-- mdf_eval <- ingest( -->
-<!--   siteinfo = siteinfo, -->
-<!--   source    = "fluxnet2015", -->
-<!--   getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"), -->
-<!--   dir       = "~/data/FLUXNET-2015_Tier1/20191024/MM/", -->
-<!--   settings  = list(threshold_LE = 0.8, getswc = TRUE), -->
-<!--   timescale = "m" -->
-<!--   ) -->
-<!-- adf_eval <- ingest( -->
-<!--   siteinfo = siteinfo, -->
-<!--   source    = "fluxnet2015", -->
-<!--   getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"), -->
-<!--   dir       = "~/data/FLUXNET-2015_Tier1/20191024/YY/", -->
-<!--   settings  = list(threshold_LE = 0.8, getswc = TRUE), -->
-<!--   timescale = "y" -->
-<!--   ) -->
-<!-- ``` -->
 
-<!-- Use rsofun to create a standardised object used for benchmarking the model output. -->
-<!-- ```{r} -->
-<!-- settings_eval <- list( -->
-<!--   benchmark = list( latenth = c("fluxnet2015") ) -->
-<!--   ) -->
-<!-- obs_eval <- get_obs_eval2( settings_eval = settings_eval, adf = adf_eval, mdf = mdf_eval, ddf = ddf_eval ) -->
-<!-- ``` -->
 
 <!-- ### Calibration data -->
 

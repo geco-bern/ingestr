@@ -76,11 +76,13 @@ ingest_bysite <- function(
     df_tmp <- get_obs_bysite_fluxnet2015(sitename,
                                          path_fluxnet2015 = dir,
                                          path_fluxnet2015_hh = settings$dir_hh,
+                                         path_fluxnet2015_hr = settings$dir_hr,
                                          timescale        = timescale,
                                          getvars          = getvars,
                                          getswc           = settings$getswc,
                                          threshold_GPP    = settings$threshold_GPP,
                                          filter_ntdt      = settings$filter_ntdt,
+                                         remove_neg       = settings$remove_neg,  
                                          verbose          = verbose
                                         ) %>% 
       mutate(sitename = sitename)
