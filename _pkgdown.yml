@@ -1,10 +1,10 @@
 reference:
-  - title: "Main function for singe-site data ingest."
+  - title: "Single-site data ingest."
     desc: >
       Ingests data given the longitude and latitude of the site and years to be covered.
     contents:
       - ingest_bysite
-  - title: "Main function for data ingest for an ensemble of sites."
+  - title: "Data ingest for an ensemble of sites."
     desc: >
       Given a data frame containing meta information (longitude, latitude and years covered for each site), this function ingests data for an ensemble of sites.
     contents:
@@ -12,4 +12,10 @@ reference:
   - title: "Other public functions.`"
     desc: "Other public functions that may be useful."
     contents:
-      - -matches("ingest_")
+      - ingest_globalfields
+      - ingest_gee
+      - get_settings_gee
+      - get_obs_bysite_fluxnet2015
+      - get_vpd_day_fluxnet2015
+      - init_dates_dataframe
+      - remove_outliers

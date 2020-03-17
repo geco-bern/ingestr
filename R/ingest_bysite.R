@@ -80,6 +80,7 @@ ingest_bysite <- function(
                                          getvars          = getvars,
                                          getswc           = settings$getswc,
                                          threshold_GPP    = settings$threshold_GPP,
+                                         filter_ntdt      = settings$filter_ntdt,
                                          verbose          = verbose
                                         ) %>% 
       mutate(sitename = sitename)
@@ -114,7 +115,7 @@ ingest_bysite <- function(
       mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
       mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
     
-    df_tmp <- ingest_gee( 
+    df_tmp <- ingest_gee_bysite( 
       siteinfo, 
       start_date           = paste0(year_start, "-01-01"),
       end_date             = paste0(year_end, "-12-31"), 
@@ -128,13 +129,26 @@ ingest_bysite <- function(
       productnam           = settings$productnam, 
       scale_factor         = settings$scale_factor, 
       period               = settings$period, 
-      do_plot_interpolated = settings$do_plot_interpolated, 
       python_path          = settings$python_path,
       gee_path             = settings$gee_path,
       data_path            = settings$data_path,
-      splined              = settings$splined
+      method_interpol      = settings$method_interpol,
+      keep                 = settings$keep
     )
     
+  } else if (source == "co2"){
+    #-----------------------------------------------------------
+    # Get CO2 data per year, independent of site
+    #-----------------------------------------------------------
+    df_tmp <- readr::read_csv(settings$path) %>% 
+      dplyr::filter(year>1750) %>% 
+      dplyr::mutate(date = lubridate::ymd(paste0(as.integer(year), "-01-01"))) %>% 
+      dplyr::mutate(year = lubridate::year(date)) %>% 
+      dplyr::select(-date) %>% 
+      mutate(sitename = sitename)
+    
+  } else {
+    rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet2015', 'cru', 'watch_wfdei', or 'gee'.")
   }
 
   if (timescale=="m"){
@@ -150,9 +164,17 @@ ingest_bysite <- function(
       right_join(df, by = "year")
     
   } else if (timescale=="d"){
-    df <- df_tmp %>%
-      right_join(df, by = "date")
+    if (source == "co2"){
+      df <- df_tmp %>%
+        right_join(df %>% mutate(year = lubridate::year(date)), by = "year")
+    } else {
+      df <- df_tmp %>%
+        right_join(df, by = "date")
+    }
   }
+  
+  df <- df %>% 
+    tidyr::drop_na(sitename)
   
     
   return( df )

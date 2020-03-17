@@ -121,6 +121,9 @@
 <div id="fluxnet-2015" class="section level3">
 <h3 class="hasAnchor">
 <a href="#fluxnet-2015" class="anchor"></a>FLUXNET 2015</h3>
+<div id="meteo-data" class="section level4">
+<h4 class="hasAnchor">
+<a href="#meteo-data" class="anchor"></a>Meteo data</h4>
 <p>Reading from FLUXNET 2015 files offers additional settings to be used specifically. Here, we’re specifying that no soil water content data is read, and that half-hourly data is stored in a separate directory. The latter specification is used to derive daytime VPD which is not given in FLUXNET 2015 data, but required here (see <code>getvars</code> element <code>vpd  = "VPD_F_DAY"</code>).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">settings_fluxnet &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/list.html">list</a></span>(
   <span class="dt">dir_hh =</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/HH/"</span>, 
@@ -144,6 +147,7 @@ df_fluxnet &lt;-<span class="st"> </span>ingestr<span class="op">::</span><span 
   )</code></pre></div>
 <pre><code>## Warning in as.POSIXlt.POSIXct(x, tz): unknown timezone 'zone/tz/2019c.1.0/
 ## zoneinfo/Europe/Zurich'</code></pre>
+<pre><code>## Warning: Unknown columns: ``</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_fluxnet</code></pre></div>
 <pre><code>## # A tibble: 1,095 x 9
 ##    date        temp  prec    vpd     swin netrad  patm   ppfd sitename
@@ -160,10 +164,34 @@ df_fluxnet &lt;-<span class="st"> </span>ingestr<span class="op">::</span><span 
 ## 10 2010-01-10 -7.78 0.724  32.1  1383005.     NA 92482  2.82  CH-Lae  
 ## # … with 1,085 more rows</code></pre>
 </div>
+<div id="flux-data" class="section level4">
+<h4 class="hasAnchor">
+<a href="#flux-data" class="anchor"></a>Flux data</h4>
+<p>The same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we’re reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (<code>""GPP_NT_VUT_REF""</code>), keep only data where at least 80% is based on non-gapfilled half-hourly data (<code>threshold_GPP = 0.8</code>), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (<code>filter_ntdt = TRUE</code>, see also <code><a href="../reference/get_obs_bysite_fluxnet2015.html">?get_obs_bysite_fluxnet2015</a></code>).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">settings_fluxnet &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/list.html">list</a></span>(
+  <span class="dt">dir_hh =</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/HH/"</span>, 
+  <span class="dt">getswc =</span> <span class="ot">FALSE</span>,
+  <span class="dt">filter_ntdt =</span> <span class="ot">TRUE</span>,
+  <span class="dt">threshold_GPP =</span> <span class="fl">0.8</span>
+  )
+
+ddf_fluxnet &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
+  <span class="dt">sitename =</span> <span class="st">"CH-Lae"</span>,
+  <span class="dt">source    =</span> <span class="st">"fluxnet2015"</span>,
+  <span class="dt">getvars =</span> <span class="kw"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="dt">gpp =</span> <span class="st">"GPP_NT_VUT_REF"</span>,
+                 <span class="dt">gpp_unc =</span> <span class="st">"GPP_NT_VUT_SE"</span>),
+  <span class="dt">dir =</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/DD/"</span>,
+  <span class="dt">settings =</span> settings_fluxnet,
+  <span class="dt">timescale =</span> <span class="st">"d"</span>,
+  <span class="dt">year_start =</span> <span class="dv">2010</span>,
+  <span class="dt">year_end =</span> <span class="dv">2012</span>
+  )</code></pre></div>
+</div>
+</div>
 <div id="watch-wfdei" class="section level3">
 <h3 class="hasAnchor">
 <a href="#watch-wfdei" class="anchor"></a>WATCH-WFDEI</h3>
-<p>Let’s extract data for the location corresponding to FLUXNET site ‘CH-Lae’ (lon = 8.365, lat = 47.4781).</p>
+<p>Let’s extract data for the location corresponding to FLUXNET site ‘CH-Lae’ (lon = 8.365, lat = 47.4781). This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 degree resolution), provided as monthly files containing all days in each month. The data directory specified here (<code>dir = "~/data/watch_wfdei/"</code>) contains subdirectories with names containing the variable names (corresponding to the ones specified by the argument <code>getvars = list(temp = "Tair")</code>).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_watch &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
   <span class="dt">sitename =</span> <span class="st">"CH-Lae"</span>,
   <span class="dt">source =</span> <span class="st">"watch_wfdei"</span>,
@@ -228,10 +256,10 @@ df_fluxnet &lt;-<span class="st"> </span>ingestr<span class="op">::</span><span 
 ## 10 CH-Lae   -4.71 2010-01-10
 ## # … with 1,085 more rows</code></pre>
 </div>
-<div id="cru" class="section level3">
+<div id="cru-ts" class="section level3">
 <h3 class="hasAnchor">
-<a href="#cru" class="anchor"></a>CRU</h3>
-<p>As above, let’s extract CRU data for the location corresponding to FLUXNET site ‘CH-Lae’ (lon = 8.365, lat = 47.4781). Note that we’re using <code>tmx</code> (the daily maximum temperature).</p>
+<a href="#cru-ts" class="anchor"></a>CRU TS</h3>
+<p>As above, let’s extract CRU data for the location corresponding to FLUXNET site ‘CH-Lae’ (lon = 8.365, lat = 47.4781). Note that we’re using <code>tmx</code> (the daily maximum temperature). This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_cru &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
   <span class="dt">sitename =</span> <span class="st">"CH-Lae"</span>,
   <span class="dt">source =</span> <span class="st">"cru"</span>,
@@ -272,7 +300,8 @@ df_fluxnet &lt;-<span class="st"> </span>ingestr<span class="op">::</span><span 
 df <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>(<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="dt">x =</span> date, <span class="dt">y =</span> temp, <span class="dt">color =</span> source)) <span class="op">+</span>
 <span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>()</code></pre></div>
-<p><img src="example_files/figure-html/unnamed-chunk-4-1.png" width="700"> Looks sweet.</p>
+<p><img src="example_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
+<p>Looks sweet.</p>
 </div>
 <div id="google-earth-engine" class="section level3">
 <h3 class="hasAnchor">
@@ -314,16 +343,28 @@ df <span class="op">%&gt;%</span><span class="st"> </span>
 <div id="modis-fpar" class="section level4">
 <h4 class="hasAnchor">
 <a href="#modis-fpar" class="anchor"></a>MODIS FPAR</h4>
-<p>To facilitate the selection of data products and bands to be downloaded, you may use the function <code><a href="../reference/get_settings_gee.html">get_settings_gee()</a></code> which defines defaults for different data bundles (<code><a href="https://rdrr.io/r/base/c.html">c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")</a></code> are available). The following example is for downloading MODIS FPAR data.</p>
+<p>To facilitate the selection of data products and bands to be downloaded, you may use the function <code><a href="../reference/get_settings_gee.html">get_settings_gee()</a></code> which defines defaults for different data bundles (<code><a href="https://rdrr.io/r/base/c.html">c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")</a></code> are available).</p>
+<ul>
+<li>
+<code>"modis_fpar"</code>: MODIS/006/MCD15A3H, band Fpar</li>
+<li>
+<code>"modis_evi"</code>: MODIS/006/MOD13Q1, band EVI</li>
+<li>
+<code>"modis_lai"</code>: MOD15A2, band <code>Lai_1km</code>
+</li>
+<li>
+<code>"modis_gpp"</code>: MODIS/006/MOD17A2H, band Gpp</li>
+</ul>
+<p>The following example is for downloading MODIS FPAR data.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">settings_gee &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_settings_gee.html">get_settings_gee</a></span>( 
   <span class="dt">bundle =</span> <span class="st">"modis_fpar"</span>, 
   <span class="dt">python_path =</span> <span class="kw"><a href="https://rdrr.io/r/base/system.html">system</a></span>(<span class="st">"which python"</span>, <span class="dt">intern =</span> <span class="ot">TRUE</span>),
   <span class="dt">gee_path =</span> <span class="st">"~/google_earth_engine_subsets/gee_subset/"</span>,
   <span class="dt">data_path =</span> <span class="st">"~/data/gee_subsets/"</span>,
-  <span class="dt">splined =</span> <span class="ot">TRUE</span>,
-  <span class="dt">do_plot_interpolated =</span> <span class="ot">FALSE</span>,
+  <span class="dt">method_interpol =</span> <span class="st">"linear"</span>,
+  <span class="dt">keep =</span> <span class="ot">TRUE</span>,
   <span class="dt">overwrite_raw =</span> <span class="ot">FALSE</span>,
-  <span class="dt">overwrite_interpol =</span> <span class="ot">FALSE</span>
+  <span class="dt">overwrite_interpol =</span> <span class="ot">TRUE</span>
   )</code></pre></div>
 <p>This can now be used to download the data to the directory specified by argument <code>data_path</code> of function <code><a href="../reference/get_settings_gee.html">get_settings_gee()</a></code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_gee_modis_fpar &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
@@ -338,24 +379,50 @@ df <span class="op">%&gt;%</span><span class="st"> </span>
   )</code></pre></div>
 <pre><code>## Parsed with column specification:
 ## cols(
+##   id = col_character(),
+##   longitude = col_double(),
+##   latitude = col_double(),
 ##   date = col_date(format = ""),
-##   year_dec = col_double(),
-##   doy = col_double(),
-##   modisvar = col_double(),
-##   data_loess = col_double(),
-##   spline = col_double(),
-##   interpl = col_double(),
-##   sgfiltered = col_double(),
-##   modisvar_interpol = col_double()
+##   Fpar = col_double(),
+##   FparLai_QC = col_double(),
+##   product = col_character()
 ## )</code></pre>
+<pre><code>## loess...</code></pre>
+<pre><code>## done.</code></pre>
+<pre><code>## spline...</code></pre>
+<pre><code>## done.</code></pre>
+<pre><code>## linear ...</code></pre>
+<pre><code>## done.</code></pre>
+<pre><code>## sgfilter ...</code></pre>
+<pre><code>## done.</code></pre>
+<pre><code>## Warning: Filling values with last available data point at head</code></pre>
+<pre><code>## Warning: Filling values with last available data point at tail.</code></pre>
 <p>Plot this data.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_gee_modis_fpar <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>(<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="dt">x =</span> date)) <span class="op">+</span>
-<span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span>(<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="dt">y =</span> modisvar)) <span class="op">+</span>
-<span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="kw"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="dt">y =</span> modisvar_interpol), <span class="dt">col =</span> <span class="st">'red'</span>)</code></pre></div>
-<pre><code>## Warning: Removed 836 rows containing missing values (geom_point).</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_fapar_ingestr_bysite.html">plot_fapar_ingestr_bysite</a></span>(df_gee_modis_fpar, settings_gee)</code></pre></div>
+<pre><code>## Warning: Removed 815 rows containing missing values (geom_point).
+
+## Warning: Removed 815 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 895 rows containing missing values (geom_point).</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
 </div>
+</div>
+<div id="co2" class="section level3">
+<h3 class="hasAnchor">
+<a href="#co2" class="anchor"></a>CO2</h3>
+<p>Ingesting CO2 data is particularly simple. We can safely assume it’s well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_co2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
+  <span class="dt">sitename =</span> <span class="st">"CH-Lae"</span>,
+  <span class="dt">source =</span> <span class="st">"co2"</span>,
+  <span class="dt">year_start =</span> <span class="dv">2010</span>,
+  <span class="dt">year_end =</span> <span class="dv">2012</span>,
+  <span class="dt">verbose =</span> <span class="ot">FALSE</span>,
+  <span class="dt">settings =</span> <span class="kw"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="dt">path =</span> <span class="st">"~/data/co2/cCO2_rcp85_const850-1765.csv"</span>)
+  )</code></pre></div>
+<pre><code>## Parsed with column specification:
+## cols(
+##   year = col_double(),
+##   co2 = col_double()
+## )</code></pre>
 </div>
 </div>
 <div id="examples-for-a-site-ensemble" class="section level2">
@@ -363,44 +430,74 @@ df <span class="op">%&gt;%</span><span class="st"> </span>
 <a href="#examples-for-a-site-ensemble" class="anchor"></a>Examples for a site ensemble</h2>
 <p>To collect data from an ensemble of sites, we have to define a meta data frame, here called <code>siteinfo</code>, with rows for each site and columns <code>lon</code> for longitude, <code>lat</code> for latitude, <code>date_start</code> and <code>date_end</code> for required dates (Dates are objects returned by a <code><a href="http://lubridate.tidyverse.org/reference/ymd.html">lubridate::ymd()</a></code> function call - this stands for year-month-day). The function <code><a href="../reference/ingest.html">ingest()</a></code> can then be used to collect all site-level data as a nested data frame corresponding to the metadata <code>siteinfo</code> with an added column named <code>data</code> where the time series of ingested data is nested inside.</p>
 <p>Note that extracting for an ensemble of sites at once is more efficient for data types that are global files (WATCH-WFDEI, and CRU). In this case, the <code>raster</code> package can be used to efficiently ingest data.</p>
-<p>First, define a list of sites and get site meta information. The required meta information is provided in file <code>"~/data/FLUXNET-2015_Tier1/siteinfo_fluxnet2015_sofun+whc.csv"</code>.</p>
+<p>First, define a list of sites and get site meta information. The required meta information is provided in file <code>siteinfo_fluxnet2015.csv</code>. This file is created as described in (and using code from) <a href="https://github.com/stineb/metainfo_fluxnet2015">metainfo_fluxnet2015</a>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mysites &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"BE-Vie"</span>, <span class="st">"DE-Tha"</span>, <span class="st">"DK-Sor"</span>, <span class="st">"FI-Hyy"</span>, <span class="st">"IT-Col"</span>, <span class="st">"NL-Loo"</span>, <span class="st">"US-MMS"</span>, <span class="st">"US-WCr"</span>, <span class="st">"US-UMB"</span>, <span class="st">"US-Syv"</span>, <span class="st">"DE-Hai"</span>)
 
-siteinfo &lt;-<span class="st"> </span>readr<span class="op">::</span><span class="kw"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_csv</a></span>(<span class="st">"~/data/FLUXNET-2015_Tier1/siteinfo_fluxnet2015_sofun+whc.csv"</span>) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">rename</span>(<span class="dt">sitename =</span> mysitename) <span class="op">%&gt;%</span>
+siteinfo &lt;-<span class="st"> </span>readr<span class="op">::</span><span class="kw"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_csv</a></span>(<span class="st">"~/ingestr/siteinfo_fluxnet2015.csv"</span>) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span>(sitename <span class="op">%in%</span><span class="st"> </span>mysites) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">mutate</span>(<span class="dt">date_start =</span> lubridate<span class="op">::</span><span class="kw"><a href="http://lubridate.tidyverse.org/reference/ymd.html">ymd</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span>(year_start, <span class="st">"-01-01"</span>))) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">mutate</span>(<span class="dt">date_end =</span> lubridate<span class="op">::</span><span class="kw"><a href="http://lubridate.tidyverse.org/reference/ymd.html">ymd</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span>(year_end, <span class="st">"-12-31"</span>)))</code></pre></div>
-<pre><code>## Parsed with column specification:
-## cols(
-##   mysitename = col_character(),
-##   lon = col_double(),
-##   lat = col_double(),
-##   elv = col_double(),
-##   year_start = col_double(),
-##   year_end = col_double(),
-##   years_data = col_double(),
-##   classid = col_character(),
-##   elv_watch = col_double(),
-##   elv_diff = col_double(),
-##   whc = col_double()
-## )</code></pre>
+<p>This file looks like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(siteinfo)</code></pre></div>
+<pre><code>## # A tibble: 11 x 14
+##    sitename    lon   lat   elv year_start year_end classid c4      whc
+##    &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;   &lt;lgl&gt; &lt;dbl&gt;
+##  1 BE-Vie     6.00  50.3   493       1996     2014 MF      FALSE 313. 
+##  2 DE-Hai    10.5   51.1   430       2000     2012 DBF     FALSE 283. 
+##  3 DE-Tha    13.6   51.0   380       1996     2014 ENF     FALSE 296. 
+##  4 DK-Sor    11.6   55.5    40       1996     2014 DBF     FALSE 226. 
+##  5 FI-Hyy    24.3   61.8   181       1996     2014 ENF     FALSE 255. 
+##  6 IT-Col    13.6   41.8  1560       1996     2014 DBF     FALSE 268. 
+##  7 NL-Loo     5.74  52.2    25       1996     2013 ENF     FALSE  71.1
+##  8 US-MMS   -86.4   39.3   275       1999     2014 DBF     FALSE 343. 
+##  9 US-Syv   -89.3   46.2   540       2001     2014 MF      FALSE 223. 
+## 10 US-UMB   -84.7   45.6   234       2000     2014 DBF     FALSE 174. 
+## 11 US-WCr   -90.1   45.8   520       1999     2014 DBF     FALSE 265. 
+## # … with 5 more variables: koeppen_code &lt;chr&gt;, igbp_land_use &lt;chr&gt;,
+## #   plant_functional_type &lt;chr&gt;, date_start &lt;date&gt;, date_end &lt;date&gt;</code></pre>
 <p>Next, the data can be ingested for all sites at once. Let’s do it for different data types again.</p>
 <div id="fluxnet-2015-1" class="section level3">
 <h3 class="hasAnchor">
 <a href="#fluxnet-2015-1" class="anchor"></a>FLUXNET 2015</h3>
+<div id="meteo-data-1" class="section level4">
+<h4 class="hasAnchor">
+<a href="#meteo-data-1" class="anchor"></a>Meteo data</h4>
+<p>This ingests meteorological data from the FLUXNET 2015 files for variables temperature, precipitation, VPD, shortwave incoming radiation, net radiation, and atmospheric pressure. Arguments that are specific for this data source are provided in the <code>settings</code> list.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ddf_fluxnet &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ingest.html">ingest</a></span>(
   <span class="dt">siteinfo =</span> siteinfo,
   <span class="dt">source    =</span> <span class="st">"fluxnet2015"</span>,
   <span class="dt">getvars   =</span> <span class="kw"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="dt">temp =</span> <span class="st">"TA_F_DAY"</span>, <span class="dt">prec =</span> <span class="st">"P_F"</span>, <span class="dt">vpd  =</span> <span class="st">"VPD_F_DAY"</span>, <span class="dt">swin =</span>  <span class="st">"SW_IN_F"</span>, <span class="dt">netrad =</span> <span class="st">"NETRAD"</span>, <span class="dt">patm =</span> <span class="st">"PA_F"</span>),
   <span class="dt">dir       =</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/DD/"</span>,
-  <span class="dt">settings  =</span> <span class="kw"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="dt">dir_hh =</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/HH/"</span>, <span class="dt">getswc =</span> <span class="ot">FALSE</span>, <span class="dt">threshold_GPP =</span> <span class="fl">0.5</span>),
+  <span class="dt">settings  =</span> <span class="kw"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="dt">dir_hh =</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/HH/"</span>, <span class="dt">getswc =</span> <span class="ot">FALSE</span>),
   <span class="dt">timescale =</span> <span class="st">"d"</span>
   )</code></pre></div>
+</div>
+<div id="flux-data-1" class="section level4">
+<h4 class="hasAnchor">
+<a href="#flux-data-1" class="anchor"></a>Flux data</h4>
+<p>As described above for a single site, the same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we’re reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (<code>""GPP_NT_VUT_REF""</code>), keep only data where at least 80% is based on non-gapfilled half-hourly data (<code>threshold_GPP = 0.8</code>), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (<code>filter_ntdt = TRUE</code>, see also <code><a href="../reference/get_obs_bysite_fluxnet2015.html">?get_obs_bysite_fluxnet2015</a></code>).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">settings_fluxnet &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/list.html">list</a></span>(
+  <span class="dt">dir_hh =</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/HH/"</span>, 
+  <span class="dt">getswc =</span> <span class="ot">FALSE</span>,
+  <span class="dt">filter_ntdt =</span> <span class="ot">TRUE</span>,
+  <span class="dt">threshold_GPP =</span> <span class="fl">0.8</span>
+  )
+
+ddf_fluxnet_gpp &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ingest.html">ingest</a></span>(
+  <span class="dt">siteinfo =</span> siteinfo,
+  <span class="dt">source    =</span> <span class="st">"fluxnet2015"</span>,
+  <span class="dt">getvars =</span> <span class="kw"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="dt">gpp =</span> <span class="st">"GPP_NT_VUT_REF"</span>,
+                 <span class="dt">gpp_unc =</span> <span class="st">"GPP_NT_VUT_SE"</span>),
+  <span class="dt">dir =</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/DD/"</span>,
+  <span class="dt">settings =</span> settings_fluxnet,
+  <span class="dt">timescale =</span> <span class="st">"d"</span>
+  )</code></pre></div>
+</div>
 </div>
 <div id="watch-wfdei-1" class="section level3">
 <h3 class="hasAnchor">
 <a href="#watch-wfdei-1" class="anchor"></a>WATCH-WFDEI</h3>
+<p>This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 degree resolution), provided as monthly files containing all days in each month. The data directory specified here (<code>dir = "~/data/watch_wfdei/"</code>) contains subdirectories with names containing the variable names (corresponding to the ones specified by the argument <code>getvars = list(temp = "Tair")</code>).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ddf_watch &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ingest.html">ingest</a></span>(
   <span class="dt">siteinfo =</span> siteinfo,
   <span class="dt">source    =</span> <span class="st">"watch_wfdei"</span>,
@@ -408,9 +505,10 @@ siteinfo &lt;-<span class="st"> </span>readr<span class="op">::</span><span clas
   <span class="dt">dir       =</span> <span class="st">"~/data/watch_wfdei/"</span>
   )</code></pre></div>
 </div>
-<div id="cru-1" class="section level3">
+<div id="cru-ts-1" class="section level3">
 <h3 class="hasAnchor">
-<a href="#cru-1" class="anchor"></a>CRU</h3>
+<a href="#cru-ts-1" class="anchor"></a>CRU TS</h3>
+<p>This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ddf_cru &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ingest.html">ingest</a></span>(
   <span class="dt">siteinfo =</span> siteinfo,
   <span class="dt">source    =</span> <span class="st">"cru"</span>,
@@ -430,7 +528,132 @@ siteinfo &lt;-<span class="st"> </span>readr<span class="op">::</span><span clas
 ## Warning: Removed 4745 row(s) containing missing values (geom_path).
 
 ## Warning: Removed 4745 row(s) containing missing values (geom_path).</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
+<p><img src="example_files/figure-html/unnamed-chunk-23-1.png" width="700"></p>
+</div>
+<div id="google-earth-engine-1" class="section level3">
+<h3 class="hasAnchor">
+<a href="#google-earth-engine-1" class="anchor"></a>Google Earth Engine</h3>
+<p>Using the same settings as specified above, we can download MODIS FPAR data for multiple sites at once from GEE:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">settings_gee &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_settings_gee.html">get_settings_gee</a></span>( 
+  <span class="dt">bundle =</span> <span class="st">"modis_fpar"</span>, 
+  <span class="dt">python_path =</span> <span class="kw"><a href="https://rdrr.io/r/base/system.html">system</a></span>(<span class="st">"which python"</span>, <span class="dt">intern =</span> <span class="ot">TRUE</span>),
+  <span class="dt">gee_path =</span> <span class="st">"~/google_earth_engine_subsets/gee_subset/"</span>,
+  <span class="dt">data_path =</span> <span class="st">"~/data/gee_subsets/"</span>,
+  <span class="dt">method_interpol =</span> <span class="st">"linear"</span>,
+  <span class="dt">keep =</span> <span class="ot">TRUE</span>,
+  <span class="dt">overwrite_raw =</span> <span class="ot">FALSE</span>,
+  <span class="dt">overwrite_interpol =</span> <span class="ot">TRUE</span>
+  )
+
+df_gee_modis_fpar &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ingest.html">ingest</a></span>(
+  <span class="dt">siteinfo =</span> siteinfo,
+  <span class="dt">source =</span> <span class="st">"gee"</span>,
+  <span class="dt">settings =</span> settings_gee,
+  <span class="dt">verbose =</span> <span class="ot">FALSE</span>
+  )</code></pre></div>
+<p>Collect all plots.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">list_gg &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_fapar_ingestr.html">plot_fapar_ingestr</a></span>(df_gee_modis_fpar, settings_gee)
+purrr<span class="op">::</span><span class="kw"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span>(list_gg, <span class="op">~</span><span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(.))</code></pre></div>
+<p><img src="example_files/figure-html/unnamed-chunk-25-1.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-2.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-3.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-4.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-5.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-6.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-7.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-8.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-9.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-10.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-11.png" width="700"></p>
+<pre><code>## [[1]]</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-25-12.png" width="700"></p>
+<pre><code>## 
+## [[2]]</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-25-13.png" width="700"></p>
+<pre><code>## 
+## [[3]]</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-25-14.png" width="700"></p>
+<pre><code>## 
+## [[4]]</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-25-15.png" width="700"></p>
+<pre><code>## 
+## [[5]]</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-25-16.png" width="700"></p>
+<pre><code>## 
+## [[6]]</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-25-17.png" width="700"></p>
+<pre><code>## 
+## [[7]]</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-25-18.png" width="700"></p>
+<pre><code>## 
+## [[8]]</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-25-19.png" width="700"></p>
+<pre><code>## 
+## [[9]]</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-25-20.png" width="700"></p>
+<pre><code>## 
+## [[10]]</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-25-21.png" width="700"></p>
+<pre><code>## 
+## [[11]]</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-25-22.png" width="700"></p>
+</div>
+<div id="co2-1" class="section level3">
+<h3 class="hasAnchor">
+<a href="#co2-1" class="anchor"></a>CO2</h3>
+<p>Ingesting CO2 data is particularly simple. We can safely assume it’s well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_co2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ingest.html">ingest</a></span>(
+  siteinfo,
+  <span class="dt">source =</span> <span class="st">"co2"</span>,
+  <span class="dt">verbose =</span> <span class="ot">FALSE</span>,
+  <span class="dt">settings =</span> <span class="kw"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="dt">path =</span> <span class="st">"~/data/co2/cCO2_rcp85_const850-1765.csv"</span>)
+  )</code></pre></div>
+<pre><code>## Parsed with column specification:
+## cols(
+##   year = col_double(),
+##   co2 = col_double()
+## )
+## Parsed with column specification:
+## cols(
+##   year = col_double(),
+##   co2 = col_double()
+## )
+## Parsed with column specification:
+## cols(
+##   year = col_double(),
+##   co2 = col_double()
+## )
+## Parsed with column specification:
+## cols(
+##   year = col_double(),
+##   co2 = col_double()
+## )
+## Parsed with column specification:
+## cols(
+##   year = col_double(),
+##   co2 = col_double()
+## )
+## Parsed with column specification:
+## cols(
+##   year = col_double(),
+##   co2 = col_double()
+## )
+## Parsed with column specification:
+## cols(
+##   year = col_double(),
+##   co2 = col_double()
+## )
+## Parsed with column specification:
+## cols(
+##   year = col_double(),
+##   co2 = col_double()
+## )
+## Parsed with column specification:
+## cols(
+##   year = col_double(),
+##   co2 = col_double()
+## )
+## Parsed with column specification:
+## cols(
+##   year = col_double(),
+##   co2 = col_double()
+## )
+## Parsed with column specification:
+## cols(
+##   year = col_double(),
+##   co2 = col_double()
+## )</code></pre>
+<!-- xxxxxxx -->
 <!-- ### rsofun input data -->
 <!-- First read all FLUXNET meteo data. -->
 <!-- ```{r message=FALSE, warning=FALSE} -->

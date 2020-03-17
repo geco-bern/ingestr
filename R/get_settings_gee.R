@@ -8,8 +8,10 @@
 #' @param python_path A character string specifying the local path to the python executable
 #' @param gee_path A character string specifying the local path to the \code{gee_subseet} library.
 #' @param data_path A character string specifying the path of where the data should be downloaded to.
-#' @param splined A logical specifying whether data is to be splined to get daily values (otherwise it's linearly interpolated).
-#' @param do_plot_interpolated A logical specifying whether to plot time series original data and interpolated to daily values in a PDF.
+#' @param method_interpol A character string specifying which interpolation method to use. Defaults to linear interpolation (\code{"linear"}). 
+#' Alternatives are 
+#' @param keep A logical specifying whether to keep all intermediate data (before filtering, and before imputing mean seasonal cycle),
+#' and all alternative interpolation results. Defaults to \code{FALSE}.
 #' @param overwrite_raw A logical specifying whether raw data as downloaded from GEE is to be overwritten. Defaults to \code{FALSE},
 #' i.e. data is read from exisitng file if available.
 #' @param overwrite_interpol A logical specifying whether processed (interpolated) data, is to be overwritten. Defaults to \code{FALSE},
@@ -21,7 +23,7 @@
 #' @examples \dontrun{settings_gee <- get_settings_gee( bundle = "modis_fpar" )}
 #' 
 get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which python", intern = TRUE),
-                              gee_path, data_path, splined, do_plot_interpolated, overwrite_raw = FALSE, overwrite_interpol = FALSE ){
+                              gee_path, data_path, method_interpol = "linear", keep = FALSE, overwrite_raw = FALSE, overwrite_interpol = FALSE ){
 
   if (bundle == "modis_fpar"){
     ##--------------------------------------------------------------------
@@ -89,13 +91,14 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
     rlang::abort("get_settings_gee(): Could not identify required argument 'bundle'.")
   }
 
-  out$python_path  <- python_path
-  out$gee_path     <- gee_path
-  out$data_path    <- data_path
-  out$splined      <- splined
-  out$do_plot_interpolated <- do_plot_interpolated
-  out$overwrite_raw <- overwrite_raw
+  out$python_path        <- python_path
+  out$gee_path           <- gee_path
+  out$data_path          <- data_path
+  out$method_interpol    <- method_interpol
+  out$keep               <- keep
+  out$overwrite_raw      <- overwrite_raw
   out$overwrite_interpol <- overwrite_interpol
   
   return(out)
+
 }

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • ingestr</title>
+<title>Plot fAPAR for one site — plot_fapar_ingestr_bysite • ingestr</title>
 
 
 <!-- jquery -->
@@ -35,7 +35,9 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Plot fAPAR for one site — plot_fapar_ingestr_bysite" />
+<meta property="og:description" content="Visualise the fAPR data filtering, imputing, and interpolation to daily values." />
+<meta name="twitter:card" content="summary" />
 
 
 
@@ -54,7 +56,7 @@
   </head>
 
   <body>
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -116,102 +118,47 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Plot fAPAR for one site</h1>
+    <small class="dont-index">Source: <a href='https://github.com/stineb/ingestr/blob/master/R/plot_fapar_ingestr.R'><code>R/plot_fapar_ingestr.R</code></a></small>
+    <div class="hidden name"><code>plot_fapar_ingestr_bysite.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    <p>Visualise the fAPR data filtering, imputing, and interpolation to daily values.</p>
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
+    <pre class="usage"><span class='fu'>plot_fapar_ingestr_bysite</span>(<span class='no'>df</span>, <span class='no'>settings</span>, <span class='kw'>sitename</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
 
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-single-site-data-ingest-" class="hasAnchor"><a href="#section-single-site-data-ingest-" class="anchor"></a>Single-site data ingest.</h2>
-          <p class="section-desc"><p>Ingests data given the longitude and latitude of the site and years to be covered.</p></p>
-        </th>
-      </tr>
-      <tr>
-        
-        <td>
-          <p><code><a href="ingest_bysite.html">ingest_bysite()</a></code> </p>
-        </td>
-        <td><p>Data ingest for a single site</p></td>
-      </tr>
-    </tbody><tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-data-ingest-for-an-ensemble-of-sites-" class="hasAnchor"><a href="#section-data-ingest-for-an-ensemble-of-sites-" class="anchor"></a>Data ingest for an ensemble of sites.</h2>
-          <p class="section-desc"><p>Given a data frame containing meta information (longitude, latitude and years covered for each site), this function ingests data for an ensemble of sites.</p></p>
-        </th>
-      </tr>
-      <tr>
-        
-        <td>
-          <p><code><a href="ingest.html">ingest()</a></code> </p>
-        </td>
-        <td><p>Data ingest</p></td>
-      </tr>
-    </tbody><tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-other-public-functions-" class="hasAnchor"><a href="#section-other-public-functions-" class="anchor"></a>Other public functions.`</h2>
-          <p class="section-desc"><p>Other public functions that may be useful.</p></p>
-        </th>
-      </tr>
-      <tr>
-        
-        <td>
-          <p><code><a href="ingest_globalfields.html">ingest_globalfields()</a></code> </p>
-        </td>
-        <td><p>Ingest from global fields</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_settings_gee.html">get_settings_gee()</a></code> </p>
-        </td>
-        <td><p>Defines settings for settings for Google Earth Engine download</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_obs_bysite_fluxnet2015.html">get_obs_bysite_fluxnet2015()</a></code> </p>
-        </td>
-        <td><p>Get FLUXNET 2015 observational data for one site.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_vpd_day_fluxnet2015.html">get_vpd_day_fluxnet2015()</a></code> </p>
-        </td>
-        <td><p>Get daytime VPD for all files in a directory.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="init_dates_dataframe.html">init_dates_dataframe()</a></code> </p>
-        </td>
-        <td><p>Initialises a data frame with dates</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="remove_outliers.html">remove_outliers()</a></code> </p>
-        </td>
-        <td><p>Remove outliers</p></td>
-      </tr>
-    </tbody>
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>df</th>
+      <td><p>The data frame returned by <code><a href='ingest_bysite.html'>ingest_bysite( source = "gee" )</a></code></p></td>
+    </tr>
+    <tr>
+      <th>settings</th>
+      <td><p>A list of additional settings used for reading original files.</p></td>
+    </tr>
     </table>
-  </div>
 
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>A ggplot object.</p>
+
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) <span class='fu'><a href='plot_fapar_ingestr.html'>plot_fapar_ingestr</a></span>(<span class='no'>df</span>, <span class='no'>settings</span>)</div></pre>
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#section-single-site-data-ingest-">Single-site data ingest.</a></li>
-      <li><a href="#section-data-ingest-for-an-ensemble-of-sites-">Data ingest for an ensemble of sites.</a></li>
-      <li><a href="#section-other-public-functions-">Other public functions.`</a></li>
+      <li><a href="#arguments">Arguments</a></li>
+      <li><a href="#value">Value</a></li>
+      <li><a href="#examples">Examples</a></li>
     </ul>
+
   </div>
 </div>
 

@@ -146,6 +146,7 @@ and defining calibration target (which flux decomposition method etc.)</p>
   <span class='kw'>threshold_USTAR</span> <span class='kw'>=</span> <span class='fl'>0</span>,
   <span class='kw'>threshold_T</span> <span class='kw'>=</span> <span class='fl'>0</span>,
   <span class='kw'>threshold_NETRAD</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>filter_ntdt</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>return_qc</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>remove_neg</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>
@@ -281,6 +282,13 @@ the fraction of measured and good quality gapfilled data for daily, weekly,
 monthly, and annual data and 0 [measured], 1 [good quality gapfill], 2 [
 medium], 3 [poor] for half-hourly data. Defaults to <code>threshold_GPP=0</code>
 meaning no data is excluded.</p></td>
+    </tr>
+    <tr>
+      <th>filter_ntdt</th>
+      <td><p>A logical specifying whether agreement of daytime and nighttime-
+based GPP estimates is to be used as a filter. Data points are removed 
+where their difference is below the the 97.5<!-- % and above the 2.5% quantile of all  -->
+difference values per site. Defaults to <code>FALSE</code>.</p></td>
     </tr>
     <tr>
       <th>return_qc</th>
