@@ -135,6 +135,7 @@ and defining calibration target (which flux decomposition method etc.)</p>
   <span class='no'>sitename</span>,
   <span class='no'>path_fluxnet2015</span>,
   <span class='kw'>path_fluxnet2015_hh</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>path_fluxnet2015_hr</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='no'>timescale</span>,
   <span class='no'>getvars</span>,
   <span class='kw'>getswc</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
@@ -170,6 +171,12 @@ FLUXNET 2015 data.</p></td>
       <th>path_fluxnet2015_hh</th>
       <td><p>A character string specifying the local path of
 half-hourly FLUXNET 2015 data, required to get daytime VPD. Defaults to
+<code>NULL</code> (no daytime VPD is calculated).</p></td>
+    </tr>
+    <tr>
+      <th>path_fluxnet2015_hr</th>
+      <td><p>A character string specifying the local path of
+hourly FLUXNET 2015 data, required to get daytime VPD. Defaults to
 <code>NULL</code> (no daytime VPD is calculated).</p></td>
     </tr>
     <tr>

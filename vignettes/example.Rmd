@@ -23,11 +23,11 @@ Data can be ingested for different data types (argument `source` in several func
 
 Meteo data:
 
-  - FLUXNET (also flux data can be read in)
-  - WATCH-WFDEI
-  - CRU
+  - [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/) (also flux data can be read in)
+  - [WATCH-WFDEI](http://www.eu-watch.org/data_availability)
+  - [CRU](https://crudata.uea.ac.uk/cru/data/hrg/)
 
-Data on Google Earth Engine (using Koen Hufken's `gee_suset` library):
+Data on Google Earth Engine (using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library):
 
   - MODIS FPAR
   - MODIS EVI
@@ -35,9 +35,11 @@ Data on Google Earth Engine (using Koen Hufken's `gee_suset` library):
 
 MODIS data (not yet implemented):
 
-  - RModisTools R package to access data on remote server ORNL DAAC (not yet implemented).
+  - [RModisTools](https://docs.ropensci.org/MODISTools/) R package to access data on remote server ORNL DAAC (not yet implemented).
   
 Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is descrbed in Section 'Example for a set of sites'.
+
+**Note** that this package does not provide the original data. Please follow links to data sources above and cite original references when using this data.
 
 ## Examples for a single site
 
@@ -78,7 +80,8 @@ settings_fluxnet <- list(
   dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", 
   getswc = FALSE,
   filter_ntdt = TRUE,
-  threshold_GPP = 0.8
+  threshold_GPP = 0.8,
+  remove_neg = FALSE
   )
 
 ddf_fluxnet <- ingest_bysite(
@@ -98,7 +101,7 @@ ddf_fluxnet <- ingest_bysite(
 ### WATCH-WFDEI
 
 Let's extract data for the location corresponding to FLUXNET site 'CH-Lae' (lon = 8.365, lat = 47.4781). This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 degree resolution), provided as monthly files containing all days in each month. The data directory specified here (`dir = "~/data/watch_wfdei/"`) contains subdirectories with names containing the variable names (corresponding to the ones specified by the argument `getvars = list(temp = "Tair")`).
-```{r message=FALSE}
+```{r message=FALSE, echo = T, results = 'hide'}
 df_watch <- ingest_bysite(
   sitename = "CH-Lae",
   source = "watch_wfdei",
@@ -332,7 +335,7 @@ ddf_watch <- ingest(
 ### CRU TS
 
 This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.   
-```{r}
+```{r message=FALSE}
 ddf_cru <- ingest(
   siteinfo = siteinfo,
   source    = "cru",
@@ -376,13 +379,13 @@ df_gee_modis_fpar <- ingest(
 Collect all plots.
 ```{r warning=FALSE, message=FALSE}
 list_gg <- plot_fapar_ingestr(df_gee_modis_fpar, settings_gee)
-purrr::map(list_gg, ~print(.))
+#purrr::map(list_gg, ~print(.))
 ```
 
 ### CO2
 
 Ingesting CO2 data is particularly simple. We can safely assume it's well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years.  
-```{r}
+```{r message=FALSE}
 df_co2 <- ingest(
   siteinfo,
   source = "co2",

@@ -99,11 +99,12 @@
 <p>Data can be ingested for different data types (argument <code>source</code> in several functions), each dealing with a specific format of the original data and specific functions to read from respective files or remote servers. The following data types can be handled currently (more to be added by you if you like):</p>
 <p>Meteo data:</p>
 <ul>
-<li>FLUXNET (also flux data can be read in)</li>
-<li>WATCH-WFDEI</li>
-<li>CRU</li>
+<li>
+<a href="https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/">FLUXNET</a> (also flux data can be read in)</li>
+<li><a href="http://www.eu-watch.org/data_availability">WATCH-WFDEI</a></li>
+<li><a href="https://crudata.uea.ac.uk/cru/data/hrg/">CRU</a></li>
 </ul>
-<p>Data on Google Earth Engine (using Koen Hufken’s <code>gee_suset</code> library):</p>
+<p>Data on Google Earth Engine (using Koen Hufken’s <a href="https://khufkens.github.io/gee_subset/">gee_suset</a> library):</p>
 <ul>
 <li>MODIS FPAR</li>
 <li>MODIS EVI</li>
@@ -111,9 +112,11 @@
 </ul>
 <p>MODIS data (not yet implemented):</p>
 <ul>
-<li>RModisTools R package to access data on remote server ORNL DAAC (not yet implemented).</li>
+<li>
+<a href="https://docs.ropensci.org/MODISTools/">RModisTools</a> R package to access data on remote server ORNL DAAC (not yet implemented).</li>
 </ul>
 <p>Examples to read data for a single site for each data type are given in Section ‘Examples for a single site’. Handling ingestion for multiple sites is descrbed in Section ‘Example for a set of sites’.</p>
+<p><strong>Note</strong> that this package does not provide the original data. Please follow links to data sources above and cite original references when using this data.</p>
 </div>
 <div id="examples-for-a-single-site" class="section level2">
 <h2 class="hasAnchor">
@@ -172,7 +175,8 @@ df_fluxnet &lt;-<span class="st"> </span>ingestr<span class="op">::</span><span 
   <span class="dt">dir_hh =</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/HH/"</span>, 
   <span class="dt">getswc =</span> <span class="ot">FALSE</span>,
   <span class="dt">filter_ntdt =</span> <span class="ot">TRUE</span>,
-  <span class="dt">threshold_GPP =</span> <span class="fl">0.8</span>
+  <span class="dt">threshold_GPP =</span> <span class="fl">0.8</span>,
+  <span class="dt">remove_neg =</span> <span class="ot">FALSE</span>
   )
 
 ddf_fluxnet &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
@@ -203,58 +207,8 @@ ddf_fluxnet &lt;-<span class="st"> </span><span class="kw"><a href="../reference
   <span class="dt">lon =</span> <span class="fl">8.365</span>,
   <span class="dt">lat =</span> <span class="fl">47.4781</span>,
   <span class="dt">verbose =</span> <span class="ot">FALSE</span>
-  )</code></pre></div>
-<pre><code>## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"
-## [1] "vobjtovarid4: **** WARNING **** I was asked to get a varid for dimension named tstep BUT this dimension HAS NO DIMVAR! Code will probably fail at this point"</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_watch</code></pre></div>
-<pre><code>## # A tibble: 1,095 x 3
-##    sitename  temp date      
-##    &lt;chr&gt;    &lt;dbl&gt; &lt;date&gt;    
-##  1 CH-Lae    1.32 2010-01-01
-##  2 CH-Lae   -3.77 2010-01-02
-##  3 CH-Lae   -4.33 2010-01-03
-##  4 CH-Lae   -4.53 2010-01-04
-##  5 CH-Lae   -3.27 2010-01-05
-##  6 CH-Lae   -2.71 2010-01-06
-##  7 CH-Lae   -2.66 2010-01-07
-##  8 CH-Lae   -3.47 2010-01-08
-##  9 CH-Lae   -4.70 2010-01-09
-## 10 CH-Lae   -4.71 2010-01-10
-## # … with 1,085 more rows</code></pre>
+  )
+df_watch</code></pre></div>
 </div>
 <div id="cru-ts" class="section level3">
 <h3 class="hasAnchor">
@@ -480,7 +434,8 @@ siteinfo &lt;-<span class="st"> </span>readr<span class="op">::</span><span clas
   <span class="dt">dir_hh =</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/HH/"</span>, 
   <span class="dt">getswc =</span> <span class="ot">FALSE</span>,
   <span class="dt">filter_ntdt =</span> <span class="ot">TRUE</span>,
-  <span class="dt">threshold_GPP =</span> <span class="fl">0.8</span>
+  <span class="dt">threshold_GPP =</span> <span class="fl">0.8</span>,
+  <span class="dt">remove_neg =</span> <span class="ot">FALSE</span>
   )
 
 ddf_fluxnet_gpp &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ingest.html">ingest</a></span>(
@@ -553,40 +508,7 @@ df_gee_modis_fpar &lt;-<span class="st"> </span><span class="kw"><a href="../ref
   )</code></pre></div>
 <p>Collect all plots.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">list_gg &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_fapar_ingestr.html">plot_fapar_ingestr</a></span>(df_gee_modis_fpar, settings_gee)
-purrr<span class="op">::</span><span class="kw"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span>(list_gg, <span class="op">~</span><span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(.))</code></pre></div>
-<p><img src="example_files/figure-html/unnamed-chunk-25-1.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-2.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-3.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-4.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-5.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-6.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-7.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-8.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-9.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-10.png" width="700"><img src="example_files/figure-html/unnamed-chunk-25-11.png" width="700"></p>
-<pre><code>## [[1]]</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-25-12.png" width="700"></p>
-<pre><code>## 
-## [[2]]</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-25-13.png" width="700"></p>
-<pre><code>## 
-## [[3]]</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-25-14.png" width="700"></p>
-<pre><code>## 
-## [[4]]</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-25-15.png" width="700"></p>
-<pre><code>## 
-## [[5]]</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-25-16.png" width="700"></p>
-<pre><code>## 
-## [[6]]</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-25-17.png" width="700"></p>
-<pre><code>## 
-## [[7]]</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-25-18.png" width="700"></p>
-<pre><code>## 
-## [[8]]</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-25-19.png" width="700"></p>
-<pre><code>## 
-## [[9]]</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-25-20.png" width="700"></p>
-<pre><code>## 
-## [[10]]</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-25-21.png" width="700"></p>
-<pre><code>## 
-## [[11]]</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-25-22.png" width="700"></p>
+<span class="co">#purrr::map(list_gg, ~print(.))</span></code></pre></div>
 </div>
 <div id="co2-1" class="section level3">
 <h3 class="hasAnchor">
@@ -598,61 +520,6 @@ purrr<span class="op">::</span><span class="kw"><a href="https://purrr.tidyverse
   <span class="dt">verbose =</span> <span class="ot">FALSE</span>,
   <span class="dt">settings =</span> <span class="kw"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="dt">path =</span> <span class="st">"~/data/co2/cCO2_rcp85_const850-1765.csv"</span>)
   )</code></pre></div>
-<pre><code>## Parsed with column specification:
-## cols(
-##   year = col_double(),
-##   co2 = col_double()
-## )
-## Parsed with column specification:
-## cols(
-##   year = col_double(),
-##   co2 = col_double()
-## )
-## Parsed with column specification:
-## cols(
-##   year = col_double(),
-##   co2 = col_double()
-## )
-## Parsed with column specification:
-## cols(
-##   year = col_double(),
-##   co2 = col_double()
-## )
-## Parsed with column specification:
-## cols(
-##   year = col_double(),
-##   co2 = col_double()
-## )
-## Parsed with column specification:
-## cols(
-##   year = col_double(),
-##   co2 = col_double()
-## )
-## Parsed with column specification:
-## cols(
-##   year = col_double(),
-##   co2 = col_double()
-## )
-## Parsed with column specification:
-## cols(
-##   year = col_double(),
-##   co2 = col_double()
-## )
-## Parsed with column specification:
-## cols(
-##   year = col_double(),
-##   co2 = col_double()
-## )
-## Parsed with column specification:
-## cols(
-##   year = col_double(),
-##   co2 = col_double()
-## )
-## Parsed with column specification:
-## cols(
-##   year = col_double(),
-##   co2 = col_double()
-## )</code></pre>
 <!-- xxxxxxx -->
 <!-- ### rsofun input data -->
 <!-- First read all FLUXNET meteo data. -->
@@ -685,40 +552,6 @@ purrr<span class="op">::</span><span class="kw"><a href="https://purrr.tidyverse
 <!--   ) -->
 <!-- ``` -->
 <!-- ### Evaluation data -->
-<!-- ```{r message=FALSE, warning=FALSE} -->
-<!-- ## get data for idfferent time scales separately -->
-<!-- ddf_eval <- ingest( -->
-<!--   siteinfo = siteinfo, -->
-<!--   source    = "fluxnet2015", -->
-<!--   getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"), -->
-<!--   dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/", -->
-<!--   settings  = list(threshold_LE = 0.8, getswc = TRUE), -->
-<!--   timescale = "d" -->
-<!--   ) -->
-<!-- mdf_eval <- ingest( -->
-<!--   siteinfo = siteinfo, -->
-<!--   source    = "fluxnet2015", -->
-<!--   getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"), -->
-<!--   dir       = "~/data/FLUXNET-2015_Tier1/20191024/MM/", -->
-<!--   settings  = list(threshold_LE = 0.8, getswc = TRUE), -->
-<!--   timescale = "m" -->
-<!--   ) -->
-<!-- adf_eval <- ingest( -->
-<!--   siteinfo = siteinfo, -->
-<!--   source    = "fluxnet2015", -->
-<!--   getvars   = list(latenth = "LE_F_MDS", latenth_qc = "LE_F_MDS_QC"), -->
-<!--   dir       = "~/data/FLUXNET-2015_Tier1/20191024/YY/", -->
-<!--   settings  = list(threshold_LE = 0.8, getswc = TRUE), -->
-<!--   timescale = "y" -->
-<!--   ) -->
-<!-- ``` -->
-<!-- Use rsofun to create a standardised object used for benchmarking the model output. -->
-<!-- ```{r} -->
-<!-- settings_eval <- list( -->
-<!--   benchmark = list( latenth = c("fluxnet2015") ) -->
-<!--   ) -->
-<!-- obs_eval <- get_obs_eval2( settings_eval = settings_eval, adf = adf_eval, mdf = mdf_eval, ddf = ddf_eval ) -->
-<!-- ``` -->
 <!-- ### Calibration data -->
 <!-- tbc -->
 </div>

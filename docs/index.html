@@ -88,11 +88,12 @@
 <p>Data can be ingested for different data types (argument <code>source</code> in several functions), each dealing with a specific format of the original data and specific functions to read from respective files or remote servers. The following data types can be handled currently (more to be added by you if you like):</p>
 <p>Meteo data:</p>
 <ul>
-<li>FLUXNET (also flux data can be read in)</li>
-<li>WATCH-WFDEI</li>
-<li>CRU</li>
+<li>
+<a href="https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/">FLUXNET</a> (also flux data can be read in)</li>
+<li><a href="http://www.eu-watch.org/data_availability">WATCH-WFDEI</a></li>
+<li><a href="https://crudata.uea.ac.uk/cru/data/hrg/">CRU</a></li>
 </ul>
-<p>Data on Google Earth Engine (using Koen Hufken’s <code>gee_suset</code> library):</p>
+<p>Data on Google Earth Engine (using Koen Hufken’s <a href="https://khufkens.github.io/gee_subset/">gee_suset</a> library):</p>
 <ul>
 <li>MODIS FPAR</li>
 <li>MODIS EVI</li>
@@ -100,9 +101,11 @@
 </ul>
 <p>MODIS data (not yet implemented):</p>
 <ul>
-<li>RModisTools R package to access data on remote server ORNL DAAC (not yet implemented).</li>
+<li>
+<a href="https://docs.ropensci.org/MODISTools/">RModisTools</a> R package to access data on remote server ORNL DAAC (not yet implemented).</li>
 </ul>
-<p>Examples to read data for a single site for each data type and handling ingestion for an ensemble of sites are descrbed in vignette <code>example</code>.</p>
+<p>Examples to read data for a single site for each data type are given in Section ‘Examples for a single site’. Handling ingestion for multiple sites is descrbed in Section ‘Example for a set of sites’.</p>
+<p><strong>Note</strong> that this package does not provide the original data. Please follow links to data sources above and cite original references when using this data.</p>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>

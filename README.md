@@ -6,11 +6,11 @@ Data can be ingested for different data types (argument `source` in several func
 
 Meteo data:
 
-  - FLUXNET (also flux data can be read in)
-  - WATCH-WFDEI
-  - CRU
+  - [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/) (also flux data can be read in)
+  - [WATCH-WFDEI](http://www.eu-watch.org/data_availability)
+  - [CRU](https://crudata.uea.ac.uk/cru/data/hrg/)
 
-Data on Google Earth Engine (using Koen Hufken's `gee_suset` library):
+Data on Google Earth Engine (using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library):
 
   - MODIS FPAR
   - MODIS EVI
@@ -18,9 +18,11 @@ Data on Google Earth Engine (using Koen Hufken's `gee_suset` library):
 
 MODIS data (not yet implemented):
 
-  - RModisTools R package to access data on remote server ORNL DAAC (not yet implemented).
+  - [RModisTools](https://docs.ropensci.org/MODISTools/) R package to access data on remote server ORNL DAAC (not yet implemented).
   
-Examples to read data for a single site for each data type and handling ingestion for an ensemble of sites are descrbed in vignette `example`.
+Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is descrbed in Section 'Example for a set of sites'.
+
+**Note** that this package does not provide the original data. Please follow links to data sources above and cite original references when using this data.
 
 ## Installation
 
