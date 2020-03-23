@@ -94,9 +94,6 @@
     <li>
       <a href="../articles/example.html">Examples for ingestr</a>
     </li>
-    <li>
-      <a href="../articles/rsconnect/documents/example.html">UNKNOWN TITLE</a>
-    </li>
   </ul>
 </li>
       </ul>
@@ -132,14 +129,14 @@
     <pre class="usage"><span class='fu'>ingest_bysite</span>(
   <span class='no'>sitename</span>,
   <span class='no'>source</span>,
-  <span class='kw'>getvars</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>dir</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='no'>getvars</span>,
+  <span class='no'>dir</span>,
   <span class='kw'>settings</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(),
   <span class='kw'>timescale</span> <span class='kw'>=</span> <span class='st'>"d"</span>,
   <span class='no'>year_start</span>,
   <span class='no'>year_end</span>,
-  <span class='kw'>lon</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/ifelse.html'>ifelse</a></span>(<span class='no'>source</span> <span class='kw'>==</span> <span class='st'>"fluxnet2015"</span>, <span class='fl'>NA</span>),
-  <span class='kw'>lat</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/ifelse.html'>ifelse</a></span>(<span class='no'>source</span> <span class='kw'>==</span> <span class='st'>"fluxnet2015"</span>, <span class='fl'>NA</span>),
+  <span class='kw'>lon</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/ifelse.html'>ifelse</a></span>(<span class='no'>source</span> <span class='kw'>==</span> <span class='st'>"fluxnet"</span>, <span class='fl'>NA</span>),
+  <span class='kw'>lat</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/ifelse.html'>ifelse</a></span>(<span class='no'>source</span> <span class='kw'>==</span> <span class='st'>"fluxnet"</span>, <span class='fl'>NA</span>),
   <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
 )</pre>
 
@@ -150,34 +147,37 @@
       <th>sitename</th>
       <td><p>A character string used as site identification. When data is extracted from 
 global files or remote servers, <code>sitename</code> is simply used as a label and any string can
-be provided. When data is extraced from site-specific files (e.g. <code>source = "FLUXNET2015"</code>),
+be provided. When data is extraced from site-specific files (e.g. <code>source = "fluxnet"</code>),
 then <code>sitename</code> is used to identify the file from which data is read.</p></td>
     </tr>
     <tr>
       <th>source</th>
       <td><p>A character used as identifiyer for the type of data source
-(e.g., <code>"fluxnet2015"</code>).</p></td>
+(e.g., <code>"fluxnet"</code>).</p></td>
     </tr>
     <tr>
       <th>getvars</th>
       <td><p>A named list of characters specifying the variable names in
-the source dataset corresponding to standard names <code>"temp"</code> for temperature,
-<code>"prec"</code> for precipitation, <code>"patm"</code> for atmospheric pressure,
-<code>"vpd"</code> for vapour pressure deficit, <code>"netrad"</code> for net radiation,
-<code>"swin"</code> for shortwave incoming radiation.</p></td>
+the original source dataset and the variable names in the ingested data frame. Use, e.g., 
+<code>getvars = list("gpp" = "GPP_NT_VUT_REF")</code> to read the variable <code>"GPP_NT_VUT_REF"</code> 
+from the original file and convert its name to <code>"gpp"</code> in the ingested data frame.</p></td>
     </tr>
     <tr>
       <th>dir</th>
-      <td><p>A character specifying the directory where data is located.</p></td>
+      <td><p>A character specifying the directory where the data is located.</p></td>
     </tr>
     <tr>
       <th>settings</th>
-      <td><p>A list of additional settings used for reading original files.</p></td>
+      <td><p>A list of additional, source-specific settings used for reading and processing 
+original files. Defaults to an empty list which triggers the use of default settings (see 
+e.g., <a href='get_settings_fluxnet.html'>get_settings_fluxnet</a>) for <code>source = "fluxnet"</code>.</p></td>
     </tr>
     <tr>
       <th>timescale</th>
       <td><p>A character or vector of characters, specifying the time scale of data used from
-the respective source (if multiple time scales are available, otherwise is disregarded).</p></td>
+the respective source (if multiple time scales are available, otherwise is disregarded). Implemented
+time scales are <code><a href='https://rdrr.io/r/base/c.html'>c("d", "m", "y")</a></code> for daily, monthly, and yearly, respectively. Defaults 
+to <code>"d"</code>.</p></td>
     </tr>
     <tr>
       <th>year_start</th>
@@ -191,16 +191,16 @@ are read, i.e. all days, or hours, or months in each year).</p></td>
     <tr>
       <th>lon</th>
       <td><p>A numeric value specifying the longitude for which data is extraced from global files
-or remote data servers. If <code>source = "FLUXNET2015"</code>, this is not required and set ot <code>NA</code>.</p></td>
+or remote data servers. If <code>source = "fluxnet"</code>, this is not required and set ot <code>NA</code>.</p></td>
     </tr>
     <tr>
       <th>lat</th>
       <td><p>A numeric value specifying the longitude for which data is extraced from global files
-or remote data servers. If <code>source = "FLUXNET2015"</code>, this is not required and set ot <code>NA</code>.</p></td>
+or remote data servers. If <code>source = "fluxnet"</code>, this is not required and set ot <code>NA</code>.</p></td>
     </tr>
     <tr>
       <th>verbose</th>
-      <td><p>if <code>TRUE</code>, additional messages are printed.</p></td>
+      <td><p>if <code>TRUE</code>, additional messages are printed. Defaults to <code>FALSE</code>.</p></td>
     </tr>
     </table>
 

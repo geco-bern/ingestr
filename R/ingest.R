@@ -4,7 +4,7 @@
 #'
 #' @param siteinfo A data frame containing site meta info. Required columns are: \code{"sitename", "date_start", "date_end", "lon", "lat", "elv"}.
 #' @param source A character used as identifiyer for the type of data source
-#' (e.g., \code{"fluxnet2015"}).
+#' (e.g., \code{"fluxnet"}).
 #' @param getvars A named list of characters specifying the variable names in
 #' the source dataset corresponding to standard names \code{"temp"} for temperature,
 #' \code{"prec"} for precipitation, \code{"patm"} for atmospheric pressure,
@@ -68,7 +68,7 @@ ingest <- function(
   }
   
   
-	if (source == "fluxnet2015"){
+	if (source == "fluxnet"){
 	  #-----------------------------------------------------------
 	  # Get data from sources given by site
 	  #-----------------------------------------------------------

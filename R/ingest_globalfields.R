@@ -14,6 +14,8 @@
 #' \code{"swin"} for shortwave incoming radiation.
 #' @param timescale A character or vector of characters, specifying the time scale of data used from
 #' the respective source (if multiple time scales are available, otherwise is disregarded).
+#' @param standardise_units A logical specifying whether units in ingested data are to be standardised
+#' following ingestr-standard units.
 #' @param verbose if \code{TRUE}, additional messages are printed.
 #'
 #' @return A data frame (tibble) containing the time series of ingested data, nested for each site.
@@ -22,7 +24,7 @@
 #'
 #' @examples \dontrun{inputdata <- ingest_bysite()}  
 #'
-ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, verbose=FALSE ){
+ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, standardise_units = TRUE, verbose=FALSE ){
   
   ## get a data frame with all dates for all sites
   ddf <- purrr::map(
@@ -36,7 +38,7 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, verb
   ddf <- ddf %>%
     bind_rows(.id = "sitename") %>%
     select(-year_dec)
-  
+
   if (source=="watch_wfdei"){
     ##----------------------------------------------------------------------
     ## Read WATCH-WFDEI data (extracting from NetCDF files for this site)
@@ -84,7 +86,8 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, verb
   } else if (source=="cru"){
     ##----------------------------------------------------------------------
     ## Read CRU monthly data (extracting from NetCDF files for this site)
-    
+    ##----------------------------------------------------------------------
+    ## create a monthly data frame    
     mdf <- ddf %>%
       dplyr::select(sitename, date) %>%
       dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%

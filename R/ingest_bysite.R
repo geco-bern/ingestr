@@ -4,27 +4,30 @@
 #'
 #' @param sitename A character string used as site identification. When data is extracted from 
 #' global files or remote servers, \code{sitename} is simply used as a label and any string can
-#' be provided. When data is extraced from site-specific files (e.g. \code{source = "FLUXNET2015"}),
+#' be provided. When data is extraced from site-specific files (e.g. \code{source = "fluxnet"}),
 #' then \code{sitename} is used to identify the file from which data is read. 
 #' @param source A character used as identifiyer for the type of data source
-#' (e.g., \code{"fluxnet2015"}).
+#' (e.g., \code{"fluxnet"}).
 #' @param getvars A named list of characters specifying the variable names in
-#' the source dataset corresponding to standard names \code{"temp"} for temperature,
-#' \code{"prec"} for precipitation, \code{"patm"} for atmospheric pressure,
-#' \code{"vpd"} for vapour pressure deficit, \code{"netrad"} for net radiation,
-#' \code{"swin"} for shortwave incoming radiation.
-#' @param dir A character specifying the directory where data is located.
-#' @param settings A list of additional settings used for reading original files.
+#' the original source dataset and the variable names in the ingested data frame. Use, e.g., 
+#' \code{getvars = list("gpp" = "GPP_NT_VUT_REF")} to read the variable \code{"GPP_NT_VUT_REF"} 
+#' from the original file and convert its name to \code{"gpp"} in the ingested data frame.
+#' @param dir A character specifying the directory where the data is located.
+#' @param settings A list of additional, source-specific settings used for reading and processing 
+#' original files. Defaults to an empty list which triggers the use of default settings (see 
+#' e.g., \link{get_settings_fluxnet}) for \code{source = "fluxnet"}.
 #' @param timescale A character or vector of characters, specifying the time scale of data used from
-#' the respective source (if multiple time scales are available, otherwise is disregarded).
+#' the respective source (if multiple time scales are available, otherwise is disregarded). Implemented
+#' time scales are \code{c("d", "m", "y")} for daily, monthly, and yearly, respectively. Defaults 
+#' to \code{"d"}.
 #' @param year_start An integer specifying the first year for which data is to be ingested.
 #' @param year_end An integer specifying the last year for which data is to be ingested (full years
 #' are read, i.e. all days, or hours, or months in each year).
 #' @param lon A numeric value specifying the longitude for which data is extraced from global files
-#' or remote data servers. If \code{source = "FLUXNET2015"}, this is not required and set ot \code{NA}.
+#' or remote data servers. If \code{source = "fluxnet"}, this is not required and set ot \code{NA}.
 #' @param lat A numeric value specifying the longitude for which data is extraced from global files
-#' or remote data servers. If \code{source = "FLUXNET2015"}, this is not required and set ot \code{NA}.
-#' @param verbose if \code{TRUE}, additional messages are printed.
+#' or remote data servers. If \code{source = "fluxnet"}, this is not required and set ot \code{NA}.
+#' @param verbose if \code{TRUE}, additional messages are printed. Defaults to \code{FALSE}.
 #'
 #' @return A data frame (tibble) containing the time series of ingested data. 
 #' @export
@@ -34,14 +37,14 @@
 ingest_bysite <- function(
   sitename,
   source,
-  getvars = NULL,
-  dir = NULL,
+  getvars,
+  dir,
   settings = list(),
   timescale = "d",
   year_start,
   year_end,
-  lon = ifelse(source=="fluxnet2015", NA),
-  lat = ifelse(source=="fluxnet2015", NA),
+  lon = ifelse(source=="fluxnet", NA),
+  lat = ifelse(source=="fluxnet", NA),
   verbose = FALSE
   ){
   
@@ -72,18 +75,37 @@ ingest_bysite <- function(
   ##-----------------------------------------------------------
   ## FLUXNET 2015 readin
   ##-----------------------------------------------------------
-  if (source == "fluxnet2015"){
-    df_tmp <- get_obs_bysite_fluxnet2015(sitename,
-                                         path_fluxnet2015 = dir,
-                                         path_fluxnet2015_hh = settings$dir_hh,
-                                         path_fluxnet2015_hr = settings$dir_hr,
-                                         timescale        = timescale,
-                                         getvars          = getvars,
-                                         getswc           = settings$getswc,
-                                         threshold_GPP    = settings$threshold_GPP,
-                                         filter_ntdt      = settings$filter_ntdt,
-                                         remove_neg       = settings$remove_neg,  
-                                         verbose          = verbose
+  if (source == "fluxnet"){
+
+    ## complement un-specified settings with default
+    settings_default <- get_settings_fluxnet()
+    fill_settings_with_default <- function(element, settings, default){
+      if (is.null(settings[[element]])) settings[[element]] <- default[[element]]
+      return(settings)
+    }
+    for (element in names(settings_default)){
+      settings <- fill_settings_with_default(element, settings, settings_default)
+    }
+
+    df_tmp <- get_obs_bysite_fluxnet(sitename,
+                                     dir             = dir,
+                                     dir_hh          = settings$dir_hh,
+                                     dir_hr          = settings$dir_hr,
+                                     timescale       = timescale,
+                                     getvars         = getvars,
+                                     getswc          = settings$getswc,
+                                     threshold_GPP   = settings$threshold_GPP,
+                                     threshold_LE    = settings$threshold_LE,
+                                     threshold_H     = settings$threshold_H,
+                                     threshold_SWC   = settings$threshold_SWC,
+                                     threshold_WS    = settings$threshold_WS,
+                                     threshold_USTAR = settings$threshold_USTAR,
+                                     threshold_T     = settings$threshold_T,
+                                     threshold_NETRAD= settings$threshold_NETRAD,
+                                     filter_ntdt     = settings$filter_ntdt,
+                                     return_qc       = settings$return_qc,
+                                     remove_neg      = settings$remove_neg,
+                                     verbose         = verbose
                                         ) %>% 
       mutate(sitename = sitename)
     
@@ -150,7 +172,7 @@ ingest_bysite <- function(
       mutate(sitename = sitename)
     
   } else {
-    rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet2015', 'cru', 'watch_wfdei', or 'gee'.")
+    rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', or 'gee'.")
   }
 
   if (timescale=="m"){

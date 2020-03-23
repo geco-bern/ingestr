@@ -42,6 +42,7 @@ The `ingestr` package relies heavily on the tidyverse. Dependencies are
 - lubridate
 - tidyr
 - raster
+- ncdf4
 - lubridate
 
 ## Example

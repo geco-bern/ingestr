@@ -23,11 +23,11 @@ Data can be ingested for different data types (argument `source` in several func
 
 Meteo data:
 
-  - [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/) (also flux data can be read in)
-  - [WATCH-WFDEI](http://www.eu-watch.org/data_availability)
-  - [CRU](https://crudata.uea.ac.uk/cru/data/hrg/)
+  - [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/): `source = "fluxnet"`, also flux data can be read in
+  - [WATCH-WFDEI](http://www.eu-watch.org/data_availability): `source = "watch_wfdei"`
+  - [CRU](https://crudata.uea.ac.uk/cru/data/hrg/): `source = "cru"`
 
-Data on Google Earth Engine (using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library):
+Data on Google Earth Engine: `source = "gee"`, using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library):
 
   - MODIS FPAR
   - MODIS EVI
@@ -41,26 +41,45 @@ Examples to read data for a single site for each data type are given in Section 
 
 **Note** that this package does not provide the original data. Please follow links to data sources above and cite original references when using this data.
 
+### Variable names and units
+
+All ingested data follows standardised variable naming and (optionally) units. 
+
+| Variable                | Variable name | Units                       |
+|-------------------------|---------------|---------------              |
+| Gross primary production| `gpp`         | g CO$^{-2}$ m$^{-2}$ X$^{-1}$  |
+| Air temperature         | `temp`        | $^\circ$C                   |
+| Precipitation           | `prec`        | mm X$^{-1}$                 |
+| Vapour pressure deficit | `vpd`         | Pa                          |
+| Atmospheric pressure    | `patm`        | Pa                          |
+| Net radiation           | `netrad`      | J m$^{-2}$ X$^{-1}$         |
+
+$X$ stands for 's' for half-hourly and hourly, 'd' for daily, 'm' for monthly, and 'y' for annual data.
+
+Use these variable names for specifying which variable names they correspond to in the original data source (see argument `getvars` to functions `ingest()` and `ingest_bysite()`).
+
 ## Examples for a single site
 
-### FLUXNET 2015
+The function `ingest_bysite()` can be used to ingest data for a single site. The argument `source` specifies which data type (source) is to be read from and triggers the use of specific wrapper functions that are designed to read from files whith formats that differ between sources. Source-specific settings for data processing can be provided by argument `settings` (described for each data source below). More info about other, source-independent arguments are available through the man page (see `?ingest_bysite`).
+
+### FLUXNET
 
 #### Meteo data
 
-Reading from FLUXNET 2015 files offers additional settings to be used specifically. Here, we're specifying that no soil water content data is read, and that half-hourly data is stored in a separate directory. The latter specification is used to derive daytime VPD which is not given in FLUXNET 2015 data, but required here (see `getvars` element `vpd  = "VPD_F_DAY"`). 
+Reading from FLUXNET files offers multiple settings to be used specified by the user. Here, we're specifying that no soil water content data is read (`getswc = FALSE` in `settings_fluxnet`, passed to `ingest_bysite()` through argument `settings`), and that half-hourly data is stored in a separate directory. The latter specification is used to derive daytime VPD which is not given in FLUXNET data, but required here (see `getvars` element `vpd  = "VPD_F_DAY"`).
 ```{r message=FALSE}
 settings_fluxnet <- list(
-  dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", 
+  dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/",
   getswc = FALSE)
 
-df_fluxnet <- ingestr::ingest_bysite(
+df_fluxnet <- ingest_bysite(
   sitename = "CH-Lae",
-  source = "fluxnet2015",
-  getvars = list(temp = "TA_F_DAY", 
-                 prec = "P_F", 
-                 vpd  = "VPD_F_DAY", 
-                 swin =  "SW_IN_F", 
-                 netrad = "NETRAD", 
+  source = "fluxnet",
+  getvars = list(temp = "TA_F_DAY",
+                 prec = "P_F",
+                 vpd  = "VPD_F_DAY",
+                 ppfd =  "SW_IN_F",
+                 netrad = "NETRAD",
                  patm = "PA_F"),
   dir = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
   settings = settings_fluxnet,
@@ -72,80 +91,86 @@ df_fluxnet <- ingestr::ingest_bysite(
 df_fluxnet
 ```
 
+Note that the argument `getvars` as specified above triggers the ingestion of the six variables `"TA_F_DAY", "P_F", "VPD_F_DAY",  "SW_IN_F", "NETRAD", "PA_F"` and their renaming to `"temp", "prec", "vpd", "ppfd", "netrad", "patm"`, respecitvely. Any name can be used for renaming.
+
 #### Flux data
 
-The same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we're reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (`""GPP_NT_VUT_REF""`), keep only data where at least 80% is based on non-gapfilled half-hourly data (`threshold_GPP = 0.8`), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (`filter_ntdt = TRUE`, see also `?get_obs_bysite_fluxnet2015`).
+The same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we're reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (`"GPP_NT_VUT_REF"` and `"GPP_NT_VUT_SE"` in argument `getvars`). The `settings` argument can be used again to specify settings that are specific to the `"fluxnet"` data source. Here, we keep only data where at least 80% is based on non-gapfilled half-hourly data (`threshold_GPP = 0.8`), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (`filter_ntdt = TRUE`). Negative GPP values are not removed (`remove_neg = FALSE`).
 ```{r warning=FALSE, message=FALSE}
 settings_fluxnet <- list(
-  dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", 
-  getswc = FALSE,
-  filter_ntdt = TRUE,
-  threshold_GPP = 0.8,
-  remove_neg = FALSE
+  dir_hh       = "~/data/FLUXNET-2015_Tier1/20191024/HH/",
+  getswc       = FALSE,
+  filter_ntdt  = TRUE,
+  threshold_GPP= 0.8,
+  remove_neg   = FALSE
   )
 
 ddf_fluxnet <- ingest_bysite(
-  sitename = "CH-Lae",
-  source    = "fluxnet2015",
-  getvars = list(gpp = "GPP_NT_VUT_REF",
-                 gpp_unc = "GPP_NT_VUT_SE"),
-  dir = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
-  settings = settings_fluxnet,
+  sitename  = "CH-Lae",
+  source    = "fluxnet",
+  getvars   = list( gpp = "GPP_NT_VUT_REF",
+                    gpp_unc   = "GPP_NT_VUT_SE"),
+  dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
+  settings  = settings_fluxnet,
   timescale = "d",
-  year_start = 2010,
-  year_end = 2012
+  year_start= 2010,
+  year_end  = 2012
   )
 ```
 
+
+#### Settings
+
+The argument `settings` in functions `ingest_bysite()` and `ingest()` is used to pass settings that are specific to the data source (argument `source`) with which the functions are used. Default settings are specified for each data source. For `source = "fluxnet"`, defaults are returned by a function call of `get_settings_fluxnet()` and are described in the function's man page (see `?get_settings_fluxnet`). Defaults are used for settings elements that are not specified by the user.
 
 ### WATCH-WFDEI
 
 Let's extract data for the location corresponding to FLUXNET site 'CH-Lae' (lon = 8.365, lat = 47.4781). This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 degree resolution), provided as monthly files containing all days in each month. The data directory specified here (`dir = "~/data/watch_wfdei/"`) contains subdirectories with names containing the variable names (corresponding to the ones specified by the argument `getvars = list(temp = "Tair")`).
 ```{r message=FALSE, echo = T, results = 'hide'}
 df_watch <- ingest_bysite(
-  sitename = "CH-Lae",
-  source = "watch_wfdei",
+  sitename  = "CH-Lae",
+  source    = "watch_wfdei",
   getvars   = list(temp = "Tair"),
   dir       = "~/data/watch_wfdei/",
   timescale = "d",
-  year_start = 2010,
-  year_end = 2012,
-  lon = 8.365,
-  lat = 47.4781,
-  verbose = FALSE
+  year_start= 2010,
+  year_end  = 2012,
+  lon       = 8.365,
+  lat       = 47.4781,
+  verbose   = FALSE
   )
 df_watch
 ```
 
 ### CRU TS
 
-As above, let's extract CRU data for the location corresponding to FLUXNET site 'CH-Lae' (lon = 8.365, lat = 47.4781). Note that we're using `tmx` (the daily maximum temperature). This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.   
+As above, let's extract CRU data for the location corresponding to FLUXNET site 'CH-Lae' (lon = 8.365, lat = 47.4781). Note that we're using `tmx` (the daily maximum temperature). This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.
 ```{r message=FALSE}
 df_cru <- ingest_bysite(
-  sitename = "CH-Lae",
-  source = "cru",
+  sitename  = "CH-Lae",
+  source    = "cru",
   getvars   = list(temp = "tmx"),
   dir       = "~/data/cru/ts_4.01/",
   timescale = "d",
-  year_start = 2010,
-  year_end = 2012,
-  lon = 8.365,
-  lat = 47.4781,
-  verbose = FALSE
+  year_start= 2010,
+  year_end  = 2012,
+  lon       = 8.365,
+  lat       = 47.4781,
+  verbose   = FALSE
   )
 df_cru
 ```
 
 We can compare the temperature recorded at the site and the temperature data extracted from WATCH-WFDEI.
 ```{r}
-df <- df_fluxnet %>% 
-  rename(temp_fluxnet = temp) %>% 
-  left_join(rename(df_watch, temp_watch = temp), by = c("sitename", "date")) %>% 
-  left_join(rename(df_cru, temp_cru = temp), by = c("sitename", "date")) %>% 
+df <- df_fluxnet %>%
+  rename(temp_fluxnet = temp) %>%
+  left_join(rename(df_watch, temp_watch = temp), by = c("sitename", "date")) %>%
+  left_join(rename(df_cru, temp_cru = temp), by = c("sitename", "date")) %>%
   pivot_longer(cols = c(temp_fluxnet, temp_watch, temp_cru), names_to = "source", values_to = "temp", names_prefix = "temp_")
 
 library(ggplot2)
-df %>% 
+df %>%
   ggplot(aes(x = date, y = temp, color = source)) +
   geom_line()
 ```
@@ -159,7 +184,7 @@ The library `gee_subset` by Koen Hufkens can be downloaded from this [link](http
 - git: You can use [Homebrew](https://brew.sh/) to installing git by entering in your terminal: `brew install git`.
 - [python](https://www.python.org/)
 
-Then, carry out the follwing steps: 
+Then, carry out the follwing steps:
 
 - In your terminal, change to where you want to have the repository. In this example, we're cloning it into our home directory:
 ```{sh, eval = FALSE}
@@ -201,38 +226,38 @@ python -c "import ee; ee.Initialize()"
 
 #### MODIS FPAR
 
-To facilitate the selection of data products and bands to be downloaded, you may use the function `get_settings_gee()` which defines defaults for different data bundles (`c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")` are available). 
+To facilitate the selection of data products and bands to be downloaded, you may use the function `get_settings_gee()` which defines defaults for different data bundles (`c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")` are available).
 
 - `"modis_fpar"`: MODIS/006/MCD15A3H, band Fpar
 - `"modis_evi"`: MODIS/006/MOD13Q1, band EVI
 - `"modis_lai"`: MOD15A2, band `Lai_1km`
 - `"modis_gpp"`: MODIS/006/MOD17A2H, band Gpp
 
-The following example is for downloading MODIS FPAR data. 
+The following example is for downloading MODIS FPAR data.
 ```{r}
-settings_gee <- get_settings_gee( 
-  bundle = "modis_fpar", 
-  python_path = system("which python", intern = TRUE),
-  gee_path = "~/google_earth_engine_subsets/gee_subset/",
-  data_path = "~/data/gee_subsets/",
-  method_interpol = "linear",
-  keep = TRUE,
-  overwrite_raw = FALSE,
-  overwrite_interpol = TRUE
+settings_gee <- get_settings_gee(
+  bundle            = "modis_fpar",
+  python_path       = system("which python", intern = TRUE),
+  gee_path          = "~/google_earth_engine_subsets/gee_subset/",
+  data_path         = "~/data/gee_subsets/",
+  method_interpol   = "linear",
+  keep              = TRUE,
+  overwrite_raw     = FALSE,
+  overwrite_interpol= TRUE
   )
 ```
 
 This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`.
 ```{r}
 df_gee_modis_fpar <- ingest_bysite(
-  sitename = "CH-Lae",
-  source = "gee",
-  year_start = 2010,
-  year_end = 2012,
-  lon = 8.365,
-  lat = 47.4781,
-  settings = settings_gee,
-  verbose = FALSE
+  sitename  = "CH-Lae",
+  source    = "gee",
+  year_start= 2010,
+  year_end  = 2012,
+  lon       = 8.365,
+  lat       = 47.4781,
+  settings  = settings_gee,
+  verbose   = FALSE
   )
 ```
 
@@ -243,15 +268,15 @@ plot_fapar_ingestr_bysite(df_gee_modis_fpar, settings_gee)
 
 ### CO2
 
-Ingesting CO2 data is particularly simple. We can safely assume it's well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years.  
+Ingesting CO2 data is particularly simple. We can safely assume it's well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years.
 ```{r}
 df_co2 <- ingest_bysite(
-  sitename = "CH-Lae",
-  source = "co2",
-  year_start = 2010,
-  year_end = 2012,
-  verbose = FALSE,
-  settings = list(path = "~/data/co2/cCO2_rcp85_const850-1765.csv")
+  sitename  = "CH-Lae",
+  source    = "co2",
+  year_start= 2010,
+  year_end  = 2012,
+  verbose   = FALSE,
+  settings  = list(path = "~/data/co2/cCO2_rcp85_const850-1765.csv")
   )
 ```
 
@@ -262,7 +287,7 @@ To collect data from an ensemble of sites, we have to define a meta data frame, 
 
 Note that extracting for an ensemble of sites at once is more efficient for data types that are global files (WATCH-WFDEI, and CRU). In this case, the `raster` package can be used to efficiently ingest data.
 
-First, define a list of sites and get site meta information. The required meta information is provided in file `siteinfo_fluxnet2015.csv`. This file is created as described in (and using code from) [metainfo_fluxnet2015](https://github.com/stineb/metainfo_fluxnet2015). 
+First, define a list of sites and get site meta information. The required meta information is provided in file `siteinfo_fluxnet2015.csv`. This file is created as described in (and using code from) [metainfo_fluxnet2015](https://github.com/stineb/metainfo_fluxnet2015).
 ```{r warning=FALSE, message=FALSE}
 mysites <- c("BE-Vie", "DE-Tha", "DK-Sor", "FI-Hyy", "IT-Col", "NL-Loo", "US-MMS", "US-WCr", "US-UMB", "US-Syv", "DE-Hai")
 
@@ -279,16 +304,16 @@ print(siteinfo)
 
 Next, the data can be ingested for all sites at once. Let's do it for different data types again.
 
-### FLUXNET 2015
+### FLUXNET
 
 #### Meteo data
 
-This ingests meteorological data from the FLUXNET 2015 files for variables temperature, precipitation, VPD, shortwave incoming radiation, net radiation, and atmospheric pressure. Arguments that are specific for this data source are provided in the `settings` list.
+This ingests meteorological data from the FLUXNET files for variables temperature, precipitation, VPD, shortwave incoming radiation, net radiation, and atmospheric pressure. Arguments that are specific for this data source are provided in the `settings` list.
 ```{r message=FALSE, warning=FALSE}
 ddf_fluxnet <- ingest(
   siteinfo = siteinfo,
-  source    = "fluxnet2015",
-  getvars   = list(temp = "TA_F_DAY", prec = "P_F", vpd  = "VPD_F_DAY", swin =  "SW_IN_F", netrad = "NETRAD", patm = "PA_F"),
+  source    = "fluxnet",
+  getvars   = list(temp = "TA_F_DAY", prec = "P_F", vpd  = "VPD_F_DAY", ppfd =  "SW_IN_F", netrad = "NETRAD", patm = "PA_F"),
   dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
   settings  = list(dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", getswc = FALSE),
   timescale = "d"
@@ -300,21 +325,21 @@ ddf_fluxnet <- ingest(
 As described above for a single site, the same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we're reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (`""GPP_NT_VUT_REF""`), keep only data where at least 80% is based on non-gapfilled half-hourly data (`threshold_GPP = 0.8`), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (`filter_ntdt = TRUE`, see also `?get_obs_bysite_fluxnet2015`).
 ```{r warning=FALSE, message=FALSE}
 settings_fluxnet <- list(
-  dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", 
-  getswc = FALSE,
-  filter_ntdt = TRUE,
-  threshold_GPP = 0.8,
-  remove_neg = FALSE
+  dir_hh       = "~/data/FLUXNET-2015_Tier1/20191024/HH/",
+  getswc       = FALSE,
+  filter_ntdt  = TRUE,
+  threshold_GPP= 0.8,
+  remove_neg   = FALSE
   )
 
 ddf_fluxnet_gpp <- ingest(
   siteinfo = siteinfo,
-  source    = "fluxnet2015",
-  getvars = list(gpp = "GPP_NT_VUT_REF",
-                 gpp_unc = "GPP_NT_VUT_SE"),
-  dir = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
+  source   = "fluxnet",
+  getvars  = list(gpp = "GPP_NT_VUT_REF",
+  pp_unc   = "GPP_NT_VUT_SE"),
+  dir      = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
   settings = settings_fluxnet,
-  timescale = "d"
+  timescale= "d"
   )
 ```
 
@@ -334,7 +359,7 @@ ddf_watch <- ingest(
 
 ### CRU TS
 
-This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.   
+This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.
 ```{r message=FALSE}
 ddf_cru <- ingest(
   siteinfo = siteinfo,
@@ -357,21 +382,21 @@ ggplot() +
 
 Using the same settings as specified above, we can download MODIS FPAR data for multiple sites at once from GEE:
 ```{r warning=FALSE, message=FALSE, echo = T, results = 'hide'}
-settings_gee <- get_settings_gee( 
-  bundle = "modis_fpar", 
-  python_path = system("which python", intern = TRUE),
-  gee_path = "~/google_earth_engine_subsets/gee_subset/",
-  data_path = "~/data/gee_subsets/",
-  method_interpol = "linear",
-  keep = TRUE,
-  overwrite_raw = FALSE,
-  overwrite_interpol = TRUE
+settings_gee <- get_settings_gee(
+  bundle            = "modis_fpar",
+  python_path       = system("which python", intern = TRUE),
+  gee_path          = "~/google_earth_engine_subsets/gee_subset/",
+  data_path         = "~/data/gee_subsets/",
+  method_interpol   = "linear",
+  keep              = TRUE,
+  overwrite_raw     = FALSE,
+  overwrite_interpol= TRUE
   )
 
 df_gee_modis_fpar <- ingest(
-  siteinfo = siteinfo,
-  source = "gee",
-  settings = settings_gee,
+  siteinfo= siteinfo,
+  source  = "gee",
+  settings= settings_gee,
   verbose = FALSE
   )
 ```
@@ -384,15 +409,21 @@ list_gg <- plot_fapar_ingestr(df_gee_modis_fpar, settings_gee)
 
 ### CO2
 
-Ingesting CO2 data is particularly simple. We can safely assume it's well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years.  
+Ingesting CO2 data is particularly simple. We can safely assume it's well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years.
 ```{r message=FALSE}
 df_co2 <- ingest(
   siteinfo,
-  source = "co2",
+  source  = "co2",
   verbose = FALSE,
-  settings = list(path = "~/data/co2/cCO2_rcp85_const850-1765.csv")
+  settings= list(path = "~/data/co2/cCO2_rcp85_const850-1765.csv")
   )
 ```
+
+
+
+
+
+
 
 
 <!-- xxxxxxx -->
@@ -404,8 +435,8 @@ df_co2 <- ingest(
 <!-- ```{r message=FALSE, warning=FALSE} -->
 <!-- ddf_fluxnet <- ingest( -->
 <!--   siteinfo = siteinfo, -->
-<!--   source    = "fluxnet2015", -->
-<!--   getvars   = list(temp = "TA_F_DAY", prec = "P_F", vpd  = "VPD_F_DAY", swin =  "SW_IN_F", netrad = "NETRAD", patm = "PA_F"), -->
+<!--   source    = "fluxnet", -->
+<!--   getvars   = list(temp = "TA_F_DAY", prec = "P_F", vpd  = "VPD_F_DAY", ppfd =  "SW_IN_F", netrad = "NETRAD", patm = "PA_F"), -->
 <!--   dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/", -->
 <!--   settings  = list(dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", getswc = FALSE, threshold_GPP = 0.5), -->
 <!--   timescale = "d" -->

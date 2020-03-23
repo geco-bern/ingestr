@@ -100,10 +100,10 @@ ingest_gee_bysite <- function(
       
       end = Sys.time()
       proc_time = as.vector(end - start)
-      print( paste( "... completed in", format( proc_time, digits = 3), "sec" ) )
+      rlang::inform( paste( "... completed in", format( proc_time, digits = 3), "sec" ) )
       
       ## Raw downloaded data is saved to file
-      print( paste( "raw data file written:", filnam_raw_csv ) )
+      rlang::inform( paste( "raw data file written:", filnam_raw_csv ) )
       
     }
     
@@ -134,7 +134,7 @@ ingest_gee_bysite <- function(
       
     } else {
       
-      print( paste( "WARNING: RAW DATA FILE NOT FOUND FOR SITE:", sitename ) )
+      rlang::warn( paste( "WARNING: RAW DATA FILE NOT FOUND FOR SITE:", sitename ) )
       df_error <- df_error %>% bind_rows( tibble( mysitename=sitename, error=2 ) ) 
       out <- NA
       do_continue <- FALSE

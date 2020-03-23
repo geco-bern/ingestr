@@ -1,24 +1,24 @@
-#' Get FLUXNET 2015 observational data for one site.
+#' Get FLUXNET observational data for one site.
 #'
-#' Function for reading observational GPP data from FLUXNET 2015 dataset
+#' Function for reading observational GPP data from FLUXNET dataset
 #' and defining calibration target (which flux decomposition method etc.)
 #'
 #' @param sitename A character string specifying the site name for which
-#' FLUXNET 2015 data is searched (based on the site name appearing as part
+#' FLUXNET data is searched (based on the site name appearing as part
 #' of the respective file name). Defaults to NA.
-#' @param path_fluxnet2015 A character string specifying the local path of
-#' FLUXNET 2015 data.
-#' @param path_fluxnet2015_hh A character string specifying the local path of
-#' half-hourly FLUXNET 2015 data, required to get daytime VPD. Defaults to
+#' @param dir A character string specifying the local path of
+#' FLUXNET data.
+#' @param dir_hh A character string specifying the local path of
+#' half-hourly FLUXNET data, required to get daytime VPD. Defaults to
 #' \code{NULL} (no daytime VPD is calculated).
-#' @param path_fluxnet2015_hr A character string specifying the local path of
-#' hourly FLUXNET 2015 data, required to get daytime VPD. Defaults to
+#' @param dir_hr A character string specifying the local path of
+#' hourly FLUXNET data, required to get daytime VPD. Defaults to
 #' \code{NULL} (no daytime VPD is calculated).
-#' @param timescale A character specifying the time scale of FLUXNET 2015
+#' @param timescale A character specifying the time scale of FLUXNET
 #' data. Any of \code{c("d", "w", "m", "y")} for daily, weekly, monthly,
 #' or yearly, respectively.
 #' @param getvars A vector of character strings corresponding to the
-#' FLUXNET 2015 variable names as used in the original data files. See
+#' FLUXNET variable names as used in the original data files. See
 #' \url{https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/}. If argument
 #' \code{getswc==TRUE}, then soil water content data (variables starting with
 #' \code{"SWC_}) are read.
@@ -28,7 +28,7 @@
 #' monthly, and annual data or 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data). The value specifies the
 #' threshold for excluding data during data cleaning. The threshold is
-#' with respect to the data quality flag in the FLUXNET 2015 data, indicating
+#' with respect to the data quality flag in the FLUXNET data, indicating
 #' the fraction of measured and good quality gapfilled data for daily, weekly,
 #' monthly, and annual data and 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
@@ -37,7 +37,7 @@
 #' monthly, and annual data or 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data). The value specifies the
 #' threshold for excluding data during data cleaning. The threshold is
-#' with respect to the data quality flag in the FLUXNET 2015 data, indicating
+#' with respect to the data quality flag in the FLUXNET data, indicating
 #' the fraction of measured and good quality gapfilled data for daily, weekly,
 #' monthly, and annual data and 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
@@ -46,7 +46,7 @@
 #' monthly, and annual data or 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data). The value specifies the
 #' threshold for excluding data during data cleaning. The threshold is
-#' with respect to the data quality flag in the FLUXNET 2015 data, indicating
+#' with respect to the data quality flag in the FLUXNET data, indicating
 #' the fraction of measured and good quality gapfilled data for daily, weekly,
 #' monthly, and annual data and 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
@@ -55,7 +55,7 @@
 #' monthly, and annual data or 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data). The value specifies the
 #' threshold for excluding data during data cleaning. The threshold is
-#' with respect to the data quality flag in the FLUXNET 2015 data, indicating
+#' with respect to the data quality flag in the FLUXNET data, indicating
 #' the fraction of measured and good quality gapfilled data for daily, weekly,
 #' monthly, and annual data and 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
@@ -64,7 +64,7 @@
 #' monthly, and annual data or 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data). The value specifies the
 #' threshold for excluding data during data cleaning. The threshold is
-#' with respect to the data quality flag in the FLUXNET 2015 data, indicating
+#' with respect to the data quality flag in the FLUXNET data, indicating
 #' the fraction of measured and good quality gapfilled data for daily, weekly,
 #' monthly, and annual data and 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
@@ -73,7 +73,7 @@
 #' monthly, and annual data or 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data). The value specifies the
 #' threshold for excluding data during data cleaning. The threshold is
-#' with respect to the data quality flag in the FLUXNET 2015 data, indicating
+#' with respect to the data quality flag in the FLUXNET data, indicating
 #' the fraction of measured and good quality gapfilled data for daily, weekly,
 #' monthly, and annual data and 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
@@ -82,7 +82,7 @@
 #' monthly, and annual data or 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data). The value specifies the
 #' threshold for excluding data during data cleaning. The threshold is
-#' with respect to the data quality flag in the FLUXNET 2015 data, indicating
+#' with respect to the data quality flag in the FLUXNET data, indicating
 #' the fraction of measured and good quality gapfilled data for daily, weekly,
 #' monthly, and annual data and 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
@@ -91,7 +91,7 @@
 #' monthly, and annual data or 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data). The value specifies the
 #' threshold for excluding data during data cleaning. The threshold is
-#' with respect to the data quality flag in the FLUXNET 2015 data, indicating
+#' with respect to the data quality flag in the FLUXNET data, indicating
 #' the fraction of measured and good quality gapfilled data for daily, weekly,
 #' monthly, and annual data and 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
@@ -109,22 +109,25 @@
 #' named and in units corresponding to rsofun standard.
 #' @export
 #'
-#' @examples df <- get_obs_bysite_fluxnet2015
+#' @examples \dontrun{df <- get_obs_bysite_fluxnet}
 #'
-get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet2015_hh=NULL,
-                                        path_fluxnet2015_hr = NULL, timescale, getvars, getswc=TRUE,
-                                        threshold_GPP=0.0, threshold_LE=0.0, threshold_H=0.0, threshold_SWC=0.0,
-                                        threshold_WS=0.0, threshold_USTAR=0.0, threshold_T=0.0, threshold_NETRAD=0.0, 
-                                        filter_ntdt = FALSE, return_qc=FALSE,
-                                        remove_neg = FALSE, verbose=TRUE ){
+get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
+                                    dir_hr = NULL, timescale, getvars, getswc=TRUE,
+                                    threshold_GPP=0.0, threshold_LE=0.0, threshold_H=0.0, threshold_SWC=0.0,
+                                    threshold_WS=0.0, threshold_USTAR=0.0, threshold_T=0.0, threshold_NETRAD=0.0, 
+                                    filter_ntdt = FALSE, return_qc=FALSE,
+                                    remove_neg = FALSE, verbose=TRUE ){
   
   if (verbose) print(paste("Getting FLUXNET data for", sitename, "..."))
 
+  ##-----------------------------------------------------------------
+  ## Define what exactly is to be read
+  ##-----------------------------------------------------------------
   ## make a vector
   getvars_orig <- getvars
   getvars <- getvars %>% unlist() %>% unname()
   
-  ## complement getvars if necessary
+  ## complement getvars if necessary, i.e. when filter_ntdt is TRUE
   added <- c("")
   if (is.null(filter_ntdt)) filter_ntdt <- FALSE
   if (filter_ntdt){
@@ -159,31 +162,31 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
   ## Take only file for this site
   if (timescale=="d"){
     ## Daily
-    filn <- list.files( path_fluxnet2015,
+    filn <- list.files( dir,
       pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_DD.*.csv" ),
       recursive = TRUE
       )
   } else  if (timescale=="w"){
     ## Weekly
-    filn <- list.files( path_fluxnet2015,
+    filn <- list.files( dir,
       pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_WW.*.csv" ),
       recursive = TRUE
       )
   } else  if (timescale=="m"){
     ## Monthly
-    filn <- list.files( path_fluxnet2015,
+    filn <- list.files( dir,
       pattern = paste0("FLX_", sitename, ".*_FLUXNET2015_FULLSET_MM.*.csv"),
       recursive = TRUE
       )
   } else  if (timescale=="y" || timescale=="a"){
     ## Annual
-    filn <- list.files( path_fluxnet2015,
+    filn <- list.files( dir,
       pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_YY.*.csv" ),
       recursive = TRUE
       )
   } else  if (timescale=="hh"){
     ## half-hourly
-    filn <- list.files( path_fluxnet2015,
+    filn <- list.files( dir,
       pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
       recursive = TRUE
       )
@@ -198,27 +201,29 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
   #   dplyr::pull(getvars)
   # getvars <- c(obsvars, paste0(obsvars, "_QC"), uncvars)
 
-  if (length(filn)==0) rlang::abort(paste0("No files found for timescale ", timescale, " in sub-directories of ", path_fluxnet2015 ) )
+  if (length(filn)==0) rlang::abort(paste0("No files found for timescale ", timescale, " in sub-directories of ", dir ) )
   if (length(filn)>1){
     file.info_getsize <- function(filn){
       file.info(filn)$size
     }
     rlang::warn("Reading only largest daily file available")
-    path_dd <- paste0(path_fluxnet2015, filn)
+    path_dd <- paste0(dir, filn)
     size_vec <- purrr::map_dbl(as.list(path_dd), ~file.info_getsize(.))
     path_dd <- path_dd[which.max(size_vec)]
     filn <- basename(path_dd)
   }
 
-
   # if (length(filn)>1){
   #   filn <- filn[which(grepl("3.csv", filn))]
-  #   # rlang::warn(paste0("Multiple files found for timsescale ", timescale, " in sub-directories of ", path_fluxnet2015, ". Taking only ", filn ) )
+  #   # rlang::warn(paste0("Multiple files found for timsescale ", timescale, " in sub-directories of ", dir, ". Taking only ", filn ) )
   # }
 
+  ##-----------------------------------------------------------------
+  ## Actually read data
+  ##-----------------------------------------------------------------
   ## This returns a data frame with columns (date, temp, prec, nrad, ppfd, vpd, ccov)
   df <- get_obs_fluxnet2015_raw( sitename,
-    path = paste0(path_fluxnet2015, filn),
+    path = paste0(dir, filn),
     freq = timescale
     )
 
@@ -227,15 +232,16 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
     df <- df %>% mutate(NETRAD = NA, NETRAD_QC = 0.0)
   }
 
-  ## Get daytime VPD separately
+  ##-----------------------------------------------------------------
+  ## Get daytime VPD
+  ##-----------------------------------------------------------------
   merge_df_vpd_day_dd <- FALSE
   if ("VPD_F_DAY" %in% getvars && !(timescale == "hh")){
     
-    ##-----------------------------------------------------------------
     ## 1. Check whether daily file for daytime VPD is already available
     ##-----------------------------------------------------------------
     ## get file name(s) of file containing daily daytime VPD derived from half-hourly data
-    filename_dd_vpd <- list.files( path_fluxnet2015,
+    filename_dd_vpd <- list.files( dir,
                                    pattern = paste0("FLX_", sitename, ".*_VPD_DAY.csv"),
                                    recursive = FALSE)
     
@@ -244,7 +250,6 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
     #   stringr::str_replace(".csv", "_VPD_DAY.csv")
     
     if (length(filename_dd_vpd)>0){
-      ##-----------------------------------------------------------------
       ## Read available file
       ##-----------------------------------------------------------------
       if (length(filename_dd_vpd)>1){
@@ -252,37 +257,35 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
           file.info(filn)$size
         }
         rlang::warn("Reading only largest daily VPD file available")
-        path_dd_vpd <- paste0(path_fluxnet2015_hh, filename_dd_vpd)
+        path_dd_vpd <- paste0(dir_hh, filename_dd_vpd)
         size_vec <- purrr::map_dbl(as.list(path_dd_vpd), ~file.info_getsize(.))
         path_dd_vpd <- path_dd_vpd[which.max(size_vec)]
         filename_dd_vpd <- basename(path_dd_vpd)
       }
 
       ## read directly
-      if (verbose) print(paste("Reading daytime VPD directly from:", paste0(path_fluxnet2015_hh, filename_dd_vpd)))
-      df_vpd_day_dd <- readr::read_csv(paste0(path_fluxnet2015, filename_dd_vpd))
+      if (verbose) print(paste("Reading daytime VPD directly from:", paste0(dir_hh, filename_dd_vpd)))
+      df_vpd_day_dd <- readr::read_csv(paste0(dir, filename_dd_vpd))
       merge_df_vpd_day_dd <- TRUE
 
     } else {
-
-      ##-----------------------------------------------------------------
       ## Create new daily daytime-VPD file from half-hourly data
       ##-----------------------------------------------------------------
-      if (is.null(path_fluxnet2015_hh)){
+      if (is.null(dir_hh)){
 
-        rlang::warn("Argument path_fluxnet2015_hh is not provided. Daytime VPD could not be calculated.")
+        rlang::warn("Argument dir_hh is not provided. Daytime VPD could not be calculated.")
 
       } else {
 
         ## get half-hourly file name(s)
-        filn_hh <- list.files( path_fluxnet2015_hh,
+        filn_hh <- list.files( dir_hh,
                                pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
                                recursive = TRUE
                               )
         
         if (length(filn_hh)>0){
 
-          path_hh <- paste0(path_fluxnet2015_hh, filn_hh)
+          path_hh <- paste0(dir_hh, filn_hh)
 
           if (length(filn_hh)>1){
             file.info_getsize <- function(filn){
@@ -299,16 +302,16 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
 
         } else {
 
-          rlang::warn(paste0("No half-hourly data found in ", path_fluxnet2015_hh, ". Looking for hourly data in ",  path_fluxnet2015_hr, "..."))
+          rlang::warn(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
           
           ## get hourly file name(s)
-          filn_hr <- list.files( path_fluxnet2015_hr,
+          filn_hr <- list.files( dir_hr,
                                  pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HR.*.csv" ),
                                  recursive = TRUE
                                 )
           if (length(filn_hr)>0){
 
-            path_hr <- paste0(path_fluxnet2015_hr, filn_hr)
+            path_hr <- paste0(dir_hr, filn_hr)
 
             if (length(filn_hr)>1){
               file.info_getsize <- function(filn){
@@ -382,6 +385,9 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
   
   }
 
+  ##----------------------------------------------------------
+  ## Reduce data to getvars
+  ##----------------------------------------------------------
   ## retain all getvars, plus soil moisture if required
   if (getswc){
     df <- df %>%
@@ -391,11 +397,9 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
     df <- df %>% dplyr::select( ., date, one_of(getvars) )
   }
 
-  # ## convert to numeric (weirdly isn't always) and subset (select)
-  # df <- df %>%
-  #   dplyr::mutate_at( vars(one_of(getvars)), list(~as.numeric))
-
-  ## Filter
+  ##----------------------------------------------------------
+  ## Filter / clean data
+  ##----------------------------------------------------------
   ## air temperature
   TA_vars <- getvars[which(grepl("TA_", getvars))]
   TA_vars <- TA_vars[-which(grepl("_QC", TA_vars))]
@@ -443,7 +447,6 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
   ## clean energy data (sensible and latent heat flux) data - often has spuriously equal values
   if (any(grepl("LE_", getvars))){
     if (any( !(c("LE_F_MDS", "LE_F_MDS_QC") %in% getvars) )) rlang::abort("Not all variables read from file that are needed for data cleaning.")
-    #df$LE_F_MDS_good <- clean_fluxnet_energy( df$LE_F_MDS, df$LE_F_MDS_QC, threshold_LE=0.0 )
     df$LE_F_MDS <- clean_fluxnet_energy( df$LE_F_MDS, df$LE_F_MDS_QC, threshold=threshold_LE )
   }
   if (any(grepl("H_", getvars))){
@@ -451,6 +454,9 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
     df$H_F_MDS  <- clean_fluxnet_energy( df$H_F_MDS, df$H_F_MDS_QC,   threshold=threshold_H )
   }
 
+  ##----------------------------------------------------------
+  ## Process soil moisture data
+  ##----------------------------------------------------------
   ## Soil moisture related stuff for daily data
   if (timescale=="d" && getswc){
     tmp <- df %>% dplyr::select( starts_with("SWC") )
@@ -487,87 +493,31 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
     df <- df %>% dplyr::select(-ends_with("_QC"))
   }
 
-  ## conversion factor from SPLASH: flux to energy conversion, umol/J (Meek et al., 1984)
-  kfFEC <- 2.04
-
   ## Make unit conversions and shorter names
   outgetvars <- c()
 
-  ## Rename variables
-  if ("TA_F_DAY" %in% getvars && !("TA_F" %in% getvars)){
-    if (verbose) rlang::warn("Renaming: temp = TA_F_DAY \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("TA_F_DAY")), list(~stringr::str_replace(., "TA_F_DAY", "temp")) )
-  }
-  if ("TA_F" %in% getvars && !("TA_F_DAY" %in% getvars)){
-    if (verbose) rlang::warn("Renaming: temp = TA_F \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("TA_F")), list(~stringr::str_replace(., "TA_F", "temp")) )
-  }
-  if ("TA_F" %in% getvars && "TA_F_DAY" %in% getvars){
-    if (verbose) rlang::warn("Renaming: temp_day = TA_F_DAY \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("TA_F_DAY")), list(~stringr::str_replace(., "TA_F_DAY", "temp_day")) )
-    if (verbose) rlang::warn("Renaming: temp = TA_F \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("TA_F")), list(~stringr::str_replace(., "TA_F", "temp")) )
-  }
-  if ("P_F" %in% getvars){
-    if (verbose) rlang::warn("Renaming: prec = P_F (given and required in mm) \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("P_F")), list(~stringr::str_replace(., "P_F", "prec")) )
-  }
-  if ("WS_F" %in% getvars){
-    if (verbose) rlang::warn("Renaming: wspeed = WS_F (given and required in m s-1) \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("WS_F")), list(~stringr::str_replace(., "WS_F", "wspeed")) )
-  }
-  if ("USTAR" %in% getvars){
-    if (verbose) rlang::warn("Renaming: ustar = USTAR (given and required in m s-1) \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("USTAR")), list(~stringr::str_replace(., "USTAR", "ustar")) )
-  }
-  if ("LE_F_MDS" %in% getvars){
-    if (verbose) rlang::warn("Renaming: latenth = LE_F_MDS \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("LE_F_MDS")), list(~stringr::str_replace(., "LE_F_MDS", "latenth")) )
-  }
-  if ("LE_RANDUNC" %in% getvars){
-    if (verbose) rlang::warn("Renaming: latenth_unc = LE_RANDUNC \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("LE_RANDUNC")), list(~stringr::str_replace(., "LE_RANDUNC", "latenth_unc")) )
-  }
-  if ("H_F_MDS" %in% getvars){
-    if (verbose) rlang::warn("Renaming: sensibleh = H_F_MDS \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("H_F_MDS")), list(~stringr::str_replace(., "H_F_MDS", "sensibleh" )) )
-  }
-  # if ("VPD_F_DAY" %in% getvars){
-  #   if (verbose) rlang::warn("Renaming: vpd_day = VPD_F_DAY \n")
-  #   df <- df %>% dplyr::rename_at( vars(starts_with("VPD_F_DAY")), list(~stringr::str_replace(., "VPD_F_DAY", "vpd_day" )) )
-  # }
-  # if ("VPD_F" %in% getvars){
-  #   if (verbose) rlang::warn("Renaming: vpd = VPD_F \n")
-  #   df <- df %>% dplyr::rename_at( vars(starts_with("VPD_F")), list(~stringr::str_replace(., "VPD_F", "vpd" )) )
-  # }
-  if ("VPD_F_DAY" %in% getvars && !("VPD_F" %in% getvars)){
-    if (verbose) rlang::warn("Renaming: vpd = VPD_F_DAY \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("VPD_F_DAY")), list(~stringr::str_replace(., "VPD_F_DAY", "vpd")) )
-  }
-  if ("VPD_F" %in% getvars && !("VPD_F_DAY" %in% getvars)){
-    if (verbose) rlang::warn("Renaming: vpd = VPD_F \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("VPD_F")), list(~stringr::str_replace(., "VPD_F", "vpd")) )
-  }
-  if ("VPD_F" %in% getvars && "VPD_F_DAY" %in% getvars){
-    if (verbose) rlang::warn("Renaming: vpd_day = VPD_F_DAY \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("VPD_F_DAY")), list(~stringr::str_replace(., "VPD_F_DAY", "vpd_day")) )
-    if (verbose) rlang::warn("Renaming: vpd = VPD_F \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("VPD_F")), list(~stringr::str_replace(., "VPD_F", "vpd")) )
-  }
-  if ("PA_F" %in% getvars){
-    if (verbose) rlang::warn("Renaming: patm = PA_F \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("PA_F")), list(~stringr::str_replace(., "PA_F", "patm" )) )
-  }
-  if ("SW_IN_F" %in% getvars){
-    if (verbose) rlang::warn("Renaming: swin = SW_IN_F  \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("SW_IN_F")), list(~stringr::str_replace(., "SW_IN_F", "swin" )) )
-  }
-  if ("NETRAD" %in% getvars){
-    if (verbose) rlang::warn("Renaming: netrad = NETRAD \n")
-    df <- df %>% dplyr::rename_at( vars(starts_with("NETRAD")), list(~stringr::str_replace(., "NETRAD", "netrad" )) )
+  ##----------------------------------------------------------
+  ## Rename variables to names provided by argument 'getvars' 
+  ##----------------------------------------------------------
+  rename_byvar <- function(df, list_var, verbose){
+    name_in  <- list_var %>% unlist() %>% unname()
+    name_out <- list_var %>% names()
+    if (verbose) rlang::warn(paste0("Renaming: ", name_out, " = ", name_in, " \n"))
+    df %>% 
+      dplyr::rename_at( vars(matches({{name_in}})), list(~stringr::str_replace(., {{name_in}}, {{name_out}})) )
   }
 
-  ## Convert units
+  for (ivar in seq(length(getvars_orig))){
+    df <- df %>% rename_byvar(getvars_orig[ivar], verbose = verbose)
+  }
+
+
+  ##----------------------------------------------------------
+  ## Convert units to ingestr-standards
+  ##----------------------------------------------------------
+  ## conversion factor from SPLASH: flux to energy conversion, umol/J (Meek et al., 1984)
+  kfFEC <- 2.04
+  
   if ("vpd_day" %in% names(df)){
     if (verbose) rlang::warn("Converting: vpd_day = vpd_day * 1e2 (given in hPa, required in Pa) \n")
     df <- df %>% dplyr::mutate( vpd_day = vpd_day * 1e2 )
@@ -580,11 +530,11 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
     if (verbose) rlang::warn("Converting: patm = patm * 1e3 (given in kPa, required in Pa) \n")
     df <- df %>% dplyr::mutate( patm = patm * 1e3 )
   }
-  if ("swin" %in% names(df)){
-    if (verbose) rlang::warn("Converting: swin = swin * 60 * 60 * 24 (given in W m-2, required in J m-2 d-1) \n")
-    df <- df %>% dplyr::mutate( swin = swin * 60 * 60 * 24 )
-    if (verbose) rlang::warn("Converting: ppfd = swin * kfFEC * 1.0e-6 (convert from J/m2/d to mol/m2/d; kfFEC = 2.04 is the flux-to-energy conversion, micro-mol/J (Meek et al., 1984)) \n")
-    df <- df %>% dplyr::mutate( ppfd = swin * kfFEC * 1.0e-6 )
+  if ("ppfd" %in% names(df)){
+    if (verbose) rlang::warn("Converting: ppfd = ppfd * 60 * 60 * 24 (given in W m-2, required in J m-2 d-1) \n")
+    df <- df %>% dplyr::mutate( ppfd = ppfd * 60 * 60 * 24 )
+    if (verbose) rlang::warn("Converting: ppfd = ppfd * kfFEC * 1.0e-6 (convert from J/m2/d to mol/m2/d; kfFEC = 2.04 is the flux-to-energy conversion, micro-mol/J (Meek et al., 1984)) \n")
+    df <- df %>% dplyr::mutate( ppfd = ppfd * kfFEC * 1.0e-6 )
   }
   if ("netrad" %in% names(df)){
     if (verbose) rlang::warn("Converting: netrad = NETRAD * 60 * 60 * 24 (given in W m-2 (avg.), required in J m-2 (daily total)) \n")
@@ -592,22 +542,22 @@ get_obs_bysite_fluxnet2015 <- function( sitename, path_fluxnet2015, path_fluxnet
   }
 
   ## GPP
-  if ("gpp" %in% names(getvars_orig)){
-    if (getvars_orig$gpp == "GPP_NT_VUT_REF"){
-      df <- df %>% rename(gpp = GPP_NT_VUT_REF)
-    }
-    if (getvars_orig$gpp == "GPP_DT_VUT_REF"){
-      df <- df %>% rename(gpp = GPP_DT_VUT_REF)
-    }
-  }
-  if ("gpp_unc" %in% names(getvars_orig)){
-    if (getvars_orig$gpp_unc == "GPP_NT_VUT_SE"){
-      df <- df %>% rename(gpp_unc = GPP_NT_VUT_SE)
-    }
-    if (getvars_orig$gpp_unc == "GPP_DT_VUT_SE"){
-      df <- df %>% rename(gpp_unc = GPP_DT_VUT_SE)
-    }
-  }
+  # if ("gpp" %in% names(getvars_orig)){
+  #   if (getvars_orig$gpp == "GPP_NT_VUT_REF"){
+  #     df <- df %>% rename(gpp = GPP_NT_VUT_REF)
+  #   }
+  #   if (getvars_orig$gpp == "GPP_DT_VUT_REF"){
+  #     df <- df %>% rename(gpp = GPP_DT_VUT_REF)
+  #   }
+  # }
+  # if ("gpp_unc" %in% names(getvars_orig)){
+  #   if (getvars_orig$gpp_unc == "GPP_NT_VUT_SE"){
+  #     df <- df %>% rename(gpp_unc = GPP_NT_VUT_SE)
+  #   }
+  #   if (getvars_orig$gpp_unc == "GPP_DT_VUT_SE"){
+  #     df <- df %>% rename(gpp_unc = GPP_DT_VUT_SE)
+  #   }
+  # }
   df <- df %>% 
     select(-one_of(added))
 
@@ -638,44 +588,44 @@ clean_fluxnet_byvar <- function(df, varnam, threshold){
 }
 
 ##----------------------------------------------------------------------
-## Function for reading observational GPP data from FLUXNET 2015 dataset
+## Function for reading observational GPP data from FLUXNET dataset
 ##----------------------------------------------------------------------
-get_obs_bysite_wcont_fluxnet2015 <- function( sitename, path_fluxnet2015, timescale ){
+get_obs_bysite_wcont_fluxnet2015 <- function( sitename, dir, timescale ){
 
   getvars <- "SWC"
 
   ## Take only file for this site
   if (timescale=="d"){
     ## Daily
-    filn <- list.files( path_fluxnet2015,
+    filn <- list.files( dir,
       pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_DD.*.csv" ),
       recursive = TRUE
       )
   } else  if (timescale=="w"){
     ## Weekly
-    filn <- list.files( path_fluxnet2015,
+    filn <- list.files( dir,
       pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_WW.*.csv" ),
       recursive = TRUE
       )
   } else  if (timescale=="m"){
     ## Monthly
-    filn <- list.files( path_fluxnet2015,
+    filn <- list.files( dir,
       pattern = paste0(..., collapse = NULL),
       recursive = TRUE
       )
   } else  if (timescale=="y"){
     ## Annual
-    filn <- list.files( path_fluxnet2015,
+    filn <- list.files( dir,
       pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_YY.*.csv" ),
       recursive = TRUE
       )
   }
 
-  if (length(filn)==0) abort(paste0("No files found for timescale ", timescale, "in sub-directories of ", path_fluxnet2015 ) )
+  if (length(filn)==0) abort(paste0("No files found for timescale ", timescale, "in sub-directories of ", dir ) )
 
   ## This returns a data frame with columns (date, temp, prec, nrad, ppfd, vpd, ccov)
   ddf <- get_obs_fluxnet2015_raw( sitename,
-    path = paste0(path_fluxnet2015, filn),
+    path = paste0(dir, filn),
     freq = "d"
     )
 
@@ -709,7 +659,7 @@ get_obs_fluxnet2015_raw <- function( sitename, path, freq="d" ){
   ##--------------------------------------------------------------------
   ## Function returns a dataframe containing all the data of the FLUXNET
   ## 2015 data file of respective temporal resolution.
-  ## Returns data in units given in the fluxnet 2015 dataset
+  ## Returns data in units given in the fluxnet dataset
   ##--------------------------------------------------------------------
   ## get data
   df <-  readr::read_csv( path, na="-9999" ) #, col_types = cols()
@@ -745,16 +695,16 @@ get_obs_fluxnet2015_raw <- function( sitename, path, freq="d" ){
 
 }
 
-# ## Converts units of GPP variables from FLUXNET 2015 to SOFUN standard
+# ## Converts units of GPP variables from FLUXNET to SOFUN standard
 # convert_gpp_fluxnet2015 <- function( gpp ){
-#   # in FLUXNET 2015 given in umolCO2 m-2 s-1. converted to gC m-2 d-1
+#   # in FLUXNET given in umolCO2 m-2 s-1. converted to gC m-2 d-1
 #   c_molmass <- 12.0107  # molar mass of C
 #   gpp_coverted <- gpp * 1e-6 * 60 * 60 * 24 * c_molmass
 #   return(gpp_coverted)
 
 # }
 
-## Converts units of latent energy (LE) variables from FLUXNET 2015 to SOFUN standard
+## Converts units of latent energy (LE) variables from FLUXNET to SOFUN standard
 convert_energy_fluxnet2015 <- function( le ){
   ## W m-2 -> J m-2 d-1
   le_converted <- as.numeric(le) * 60 * 60 * 24
