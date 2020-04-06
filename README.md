@@ -29,7 +29,7 @@ Examples to read data for a single site for each data type are given in Section 
 To install and load the rsofun package using the latest release run the following command in your R terminal: 
 ```r
 if(!require(devtools)){install.packages(devtools)}
-devtools::install_github( "stineb/ingestr" )
+devtools::install_github("stineb/ingestr")
 library(ingestr)
 ```
 
@@ -55,7 +55,10 @@ This package is designed to be extendible to ingesting other data types (sources
 
 I recommend the following steps if you would just like to use this package (no development):
 
-- In RStudio, do install and load the library (see 'Installation' above).
+- Directly install the package from the most up-to-date code on GitHub by
+```r
+devtools::install_github("stineb/ingestr")
+```
 
 I recommend the following steps if you would like to use and further develop the package (even just for your own application - But keep in mind: others may benefit from your efforts too!):
 
@@ -70,4 +73,4 @@ git clone https://github.com/<your_github_username>/ingestr.git
 5. In RStudio, after having edited code, select the 'Build' tab and click on 'Install and Restart' to build the package again. For quick edits and checks, you may simply source the edited files instead of re-building the whole package. If you like to add new functions, create new a source file in subdirectory `./R/`, write a nice roxygen header (see other source files as an example), then click on 'Build' -> 'More' -> 'Document', and then again on 'Install and Restart'.
 6. If you're happy with your new edits and additions to the package, you may want to have it fet back to the original repository. To do so, please create a new *pull request* in GitHub: Click on 'New pull request' on [the repository page](https://github.com/stineb/ingestr) and follow the inuitive steps. Thanks!
 
-
+This package is still in its maturing phase. To stay up-to-date with the latest version, regularly re-install from GitHub (`devtools::install_github("stineb/ingestr")`), or - if you're building from a locally (*git*) cloned repository - regularly do a `git pull` and re-install the package.

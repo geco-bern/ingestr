@@ -23,9 +23,9 @@ Data can be ingested for different data types (argument `source` in several func
 
 Meteo data:
 
-  - [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/): `source = "fluxnet"`, also flux data can be read in
-  - [WATCH-WFDEI](http://www.eu-watch.org/data_availability): `source = "watch_wfdei"`
-  - [CRU](https://crudata.uea.ac.uk/cru/data/hrg/): `source = "cru"`
+  - [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/): `source = "fluxnet"`, also flux data can be read in, reading from files
+  - [WATCH-WFDEI](http://www.eu-watch.org/data_availability): `source = "watch_wfdei"`, reading from files
+  - [CRU](https://crudata.uea.ac.uk/cru/data/hrg/): `source = "cru"`, reading from files
 
 Data on Google Earth Engine: `source = "gee"`, using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library):
 
@@ -33,9 +33,13 @@ Data on Google Earth Engine: `source = "gee"`, using Koen Hufken's [gee_suset](h
   - MODIS EVI
   - MODIS GPP
 
+Elevation data:
+
+  - [ETOPO1](https://www.ngdc.noaa.gov/mgg/global/): `source = "etopo1"`, reading from files
+
 MODIS data (not yet implemented):
 
-  - [RModisTools](https://docs.ropensci.org/MODISTools/) R package to access data on remote server ORNL DAAC (not yet implemented).
+  - [MODISTools](https://docs.ropensci.org/MODISTools/) R package to access data on remote server ORNL DAAC (not yet implemented).
   
 Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is descrbed in Section 'Example for a set of sites'.
 
@@ -45,14 +49,16 @@ Examples to read data for a single site for each data type are given in Section 
 
 All ingested data follows standardised variable naming and (optionally) units. 
 
-| Variable                | Variable name | Units                       |
-|-------------------------|---------------|---------------              |
-| Gross primary production| `gpp`         | g CO$^{-2}$ m$^{-2}$ X$^{-1}$  |
-| Air temperature         | `temp`        | $^\circ$C                   |
-| Precipitation           | `prec`        | mm X$^{-1}$                 |
-| Vapour pressure deficit | `vpd`         | Pa                          |
-| Atmospheric pressure    | `patm`        | Pa                          |
-| Net radiation           | `netrad`      | J m$^{-2}$ X$^{-1}$         |
+| Variable                           | Variable name | Units                          |
+|-------------------------           |---------------|---------------                 |
+| Gross primary production           | `gpp`         | g CO$^{-2}$ m$^{-2}$ X$^{-1}$  |
+| Air temperature                    | `temp`        | $^\circ$C                      |
+| Precipitation                      | `prec`        | mm X$^{-1}$                    |
+| Vapour pressure deficit            | `vpd`         | Pa                             |
+| Atmospheric pressure               | `patm`        | Pa                             |
+| Net radiation                      | `netrad`      | J m$^{-2}$ X$^{-1}$            |
+| Photosynthetic photon flux density | `ppfd`        | mol m$^{-2}$ X$^{-1}$          |
+| Elevation (altitude)               | `elv`         | m a.s.l.                       |        
 
 $X$ stands for 's' for half-hourly and hourly, 'd' for daily, 'm' for monthly, and 'y' for annual data.
 
@@ -292,9 +298,9 @@ First, define a list of sites and get site meta information. The required meta i
 mysites <- c("BE-Vie", "DE-Tha", "DK-Sor", "FI-Hyy", "IT-Col", "NL-Loo", "US-MMS", "US-WCr", "US-UMB", "US-Syv", "DE-Hai")
 
 siteinfo <- readr::read_csv("~/ingestr/siteinfo_fluxnet2015.csv") %>%
-  filter(sitename %in% mysites) %>%
-  mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
-  mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
+  dplyr::filter(sitename %in% mysites) %>%
+  dplyr::mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
+  dplyr::mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
 ```
 
 This file looks like this:
@@ -419,7 +425,16 @@ df_co2 <- ingest(
   )
 ```
 
+### ETOPO1
 
+This reads from the 1 arc minutes resolution ETOPO1 global elevation data (reading from a Geo-TIFF file). The nested data column contains a tibble one value for variable `elv`.
+```{r}
+df_etopo <- ingest(
+  siteinfo,
+  source = "etopo1",
+  dir = "~/data/etopo/"
+)
+```
 
 
 

@@ -146,7 +146,7 @@ ingest <- function(
 	    as.list(seq(nrow(siteinfo))),
 	    ~ingest_bysite(
 	      sitename = siteinfo$sitename[.],
-	      source = "co2",
+	      source = source,
 	      year_start = lubridate::year(siteinfo$date_start[.]),
 	      year_end   = lubridate::year(siteinfo$date_end[.]),
 	      verbose = FALSE,
@@ -154,8 +154,20 @@ ingest <- function(
 	    )
 	  )
 	  
+	} else if (source == "etopo1"){
+	  #-----------------------------------------------------------
+	  # Get ETOPO1 elevation data. year_start and year_end not required
+	  #-----------------------------------------------------------
+	  ddf <- ingest_globalfields(siteinfo,
+	                             source = source,
+	                             dir = dir,
+	                             getvars = NULL,
+	                             timescale = NULL,
+	                             verbose = FALSE
+	  )
+	  
 	}  else {
-	  rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet2015', 'cru', 'watch_wfdei', or 'gee'.")
+	  rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', or 'gee'.")
 	}
   
   ddf <- ddf %>% 

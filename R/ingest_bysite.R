@@ -171,6 +171,24 @@ ingest_bysite <- function(
       dplyr::select(-date) %>% 
       mutate(sitename = sitename)
     
+  }  else if (source == "etopo1"){
+    #-----------------------------------------------------------
+    # Get ETOPO1 elevation data. year_start and year_end not required
+    #-----------------------------------------------------------
+    siteinfo <- tibble(
+      sitename = sitename,
+      lon = lon,
+      lat = lat
+      )
+    
+    df_tmp <- ingest_globalfields(siteinfo,
+                                  source = source,
+                                  getvars = NULL,
+                                  dir = dir,
+                                  timescale = NULL,
+                                  verbose = FALSE
+    )
+    
   } else {
     rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', or 'gee'.")
   }

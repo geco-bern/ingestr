@@ -26,18 +26,23 @@
 #'
 ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, standardise_units = TRUE, verbose=FALSE ){
   
-  ## get a data frame with all dates for all sites
-  ddf <- purrr::map(
-    as.list(seq(nrow(siteinfo))),
-    ~init_dates_dataframe(
-      year(siteinfo$date_start[.]),
-      year(siteinfo$date_end[.]),
-      noleap = TRUE,
-      freq = "days"))
-  names(ddf) <- siteinfo$sitename
-  ddf <- ddf %>%
-    bind_rows(.id = "sitename") %>%
-    select(-year_dec)
+  if (source!="etopo1"){
+    ## get a data frame with all dates for all sites
+    ddf <- purrr::map(
+      as.list(seq(nrow(siteinfo))),
+      ~init_dates_dataframe(
+        year(siteinfo$date_start[.]),
+        year(siteinfo$date_end[.]),
+        noleap = TRUE,
+        freq = "days"))
+    names(ddf) <- siteinfo$sitename
+    ddf <- ddf %>%
+      bind_rows(.id = "sitename") %>%
+      select(-year_dec)
+  } else {
+    ddf <- tibble()
+  }
+  
 
   if (source=="watch_wfdei"){
     ##----------------------------------------------------------------------
@@ -167,6 +172,25 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
         right_join( ddf, by = "date" )
     }
     
+  } else if (source == "etopo1"){
+    
+    filename <- list.files(dir, pattern = ".tif")
+    if (length(filename) > 1) rlang::abort("ingest_globalfields(): Found more than 1 file for source 'etopo1'.") 
+    if (length(filename) == 0) rlang::abort("ingest_globalfields(): Found no files for source 'etopo1' in the directory provided by argument 'dir'.") 
+
+    ## re-construct this data frame (tibble) - otherwise SpatialPointsDataframe() won't work
+    df_lonlat <- tibble(
+      sitename = siteinfo$sitename,
+      lon      = siteinfo$lon,
+      lat      = siteinfo$lat
+    )
+        
+    ddf <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = FALSE ) %>% 
+      dplyr::select(-lon, -lat) %>% 
+      tidyr::unnest(data) %>% 
+      dplyr::rename(elv = V1) %>% 
+      dplyr::select(sitename, elv) 
+
   }
   
   return( ddf )
@@ -416,13 +440,22 @@ extract_pointdata_allsites <- function( filename, df_lonlat, get_time = FALSE ){
   if (!file.exists(filename)) rlang::abort(paste0("File not found: ", filename))
   rasta <- raster::brick(filename)
   
-  df_lonlat <- raster::extract(rasta, sp::SpatialPoints(dplyr::select(df_lonlat, lon, lat)), sp = TRUE) %>%
+  df_lonlat <- raster::extract(
+      rasta, 
+      sp::SpatialPoints(dplyr::select(df_lonlat, lon, lat)), # , proj4string = rasta@crs
+      sp = TRUE
+      ) %>%
     as_tibble() %>%
     tidyr::nest(data = c(-lon, -lat)) %>%
     right_join(df_lonlat, by = c("lon", "lat")) %>%
     mutate( data = purrr::map(data, ~dplyr::slice(., 1)) ) %>%
     dplyr::mutate(data = purrr::map(data, ~t(.))) %>%
     dplyr::mutate(data = purrr::map(data, ~as_tibble(.)))
+  
+  ## xxx todo: use argument df = TRUE in the extract() function call in order to
+  ## return a data frame directly (and not having to rearrange the data afterwards)
+  ## xxx todo: implement the GWR method for interpolating using elevation as a 
+  ## covariate here.
   
   if (get_time){
     timevals <- raster::getZ(rasta)
