@@ -317,12 +317,13 @@ Next, the data can be ingested for all sites at once. Let's do it for different 
 This ingests meteorological data from the FLUXNET files for variables temperature, precipitation, VPD, shortwave incoming radiation, net radiation, and atmospheric pressure. Arguments that are specific for this data source are provided in the `settings` list.
 ```{r message=FALSE, warning=FALSE}
 ddf_fluxnet <- ingest(
-  siteinfo = siteinfo,
+  siteinfo  = siteinfo,
   source    = "fluxnet",
-  getvars   = list(temp = "TA_F_DAY", prec = "P_F", vpd  = "VPD_F_DAY", ppfd =  "SW_IN_F", netrad = "NETRAD", patm = "PA_F"),
+  getvars   = list(temp = "TA_F", prec = "P_F", vpd  = "VPD_F", ppfd =  "SW_IN_F", netrad = "NETRAD", patm = "PA_F"),
   dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
   settings  = list(dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", getswc = FALSE),
-  timescale = "d"
+  timescale = "d",
+  verbose = TRUE
   )
 ```
 
