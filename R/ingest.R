@@ -32,41 +32,44 @@ ingest <- function(
 	verbose   = FALSE
   ){
   
-  ## complement dates information
-  if (!("year_start" %in% names(siteinfo))){
-    if ("date_start" %in% names(siteinfo)){
-      siteinfo <- siteinfo %>% 
-        mutate(year_start = lubridate::year(date_start))
-    } else {
-      rlang::abort("ingest(): Columns 'year_start' and 'date_start' missing in object provided by argument 'siteinfo'")
+  if (source!="etopo1"){
+    
+    ## complement dates information
+    if (!("year_start" %in% names(siteinfo))){
+      if ("date_start" %in% names(siteinfo)){
+        siteinfo <- siteinfo %>% 
+          mutate(year_start = lubridate::year(date_start))
+      } else {
+        rlang::abort("ingest(): Columns 'year_start' and 'date_start' missing in object provided by argument 'siteinfo'")
+      }
     }
-  }
-  if (!("year_end" %in% names(siteinfo))){
-    if ("date_end" %in% names(siteinfo)){
-      siteinfo <- siteinfo %>% 
-        mutate(year_end = lubridate::year(date_end))
-    } else {
-      rlang::abort("ingest(): Columns 'year_end' and 'date_end' missing in object provided by argument 'siteinfo'")
+    if (!("year_end" %in% names(siteinfo))){
+      if ("date_end" %in% names(siteinfo)){
+        siteinfo <- siteinfo %>% 
+          mutate(year_end = lubridate::year(date_end))
+      } else {
+        rlang::abort("ingest(): Columns 'year_end' and 'date_end' missing in object provided by argument 'siteinfo'")
+      }
     }
-  }
-  
-  if (!("date_start" %in% names(siteinfo))){
-    if ("year_start" %in% names(siteinfo)){
-      siteinfo <- siteinfo %>% 
-        mutate(date_start = lubridate::ymd(paste0(as.character(year_start), "-01-01")))
-    } else {
-      rlang::abort("ingest(): Columns 'year_start' and 'date_start' missing in object provided by argument 'siteinfo'")
+    
+    if (!("date_start" %in% names(siteinfo))){
+      if ("year_start" %in% names(siteinfo)){
+        siteinfo <- siteinfo %>% 
+          mutate(date_start = lubridate::ymd(paste0(as.character(year_start), "-01-01")))
+      } else {
+        rlang::abort("ingest(): Columns 'year_start' and 'date_start' missing in object provided by argument 'siteinfo'")
+      }
     }
-  }
-  if (!("date_end" %in% names(siteinfo))){
-    if ("year_end" %in% names(siteinfo)){
-      siteinfo <- siteinfo %>% 
-        mutate(date_end = lubridate::ymd(paste0(as.character(year_end), "-12-31")))
-    } else {
-      rlang::abort("ingest(): Columns 'year_end' and 'date_end' missing in object provided by argument 'siteinfo'")
+    if (!("date_end" %in% names(siteinfo))){
+      if ("year_end" %in% names(siteinfo)){
+        siteinfo <- siteinfo %>% 
+          mutate(date_end = lubridate::ymd(paste0(as.character(year_end), "-12-31")))
+      } else {
+        rlang::abort("ingest(): Columns 'year_end' and 'date_end' missing in object provided by argument 'siteinfo'")
+      }
     }
+    
   }
-  
   
 	if (source == "fluxnet"){
 	  #-----------------------------------------------------------
