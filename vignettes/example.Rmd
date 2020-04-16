@@ -76,7 +76,7 @@ The function `ingest_bysite()` can be used to ingest data for a single site. The
 
 #### Meteo data
 
-Reading from FLUXNET files offers multiple settings to be used specified by the user. Here, we're specifying that no soil water content data is read (`getswc = FALSE` in `settings_fluxnet`, passed to `ingest_bysite()` through argument `settings`), and that half-hourly data is stored in a separate directory. The latter specification is used to derive daytime VPD which is not given in FLUXNET data, but required here (see `getvars` element `vpd  = "VPD_F_DAY"`).
+Reading from FLUXNET files offers multiple settings to be used specified by the user. Here, we're specifying that no soil water content data is read (`getswc = FALSE` in `settings_fluxnet`, passed to `ingest_bysite()` through argument `settings`).
 ```{r message=FALSE}
 settings_fluxnet <- list(getswc = FALSE)
 
@@ -99,7 +99,7 @@ df_fluxnet <- ingest_bysite(
 df_fluxnet
 ```
 
-Note that the argument `getvars` as specified above triggers the ingestion of the six variables `"TA_F_DAY", "P_F", "VPD_F_DAY",  "SW_IN_F", "NETRAD", "PA_F"` and their renaming to `"temp", "prec", "vpd", "ppfd", "netrad", "patm"`, respecitvely. Any name can be used for renaming.
+Note that the argument `getvars` as specified above triggers the ingestion of the six variables `"TA_F", "P_F", "VPD_F",  "SW_IN_F", "NETRAD", "PA_F"` and their renaming to `"temp", "prec", "vpd", "ppfd", "netrad", "patm"`, respecitvely.
 
 #### Flux data
 
@@ -336,7 +336,6 @@ ddf_fluxnet <- ingest(
 As described above for a single site, the same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we're reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (`""GPP_NT_VUT_REF""`), keep only data where at least 80% is based on non-gapfilled half-hourly data (`threshold_GPP = 0.8`), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (`filter_ntdt = TRUE`, see also `?get_obs_bysite_fluxnet2015`).
 ```{r warning=FALSE, message=FALSE}
 settings_fluxnet <- list(
-  dir_hh       = "~/data/FLUXNET-2015_Tier1/20191024/HH/", # adjust this with your local path
   getswc       = FALSE,
   filter_ntdt  = TRUE,
   threshold_GPP= 0.8,

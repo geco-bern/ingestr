@@ -97,8 +97,8 @@
 #' medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
 #' meaning no data is excluded.
 #' @param filter_ntdt A logical specifying whether agreement of daytime and nighttime-
-#' based GPP estimates is to be used as a filter. Data points are removed 
-#' where their difference is below the the 97.5% and above the 2.5% quantile of all 
+#' based GPP estimates is to be used as a filter. Data points are removed
+#' where their difference is below the the 97.5% and above the 2.5% quantile of all
 #' difference values per site. Defaults to \code{FALSE}.
 #' @param return_qc A logical specifying whether quality control variables
 #' should be returned.
@@ -114,10 +114,10 @@
 get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
                                     dir_hr = NULL, timescale, getvars, getswc=TRUE,
                                     threshold_GPP=0.0, threshold_LE=0.0, threshold_H=0.0, threshold_SWC=0.0,
-                                    threshold_WS=0.0, threshold_USTAR=0.0, threshold_T=0.0, threshold_NETRAD=0.0, 
+                                    threshold_WS=0.0, threshold_USTAR=0.0, threshold_T=0.0, threshold_NETRAD=0.0,
                                     filter_ntdt = FALSE, return_qc=FALSE,
                                     remove_neg = FALSE, verbose=TRUE ){
-  
+
   if (verbose) print(paste("Getting FLUXNET data for", sitename, "..."))
 
   ##-----------------------------------------------------------------
@@ -126,20 +126,20 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
   ## make a vector
   getvars_orig <- getvars
   getvars <- getvars %>% unlist() %>% unname()
-  
+
   ## complement getvars if necessary, i.e. when filter_ntdt is TRUE
   added <- c("")
   if (is.null(filter_ntdt)) filter_ntdt <- FALSE
   if (filter_ntdt){
     if ("GPP_NT_VUT_REF" %in% getvars){
       toadd <- c("GPP_DT_VUT_REF", "NEE_VUT_REF_DAY_QC", "NEE_VUT_REF_NIGHT_QC")
-      getvars <- c(getvars, toadd) %>% 
+      getvars <- c(getvars, toadd) %>%
         unique()
       added <- c(added, toadd)
     }
     if ("GPP_DT_VUT_REF" %in% getvars){
       toadd <- c( "GPP_NT_VUT_REF", "NEE_VUT_REF_NIGHT_QC", "NEE_VUT_REF_DAY_QC")
-      getvars <- c(getvars, toadd) %>% 
+      getvars <- c(getvars, toadd) %>%
         unique()
       added <- c(added, toadd)
     }
@@ -147,18 +147,18 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
   if (any(grepl("GPP_", getvars))){
     if ("GPP_NT_VUT_REF" %in% getvars){
       toadd <- "NEE_VUT_REF_NIGHT_QC"
-      getvars <- c(getvars, toadd) %>% 
+      getvars <- c(getvars, toadd) %>%
         unique()
       added <- c(added, toadd)
     }
     if ("GPP_DT_VUT_REF" %in% getvars){
       toadd <- "NEE_VUT_REF_DAY_QC"
-      getvars <- c(getvars, toadd) %>% 
+      getvars <- c(getvars, toadd) %>%
         unique()
       added <- c(added, toadd)
     }
-  }    
-  
+  }
+
   ## Take only file for this site
   if (timescale=="d"){
     ## Daily
@@ -237,18 +237,18 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
   ##-----------------------------------------------------------------
   merge_df_vpd_day_dd <- FALSE
   if ("VPD_F_DAY" %in% getvars && !(timescale == "hh")){
-    
+
     ## 1. Check whether daily file for daytime VPD is already available
     ##-----------------------------------------------------------------
     ## get file name(s) of file containing daily daytime VPD derived from half-hourly data
     filename_dd_vpd <- list.files( dir,
-                                   pattern = paste0("FLX_", sitename, ".*_VPD_DAY.csv"),
+                                   pattern = paste0("FLX_", sitename, ".*_VPD_DAY_XXXXX.csv"),
                                    recursive = FALSE)
-    
+
     # filename_dd_vpd <- filn_hh %>%
     #   stringr::str_replace("HH", "DD") %>%
     #   stringr::str_replace(".csv", "_VPD_DAY.csv")
-    
+
     if (length(filename_dd_vpd)>0){
       ## Read available file
       ##-----------------------------------------------------------------
@@ -282,7 +282,7 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
                                pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
                                recursive = TRUE
                               )
-        
+
         if (length(filn_hh)>0){
 
           path_hh <- paste0(dir_hh, filn_hh)
@@ -303,7 +303,7 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
         } else {
 
           rlang::warn(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
-          
+
           ## get hourly file name(s)
           filn_hr <- list.files( dir_hr,
                                  pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HR.*.csv" ),
@@ -330,16 +330,16 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
         }
       }
     }
-    
+
     if (merge_df_vpd_day_dd){
-      
+
       if (timescale=="d"){
-        
+
         # daily
         df <- df %>% dplyr::left_join(df_vpd_day_dd, by="date")
-        
+
       } else if (timescale=="w"){
-        
+
         # weekly
         df <- df_vpd_day_dd %>%
           dplyr::mutate(year = lubridate::year(date),
@@ -351,9 +351,9 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
                            VPD_F_DAY_MDS_QC = mean(VPD_F_MDS_QC, na.rm=TRUE),
                            VPD_DAY_ERA      = mean(VPD_ERA, na.rm=TRUE) ) %>%
           dplyr::right_join(df, by="date")
-        
+
       } else if (timescale=="m"){
-        
+
         # monthly
         df <- df_vpd_day_dd %>%
           dplyr::mutate(year = lubridate::year(date),
@@ -365,9 +365,9 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
                            VPD_F_DAY_MDS_QC = mean(VPD_F_MDS_QC, na.rm=TRUE),
                            VPD_DAY_ERA      = mean(VPD_ERA, na.rm=TRUE) ) %>%
           dplyr::right_join(df, by="date")
-        
+
       } else if (timescale=="y"){
-        
+
         # annual
         df <- df_vpd_day_dd %>%
           dplyr::mutate(year = lubridate::year(date)) %>%
@@ -378,11 +378,11 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
                            VPD_F_DAY_MDS_QC = mean(VPD_F_MDS_QC, na.rm=TRUE),
                            VPD_DAY_ERA      = mean(VPD_ERA, na.rm=TRUE) ) %>%
           dplyr::right_join(df, by="date")
-        
+
       }
-      
+
     }
-  
+
   }
 
   ##----------------------------------------------------------
@@ -440,7 +440,7 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
   ## clean GPP data
   if (any(grepl("GPP_", getvars))){
     df <- df %>%
-      clean_fluxnet_gpp(threshold = threshold_GPP, remove_neg = remove_neg, filter_ntdt = filter_ntdt) %>% 
+      clean_fluxnet_gpp(threshold = threshold_GPP, remove_neg = remove_neg, filter_ntdt = filter_ntdt) %>%
       dplyr::select(-res)
   }
 
@@ -497,13 +497,13 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
   outgetvars <- c()
 
   ##----------------------------------------------------------
-  ## Rename variables to names provided by argument 'getvars' 
+  ## Rename variables to names provided by argument 'getvars'
   ##----------------------------------------------------------
   rename_byvar <- function(df, list_var, verbose){
     name_in  <- list_var %>% unlist() %>% unname()
     name_out <- list_var %>% names()
     if (verbose) rlang::warn(paste0("Renaming: ", name_out, " = ", name_in, " \n"))
-    df %>% 
+    df %>%
       dplyr::rename_at( vars(matches({{name_in}})), list(~stringr::str_replace(., {{name_in}}, {{name_out}})) )
   }
 
@@ -517,7 +517,7 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
   ##----------------------------------------------------------
   ## conversion factor from SPLASH: flux to energy conversion, umol/J (Meek et al., 1984)
   kfFEC <- 2.04
-  
+
   if ("vpd_day" %in% names(df)){
     if (verbose) rlang::warn("Converting: vpd_day = vpd_day * 1e2 (given in hPa, required in Pa) \n")
     df <- df %>% dplyr::mutate( vpd_day = vpd_day * 1e2 )
@@ -558,7 +558,7 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
   #     df <- df %>% rename(gpp_unc = GPP_DT_VUT_SE)
   #   }
   # }
-  df <- df %>% 
+  df <- df %>%
     select(-one_of(added))
 
   # Crude fix for a crude problem: some FLUXNET2015 files end on Dec 30 in the last year available
@@ -743,11 +743,11 @@ clean_fluxnet_gpp <- function(df, nam_gpp_nt, nam_gpp_dt, nam_nt_qc, nam_dt_qc, 
     ## i.e. where the residual of their regression is above the 97.5% or below the 2.5% quantile.
     df <- df %>%
       mutate(res = GPP_NT_VUT_REF - GPP_DT_VUT_REF)
-    
+
     q025 <- quantile( df$res, probs = 0.025, na.rm=TRUE )
     q975 <- quantile( df$res, probs = 0.975, na.rm=TRUE )
-    
-    
+
+
     ## remove data outside the quartiles of the residuals between the DT and NT estimates
     df <- df %>%
       mutate(GPP_NT_VUT_REF = replace_with_na_res(GPP_NT_VUT_REF, res, q025, q975),

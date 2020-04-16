@@ -1,0 +1,31 @@
+---
+title: "Calculate daytime VPD"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+library(ingestr)
+```
+
+Daytime VPD is not provided in the daily FLUXNET2015 data files. Instead, we can derive it based on the half-hourly data, averaging half-hourly VPD of time steps where the shortwave incoming radiation `"SW_IN_F"` is greater than zero (i.e., during the day). To do this, we can set the `getvars` argment to `list(vpd  = "VPD_F_DAY")` and additionally provide the directory where half-hourly files are located locally through the argument `settings`. We do this just for one year here (only year 2000 data is provided as external data in this package).
+```{r message=FALSE}
+settings_fluxnet <- list(dir_hh = paste0(path.package("ingestr"), "/extdata/"), getswc = FALSE)
+
+df_fluxnet <- ingest_bysite(
+  sitename = "FR-Pue",
+  source = "fluxnet",
+  getvars = list(vpd  = "VPD_F_DAY"),
+  dir = paste0(path.package("ingestr"), "/extdata/"),
+  settings = settings_fluxnet,
+  timescale = "d",
+  year_start = 2007,
+  year_end = 2007,
+  verbose = FALSE
+  )
+df_fluxnet
+```
+
