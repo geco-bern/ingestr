@@ -36,6 +36,10 @@ Data on Google Earth Engine: `source = "gee"`, using Koen Hufken's [gee_suset](h
 Elevation data:
 
   - [ETOPO1](https://www.ngdc.noaa.gov/mgg/global/): `source = "etopo1"`, reading from files
+  
+CO2 data:
+
+  - CO2 concentration from Mauna Loa, using the `climate` R package.
 
 MODIS data (not yet implemented):
 
@@ -74,20 +78,18 @@ The function `ingest_bysite()` can be used to ingest data for a single site. The
 
 Reading from FLUXNET files offers multiple settings to be used specified by the user. Here, we're specifying that no soil water content data is read (`getswc = FALSE` in `settings_fluxnet`, passed to `ingest_bysite()` through argument `settings`), and that half-hourly data is stored in a separate directory. The latter specification is used to derive daytime VPD which is not given in FLUXNET data, but required here (see `getvars` element `vpd  = "VPD_F_DAY"`).
 ```{r message=FALSE}
-settings_fluxnet <- list(
-  dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/",
-  getswc = FALSE)
+settings_fluxnet <- list(getswc = FALSE)
 
 df_fluxnet <- ingest_bysite(
-  sitename = "CH-Lae",
+  sitename = "FR-Pue",
   source = "fluxnet",
-  getvars = list(temp = "TA_F_DAY",
+  getvars = list(temp = "TA_F",
                  prec = "P_F",
-                 vpd  = "VPD_F_DAY",
+                 vpd  = "VPD_F",
                  ppfd =  "SW_IN_F",
                  netrad = "NETRAD",
                  patm = "PA_F"),
-  dir = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
+  dir = paste0(path.package("ingestr"), "/extdata/"),
   settings = settings_fluxnet,
   timescale = "d",
   year_start = 2010,
@@ -104,7 +106,6 @@ Note that the argument `getvars` as specified above triggers the ingestion of th
 The same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we're reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (`"GPP_NT_VUT_REF"` and `"GPP_NT_VUT_SE"` in argument `getvars`). The `settings` argument can be used again to specify settings that are specific to the `"fluxnet"` data source. Here, we keep only data where at least 80% is based on non-gapfilled half-hourly data (`threshold_GPP = 0.8`), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (`filter_ntdt = TRUE`). Negative GPP values are not removed (`remove_neg = FALSE`).
 ```{r warning=FALSE, message=FALSE}
 settings_fluxnet <- list(
-  dir_hh       = "~/data/FLUXNET-2015_Tier1/20191024/HH/",
   getswc       = FALSE,
   filter_ntdt  = TRUE,
   threshold_GPP= 0.8,
@@ -116,7 +117,7 @@ ddf_fluxnet <- ingest_bysite(
   source    = "fluxnet",
   getvars   = list( gpp = "GPP_NT_VUT_REF",
                     gpp_unc   = "GPP_NT_VUT_SE"),
-  dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
+  dir       = paste0(path.package("ingestr"), "/extdata/"),
   settings  = settings_fluxnet,
   timescale = "d",
   year_start= 2010,
@@ -189,6 +190,7 @@ The library `gee_subset` by Koen Hufkens can be downloaded from this [link](http
 
 - git: You can use [Homebrew](https://brew.sh/) to installing git by entering in your terminal: `brew install git`.
 - [python](https://www.python.org/)
+- The Python Pandas library
 
 Then, carry out the follwing steps:
 
@@ -293,11 +295,11 @@ To collect data from an ensemble of sites, we have to define a meta data frame, 
 
 Note that extracting for an ensemble of sites at once is more efficient for data types that are global files (WATCH-WFDEI, and CRU). In this case, the `raster` package can be used to efficiently ingest data.
 
-First, define a list of sites and get site meta information. The required meta information is provided in file `siteinfo_fluxnet2015.csv`. This file is created as described in (and using code from) [metainfo_fluxnet2015](https://github.com/stineb/metainfo_fluxnet2015).
+First, define a list of sites and get site meta information. The required meta information is provided by the exported data frame `siteinfo` (it comes as part of the ingestr package). This file is created as described in (and using code from) [metainfo_fluxnet2015](https://github.com/stineb/metainfo_fluxnet2015).
 ```{r warning=FALSE, message=FALSE}
 mysites <- c("BE-Vie", "DE-Tha", "DK-Sor", "FI-Hyy", "IT-Col", "NL-Loo", "US-MMS", "US-WCr", "US-UMB", "US-Syv", "DE-Hai")
 
-siteinfo <- readr::read_csv("~/ingestr/siteinfo_fluxnet2015.csv") %>%
+siteinfo <- ingestr::siteinfo %>%
   dplyr::filter(sitename %in% mysites) %>%
   dplyr::mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
   dplyr::mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
@@ -320,8 +322,10 @@ ddf_fluxnet <- ingest(
   siteinfo  = siteinfo,
   source    = "fluxnet",
   getvars   = list(temp = "TA_F", prec = "P_F", vpd  = "VPD_F", ppfd =  "SW_IN_F", netrad = "NETRAD", patm = "PA_F"),
-  dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
-  settings  = list(dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", getswc = FALSE),
+  dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/",  # adjust this with your local path
+  settings  = list(
+    dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", # adjust this with your local path
+    getswc = FALSE),
   timescale = "d",
   verbose = TRUE
   )
@@ -332,7 +336,7 @@ ddf_fluxnet <- ingest(
 As described above for a single site, the same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we're reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (`""GPP_NT_VUT_REF""`), keep only data where at least 80% is based on non-gapfilled half-hourly data (`threshold_GPP = 0.8`), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (`filter_ntdt = TRUE`, see also `?get_obs_bysite_fluxnet2015`).
 ```{r warning=FALSE, message=FALSE}
 settings_fluxnet <- list(
-  dir_hh       = "~/data/FLUXNET-2015_Tier1/20191024/HH/",
+  dir_hh       = "~/data/FLUXNET-2015_Tier1/20191024/HH/", # adjust this with your local path
   getswc       = FALSE,
   filter_ntdt  = TRUE,
   threshold_GPP= 0.8,
@@ -344,13 +348,11 @@ ddf_fluxnet_gpp <- ingest(
   source   = "fluxnet",
   getvars  = list(gpp = "GPP_NT_VUT_REF",
   pp_unc   = "GPP_NT_VUT_SE"),
-  dir      = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
+  dir      = "~/data/FLUXNET-2015_Tier1/20191024/DD/", # adjust this with your local path
   settings = settings_fluxnet,
   timescale= "d"
   )
 ```
-
-
 
 ### WATCH-WFDEI
 
@@ -360,7 +362,7 @@ ddf_watch <- ingest(
   siteinfo = siteinfo,
   source    = "watch_wfdei",
   getvars   = list(temp = "Tair"),
-  dir       = "~/data/watch_wfdei/"
+  dir       = "~/data/watch_wfdei/"  # adjust this with your local path
   )
 ```
 
@@ -372,7 +374,7 @@ ddf_cru <- ingest(
   siteinfo = siteinfo,
   source    = "cru",
   getvars   = list(temp = "tmx"),
-  dir       = "~/data/cru/ts_4.01/"
+  dir       = "~/data/cru/ts_4.01/"  # adjust this with your local path
   )
 ```
 
@@ -392,8 +394,8 @@ Using the same settings as specified above, we can download MODIS FPAR data for 
 settings_gee <- get_settings_gee(
   bundle            = "modis_fpar",
   python_path       = system("which python", intern = TRUE),
-  gee_path          = "~/google_earth_engine_subsets/gee_subset/",
-  data_path         = "~/data/gee_subsets/",
+  gee_path          = "~/google_earth_engine_subsets/gee_subset/",    # adjust this with your local path
+  data_path         = "~/data/gee_subsets/",    # adjust this with your local path
   method_interpol   = "linear",
   keep              = TRUE,
   overwrite_raw     = FALSE,
@@ -422,18 +424,18 @@ df_co2 <- ingest(
   siteinfo,
   source  = "co2",
   verbose = FALSE,
-  settings= list(path = "~/data/co2/cCO2_rcp85_const850-1765.csv")
+  settings= list(path = "~/data/co2/cCO2_rcp85_const850-1765.csv")  # adjust this with your local path
   )
 ```
 
 ### ETOPO1
 
-This reads from the 1 arc minutes resolution ETOPO1 global elevation data (reading from a Geo-TIFF file). The nested data column contains a tibble one value for variable `elv`.
+This reads from the 1 arc minutes resolution ETOPO1 global elevation data (reading from a Geo-TIFF file). The nested data column contains a tibble one value for variable `elv`. Download the data from [here](https://www.ngdc.noaa.gov/mgg/global/) and specify the local path with the argument `dir`.
 ```{r}
 df_etopo <- ingest(
   siteinfo,
   source = "etopo1",
-  dir = "~/data/etopo/"
+  dir = "~/data/etopo/"  # adjust this with your local path
 )
 ```
 

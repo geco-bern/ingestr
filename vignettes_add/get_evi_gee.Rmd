@@ -1,0 +1,153 @@
+---
+title: "Getting MODIS EVI data from Google Earth Engine"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+library(ingestr)
+library(ggplot2)
+# library(readr)
+# library(dplyr)
+# library(lubridate)
+# library(rsofun)
+```
+
+
+## Single site
+
+### Prepare access to Google Earth Engine
+
+
+The library `gee_subset` by Koen Hufkens can be downloaded from this [link](https://khufkens.github.io/gee_subset/) and used to extract data directly from Google Earth Engine. Note that this requires the following programmes to be available:
+
+- git: You can use [Homebrew](https://brew.sh/) to installing git by entering in your terminal: `brew install git`.
+- [python](https://www.python.org/)
+
+Then, carry out the follwing steps:
+
+- In your terminal, change to where you want to have the repository. In this example, we're cloning it into our home directory:
+```{sh, eval = FALSE}
+cd ~
+git clone https://github.com/khufkens/google_earth_engine_subsets.git
+```
+
+To get access to using the Google Earth Engine API (required to use the `gee_subset` library), carry out the following steps in your terminal. This follows steps described [here](https://github.com/google/earthengine-api/issues/27).
+
+1. Install google API Python client
+```{sh, eval = FALSE}
+sudo pip install --upgrade google-api-python-client
+```
+I had an error and first had to do this here following [this link](https://github.com/pypa/pip/issues/3165):
+```{sh, eval = FALSE}
+sudo pip install --ignore-installed six
+```
+
+2. Install pyCrypto
+```{sh, eval = FALSE}
+sudo pip install pyCrypto --upgrade
+```
+
+3. Install Python GEE API
+```{sh, eval = FALSE}
+sudo pip install earthengine-api
+```
+
+4. Run authentification for GEE
+```{sh, eval = FALSE}
+earthengine authenticate
+```
+
+5. Finally, try if it works. This shouldn't return an error:
+```{sh, eval = FALSE}
+python -c "import ee; ee.Initialize()"
+```
+
+
+### Download data
+
+To facilitate the selection of data products and bands to be downloaded, you may use the function `get_settings_gee()` which defines defaults for different data bundles (`c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")` are available). We use `"modis_evi"`, downloading the MODIS/006/MOD13Q1, band EVI data.
+
+The following example is for downloading MODIS EVI data.
+```{r}
+settings_gee <- get_settings_gee(
+  bundle            = "modis_evi",
+  python_path       = system("which python", intern = TRUE),
+  gee_path          = "~/google_earth_engine_subsets/gee_subset/",
+  data_path         = "~/data/gee_subsets/",
+  method_interpol   = "linear",
+  keep              = TRUE,
+  overwrite_raw     = FALSE,
+  overwrite_interpol= TRUE
+  )
+```
+
+This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`.
+```{r}
+df_gee_modis_fpar <- ingest_bysite(
+  sitename  = "CH-Lae",
+  source    = "gee",
+  year_start= 2010,
+  year_end  = 2012,
+  lon       = 8.365,
+  lat       = 47.4781,
+  settings  = settings_gee,
+  verbose   = FALSE
+  )
+```
+
+Plot this data.
+```{r}
+plot_fapar_ingestr_bysite(df_gee_modis_fpar, settings_gee)
+```
+
+
+## Multiple sites
+
+Using the same settings as specified above, we can download MODIS FPAR data for multiple sites at once from GEE:
+```{r warning=FALSE, message=FALSE, echo = T, results = 'hide'}
+settings_gee <- get_settings_gee(
+  bundle            = "modis_evi",
+  python_path       = system("which python", intern = TRUE),
+  gee_path          = "~/google_earth_engine_subsets/gee_subset/",
+  data_path         = "~/data/gee_subsets/",
+  method_interpol   = "linear",
+  keep              = TRUE,
+  overwrite_raw     = FALSE,
+  overwrite_interpol= TRUE
+  )
+
+df_gee_modis_evi <- ingest(
+  siteinfo= ingestr::siteinfo %>% 
+    dplyr::filter(!(sitename %in% c("AU-GWW", "AU-Lox", "AU-Rob", "AU-TTE", "CN-Dan"))),
+  source  = "gee",
+  settings= settings_gee,
+  verbose = FALSE
+  ) 
+
+df <- df_gee_modis_evi %>% 
+  unnest(data) %>% 
+  dplyr::select(sitename, date, evi = modisvar_interpol)
+
+## quick check
+df %>% 
+  dplyr::filter(sitename == "AR-SLu") %>% 
+  ggplot(aes(x = date, y = evi)) +
+  geom_line()
+
+write_csv(
+  df, 
+  path = "~/data/fluxnet_subsets/EVI_MOD13Q1_gee_subset.csv"
+  )
+```
+
+Collect all plots.
+```{r warning=FALSE, message=FALSE}
+list_gg <- plot_fapar_ingestr(df_gee_modis_fpar, settings_gee)
+#purrr::map(list_gg, ~print(.))
+```
+
+
