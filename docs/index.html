@@ -54,6 +54,9 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
+      <a href="articles/calc_daytime_vpd.html">Calculate daytime VPD</a>
+    </li>
+    <li>
       <a href="articles/example.html">Examples for ingestr</a>
     </li>
   </ul>
@@ -90,7 +93,7 @@
 <li><a href="http://www.eu-watch.org/data_availability">WATCH-WFDEI</a></li>
 <li><a href="https://crudata.uea.ac.uk/cru/data/hrg/">CRU</a></li>
 </ul>
-<p>Data on Google Earth Engine (using Koen Hufkenâs <a href="https://khufkens.github.io/gee_subset/">gee_suset</a> library):</p>
+<p>Data on Google Earth Engine (using Koen Hufken’s <a href="https://khufkens.github.io/gee_subset/">gee_suset</a> library):</p>
 <ul>
 <li>MODIS FPAR</li>
 <li>MODIS EVI</li>
@@ -101,13 +104,13 @@
 <li>
 <a href="https://docs.ropensci.org/MODISTools/">RModisTools</a> R package to access data on remote server ORNL DAAC (not yet implemented).</li>
 </ul>
-<p>Examples to read data for a single site for each data type are given in Section âExamples for a single siteâ. Handling ingestion for multiple sites is descrbed in Section âExample for a set of sitesâ.</p>
+<p>Examples to read data for a single site for each data type are given in Section ‘Examples for a single site’. Handling ingestion for multiple sites is descrbed in Section ‘Example for a set of sites’.</p>
 <p><strong>Note</strong> that this package does not provide the original data. Please follow links to data sources above and cite original references when using this data.</p>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
 <p>To install and load the rsofun package using the latest release run the following command in your R terminal:</p>
-<div class="sourceCode"><pre class="r"><span class="kw">if</span>(!<span class="fu"><a href="https://rdrr.io/r/base/library.html">require</a></span>(<span class="no">devtools</span>)){<span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="no">devtools</span>)}
+<div class="sourceCode" id="cb1"><pre class="r"><span class="kw">if</span>(!<span class="fu"><a href="https://rdrr.io/r/base/library.html">require</a></span>(<span class="no">devtools</span>)){<span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="no">devtools</span>)}
 <span class="kw pkg">devtools</span><span class="kw ns">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span>(<span class="st">"stineb/ingestr"</span>)
 <span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">ingestr</span>)</pre></div>
 <div id="dependencies" class="section level3">
@@ -135,25 +138,23 @@
 <p>This package is designed to be extendible to ingesting other data types (sources). The developer (Beni Stocker) would appreciate if you made sure that your developments can be fed back to this repository. To do so, please use git. See <a href="http://rogerdudler.github.io/git-guide/">here</a> for a brief introduction to git.</p>
 <p>I recommend the following steps if you would just like to use this package (no development):</p>
 <ul>
-<li>
-<p>Directly install the package from the most up-to-date code on GitHub by</p>
-<div class="sourceCode"><pre class="r"><span class="kw pkg">devtools</span><span class="kw ns">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span>(<span class="st">"stineb/ingestr"</span>)</pre></div>
-</li>
+<li>Directly install the package from the most up-to-date code on GitHub by</li>
 </ul>
+<div class="sourceCode" id="cb2"><pre class="r"><span class="kw pkg">devtools</span><span class="kw ns">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span>(<span class="st">"stineb/ingestr"</span>)</pre></div>
 <p>I recommend the following steps if you would like to use and further develop the package (even just for your own application - But keep in mind: others may benefit from your efforts too!):</p>
 <ol>
 <li>Make sure you have a Github account.</li>
-<li>Log on to Github, and go to <a href="https://github.com/stineb/ingestr" class="uri">https://github.com/stineb/ingestr</a> and click on âForkâ in the upper right corner. This makes a copy of the repository that belongs to you, meaning that you can modify, commit, and push changes back to your forked repository as you please.</li>
-<li>
-<p>Clone your fork to your local computer by entering in your terminal (here, itâs cloned to a subdirectory <code>ingestr</code> placed in your home directory):</p>
-<div class="sourceCode"><pre class="sourceCode sh"><code class="sourceCode bash"><span class="bu">cd</span> home
-<span class="fu">git</span> clone https://github.com/<span class="op">&lt;</span>your_github_username<span class="op">&gt;</span>/ingestr.git</code></pre></div>
-</li>
-<li>In RStudio, create a new project in your local directory <code>~/ingestr/</code>. This opens the repository in RStudio and you have access to the code where all ingestr-functions are implemented (see subdirectory <code>./R/</code>).</li>
-<li>In RStudio, after having edited code, select the âBuildâ tab and click on âInstall and Restartâ to build the package again. For quick edits and checks, you may simply source the edited files instead of re-building the whole package. If you like to add new functions, create new a source file in subdirectory <code>./R/</code>, write a nice roxygen header (see other source files as an example), then click on âBuildâ -&gt; âMoreâ -&gt; âDocumentâ, and then again on âInstall and Restartâ.</li>
-<li><p>If youâre happy with your new edits and additions to the package, you may want to have it fet back to the original repository. To do so, please create a new <em>pull request</em> in GitHub: Click on âNew pull requestâ on <a href="https://github.com/stineb/ingestr">the repository page</a> and follow the inuitive steps. Thanks!</p></li>
+<li>Log on to Github, and go to <a href="https://github.com/stineb/ingestr">https://github.com/stineb/ingestr</a> and click on ‘Fork’ in the upper right corner. This makes a copy of the repository that belongs to you, meaning that you can modify, commit, and push changes back to your forked repository as you please.</li>
+<li>Clone your fork to your local computer by entering in your terminal (here, it’s cloned to a subdirectory <code>ingestr</code> placed in your home directory):</li>
 </ol>
-<p>This package is still in its maturing phase. To stay up-to-date with the latest version, regularly re-install from GitHub (<code><a href="https://devtools.r-lib.org//reference/remote-reexports.html">devtools::install_github("stineb/ingestr")</a></code>), or - if youâre building from a locally (<em>git</em>) cloned repository - regularly do a <code>git pull</code> and re-install the package.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="bu">cd</span> home</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="fu">git</span> clone https://github.com/<span class="op">&lt;</span>your_github_username<span class="op">&gt;</span>/ingestr.git</a></code></pre></div>
+<ol>
+<li>In RStudio, create a new project in your local directory <code>~/ingestr/</code>. This opens the repository in RStudio and you have access to the code where all ingestr-functions are implemented (see subdirectory <code>./R/</code>).</li>
+<li>In RStudio, after having edited code, select the ‘Build’ tab and click on ‘Install and Restart’ to build the package again. For quick edits and checks, you may simply source the edited files instead of re-building the whole package. If you like to add new functions, create new a source file in subdirectory <code>./R/</code>, write a nice roxygen header (see other source files as an example), then click on ‘Build’ -&gt; ‘More’ -&gt; ‘Document’, and then again on ‘Install and Restart’.</li>
+<li>If you’re happy with your new edits and additions to the package, you may want to have it fet back to the original repository. To do so, please create a new <em>pull request</em> in GitHub: Click on ‘New pull request’ on <a href="https://github.com/stineb/ingestr">the repository page</a> and follow the inuitive steps. Thanks!</li>
+</ol>
+<p>This package is still in its maturing phase. To stay up-to-date with the latest version, regularly re-install from GitHub (<code><a href="https://devtools.r-lib.org//reference/remote-reexports.html">devtools::install_github("stineb/ingestr")</a></code>), or - if you’re building from a locally (<em>git</em>) cloned repository - regularly do a <code>git pull</code> and re-install the package.</p>
 </div>
 </div>
 </div>
@@ -189,7 +190,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

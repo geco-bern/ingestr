@@ -113,10 +113,10 @@ settings_fluxnet <- list(
   )
 
 ddf_fluxnet <- ingest_bysite(
-  sitename  = "CH-Lae",
+  sitename  = "FR-Pue",
   source    = "fluxnet",
   getvars   = list( gpp = "GPP_NT_VUT_REF",
-                    gpp_unc   = "GPP_NT_VUT_SE"),
+                    gpp_unc = "GPP_NT_VUT_SE"),
   dir       = paste0(path.package("ingestr"), "/extdata/"),
   settings  = settings_fluxnet,
   timescale = "d",
@@ -299,7 +299,7 @@ First, define a list of sites and get site meta information. The required meta i
 ```{r warning=FALSE, message=FALSE}
 mysites <- c("BE-Vie", "DE-Tha", "DK-Sor", "FI-Hyy", "IT-Col", "NL-Loo", "US-MMS", "US-WCr", "US-UMB", "US-Syv", "DE-Hai")
 
-siteinfo <- ingestr::siteinfo %>%
+siteinfo <- ingestr::siteinfo_fluxnet2015 %>%
   dplyr::filter(sitename %in% mysites) %>%
   dplyr::mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
   dplyr::mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))

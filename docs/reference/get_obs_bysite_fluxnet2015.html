@@ -10,23 +10,27 @@
 
 
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous" />
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
 <!-- headroom.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -38,7 +42,6 @@
 <meta property="og:title" content="Get FLUXNET 2015 observational data for one site. — get_obs_bysite_fluxnet2015" />
 <meta property="og:description" content="Function for reading observational GPP data from FLUXNET 2015 dataset
 and defining calibration target (which flux decomposition method etc.)" />
-<meta name="twitter:card" content="summary" />
 
 
 
@@ -56,7 +59,7 @@ and defining calibration target (which flux decomposition method etc.)" />
 
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -93,17 +96,17 @@ and defining calibration target (which flux decomposition method etc.)" />
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/example.html">Examples for ingestr</a>
+      <a href="../articles/calc_daytime_vpd.html">Calculate daytime VPD</a>
     </li>
     <li>
-      <a href="../articles/rsconnect/documents/example.html">UNKNOWN TITLE</a>
+      <a href="../articles/example.html">Examples for ingestr</a>
     </li>
   </ul>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/stineb/ingestr">
+  <a href="https://github.com/stineb/ingestr/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
   </a>
@@ -135,7 +138,6 @@ and defining calibration target (which flux decomposition method etc.)</p>
   <span class='no'>sitename</span>,
   <span class='no'>path_fluxnet2015</span>,
   <span class='kw'>path_fluxnet2015_hh</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>path_fluxnet2015_hr</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='no'>timescale</span>,
   <span class='no'>getvars</span>,
   <span class='kw'>getswc</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
@@ -147,7 +149,6 @@ and defining calibration target (which flux decomposition method etc.)</p>
   <span class='kw'>threshold_USTAR</span> <span class='kw'>=</span> <span class='fl'>0</span>,
   <span class='kw'>threshold_T</span> <span class='kw'>=</span> <span class='fl'>0</span>,
   <span class='kw'>threshold_NETRAD</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>filter_ntdt</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>return_qc</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>remove_neg</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>
@@ -171,12 +172,6 @@ FLUXNET 2015 data.</p></td>
       <th>path_fluxnet2015_hh</th>
       <td><p>A character string specifying the local path of
 half-hourly FLUXNET 2015 data, required to get daytime VPD. Defaults to
-<code>NULL</code> (no daytime VPD is calculated).</p></td>
-    </tr>
-    <tr>
-      <th>path_fluxnet2015_hr</th>
-      <td><p>A character string specifying the local path of
-hourly FLUXNET 2015 data, required to get daytime VPD. Defaults to
 <code>NULL</code> (no daytime VPD is calculated).</p></td>
     </tr>
     <tr>
@@ -291,13 +286,6 @@ medium], 3 [poor] for half-hourly data. Defaults to <code>threshold_GPP=0</code>
 meaning no data is excluded.</p></td>
     </tr>
     <tr>
-      <th>filter_ntdt</th>
-      <td><p>A logical specifying whether agreement of daytime and nighttime-
-based GPP estimates is to be used as a filter. Data points are removed 
-where their difference is below the the 97.5<!-- % and above the 2.5% quantile of all  -->
-difference values per site. Defaults to <code>FALSE</code>.</p></td>
-    </tr>
-    <tr>
       <th>return_qc</th>
       <td><p>A logical specifying whether quality control variables
 should be returned.</p></td>
@@ -315,16 +303,13 @@ be removed (replaces with NA).</p></td>
 named and in units corresponding to rsofun standard.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>df</span> <span class='kw'>&lt;-</span> <span class='no'>get_obs_bysite_fluxnet2015</span></div></pre>
+    <pre class="examples"><div class='input'><span class='no'>df</span> <span class='kw'>&lt;-</span> <span class='no'>get_obs_bysite_fluxnet2015</span></div><div class='output co'>#&gt; <span class='error'>Error in eval(expr, envir, enclos): object 'get_obs_bysite_fluxnet2015' not found</span></div><div class='input'>
+</div></pre>
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
 
@@ -335,7 +320,7 @@ named and in units corresponding to rsofun standard.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

@@ -95,6 +95,9 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
+      <a href="../articles/calc_daytime_vpd.html">Calculate daytime VPD</a>
+    </li>
+    <li>
       <a href="../articles/example.html">Examples for ingestr</a>
     </li>
   </ul>
@@ -136,6 +139,9 @@
   <span class='no'>dir</span>,
   <span class='no'>settings</span>,
   <span class='kw'>timescale</span> <span class='kw'>=</span> <span class='st'>"d"</span>,
+  <span class='kw'>overwrite_csv_climate_lev1</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>overwrite_csv_climate_lev2</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>overwrite_csv_climate_lev3</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
 )</pre>
 
@@ -149,7 +155,7 @@
     <tr>
       <th>source</th>
       <td><p>A character used as identifiyer for the type of data source
-(e.g., <code>"fluxnet"</code>).</p></td>
+(e.g., <code>"fluxnet2015"</code>).</p></td>
     </tr>
     <tr>
       <th>getvars</th>
@@ -173,6 +179,18 @@ the source dataset corresponding to standard names <code>"temp"</code> for tempe
 the respective source (if multiple time scales are available, otherwise is disregarded).</p></td>
     </tr>
     <tr>
+      <th>overwrite_csv_climate_lev1</th>
+      <td><p>if <code>TRUE</code>, climate input CSV files created after collecting site-scale meteo data are overwritten.</p></td>
+    </tr>
+    <tr>
+      <th>overwrite_csv_climate_lev2</th>
+      <td><p>if <code>TRUE</code>, climate input CSV files created after collecting data from global field for all sites are overwritten.</p></td>
+    </tr>
+    <tr>
+      <th>overwrite_csv_climate_lev3</th>
+      <td><p>if <code>TRUE</code>, climate input CSV files created after deriving SOFUN-standard input (naming, units, and interpolation) are overwritten.</p></td>
+    </tr>
+    <tr>
       <th>verbose</th>
       <td><p>if <code>TRUE</code>, additional messages are printed.</p></td>
     </tr>
@@ -183,7 +201,7 @@ the respective source (if multiple time scales are available, otherwise is disre
     <p>A named list of data frames (tibbles) containing input data for each site is returned.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>inputdata</span> <span class='kw'>&lt;-</span> <span class='fu'>prepare_input_sofun</span>( <span class='kw'>settings_input</span> <span class='kw'>=</span> <span class='no'>settings_input</span>, <span class='kw'>settings_sims</span> <span class='kw'>=</span> <span class='no'>settings_sims</span>, <span class='kw'>overwrite_climate</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span> )</div><div class='output co'>#&gt; <span class='error'>Error in prepare_input_sofun(settings_input = settings_input, settings_sims = settings_sims,     overwrite_climate = FALSE, verbose = TRUE): could not find function "prepare_input_sofun"</span></div><div class='input'>
+    <pre class="examples"><div class='input'><span class='no'>inputdata</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='prepare_input_sofun.html'>prepare_input_sofun</a></span>( <span class='kw'>settings_input</span> <span class='kw'>=</span> <span class='no'>settings_input</span>, <span class='kw'>settings_sims</span> <span class='kw'>=</span> <span class='no'>settings_sims</span>, <span class='kw'>overwrite_climate</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span> )</div><div class='output co'>#&gt; <span class='error'>Error in prepare_input_sofun(settings_input = settings_input, settings_sims = settings_sims,     overwrite_climate = FALSE, verbose = TRUE): could not find function "prepare_input_sofun"</span></div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -200,7 +218,7 @@ the respective source (if multiple time scales are available, otherwise is disre
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>
