@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Plot fAPAR for one site — plot_fapar_ingestr • ingestr</title>
+<title>Meta information of all FLUXNET 2015 sites — siteinfo_fluxnet2015 • ingestr</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Plot fAPAR for one site — plot_fapar_ingestr" />
-<meta property="og:description" content="Visualise the fAPR data filtering, imputing, and interpolation to daily values." />
+<meta property="og:title" content="Meta information of all FLUXNET 2015 sites — siteinfo_fluxnet2015" />
+<meta property="og:description" content="User-friendly meta information for all FLUXNET 2015 sites as a data frame with rows for sites and columns for variables." />
 
 
 
@@ -123,36 +123,31 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Plot fAPAR for one site</h1>
-    <small class="dont-index">Source: <a href='https://github.com/stineb/ingestr/blob/master/R/plot_fapar_ingestr.R'><code>R/plot_fapar_ingestr.R</code></a></small>
-    <div class="hidden name"><code>plot_fapar_ingestr.Rd</code></div>
+    <h1>Meta information of all FLUXNET 2015 sites</h1>
+    <small class="dont-index">Source: <a href='https://github.com/stineb/ingestr/blob/master/R/data.R'><code>R/data.R</code></a></small>
+    <div class="hidden name"><code>siteinfo_fluxnet2015.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Visualise the fAPR data filtering, imputing, and interpolation to daily values.</p>
+    <p>User-friendly meta information for all FLUXNET 2015 sites as a data frame with rows for sites and columns for variables.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>plot_fapar_ingestr</span>(<span class='no'>df</span>, <span class='no'>settings</span>)</pre>
+    <pre class="usage"><span class='no'>siteinfo_fluxnet2015</span></pre>
 
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>df</th>
-      <td><p>The data frame returned by <code><a href='ingest_bysite.html'>ingest_bysite( source = "gee" )</a></code></p></td>
-    </tr>
-    <tr>
-      <th>settings</th>
-      <td><p>A list of additional settings used for reading original files.</p></td>
-    </tr>
-    </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
 
-    <p>A ggplot object.</p>
+    <p>A data frame (tibble)</p><dl'>
+  <dt>mysitename</dt><dd><p>Site name</p></dd>
+  <dt>lon</dt><dd><p>Longitude of site</p></dd>
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) <span class='fu'>plot_fapar_ingestr</span>(<span class='no'>df</span>, <span class='no'>settings</span>)</div></pre>
+</dl>
+
+    <h2 class="hasAnchor" id="source"><a class="anchor" href="#source"></a>Source</h2>
+
+    <p>Based on the file FLX_AA-Flx_BIF_LATEST.csv, distributed via FLUXNET 2015. Additional information for 
+Koeppen Geiger classification based on Falge et al. (<a href='https://daac.ornl.gov/cgi-bin/dsviewer.pl?ds_id=1530'>https://daac.ornl.gov/cgi-bin/dsviewer.pl?ds_id=1530</a>) and complemented by information given in koeppen-geiger.tif.</p>
+
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

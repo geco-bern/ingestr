@@ -9,4 +9,4 @@
 #' }
 #' @source Based on the file FLX_AA-Flx_BIF_LATEST.csv, distributed via FLUXNET 2015. Additional information for 
 #' Koeppen Geiger classification based on Falge et al. (\url{https://daac.ornl.gov/cgi-bin/dsviewer.pl?ds_id=1530}) and complemented by information given in koeppen-geiger.tif.
-"siteinfo"
+"siteinfo_fluxnet2015"

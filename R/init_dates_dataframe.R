@@ -21,7 +21,7 @@
 init_dates_dataframe <- function( yrstart, yrend, startmoy=1, startdoy=1, freq="days", endmoy=12, enddom=31, noleap=FALSE ){
 
   if (freq=="days"){
-    startdate <- lubridate::ymd( paste0( as.character(yrstart), "-", sprintf( "%02d", startmoy), "-01" ) ) + days( startdoy - 1 )
+    startdate <- lubridate::ymd( paste0( as.character(yrstart), "-", sprintf( "%02d", startmoy), "-01" ) ) + lubridate::days( startdoy - 1 )
     enddate   <- lubridate::ymd( paste0( as.character(yrend  ), "-", sprintf( "%02d", endmoy  ), "-", sprintf( "%02d", enddom  ) ) )
   } else if (freq=="months"){
     ## date is always the 15th of each month
@@ -34,8 +34,8 @@ init_dates_dataframe <- function( yrstart, yrend, startmoy=1, startdoy=1, freq="
   }
 
   ddf <-  tibble( date=seq( from = startdate, to = enddate, by = freq ) ) %>%
-          mutate( ndayyear = ifelse( leap_year(year(date)), 366, 365  ) ) %>%
-          mutate( year_dec = year(date) + (yday(date) - 1) / ndayyear ) %>%
+          mutate( ndayyear = ifelse( lubridate::leap_year(lubridate::year(date)), 366, 365  ) ) %>%
+          mutate( year_dec = lubridate::year(date) + (lubridate::yday(date) - 1) / ndayyear ) %>%
           dplyr::select( -ndayyear )
 
   if (noleap) ddf <- ddf %>% dplyr::filter( !( month(date)==2 & mday(date)==29 ) )

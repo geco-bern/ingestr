@@ -6,19 +6,27 @@ Data can be ingested for different data types (argument `source` in several func
 
 Meteo data:
 
-  - [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/) (also flux data can be read in)
-  - [WATCH-WFDEI](http://www.eu-watch.org/data_availability)
-  - [CRU](https://crudata.uea.ac.uk/cru/data/hrg/)
+  - [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/): `source = "fluxnet"`, also flux data can be read in, reading from files
+  - [WATCH-WFDEI](http://www.eu-watch.org/data_availability): `source = "watch_wfdei"`, reading from files
+  - [CRU](https://crudata.uea.ac.uk/cru/data/hrg/): `source = "cru"`, reading from files
 
-Data on Google Earth Engine (using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library):
+Data on Google Earth Engine: `source = "gee"`, using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library):
 
   - MODIS FPAR
   - MODIS EVI
   - MODIS GPP
 
+Elevation data:
+
+  - [ETOPO1](https://www.ngdc.noaa.gov/mgg/global/): `source = "etopo1"`, reading from files
+  
+CO2 data:
+
+  - [CO2 concentration from Mauna Loa](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html), using the [climate R package](https://github.com/bczernecki/climate).
+
 MODIS data (not yet implemented):
 
-  - [RModisTools](https://docs.ropensci.org/MODISTools/) R package to access data on remote server ORNL DAAC (not yet implemented).
+  - [MODISTools](https://docs.ropensci.org/MODISTools/) R package to access data on remote server ORNL DAAC (not yet implemented).
   
 Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is descrbed in Section 'Example for a set of sites'.
 
@@ -35,15 +43,12 @@ library(ingestr)
 
 ### Dependencies
 
-The `ingestr` package relies heavily on the tidyverse. Dependencies are 
-
-- dplyr
-- purrr
-- lubridate
-- tidyr
-- raster
-- ncdf4
-- lubridate
+The `ingestr` package relies heavily on the tidyverse. Dependencies are dplyr, purrr, lubridate, tidyr, raster, lubridate, stringi, stringr, sp, ncdf4, signal. To install all required packages, do:
+```r
+list.of.packages <- c("dplyr", "purrr", "lubridate", "tidyr", "raster", "lubridate", "stringi", "stringr", "sp", "ncdf4", "signal")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+```
 
 ## Example
 

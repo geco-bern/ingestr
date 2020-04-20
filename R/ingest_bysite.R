@@ -7,7 +7,7 @@
 #' be provided. When data is extraced from site-specific files (e.g. \code{source = "fluxnet"}),
 #' then \code{sitename} is used to identify the file from which data is read. 
 #' @param source A character used as identifiyer for the type of data source
-#' (e.g., \code{"fluxnet"}).
+#' (e.g., \code{"fluxnet"}). See vignette for a full description of available options.
 #' @param getvars A named list of characters specifying the variable names in
 #' the original source dataset and the variable names in the ingested data frame. Use, e.g., 
 #' \code{getvars = list("gpp" = "GPP_NT_VUT_REF")} to read the variable \code{"GPP_NT_VUT_REF"} 
@@ -160,16 +160,26 @@ ingest_bysite <- function(
       keep                 = settings$keep
     )
     
-  } else if (source == "co2"){
+  } else if (source == "co2_mlo"){
     #-----------------------------------------------------------
-    # Get CO2 data per year, independent of site
+    # Get CO2 data year, independent of site
     #-----------------------------------------------------------
-    df_tmp <- readr::read_csv(settings$path) %>% 
-      dplyr::filter(year>1750) %>% 
-      dplyr::mutate(date = lubridate::ymd(paste0(as.integer(year), "-01-01"))) %>% 
+    df_co2 <- climate::meteo_noaa_co2() %>% 
+      as_tibble() %>% 
+      dplyr::rename(year = yy) %>% 
+      group_by(year) %>% 
+      summarise(co2_avg = mean(co2_avg, na.rm = TRUE))
+    
+    df_tmp <- init_dates_dataframe( year_start, year_end ) %>% 
+      dplyr::select(-year_dec) %>% 
       dplyr::mutate(year = lubridate::year(date)) %>% 
-      dplyr::select(-date) %>% 
-      mutate(sitename = sitename)
+      dplyr::left_join(
+        df_co2,
+        by = "year"
+      ) %>% 
+      dplyr::mutate(sitename = sitename) %>% 
+      dplyr::select(sitename, date, co2 = co2_avg)
+    
     
   }  else if (source == "etopo1"){
     #-----------------------------------------------------------
@@ -206,19 +216,13 @@ ingest_bysite <- function(
       right_join(df, by = "year")
     
   } else if (timescale=="d"){
-    if (source == "co2"){
-      df <- df_tmp %>%
-        right_join(df %>% mutate(year = lubridate::year(date)), by = "year")
-    } else {
-      df <- df_tmp %>%
-        right_join(df, by = "date")
-    }
+    df <- df_tmp %>%
+      right_join(df, by = "date")
   }
   
   df <- df %>% 
     tidyr::drop_na(sitename)
   
-    
   return( df )
   
 }

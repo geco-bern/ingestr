@@ -4,7 +4,7 @@
 #'
 #' @param siteinfo A data frame containing site meta info. Required columns are: \code{"sitename", "date_start", "date_end", "lon", "lat", "elv"}.
 #' @param source A character used as identifiyer for the type of data source
-#' (e.g., \code{"fluxnet"}).
+#' (e.g., \code{"fluxnet"}). See vignette for a full description of available options.
 #' @param getvars A named list of characters specifying the variable names in
 #' the source dataset corresponding to standard names \code{"temp"} for temperature,
 #' \code{"prec"} for precipitation, \code{"patm"} for atmospheric pressure,
@@ -141,21 +141,26 @@ ingest <- function(
 	    )
 	  )
 	  
-	} else if (source == "co2"){
+	} else if (source == "co2_mlo"){
 	  #-----------------------------------------------------------
-	  # Get CO2 data per year, independent of site
+	  # Get CO2 data year, independent of site
 	  #-----------------------------------------------------------
+	  df_co2 <- climate::meteo_noaa_co2() %>% 
+	    as_tibble() %>% 
+	    dplyr::rename(year = yy) %>% 
+	    group_by(year) %>% 
+	    summarise(co2_avg = mean(co2_avg, na.rm = TRUE))
+	  
 	  ddf <- purrr::map(
 	    as.list(seq(nrow(siteinfo))),
-	    ~ingest_bysite(
+	    ~expand_co2_bysite(
+	      df_co2,
 	      sitename = siteinfo$sitename[.],
-	      source = source,
 	      year_start = lubridate::year(siteinfo$date_start[.]),
-	      year_end   = lubridate::year(siteinfo$date_end[.]),
-	      verbose = FALSE,
-	      settings = settings
+	      year_end   = lubridate::year(siteinfo$date_end[.])
+	      )
 	    )
-	  )
+	 
 	  
 	} else if (source == "etopo1"){
 	  #-----------------------------------------------------------
@@ -181,3 +186,20 @@ ingest <- function(
   return(ddf)
 
 }
+
+## give each site and day within year the same co2 value
+expand_co2_bysite <- function(df, sitename, year_start, year_end){
+  
+  ddf <- init_dates_dataframe( year_start, year_end ) %>% 
+    dplyr::select(-year_dec) %>% 
+    dplyr::mutate(year = lubridate::year(date)) %>% 
+    dplyr::left_join(
+      df,
+      by = "year"
+    ) %>% 
+    dplyr::mutate(sitename = sitename) %>% 
+    dplyr::select(sitename, date, co2 = co2_avg)
+  
+  return(ddf)
+}
+
