@@ -167,7 +167,7 @@ ingest_gee_bysite <- function(
         lubridate::year(start_date),
         lubridate::year(end_date)
         ) %>%
-        dplyr::mutate(modisvar_interpol = NA)
+        dplyr::mutate(fapar = NA)
     }
   }
 
@@ -211,7 +211,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, qc_name, prod,
       dplyr::rename( modisvar = EVI ) %>%
 
       ## Actually filter
-      dplyr::mutate( modisvar_filtered = ifelse( good_quality, modisvar, NA )  )  ## replace by NA for values to be filtered out
+      dplyr::mutate( fapar_filtered = ifelse( good_quality, modisvar, NA )  )  ## replace by NA for values to be filtered out
 
     ##--------------------------------------
     ## replace missing values with mean by DOY (mean seasonal cycle)
@@ -219,7 +219,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, qc_name, prod,
     ## get mean seasonal cycle
     ddf_meandoy <- df %>%
       group_by( doy ) %>%
-      summarise( meandoy = mean( modisvar_filtered , na.rm=TRUE ) )
+      summarise( meandoy = mean( fapar_filtered , na.rm=TRUE ) )
 
     ## attach mean seasonal cycle as column 'meandoy' to daily dataframe
     df <- df %>%
@@ -479,20 +479,20 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, qc_name, prod,
   }
 
   ##--------------------------------------
-  ## Define modisvar_interpol
+  ## Define 'fapar'
   ##--------------------------------------
   if (method_interpol == "loess"){
-    ddf$modisvar_interpol <- ddf$loess
+    ddf$fapar <- ddf$loess
   } else if (method_interpol == "spline"){
-    ddf$modisvar_interpol <- ddf$spline
+    ddf$fapar <- ddf$spline
   } else if (method_interpol == "linear"){
-    ddf$modisvar_interpol <- ddf$linear
+    ddf$fapar <- ddf$linear
   } else if (method_interpol == "sgfilter"){
-    ddf$modisvar_interpol <- ddf$sgfilter
+    ddf$fapar <- ddf$sgfilter
   }
 
   # ## plot daily smoothed line and close plotting device
-  # if (do_plot_interpolated) with( ddf, lines( year_dec, modisvar_interpol, col='red', lwd=2 ) )
+  # if (do_plot_interpolated) with( ddf, lines( year_dec, fapar, col='red', lwd=2 ) )
   # if (do_plot_interpolated) with( ddf, lines( year_dec, sgfilter, col='springgreen3', lwd=1 ) )
   # if (do_plot_interpolated) with( ddf, lines( year_dec, spline, col='cyan', lwd=1 ) )
   # if (do_plot_interpolated){
@@ -504,13 +504,13 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, qc_name, prod,
 
   ## limit to within 0 and 1 (loess spline sometimes "explodes")
   ddf <- ddf %>%
-    dplyr::mutate( modisvar_interpol = replace( modisvar_interpol, modisvar_interpol<0, 0  ) ) %>%
-    dplyr::mutate( modisvar_interpol = replace( modisvar_interpol, modisvar_interpol>1, 1  ) )
+    dplyr::mutate( fapar = replace( fapar, fapar<0, 0  ) ) %>%
+    dplyr::mutate( fapar = replace( fapar, fapar>1, 1  ) )
 
 
   ## extrapolate missing values at head and tail again
   ##--------------------------------------
-  ddf$modisvar_interpol <- extrapolate_missing_headtail(dplyr::select(ddf, var = modisvar_interpol, doy))
+  ddf$fapar <- extrapolate_missing_headtail(dplyr::select(ddf, var = fapar, doy))
 
   return( ddf )
 
