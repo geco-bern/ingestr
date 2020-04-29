@@ -175,7 +175,8 @@ ingest <- function(
 	  )
 	  
 	}  else {
-	  rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', or 'gee'.")
+	  rlang::warn(paste("you selected source =", source))
+	  rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
 	}
   
   ddf <- ddf %>% 
