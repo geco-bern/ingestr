@@ -174,7 +174,17 @@ ingest <- function(
 	                             verbose = FALSE
 	  )
 	  
-	}  else {
+	} else if (source == "hwsd"){
+	  #-----------------------------------------------------------
+	  # Get HWSD soil data. year_start and year_end not required
+	  #-----------------------------------------------------------
+	  con <- rhwsd::get_hwsd_con()
+	  ddf <- rhwsd::get_hwsd_siteset(x = dplyr::select(siteinfo, sitename, lon, lat), con = con, hwsd.bil = settings$fil ) %>% 
+	    dplyr::ungroup() %>% 
+	    dplyr::select(sitename, data) %>% 
+	    tidyr::unnest(data)
+
+	} else {
 	  rlang::warn(paste("you selected source =", source))
 	  rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
 	}

@@ -85,51 +85,101 @@
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#ingestr" class="anchor"></a>ingestr</h1></div>
 <p>The package <code>ingestr</code> provides functions to extract (ingest) point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution. This can be done for a set of sites at once, given a data frame containing the meta info for each site (see data frame <code>siteinfo</code>, with columns <code>lon</code> for longitude, <code>lat</code> for latitude, <code>date_start</code> and <code>date_end</code> specifying required dates). The output for such a set of site-level data is a nested data frame with rows for each site and columns <code>lon</code>, <code>lat</code>, <code>date_start</code>, and <code>date_end</code> plus an added column where the time series of ingested data is nested inside.</p>
-<p>Data can be ingested for different data types (argument <code>source</code> in several functions), each dealing with a specific format of the original data and specific functions to read from respective files or remote servers. The following data types can be handled currently (more to be added by you if you like):</p>
-<p>Meteo data:</p>
-<ul>
-<li>
-<a href="https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/">FLUXNET</a>: <code>source = "fluxnet"</code>, also flux data can be read in, reading from files</li>
-<li>
-<a href="http://www.eu-watch.org/data_availability">WATCH-WFDEI</a>: <code>source = "watch_wfdei"</code>, reading from files</li>
-<li>
-<a href="https://crudata.uea.ac.uk/cru/data/hrg/">CRU</a>: <code>source = "cru"</code>, reading from files</li>
-</ul>
-<p>Data on Google Earth Engine: <code>source = "gee"</code>, using Koen Hufkenâs <a href="https://khufkens.github.io/gee_subset/">gee_suset</a> library):</p>
-<ul>
-<li>MODIS FPAR</li>
-<li>MODIS EVI</li>
-<li>MODIS GPP</li>
-</ul>
-<p>Elevation data:</p>
-<ul>
-<li>
-<a href="https://www.ngdc.noaa.gov/mgg/global/">ETOPO1</a>: <code>source = "etopo1"</code>, reading from files</li>
-</ul>
-<p>CO2 data:</p>
-<ul>
-<li>
-<a href="https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html">CO2 concentration from Mauna Loa</a>, using the <a href="https://github.com/bczernecki/climate">climate R package</a>.</li>
-</ul>
+<p>Data can be ingested for different data types (argument <code>source</code> in functions <code><a href="reference/ingest.html">ingest()</a></code> and <code><a href="reference/ingest_bysite.html">ingest_bysite()</a></code>, see Column Source ID in table below). For each data type, functions deal with a specific format of the original data and specific functions to read from respective files or remote servers. The following data types can be handled currently (more to be added by you if you like):</p>
+<table class="table">
+<colgroup>
+<col width="35%">
+<col width="21%">
+<col width="12%">
+<col width="21%">
+<col width="4%">
+<col width="4%">
+</colgroup>
+<thead><tr class="header">
+<th>Data source</th>
+<th>Data type</th>
+<th>Coverage</th>
+<th>Source ID</th>
+<th>Reading from …</th>
+<th>Remark</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/">FLUXNET</a></td>
+<td>ecosystem fluxes, meteo, soil moisture</td>
+<td>site</td>
+<td><code>fluxnet</code></td>
+<td>local files</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><a href="http://www.eu-watch.org/data_availability">WATCH-WFDEI</a></td>
+<td>meteo</td>
+<td>global</td>
+<td><code>watch_wfdei</code></td>
+<td>local files</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><a href="https://crudata.uea.ac.uk/cru/data/hrg/">CRU</a></td>
+<td>meteo</td>
+<td>global</td>
+<td><code>cru</code></td>
+<td>local files</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Google Earth Engine</td>
+<td>remote sensing</td>
+<td>global</td>
+<td><code>gee</code></td>
+<td>remote server</td>
+<td>using Koen Hufken’s <a href="https://khufkens.github.io/gee_subset/">gee_suset</a> library</td>
+</tr>
+<tr class="odd">
+<td><a href="https://www.ngdc.noaa.gov/mgg/global/">ETOPO1</a></td>
+<td>elevation</td>
+<td>global</td>
+<td><code>etopo1</code></td>
+<td>local files</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><a href="https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html">CO2 concentration from Mauna Loa</a></td>
+<td>CO2 concentration</td>
+<td>site</td>
+<td><code>co2_mlo</code></td>
+<td>remote server</td>
+<td>using the <a href="https://github.com/bczernecki/climate">climate</a> R package</td>
+</tr>
+<tr class="odd">
+<td>HWSD</td>
+<td>soil</td>
+<td>global</td>
+<td><code>hwsd</code></td>
+<td>local files</td>
+<td>using an adaption of David Le Bauer’s <a href="https://github.com/dlebauer/rhwsd">rhwsd</a> R package</td>
+</tr>
+</tbody>
+</table>
+<p>Examples to read data for a single site for each data type are given in Section ‘Examples for a single site’. Handling ingestion for multiple sites is descrbed in Section ‘Example for a set of sites’. <strong>Note</strong> that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.</p>
 <p>MODIS data (not yet implemented):</p>
 <ul>
 <li>
 <a href="https://docs.ropensci.org/MODISTools/">MODISTools</a> R package to access data on remote server ORNL DAAC (not yet implemented).</li>
 </ul>
-<p>Examples to read data for a single site for each data type are given in Section âExamples for a single siteâ. Handling ingestion for multiple sites is descrbed in Section âExample for a set of sitesâ.</p>
-<p><strong>Note</strong> that this package does not provide the original data. Please follow links to data sources above and cite original references when using this data.</p>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
 <p>To install and load the rsofun package using the latest release run the following command in your R terminal:</p>
-<div class="sourceCode"><pre class="r"><span class="kw">if</span>(!<span class="fu"><a href="https://rdrr.io/r/base/library.html">require</a></span>(<span class="no">devtools</span>)){<span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="no">devtools</span>)}
+<div class="sourceCode" id="cb1"><pre class="r"><span class="kw">if</span>(!<span class="fu"><a href="https://rdrr.io/r/base/library.html">require</a></span>(<span class="no">devtools</span>)){<span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="no">devtools</span>)}
 <span class="kw pkg">devtools</span><span class="kw ns">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span>(<span class="st">"stineb/ingestr"</span>)
 <span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">ingestr</span>)</pre></div>
 <div id="dependencies" class="section level3">
 <h3 class="hasAnchor">
 <a href="#dependencies" class="anchor"></a>Dependencies</h3>
 <p>The <code>ingestr</code> package relies heavily on the tidyverse. Dependencies are dplyr, purrr, lubridate, tidyr, raster, lubridate, stringi, stringr, sp, ncdf4, signal. To install all required packages, do:</p>
-<div class="sourceCode"><pre class="r"><span class="no">list.of.packages</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"dplyr"</span>, <span class="st">"purrr"</span>, <span class="st">"lubridate"</span>, <span class="st">"tidyr"</span>, <span class="st">"raster"</span>, <span class="st">"lubridate"</span>, <span class="st">"stringi"</span>, <span class="st">"stringr"</span>, <span class="st">"sp"</span>, <span class="st">"ncdf4"</span>, <span class="st">"signal"</span>)
+<div class="sourceCode" id="cb2"><pre class="r"><span class="no">list.of.packages</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"dplyr"</span>, <span class="st">"purrr"</span>, <span class="st">"lubridate"</span>, <span class="st">"tidyr"</span>, <span class="st">"raster"</span>, <span class="st">"lubridate"</span>, <span class="st">"stringi"</span>, <span class="st">"stringr"</span>, <span class="st">"sp"</span>, <span class="st">"ncdf4"</span>, <span class="st">"signal"</span>)
 <span class="no">new.packages</span> <span class="kw">&lt;-</span> <span class="no">list.of.packages</span>[!(<span class="no">list.of.packages</span> <span class="kw">%in%</span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span>()[,<span class="st">"Package"</span>])]
 <span class="kw">if</span>(<span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span>(<span class="no">new.packages</span>)) <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="no">new.packages</span>)</pre></div>
 </div>
@@ -144,25 +194,23 @@
 <p>This package is designed to be extendible to ingesting other data types (sources). The developer (Beni Stocker) would appreciate if you made sure that your developments can be fed back to this repository. To do so, please use git. See <a href="http://rogerdudler.github.io/git-guide/">here</a> for a brief introduction to git.</p>
 <p>I recommend the following steps if you would just like to use this package (no development):</p>
 <ul>
-<li>
-<p>Directly install the package from the most up-to-date code on GitHub by</p>
-<div class="sourceCode"><pre class="r"><span class="kw pkg">devtools</span><span class="kw ns">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span>(<span class="st">"stineb/ingestr"</span>)</pre></div>
-</li>
+<li>Directly install the package from the most up-to-date code on GitHub by</li>
 </ul>
+<div class="sourceCode" id="cb3"><pre class="r"><span class="kw pkg">devtools</span><span class="kw ns">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span>(<span class="st">"stineb/ingestr"</span>)</pre></div>
 <p>I recommend the following steps if you would like to use and further develop the package (even just for your own application - But keep in mind: others may benefit from your efforts too!):</p>
 <ol>
 <li>Make sure you have a Github account.</li>
-<li>Log on to Github, and go to <a href="https://github.com/stineb/ingestr" class="uri">https://github.com/stineb/ingestr</a> and click on âForkâ in the upper right corner. This makes a copy of the repository that belongs to you, meaning that you can modify, commit, and push changes back to your forked repository as you please.</li>
-<li>
-<p>Clone your fork to your local computer by entering in your terminal (here, itâs cloned to a subdirectory <code>ingestr</code> placed in your home directory):</p>
-<div class="sourceCode"><pre class="sourceCode sh"><code class="sourceCode bash"><span class="bu">cd</span> home
-<span class="fu">git</span> clone https://github.com/<span class="op">&lt;</span>your_github_username<span class="op">&gt;</span>/ingestr.git</code></pre></div>
-</li>
-<li>In RStudio, create a new project in your local directory <code>~/ingestr/</code>. This opens the repository in RStudio and you have access to the code where all ingestr-functions are implemented (see subdirectory <code>./R/</code>).</li>
-<li>In RStudio, after having edited code, select the âBuildâ tab and click on âInstall and Restartâ to build the package again. For quick edits and checks, you may simply source the edited files instead of re-building the whole package. If you like to add new functions, create new a source file in subdirectory <code>./R/</code>, write a nice roxygen header (see other source files as an example), then click on âBuildâ -&gt; âMoreâ -&gt; âDocumentâ, and then again on âInstall and Restartâ.</li>
-<li><p>If youâre happy with your new edits and additions to the package, you may want to have it fet back to the original repository. To do so, please create a new <em>pull request</em> in GitHub: Click on âNew pull requestâ on <a href="https://github.com/stineb/ingestr">the repository page</a> and follow the inuitive steps. Thanks!</p></li>
+<li>Log on to Github, and go to <a href="https://github.com/stineb/ingestr">https://github.com/stineb/ingestr</a> and click on ‘Fork’ in the upper right corner. This makes a copy of the repository that belongs to you, meaning that you can modify, commit, and push changes back to your forked repository as you please.</li>
+<li>Clone your fork to your local computer by entering in your terminal (here, it’s cloned to a subdirectory <code>ingestr</code> placed in your home directory):</li>
 </ol>
-<p>This package is still in its maturing phase. To stay up-to-date with the latest version, regularly re-install from GitHub (<code><a href="https://devtools.r-lib.org//reference/remote-reexports.html">devtools::install_github("stineb/ingestr")</a></code>), or - if youâre building from a locally (<em>git</em>) cloned repository - regularly do a <code>git pull</code> and re-install the package.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="bu">cd</span> home</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="fu">git</span> clone https://github.com/<span class="op">&lt;</span>your_github_username<span class="op">&gt;</span>/ingestr.git</a></code></pre></div>
+<ol>
+<li>In RStudio, create a new project in your local directory <code>~/ingestr/</code>. This opens the repository in RStudio and you have access to the code where all ingestr-functions are implemented (see subdirectory <code>./R/</code>).</li>
+<li>In RStudio, after having edited code, select the ‘Build’ tab and click on ‘Install and Restart’ to build the package again. For quick edits and checks, you may simply source the edited files instead of re-building the whole package. If you like to add new functions, create new a source file in subdirectory <code>./R/</code>, write a nice roxygen header (see other source files as an example), then click on ‘Build’ -&gt; ‘More’ -&gt; ‘Document’, and then again on ‘Install and Restart’.</li>
+<li>If you’re happy with your new edits and additions to the package, you may want to have it fet back to the original repository. To do so, please create a new <em>pull request</em> in GitHub: Click on ‘New pull request’ on <a href="https://github.com/stineb/ingestr">the repository page</a> and follow the inuitive steps. Thanks!</li>
+</ol>
+<p>This package is still in its maturing phase. To stay up-to-date with the latest version, regularly re-install from GitHub (<code><a href="https://devtools.r-lib.org//reference/remote-reexports.html">devtools::install_github("stineb/ingestr")</a></code>), or - if you’re building from a locally (<em>git</em>) cloned repository - regularly do a <code>git pull</code> and re-install the package.</p>
 </div>
 </div>
 </div>
@@ -198,7 +246,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

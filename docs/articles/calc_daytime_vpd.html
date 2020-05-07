@@ -93,7 +93,7 @@
     
     
 <p>Daytime VPD is not provided in the daily FLUXNET2015 data files. Instead, we can derive it based on the half-hourly data, averaging half-hourly VPD of time steps where the shortwave incoming radiation <code>"SW_IN_F"</code> is greater than zero (i.e., during the day). To do this, we can set the <code>getvars</code> argment to <code><a href="https://rdrr.io/r/base/list.html">list(vpd  = "VPD_F_DAY")</a></code> and additionally provide the directory where half-hourly files are located locally through the argument <code>settings</code>. We do this just for one year here (only year 2000 data is provided as external data in this package).</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="no">settings_fluxnet</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">dir_hh</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/find.package.html">path.package</a></span>(<span class="st">"ingestr"</span>), <span class="st">"/extdata/"</span>), <span class="kw">getswc</span> <span class="kw">=</span> <span class="fl">FALSE</span>)
+<div class="sourceCode" id="cb1"><html><body><pre class="r"><span class="no">settings_fluxnet</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">dir_hh</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/find.package.html">path.package</a></span>(<span class="st">"ingestr"</span>), <span class="st">"/extdata/"</span>), <span class="kw">getswc</span> <span class="kw">=</span> <span class="fl">FALSE</span>)
 
 <span class="no">df_fluxnet</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
   <span class="kw">sitename</span> <span class="kw">=</span> <span class="st">"FR-Pue"</span>,
@@ -107,7 +107,7 @@
   <span class="kw">verbose</span> <span class="kw">=</span> <span class="fl">FALSE</span>
   )</pre></body></html></div>
 <pre><code>## Warning: Unknown columns: ``</code></pre>
-<div class="sourceCode"><html><body><pre class="r"><span class="no">df_fluxnet</span></pre></body></html></div>
+<div class="sourceCode" id="cb3"><html><body><pre class="r"><span class="no">df_fluxnet</span></pre></body></html></div>
 <pre><code>## # A tibble: 365 x 3
 ##    date         vpd sitename
 ##    &lt;date&gt;     &lt;dbl&gt; &lt;chr&gt;   
@@ -137,7 +137,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

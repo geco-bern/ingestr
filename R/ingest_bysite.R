@@ -41,35 +41,37 @@ ingest_bysite <- function(
   dir,
   settings = list(),
   timescale = "d",
-  year_start,
-  year_end,
+  year_start = NA,
+  year_end = NA,
   lon = ifelse(source=="fluxnet", NA),
   lat = ifelse(source=="fluxnet", NA),
   verbose = FALSE
   ){
   
-  ## initialise data frame with all required dates
-  if (timescale=="d"){
-    freq = "days"
-  } else if (timescale=="m"){
-    freq = "months"
-  } else if (timescale=="y"){
-    freq = "years"
-  }
-  
-  df <- init_dates_dataframe(
-    year_start,
-    year_end,
-    noleap = TRUE,
-    freq = freq) %>%
-    dplyr::select(-year_dec)
-  
-  if (timescale=="m"){
-    df <- df %>%
-      mutate(month = lubridate::month(date), year = lubridate::year(date))
-  } else if (timescale=="y"){
-    df <- df %>%
-      mutate(year = lubridate::year(date))
+  if (!(source %in% c("etopo1", "hwsd"))){
+    ## initialise data frame with all required dates
+    if (timescale=="d"){
+      freq = "days"
+    } else if (timescale=="m"){
+      freq = "months"
+    } else if (timescale=="y"){
+      freq = "years"
+    }
+    
+    df <- init_dates_dataframe(
+      year_start,
+      year_end,
+      noleap = TRUE,
+      freq = freq) %>%
+      dplyr::select(-year_dec)
+    
+    if (timescale=="m"){
+      df <- df %>%
+        mutate(month = lubridate::month(date), year = lubridate::year(date))
+    } else if (timescale=="y"){
+      df <- df %>%
+        mutate(year = lubridate::year(date))
+    }    
   }
   
   ##-----------------------------------------------------------
@@ -199,26 +201,39 @@ ingest_bysite <- function(
                                   verbose = FALSE
     )
     
+  } else if (source == "hwsd"){
+    #-----------------------------------------------------------
+    # Get HWSD soil data. year_start and year_end not required
+    #-----------------------------------------------------------
+    siteinfo <- tibble(
+      lon = lon,
+      lat = lat
+    )
+    con <- rhwsd::get_hwsd_con()
+    df_tmp <- rhwsd::get_hwsd(x = siteinfo, con = con, hwsd.bil = settings$fil )
+    
   } else {
     rlang::warn(paste("you selected source =", source))
     rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
   }
 
-  if (timescale=="m"){
-    df <- df_tmp %>%
-      mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%
-      dplyr::select(-date) %>%
-      right_join(df, by = c("year", "month"))
-    
-  } else if (timescale=="y"){
-    df <- df_tmp %>%
-      mutate(year = lubridate::year(date)) %>%
-      dplyr::select(-date) %>%
-      right_join(df, by = "year")
-    
-  } else if (timescale=="d"){
-    df <- df_tmp %>%
-      right_join(df, by = "date")
+  if (!(source %in% c("etopo1", "hwsd"))){
+    if (timescale=="m"){
+      df <- df_tmp %>%
+        mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%
+        dplyr::select(-date) %>%
+        right_join(df, by = c("year", "month"))
+      
+    } else if (timescale=="y"){
+      df <- df_tmp %>%
+        mutate(year = lubridate::year(date)) %>%
+        dplyr::select(-date) %>%
+        right_join(df, by = "year")
+      
+    } else if (timescale=="d"){
+      df <- df_tmp %>%
+        right_join(df, by = "date")
+    }
   }
   
   df <- df %>% 
