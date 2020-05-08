@@ -43,9 +43,9 @@ library(ingestr)
 
 ### Dependencies
 
-The `ingestr` package relies heavily on the tidyverse. Dependencies are dplyr, purrr, lubridate, tidyr, raster, lubridate, stringi, stringr, sp, ncdf4, signal. To install all required packages, do:
+The `ingestr` package relies heavily on the tidyverse. Dependencies are dplyr, purrr, lubridate, tidyr, raster, lubridate, stringi, stringr, sp, ncdf4, signal, climate. To install all required packages, do:
 ```r
-list.of.packages <- c("dplyr", "purrr", "lubridate", "tidyr", "raster", "lubridate", "stringi", "stringr", "sp", "ncdf4", "signal")
+list.of.packages <- c("dplyr", "purrr", "lubridate", "tidyr", "raster", "lubridate", "stringi", "stringr", "sp", "ncdf4", "signal", "climate")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 ```
