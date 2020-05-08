@@ -2,35 +2,25 @@
 
 The package `ingestr` provides functions to extract (ingest) point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution. This can be done for a set of sites at once, given a data frame containing the meta info for each site (see data frame `siteinfo`, with columns `lon` for longitude, `lat` for latitude, `date_start` and `date_end` specifying required dates). The output for such a set of site-level data is a nested data frame with rows for each site and columns `lon`, `lat`, `date_start`, and `date_end` plus an added column where the time series of ingested data is nested inside.
 
-Data can be ingested for different data types (argument `source` in several functions), each dealing with a specific format of the original data and specific functions to read from respective files or remote servers. The following data types can be handled currently (more to be added by you if you like):
+Data can be ingested for different data types (argument `source` in functions `ingest()` and `ingest_bysite()`, see Column Source ID in table below). For each data type, functions deal with a specific format of the original data and specific functions to read from respective files or remote servers. The following data types can be handled currently (more to be added by you if you like):
 
-Meteo data:
+| Data source                                                                             | Data type                                | Coverage     | Source ID             | Reading from ...               | Remark     |
+|-------------------------                                                                |---------------                           |---------     |---------------        | ---                            |---         |
+| [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/)                       | ecosystem fluxes, meteo, soil moisture   | site         | `fluxnet`             | local files                    |            |
+| [WATCH-WFDEI](http://www.eu-watch.org/data_availability)                                | meteo                                    | global       | `watch_wfdei`         | local files                    |            |
+| [CRU](https://crudata.uea.ac.uk/cru/data/hrg/)                                          | meteo                                    | global       | `cru`                 | local files                    |            |
+| Google Earth Engine                                                                     | remote sensing                           | global       | `gee`                 | remote server                  | using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library |
+| [ETOPO1](https://www.ngdc.noaa.gov/mgg/global/)                                         | elevation                                | global       | `etopo1`              | local files                    |            |
+| [CO2 concentration from Mauna Loa](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html) | CO2 concentration                        | site         | `co2_mlo`             | remote server                  | using the [climate](https://github.com/bczernecki/climate) R package |
+| HWSD                                                                                    | soil                                     | global       | `hwsd`                | local files                    | using an adaption of David Le Bauer's [rhwsd](https://github.com/dlebauer/rhwsd) R package|
 
-  - [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/): `source = "fluxnet"`, also flux data can be read in, reading from files
-  - [WATCH-WFDEI](http://www.eu-watch.org/data_availability): `source = "watch_wfdei"`, reading from files
-  - [CRU](https://crudata.uea.ac.uk/cru/data/hrg/): `source = "cru"`, reading from files
-
-Data on Google Earth Engine: `source = "gee"`, using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library):
-
-  - MODIS FPAR
-  - MODIS EVI
-  - MODIS GPP
-
-Elevation data:
-
-  - [ETOPO1](https://www.ngdc.noaa.gov/mgg/global/): `source = "etopo1"`, reading from files
-  
-CO2 data:
-
-  - [CO2 concentration from Mauna Loa](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html), using the [climate R package](https://github.com/bczernecki/climate).
+Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is descrbed in Section 'Example for a set of sites'.
+**Note** that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.
 
 MODIS data (not yet implemented):
 
   - [MODISTools](https://docs.ropensci.org/MODISTools/) R package to access data on remote server ORNL DAAC (not yet implemented).
-  
-Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is descrbed in Section 'Example for a set of sites'.
 
-**Note** that this package does not provide the original data. Please follow links to data sources above and cite original references when using this data.
 
 ## Installation
 
