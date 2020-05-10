@@ -31,13 +31,13 @@ ingest <- function(
 	timescale = "d",
 	verbose   = FALSE
   ){
-  
-  if (source!="etopo1"){
-    
+
+  if (!(source %in% c("hwsd", "etopo1"))){
+
     ## complement dates information
     if (!("year_start" %in% names(siteinfo))){
       if ("date_start" %in% names(siteinfo)){
-        siteinfo <- siteinfo %>% 
+        siteinfo <- siteinfo %>%
           mutate(year_start = lubridate::year(date_start))
       } else {
         rlang::abort("ingest(): Columns 'year_start' and 'date_start' missing in object provided by argument 'siteinfo'")
@@ -45,16 +45,16 @@ ingest <- function(
     }
     if (!("year_end" %in% names(siteinfo))){
       if ("date_end" %in% names(siteinfo)){
-        siteinfo <- siteinfo %>% 
+        siteinfo <- siteinfo %>%
           mutate(year_end = lubridate::year(date_end))
       } else {
         rlang::abort("ingest(): Columns 'year_end' and 'date_end' missing in object provided by argument 'siteinfo'")
       }
     }
-    
+
     if (!("date_start" %in% names(siteinfo))){
       if ("year_start" %in% names(siteinfo)){
-        siteinfo <- siteinfo %>% 
+        siteinfo <- siteinfo %>%
           mutate(date_start = lubridate::ymd(paste0(as.character(year_start), "-01-01")))
       } else {
         rlang::abort("ingest(): Columns 'year_start' and 'date_start' missing in object provided by argument 'siteinfo'")
@@ -62,15 +62,15 @@ ingest <- function(
     }
     if (!("date_end" %in% names(siteinfo))){
       if ("year_end" %in% names(siteinfo)){
-        siteinfo <- siteinfo %>% 
+        siteinfo <- siteinfo %>%
           mutate(date_end = lubridate::ymd(paste0(as.character(year_end), "-12-31")))
       } else {
         rlang::abort("ingest(): Columns 'year_end' and 'date_end' missing in object provided by argument 'siteinfo'")
       }
     }
-    
+
   }
-  
+
 	if (source == "fluxnet"){
 	  #-----------------------------------------------------------
 	  # Get data from sources given by site
@@ -109,30 +109,30 @@ ingest <- function(
 	  #-----------------------------------------------------------
 	  ## Define years covered based on site meta info:
 	  ## take all years used for at least one site.
-	  year_start <- siteinfo %>% 
-	    pull(year_start) %>% 
+	  year_start <- siteinfo %>%
+	    pull(year_start) %>%
 	    min()
-	  
-	  year_end <- siteinfo %>% 
-	    pull(year_end) %>% 
+
+	  year_end <- siteinfo %>%
+	    pull(year_end) %>%
 	    max()
-	  
+
 	  ddf <- purrr::map(
 	    as.list(seq(nrow(siteinfo))),
-	    ~ingest_gee_bysite( 
-	      slice(siteinfo, .), 
+	    ~ingest_gee_bysite(
+	      slice(siteinfo, .),
 	      start_date           = paste0(as.character(year_start), "-01-01"),
-	      end_date             = paste0(as.character(year_end), "-12-31"), 
+	      end_date             = paste0(as.character(year_end), "-12-31"),
 	      overwrite_raw        = settings$overwrite_raw,
 	      overwrite_interpol   = settings$overwrite_interpol,
-	      band_var             = settings$band_var, 
-	      band_qc              = settings$band_qc, 
-	      prod                 = settings$prod, 
-	      prod_suffix          = settings$prod_suffix, 
-	      varnam               = settings$varnam, 
-	      productnam           = settings$productnam, 
-	      scale_factor         = settings$scale_factor, 
-	      period               = settings$period, 
+	      band_var             = settings$band_var,
+	      band_qc              = settings$band_qc,
+	      prod                 = settings$prod,
+	      prod_suffix          = settings$prod_suffix,
+	      varnam               = settings$varnam,
+	      productnam           = settings$productnam,
+	      scale_factor         = settings$scale_factor,
+	      period               = settings$period,
 	      python_path          = settings$python_path,
 	      gee_path             = settings$gee_path,
 	      data_path            = settings$data_path,
@@ -140,17 +140,17 @@ ingest <- function(
 	      keep                 = settings$keep
 	    )
 	  )
-	  
+
 	} else if (source == "co2_mlo"){
 	  #-----------------------------------------------------------
 	  # Get CO2 data year, independent of site
 	  #-----------------------------------------------------------
-	  df_co2 <- climate::meteo_noaa_co2() %>% 
-	    as_tibble() %>% 
-	    dplyr::rename(year = yy) %>% 
-	    group_by(year) %>% 
+	  df_co2 <- climate::meteo_noaa_co2() %>%
+	    as_tibble() %>%
+	    dplyr::rename(year = yy) %>%
+	    group_by(year) %>%
 	    summarise(co2_avg = mean(co2_avg, na.rm = TRUE))
-	  
+
 	  ddf <- purrr::map(
 	    as.list(seq(nrow(siteinfo))),
 	    ~expand_co2_bysite(
@@ -160,8 +160,8 @@ ingest <- function(
 	      year_end   = lubridate::year(siteinfo$date_end[.])
 	      )
 	    )
-	 
-	  
+
+
 	} else if (source == "etopo1"){
 	  #-----------------------------------------------------------
 	  # Get ETOPO1 elevation data. year_start and year_end not required
@@ -173,44 +173,44 @@ ingest <- function(
 	                             timescale = NULL,
 	                             verbose = FALSE
 	  )
-	  
+
 	} else if (source == "hwsd"){
 	  #-----------------------------------------------------------
 	  # Get HWSD soil data. year_start and year_end not required
 	  #-----------------------------------------------------------
 	  con <- rhwsd::get_hwsd_con()
-	  ddf <- rhwsd::get_hwsd_siteset(x = dplyr::select(siteinfo, sitename, lon, lat), con = con, hwsd.bil = settings$fil ) %>% 
-	    dplyr::ungroup() %>% 
-	    dplyr::select(sitename, data) %>% 
+	  ddf <- rhwsd::get_hwsd_siteset(x = dplyr::select(siteinfo, sitename, lon, lat), con = con, hwsd.bil = settings$fil ) %>%
+	    dplyr::ungroup() %>%
+	    dplyr::select(sitename, data) %>%
 	    tidyr::unnest(data)
 
 	} else {
 	  rlang::warn(paste("you selected source =", source))
 	  rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
 	}
-  
-  ddf <- ddf %>% 
+
+  ddf <- ddf %>%
     bind_rows() %>%
-    group_by(sitename) %>% 
+    group_by(sitename) %>%
     nest()
-	
+
   return(ddf)
 
 }
 
 ## give each site and day within year the same co2 value
 expand_co2_bysite <- function(df, sitename, year_start, year_end){
-  
-  ddf <- init_dates_dataframe( year_start, year_end ) %>% 
-    dplyr::select(-year_dec) %>% 
-    dplyr::mutate(year = lubridate::year(date)) %>% 
+
+  ddf <- init_dates_dataframe( year_start, year_end ) %>%
+    dplyr::select(-year_dec) %>%
+    dplyr::mutate(year = lubridate::year(date)) %>%
     dplyr::left_join(
       df,
       by = "year"
-    ) %>% 
-    dplyr::mutate(sitename = sitename) %>% 
+    ) %>%
+    dplyr::mutate(sitename = sitename) %>%
     dplyr::select(sitename, date, co2 = co2_avg)
-  
+
   return(ddf)
 }
 
