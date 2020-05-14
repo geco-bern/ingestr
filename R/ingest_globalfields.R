@@ -16,6 +16,7 @@
 #' the respective source (if multiple time scales are available, otherwise is disregarded).
 #' @param standardise_units A logical specifying whether units in ingested data are to be standardised
 #' following ingestr-standard units.
+#' @param layer (Optional) A character string specifying the layer from a shapefile or a raster brick to be read.
 #' @param verbose if \code{TRUE}, additional messages are printed.
 #'
 #' @return A data frame (tibble) containing the time series of ingested data, nested for each site.
@@ -24,9 +25,9 @@
 #'
 #' @examples \dontrun{inputdata <- ingest_bysite()}  
 #'
-ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, standardise_units = TRUE, verbose=FALSE ){
+ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, standardise_units = TRUE, layer = NULL, verbose = FALSE ){
   
-  if (source!="etopo1"){
+  if (!(source %in% c("etopo1", "wwf"))){
     ## get a data frame with all dates for all sites
     ddf <- purrr::map(
       as.list(seq(nrow(siteinfo))),
@@ -43,7 +44,6 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
     ddf <- tibble()
   }
   
-
   if (source=="watch_wfdei"){
     ##----------------------------------------------------------------------
     ## Read WATCH-WFDEI data (extracting from NetCDF files for this site)
@@ -191,6 +191,31 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
       dplyr::rename(elv = V1) %>% 
       dplyr::select(sitename, elv) 
 
+  } else if (source == "wwf"){
+    
+    df_biome_codes <- tibble(
+      BIOME = 1:14,
+      BIOME_NAME = c(
+        "Tropical & Subtropical Moist Broadleaf Forests",
+        "Tropical & Subtropical Dry Broadleaf Forests",
+        "Tropical & Subtropical Coniferous Forests",
+        "Temperate Broadleaf & Mixed Forests",
+        "Temperate Conifer Forests",
+        "Boreal Forests/Taiga",
+        "Tropical & Subtropical Grasslands, Savannas & Shrublands",
+        "Temperate Grasslands, Savannas & Shrublands",
+        "Flooded Grasslands & Savannas",
+         "Montane Grasslands & Shrublands",
+         "Tundra",
+         "Mediterranean Forests, Woodlands & Scrub",
+         "Deserts & Xeric Shrublands",
+         "Mangroves")
+      )
+    
+    ddf <- extract_pointdata_allsites_shp( dir, dplyr::select(siteinfo, sitename, lon, lat), layer ) %>% 
+      left_join(df_biome_codes, by = "BIOME")
+    
+    
   }
   
   return( ddf )
@@ -464,6 +489,34 @@ extract_pointdata_allsites <- function( filename, df_lonlat, get_time = FALSE ){
   }
   
   return(df_lonlat)
+}
+
+##--------------------------------------------------------------------
+## Extracts point data for a set of sites given by df_lonlat for a 
+## shapefile. df_lonlat requires columns sitename, lon, and lat.
+##--------------------------------------------------------------------
+extract_pointdata_allsites_shp <- function( dir, df_lonlat, layer ){
+  
+  shp <- rgdal::readOGR(dsn = dir, layer = layer)
+  
+  geo.proj <- sp::proj4string(shp)
+  
+  # create SpatialPoints object for plots
+  df_clean <- df_lonlat %>% 
+    ungroup() %>% 
+    dplyr::select(lon, lat) %>% 
+    tidyr::drop_na()
+  
+  pts <- sp::SpatialPoints(df_clean, proj4string = sp::CRS(geo.proj))
+  
+  # creates object that assigns each plot index to an ecoregion
+  df <- sp::over(pts, shp) %>% 
+    as_tibble() %>% 
+    bind_cols(df_clean, .) %>% 
+    right_join(df_lonlat, by = c("lon", "lat")) %>% 
+    dplyr::select(-lon, -lat) 
+    
+  return(df)
 }
 
 #' Implements a weather generator

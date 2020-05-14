@@ -100,7 +100,7 @@
 <th>Data type</th>
 <th>Coverage</th>
 <th>Source ID</th>
-<th>Reading from …</th>
+<th>Reading from</th>
 <th>Remark</th>
 </tr></thead>
 <tbody>
@@ -145,7 +145,7 @@
 <td></td>
 </tr>
 <tr class="even">
-<td><a href="https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html">CO2 concentration from Mauna Loa</a></td>
+<td><a href="https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html">Mauna Loa CO2</a></td>
 <td>CO2 concentration</td>
 <td>site</td>
 <td><code>co2_mlo</code></td>
@@ -159,6 +159,14 @@
 <td><code>hwsd</code></td>
 <td>local files</td>
 <td>using an adaption of David Le Bauer’s <a href="https://github.com/dlebauer/rhwsd">rhwsd</a> R package</td>
+</tr>
+<tr class="even">
+<td><a href="https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c">WWF Ecoregions</a></td>
+<td>vegetation classification</td>
+<td>global</td>
+<td><code>wwf</code></td>
+<td>local files</td>
+<td>Olsen et al. (2001)</td>
 </tr>
 </tbody>
 </table>
@@ -178,10 +186,10 @@
 <div id="dependencies" class="section level3">
 <h3 class="hasAnchor">
 <a href="#dependencies" class="anchor"></a>Dependencies</h3>
-<p>The <code>ingestr</code> package relies heavily on the tidyverse. Dependencies are dplyr, purrr, lubridate, tidyr, raster, lubridate, stringi, stringr, sp, ncdf4, signal. To install all required packages, do:</p>
-<div class="sourceCode" id="cb2"><pre class="r"><span class="no">list.of.packages</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"dplyr"</span>, <span class="st">"purrr"</span>, <span class="st">"lubridate"</span>, <span class="st">"tidyr"</span>, <span class="st">"raster"</span>, <span class="st">"lubridate"</span>, <span class="st">"stringi"</span>, <span class="st">"stringr"</span>, <span class="st">"sp"</span>, <span class="st">"ncdf4"</span>, <span class="st">"signal"</span>)
-<span class="no">new.packages</span> <span class="kw">&lt;-</span> <span class="no">list.of.packages</span>[!(<span class="no">list.of.packages</span> <span class="kw">%in%</span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span>()[,<span class="st">"Package"</span>])]
-<span class="kw">if</span>(<span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span>(<span class="no">new.packages</span>)) <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="no">new.packages</span>)</pre></div>
+<p>The <code>ingestr</code> package relies heavily on the tidyverse. Dependencies are dplyr, purrr, lubridate, tidyr, raster, lubridate, stringi, stringr, sp, ncdf4, signal, climate. To install all required packages, do:</p>
+<div class="sourceCode" id="cb2"><pre class="r"><span class="no">list_pkgs</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"dplyr"</span>, <span class="st">"purrr"</span>, <span class="st">"lubridate"</span>, <span class="st">"tidyr"</span>, <span class="st">"raster"</span>, <span class="st">"lubridate"</span>, <span class="st">"stringi"</span>, <span class="st">"stringr"</span>, <span class="st">"sp"</span>, <span class="st">"ncdf4"</span>, <span class="st">"signal"</span>, <span class="st">"climate"</span>, <span class="st">"rgdal"</span>)
+<span class="no">new_pkgs</span> <span class="kw">&lt;-</span> <span class="no">list_pkgs</span>[!(<span class="no">list_pkgs</span> <span class="kw">%in%</span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span>()[,<span class="st">"Package"</span>])]
+<span class="kw">if</span>(<span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span>(<span class="no">new_pkgs</span>)) <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="no">new_pkgs</span>)</pre></div>
 </div>
 </div>
 <div id="example" class="section level2">

@@ -32,7 +32,7 @@ ingest <- function(
 	verbose   = FALSE
   ){
 
-  if (!(source %in% c("hwsd", "etopo1"))){
+  if (!(source %in% c("hwsd", "etopo1", "wwf"))){
 
     ## complement dates information
     if (!("year_start" %in% names(siteinfo))){
@@ -184,6 +184,19 @@ ingest <- function(
 	    dplyr::select(sitename, data) %>%
 	    tidyr::unnest(data)
 
+	} else if (source == "wwf"){
+	  #-----------------------------------------------------------
+	  # Get WWF ecoregion data. year_start and year_end not required
+	  #-----------------------------------------------------------
+	  ddf <- ingest_globalfields(siteinfo,
+	                             source = source,
+	                             dir = dir,
+	                             getvars = NULL,
+	                             timescale = NULL,
+	                             verbose = FALSE, 
+	                             layer = settings$layer
+	  )
+	  
 	} else {
 	  rlang::warn(paste("you selected source =", source))
 	  rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")

@@ -29,7 +29,8 @@ Data can be ingested for different data types (argument `source` in functions `i
 | Google Earth Engine                                                  | remote sensing                           | global   | `gee`         | remote server | using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library |
 | [ETOPO1](https://www.ngdc.noaa.gov/mgg/global/)                      | elevation                                | global   | `etopo1`      | local files   |            |
 | [Mauna Loa CO2](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html) | CO2 concentration                        | site     | `co2_mlo`     | remote server | using the [climate](https://github.com/bczernecki/climate) R package |
-| HWSD                                                                 | soil                                     | global   | `hwsd`        | local files   | using an adaption of David Le Bauer's [rhwsd](https://github.com/dlebauer/rhwsd) R package|
+| HWSD                                                                 | soil                                     | global   | `hwsd`        | local files   | using an adaption of David Le Bauer's [rhwsd](https://github.com/dlebauer/rhwsd) R package |
+| [WWF Ecoregions](https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c) | vegetation classification   | global   | `wwf`         | local files   | Olsen et al. (2001)| 
 
 Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is descrbed in Section 'Example for a set of sites'.
 **Note** that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.
@@ -495,3 +496,36 @@ df_hwsd <- ingest(
   )
 ```
 
+## WWF Ecoregions
+
+WWF Ecoregions data are provided as a shapefile, available for download [here](http://assets.worldwildlife.org/publications/15/files/original/official_teow.zip), or [here](https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c). A description of the data is available [here](http://omap.africanmarineatlas.org/BIOSPHERE/data/note_areas_sp/Ecoregions_Ecosystems/WWF_Ecoregions/WWFecoregions.htm). Download the zipped directory and adjust the argument `dir` to the path of the directory where file `wwf_terr_ecos.shp` is located. Set the settings list with `layer = "wwf_terr_ecos"`. Then, ingest data by:
+```{r}
+df_wwf <- ingest(
+  siteinfo,
+  source = "wwf",
+  dir = "~/data/biomes/wwf_ecoregions/official/",
+  settings = list(layer = "wwf_terr_ecos")
+)
+```
+
+The following provides the biome codes. This information is additionally added by the ingestr package in column `BIOME_NAME`:
+
+| Code | Biome |
+|------|-------|
+| 1    | Tropical & Subtropical Moist Broadleaf Forests |
+| 2    | Tropical & Subtropical Dry Broadleaf Forests |
+| 3    | Tropical & Subtropical Coniferous Forests |
+| 4    | Temperate Broadleaf & Mixed Forests |
+| 5    | Temperate Conifer Forests |
+| 6    | Boreal Forests/Taiga |
+| 7    | Tropical & Subtropical Grasslands, Savannas & Shrublands |
+| 8    | Temperate Grasslands, Savannas & Shrublands |
+| 9    | Flooded Grasslands & Savannas |
+| 10   | Montane Grasslands & Shrublands |
+| 11   | Tundra |
+| 12   | Mediterranean Forests, Woodlands & Scrub |
+| 13   | Deserts & Xeric Shrublands |
+| 14   | Mangroves |
+
+Please cite as:
+*Olson, D. M., Dinerstein, E. ,Wikramanayake, E. D., Burgess, N. D., Powel, G. V. N., Underwood, E. C., Damico, J. A., Itoua, I., Strand, H. E., Morrison, J. C., Loucks, C. J., Ricketts, T. H., Kura, Y., Lamoreux, J. F., Wettengel, W. W., Hedao, P., and Kassem, K.R. 2001 Terrestrial ecoregions of the world: A new map of life on earth. BioScience, 51(11):933–938.*
