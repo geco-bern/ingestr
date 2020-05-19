@@ -171,6 +171,14 @@
 <td>local files</td>
 <td>using an adaption of David Le Bauer’s <a href="https://github.com/dlebauer/rhwsd">rhwsd</a> R package</td>
 </tr>
+<tr class="even">
+<td><a href="https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c">WWF Ecoregions</a></td>
+<td>vegetation classification</td>
+<td>global</td>
+<td><code>wwf</code></td>
+<td>local files</td>
+<td>Olsen et al. (2001)</td>
+</tr>
 </tbody>
 </table>
 <p>Examples to read data for a single site for each data type are given in Section ‘Examples for a single site’. Handling ingestion for multiple sites is descrbed in Section ‘Example for a set of sites’. <strong>Note</strong> that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.</p>
@@ -774,6 +782,87 @@
   <span class="kw">source</span> <span class="kw">=</span> <span class="st">"hwsd"</span>,
   <span class="kw">settings</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">fil</span> <span class="kw">=</span> <span class="st">"~/data/hwsd/HWSD_RASTER/hwsd.bil"</span>)
   )</pre></body></html></div>
+</div>
+<div id="wwf-ecoregions" class="section level2">
+<h2 class="hasAnchor">
+<a href="#wwf-ecoregions" class="anchor"></a>WWF Ecoregions</h2>
+<p>WWF Ecoregions data are provided as a shapefile, available for download <a href="http://assets.worldwildlife.org/publications/15/files/original/official_teow.zip">here</a>, or <a href="https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c">here</a>. A description of the data is available <a href="http://omap.africanmarineatlas.org/BIOSPHERE/data/note_areas_sp/Ecoregions_Ecosystems/WWF_Ecoregions/WWFecoregions.htm">here</a>. Download the zipped directory and adjust the argument <code>dir</code> to the path of the directory where file <code>wwf_terr_ecos.shp</code> is located. Set the settings list with <code>layer = "wwf_terr_ecos"</code>. Then, ingest data by:</p>
+<div class="sourceCode" id="cb62"><html><body><pre class="r"><span class="no">df_wwf</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span>(
+  <span class="no">siteinfo</span>,
+  <span class="kw">source</span> <span class="kw">=</span> <span class="st">"wwf"</span>,
+  <span class="kw">dir</span> <span class="kw">=</span> <span class="st">"~/data/biomes/wwf_ecoregions/official/"</span>,
+  <span class="kw">settings</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">layer</span> <span class="kw">=</span> <span class="st">"wwf_terr_ecos"</span>)
+)</pre></body></html></div>
+<pre><code>## OGR data source with driver: ESRI Shapefile 
+## Source: "/Users/benjaminstocker/data/biomes/wwf_ecoregions/official", layer: "wwf_terr_ecos"
+## with 14458 features
+## It has 21 fields</code></pre>
+<p>The following provides the biome codes. This information is additionally added by the ingestr package in column <code>BIOME_NAME</code>:</p>
+<table class="table">
+<thead><tr class="header">
+<th>Code</th>
+<th>Biome</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Tropical &amp; Subtropical Moist Broadleaf Forests</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Tropical &amp; Subtropical Dry Broadleaf Forests</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Tropical &amp; Subtropical Coniferous Forests</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Temperate Broadleaf &amp; Mixed Forests</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Temperate Conifer Forests</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>Boreal Forests/Taiga</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>Tropical &amp; Subtropical Grasslands, Savannas &amp; Shrublands</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>Temperate Grasslands, Savannas &amp; Shrublands</td>
+</tr>
+<tr class="odd">
+<td>9</td>
+<td>Flooded Grasslands &amp; Savannas</td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td>Montane Grasslands &amp; Shrublands</td>
+</tr>
+<tr class="odd">
+<td>11</td>
+<td>Tundra</td>
+</tr>
+<tr class="even">
+<td>12</td>
+<td>Mediterranean Forests, Woodlands &amp; Scrub</td>
+</tr>
+<tr class="odd">
+<td>13</td>
+<td>Deserts &amp; Xeric Shrublands</td>
+</tr>
+<tr class="even">
+<td>14</td>
+<td>Mangroves</td>
+</tr>
+</tbody>
+</table>
+<p>Please cite as: <em>Olson, D. M., Dinerstein, E. ,Wikramanayake, E. D., Burgess, N. D., Powel, G. V. N., Underwood, E. C., Damico, J. A., Itoua, I., Strand, H. E., Morrison, J. C., Loucks, C. J., Ricketts, T. H., Kura, Y., Lamoreux, J. F., Wettengel, W. W., Hedao, P., and Kassem, K.R. 2001 Terrestrial ecoregions of the world: A new map of life on earth. BioScience, 51(11):933–938.</em></p>
 </div>
 </div>
   </div>
