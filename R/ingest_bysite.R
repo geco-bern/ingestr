@@ -2,23 +2,23 @@
 #'
 #' Ingests data for a single site and one specific data type, specified by argument \code{source}.
 #'
-#' @param sitename A character string used as site identification. When data is extracted from 
+#' @param sitename A character string used as site identification. When data is extracted from
 #' global files or remote servers, \code{sitename} is simply used as a label and any string can
 #' be provided. When data is extraced from site-specific files (e.g. \code{source = "fluxnet"}),
-#' then \code{sitename} is used to identify the file from which data is read. 
+#' then \code{sitename} is used to identify the file from which data is read.
 #' @param source A character used as identifiyer for the type of data source
 #' (e.g., \code{"fluxnet"}). See vignette for a full description of available options.
 #' @param getvars A named list of characters specifying the variable names in
-#' the original source dataset and the variable names in the ingested data frame. Use, e.g., 
-#' \code{getvars = list("gpp" = "GPP_NT_VUT_REF")} to read the variable \code{"GPP_NT_VUT_REF"} 
+#' the original source dataset and the variable names in the ingested data frame. Use, e.g.,
+#' \code{getvars = list("gpp" = "GPP_NT_VUT_REF")} to read the variable \code{"GPP_NT_VUT_REF"}
 #' from the original file and convert its name to \code{"gpp"} in the ingested data frame.
 #' @param dir A character specifying the directory where the data is located.
-#' @param settings A list of additional, source-specific settings used for reading and processing 
-#' original files. Defaults to an empty list which triggers the use of default settings (see 
+#' @param settings A list of additional, source-specific settings used for reading and processing
+#' original files. Defaults to an empty list which triggers the use of default settings (see
 #' e.g., \link{get_settings_fluxnet}) for \code{source = "fluxnet"}.
 #' @param timescale A character or vector of characters, specifying the time scale of data used from
 #' the respective source (if multiple time scales are available, otherwise is disregarded). Implemented
-#' time scales are \code{c("d", "m", "y")} for daily, monthly, and yearly, respectively. Defaults 
+#' time scales are \code{c("d", "m", "y")} for daily, monthly, and yearly, respectively. Defaults
 #' to \code{"d"}.
 #' @param year_start An integer specifying the first year for which data is to be ingested.
 #' @param year_end An integer specifying the last year for which data is to be ingested (full years
@@ -29,10 +29,10 @@
 #' or remote data servers. If \code{source = "fluxnet"}, this is not required and set ot \code{NA}.
 #' @param verbose if \code{TRUE}, additional messages are printed. Defaults to \code{FALSE}.
 #'
-#' @return A data frame (tibble) containing the time series of ingested data. 
+#' @return A data frame (tibble) containing the time series of ingested data.
 #' @export
 #'
-#' @examples \dontrun{inputdata <- ingest_bysite()}  
+#' @examples \dontrun{inputdata <- ingest_bysite()}
 #'
 ingest_bysite <- function(
   sitename,
@@ -47,33 +47,26 @@ ingest_bysite <- function(
   lat = ifelse(source=="fluxnet", NA),
   verbose = FALSE
   ){
-  
+
   if (!(source %in% c("etopo1", "hwsd"))){
     ## initialise data frame with all required dates
-    if (timescale=="d"){
-      freq = "days"
-    } else if (timescale=="m"){
-      freq = "months"
-    } else if (timescale=="y"){
-      freq = "years"
-    }
-    
     df <- init_dates_dataframe(
       year_start,
       year_end,
       noleap = TRUE,
-      freq = freq) %>%
-      dplyr::select(-year_dec)
-    
+      timescale = timescale
+      )
+      # dplyr::select(-year_dec)
+
     if (timescale=="m"){
       df <- df %>%
         mutate(month = lubridate::month(date), year = lubridate::year(date))
     } else if (timescale=="y"){
       df <- df %>%
         mutate(year = lubridate::year(date))
-    }    
+    }
   }
-  
+
   ##-----------------------------------------------------------
   ## FLUXNET 2015 readin
   ##-----------------------------------------------------------
@@ -108,9 +101,9 @@ ingest_bysite <- function(
                                      return_qc       = settings$return_qc,
                                      remove_neg      = settings$remove_neg,
                                      verbose         = verbose
-                                        ) %>% 
+                                    ) %>%
       mutate(sitename = sitename)
-    
+
   } else if (source == "cru" || source == "watch_wfdei"){
     #-----------------------------------------------------------
     # Get data from global fields and one single site
@@ -118,7 +111,7 @@ ingest_bysite <- function(
     siteinfo <- tibble(
         sitename = sitename,
         lon = lon,
-        lat = lat) %>% 
+        lat = lat) %>%
       mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
       mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
 
@@ -129,7 +122,7 @@ ingest_bysite <- function(
                                timescale = timescale,
                                verbose = FALSE
                               )
-    
+
   } else if (source == "gee"){
     #-----------------------------------------------------------
     # Get data from Google Earth Engine
@@ -137,52 +130,52 @@ ingest_bysite <- function(
     siteinfo <- tibble(
       sitename = sitename,
       lon = lon,
-      lat = lat) %>% 
+      lat = lat) %>%
       mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
       mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
-    
-    df_tmp <- ingest_gee_bysite( 
-      siteinfo, 
+
+    df_tmp <- ingest_gee_bysite(
+      siteinfo,
       start_date           = paste0(year_start, "-01-01"),
-      end_date             = paste0(year_end, "-12-31"), 
+      end_date             = paste0(year_end, "-12-31"),
       overwrite_raw        = settings$overwrite_raw,
       overwrite_interpol   = settings$overwrite_interpol,
-      band_var             = settings$band_var, 
-      band_qc              = settings$band_qc, 
-      prod                 = settings$prod, 
-      prod_suffix          = settings$prod_suffix, 
-      varnam               = settings$varnam, 
-      productnam           = settings$productnam, 
-      scale_factor         = settings$scale_factor, 
-      period               = settings$period, 
+      band_var             = settings$band_var,
+      band_qc              = settings$band_qc,
+      prod                 = settings$prod,
+      prod_suffix          = settings$prod_suffix,
+      varnam               = settings$varnam,
+      productnam           = settings$productnam,
+      scale_factor         = settings$scale_factor,
+      period               = settings$period,
       python_path          = settings$python_path,
       gee_path             = settings$gee_path,
       data_path            = settings$data_path,
       method_interpol      = settings$method_interpol,
       keep                 = settings$keep
     )
-    
+
   } else if (source == "co2_mlo"){
     #-----------------------------------------------------------
     # Get CO2 data year, independent of site
     #-----------------------------------------------------------
-    df_co2 <- climate::meteo_noaa_co2() %>% 
-      as_tibble() %>% 
-      dplyr::rename(year = yy) %>% 
-      group_by(year) %>% 
+    df_co2 <- climate::meteo_noaa_co2() %>%
+      as_tibble() %>%
+      dplyr::rename(year = yy) %>%
+      group_by(year) %>%
       summarise(co2_avg = mean(co2_avg, na.rm = TRUE))
-    
-    df_tmp <- init_dates_dataframe( year_start, year_end ) %>% 
-      dplyr::select(-year_dec) %>% 
-      dplyr::mutate(year = lubridate::year(date)) %>% 
+
+    df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
+      # dplyr::select(-year_dec) %>%
+      dplyr::mutate(year = lubridate::year(date)) %>%
       dplyr::left_join(
         df_co2,
         by = "year"
-      ) %>% 
-      dplyr::mutate(sitename = sitename) %>% 
+      ) %>%
+      dplyr::mutate(sitename = sitename) %>%
       dplyr::select(sitename, date, co2 = co2_avg)
-    
-    
+
+
   }  else if (source == "etopo1"){
     #-----------------------------------------------------------
     # Get ETOPO1 elevation data. year_start and year_end not required
@@ -192,7 +185,7 @@ ingest_bysite <- function(
       lon = lon,
       lat = lat
       )
-    
+
     df_tmp <- ingest_globalfields(siteinfo,
                                   source = source,
                                   getvars = NULL,
@@ -200,7 +193,7 @@ ingest_bysite <- function(
                                   timescale = NULL,
                                   verbose = FALSE
     )
-    
+
   } else if (source == "hwsd"){
     #-----------------------------------------------------------
     # Get HWSD soil data. year_start and year_end not required
@@ -211,34 +204,35 @@ ingest_bysite <- function(
     )
     con <- rhwsd::get_hwsd_con()
     df_tmp <- rhwsd::get_hwsd(x = siteinfo, con = con, hwsd.bil = settings$fil )
-    
+
   } else {
     rlang::warn(paste("you selected source =", source))
     rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
   }
 
+  ## add data frame to nice data frame containing all required time steps
   if (!(source %in% c("etopo1", "hwsd"))){
     if (timescale=="m"){
       df <- df_tmp %>%
         mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%
         dplyr::select(-date) %>%
         right_join(df, by = c("year", "month"))
-      
+
     } else if (timescale=="y"){
       df <- df_tmp %>%
         mutate(year = lubridate::year(date)) %>%
         dplyr::select(-date) %>%
         right_join(df, by = "year")
-      
-    } else if (timescale=="d"){
+
+    } else if (timescale %in% c("d", "h", "hh")){
       df <- df_tmp %>%
         right_join(df, by = "date")
     }
   }
-  
-  df <- df %>% 
-    tidyr::drop_na(sitename)
-  
+
+  # df <- df %>%
+  #   tidyr::drop_na(sitename)
+
   return( df )
-  
+
 }
