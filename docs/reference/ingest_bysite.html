@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ingestr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
       </span>
     </div>
 
@@ -101,6 +101,9 @@
       <a href="../articles/example.html">Examples for ingestr</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -139,8 +142,8 @@
   <span class='no'>dir</span>,
   <span class='kw'>settings</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(),
   <span class='kw'>timescale</span> <span class='kw'>=</span> <span class='st'>"d"</span>,
-  <span class='no'>year_start</span>,
-  <span class='no'>year_end</span>,
+  <span class='kw'>year_start</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>year_end</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
   <span class='kw'>lon</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/ifelse.html'>ifelse</a></span>(<span class='no'>source</span> <span class='kw'>==</span> <span class='st'>"fluxnet"</span>, <span class='fl'>NA</span>),
   <span class='kw'>lat</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/ifelse.html'>ifelse</a></span>(<span class='no'>source</span> <span class='kw'>==</span> <span class='st'>"fluxnet"</span>, <span class='fl'>NA</span>),
   <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
@@ -151,7 +154,7 @@
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>sitename</th>
-      <td><p>A character string used as site identification. When data is extracted from 
+      <td><p>A character string used as site identification. When data is extracted from
 global files or remote servers, <code>sitename</code> is simply used as a label and any string can
 be provided. When data is extraced from site-specific files (e.g. <code>source = "fluxnet"</code>),
 then <code>sitename</code> is used to identify the file from which data is read.</p></td>
@@ -164,8 +167,8 @@ then <code>sitename</code> is used to identify the file from which data is read.
     <tr>
       <th>getvars</th>
       <td><p>A named list of characters specifying the variable names in
-the original source dataset and the variable names in the ingested data frame. Use, e.g., 
-<code>getvars = list("gpp" = "GPP_NT_VUT_REF")</code> to read the variable <code>"GPP_NT_VUT_REF"</code> 
+the original source dataset and the variable names in the ingested data frame. Use, e.g.,
+<code>getvars = list("gpp" = "GPP_NT_VUT_REF")</code> to read the variable <code>"GPP_NT_VUT_REF"</code>
 from the original file and convert its name to <code>"gpp"</code> in the ingested data frame.</p></td>
     </tr>
     <tr>
@@ -174,15 +177,15 @@ from the original file and convert its name to <code>"gpp"</code> in the ingeste
     </tr>
     <tr>
       <th>settings</th>
-      <td><p>A list of additional, source-specific settings used for reading and processing 
-original files. Defaults to an empty list which triggers the use of default settings (see 
+      <td><p>A list of additional, source-specific settings used for reading and processing
+original files. Defaults to an empty list which triggers the use of default settings (see
 e.g., <a href='get_settings_fluxnet.html'>get_settings_fluxnet</a>) for <code>source = "fluxnet"</code>.</p></td>
     </tr>
     <tr>
       <th>timescale</th>
       <td><p>A character or vector of characters, specifying the time scale of data used from
 the respective source (if multiple time scales are available, otherwise is disregarded). Implemented
-time scales are <code><a href='https://rdrr.io/r/base/c.html'>c("d", "m", "y")</a></code> for daily, monthly, and yearly, respectively. Defaults 
+time scales are <code><a href='https://rdrr.io/r/base/c.html'>c("d", "m", "y")</a></code> for daily, monthly, and yearly, respectively. Defaults
 to <code>"d"</code>.</p></td>
     </tr>
     <tr>

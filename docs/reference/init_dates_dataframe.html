@@ -74,7 +74,7 @@ specified by argument 'freq'." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ingestr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
       </span>
     </div>
 
@@ -103,6 +103,9 @@ specified by argument 'freq'." />
       <a href="../articles/example.html">Examples for ingestr</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -141,7 +144,7 @@ specified by argument 'freq'.</p>
   <span class='no'>yrend</span>,
   <span class='kw'>startmoy</span> <span class='kw'>=</span> <span class='fl'>1</span>,
   <span class='kw'>startdoy</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>freq</span> <span class='kw'>=</span> <span class='st'>"days"</span>,
+  <span class='kw'>timescale</span> <span class='kw'>=</span> <span class='st'>"d"</span>,
   <span class='kw'>endmoy</span> <span class='kw'>=</span> <span class='fl'>12</span>,
   <span class='kw'>enddom</span> <span class='kw'>=</span> <span class='fl'>31</span>,
   <span class='kw'>noleap</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
@@ -167,8 +170,8 @@ specified by argument 'freq'.</p>
       <td><p>An integer defining the start day-of-year of dates covered by the dataframe. Defaults to 1.</p></td>
     </tr>
     <tr>
-      <th>freq</th>
-      <td><p>A character string specifying the time steps of dates (in rows). Defaults to <code>"days"</code>. Any of <code>"days", "months"</code>.</p></td>
+      <th>timescale</th>
+      <td><p>A character string specifying the time steps of dates (in rows). Defaults to <code>"d"</code>. Any of <code>"y", "m", "d", "h", "hh"</code>.</p></td>
     </tr>
     <tr>
       <th>endmoy</th>
@@ -189,7 +192,7 @@ specified by argument 'freq'.</p>
     <p>A data frame (tibble) with dates.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>ddf</span> <span class='kw'>&lt;-</span> <span class='fu'>init_dates_dataframe</span>( <span class='fl'>2000</span>, <span class='fl'>2003</span>, <span class='kw'>startmoy</span><span class='kw'>=</span><span class='fl'>1</span>, <span class='kw'>startdoy</span><span class='kw'>=</span><span class='fl'>1</span>, <span class='kw'>freq</span><span class='kw'>=</span><span class='st'>"days"</span>, <span class='kw'>endmoy</span><span class='kw'>=</span><span class='fl'>12</span>, <span class='kw'>enddom</span><span class='kw'>=</span><span class='fl'>31</span>, <span class='kw'>noleap</span><span class='kw'>=</span><span class='fl'>FALSE</span> )</div></pre>
+    <pre class="examples"><div class='input'><span class='no'>ddf</span> <span class='kw'>&lt;-</span> <span class='fu'>init_dates_dataframe</span>( <span class='fl'>2000</span>, <span class='fl'>2003</span>, <span class='kw'>startmoy</span><span class='kw'>=</span><span class='fl'>1</span>, <span class='kw'>startdoy</span><span class='kw'>=</span><span class='fl'>1</span>, <span class='kw'>timescale</span><span class='kw'>=</span><span class='st'>"d"</span>, <span class='kw'>endmoy</span><span class='kw'>=</span><span class='fl'>12</span>, <span class='kw'>enddom</span><span class='kw'>=</span><span class='fl'>31</span>, <span class='kw'>noleap</span><span class='kw'>=</span><span class='fl'>FALSE</span> )</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

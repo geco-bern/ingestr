@@ -186,7 +186,7 @@ ingest_bysite <- function(
       lat = lat
       )
 
-    df_tmp <- ingest_globalfields(siteinfo,
+    df <- ingest_globalfields(siteinfo,
                                   source = source,
                                   getvars = NULL,
                                   dir = dir,
@@ -203,7 +203,7 @@ ingest_bysite <- function(
       lat = lat
     )
     con <- rhwsd::get_hwsd_con()
-    df_tmp <- rhwsd::get_hwsd(x = siteinfo, con = con, hwsd.bil = settings$fil )
+    df <- rhwsd::get_hwsd(x = siteinfo, con = con, hwsd.bil = settings$fil )
 
   } else {
     rlang::warn(paste("you selected source =", source))

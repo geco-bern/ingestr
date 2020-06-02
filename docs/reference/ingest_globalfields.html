@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ingestr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
       </span>
     </div>
 
@@ -101,6 +101,9 @@
       <a href="../articles/example.html">Examples for ingestr</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -139,6 +142,7 @@
   <span class='no'>dir</span>,
   <span class='no'>timescale</span>,
   <span class='kw'>standardise_units</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>layer</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
 )</pre>
 
@@ -176,6 +180,10 @@ the respective source (if multiple time scales are available, otherwise is disre
       <th>standardise_units</th>
       <td><p>A logical specifying whether units in ingested data are to be standardised
 following ingestr-standard units.</p></td>
+    </tr>
+    <tr>
+      <th>layer</th>
+      <td><p>(Optional) A character string specifying the layer from a shapefile or a raster brick to be read.</p></td>
     </tr>
     <tr>
       <th>verbose</th>

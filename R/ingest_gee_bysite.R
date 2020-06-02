@@ -408,7 +408,10 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, qc_name, prod,
   ## Create daily dataframe
   ##--------------------------------------
   ddf <- init_dates_dataframe( year_start, year_end ) %>%
-    dplyr::mutate( doy = lubridate::yday(date) )
+    dplyr::mutate( doy = lubridate::yday(date) ) %>% 
+    mutate( ndayyear = ifelse( lubridate::leap_year(lubridate::year(date)), 366, 365  ) ) %>% 
+    mutate( year_dec = lubridate::year(date) + (lubridate::yday(date) - 1) / ndayyear ) %>%
+    dplyr::select( -ndayyear )
 
   ## merge N-day dataframe into daily one.
   ## Warning: here, 'date' must be centered within 4-day period - thus not equal to start date but (start date + 2)

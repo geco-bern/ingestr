@@ -35,11 +35,10 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
         year(siteinfo$date_start[.]),
         year(siteinfo$date_end[.]),
         noleap = TRUE,
-        freq = "days"))
+        timescale = "d"))
     names(ddf) <- siteinfo$sitename
     ddf <- ddf %>%
-      bind_rows(.id = "sitename") %>%
-      select(-year_dec)
+      bind_rows(.id = "sitename")
   } else {
     ddf <- tibble()
   }
@@ -297,9 +296,21 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   df <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = TRUE ) %>%
     dplyr::mutate(data = purrr::map(data, ~setNames(., c("myvar", "date"))))
   
-  ## rearrange to a monthly data frame
+  ## rearrange to a monthly data frame. Necesary work-around with date, because unnest() seems to have a bug
+  ## when unnesting a dataframe that contains a lubridate ymd objet.
+  get_month_year <- function(df){
+    df %>% 
+      mutate(year = lubridate::year(date),
+             moy = lubridate::month(date))
+  }
+  
   mdf <- df %>%
-    tidyr::unnest(data)
+    mutate(data = purrr::map(data, ~get_month_year(.))) %>%
+    mutate(data = purrr::map(data, ~dplyr::select(., -date))) %>%
+    tidyr::unnest(data) %>% 
+    rowwise() %>%
+    mutate(date = lubridate::ymd(paste0(as.character(year), "-", sprintf( "%02d", moy), "-15"))) %>%
+    dplyr::select(-year, -moy)
   
   return( mdf )
 }
@@ -337,8 +348,7 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
   first <- mdf[1:12,] %>% mutate( year = year - 1)
   last  <- mdf[(nrow(mdf)-11):nrow(mdf),] %>% mutate( year = year + 1 )
   
-  ddf <- init_dates_dataframe( yr, yr ) %>%
-    dplyr::select(-year_dec)
+  ddf <- init_dates_dataframe( yr, yr )
   
   ##--------------------------------------------------------------------
   ## air temperature: interpolate using polynomial
@@ -356,8 +366,7 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
     
     ddf <- init_dates_dataframe( yr, yr ) %>%
       mutate( temp = monthly2daily( mtemp, "polynom", mtemp_pvy[nmonth], mtemp_nxt[1], leapyear = leap_year(yr) ) ) %>%
-      right_join( ddf, by = c("date") ) %>%
-      dplyr::select(-year_dec)
+      right_join( ddf, by = c("date") )
   }
   
   ##--------------------------------------------------------------------
@@ -370,8 +379,7 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
     if (any(!is.na(mprec))&&any(!is.na(mwetd))){
       ddf <-  init_dates_dataframe( yr, yr ) %>%
         mutate( prec = get_daily_prec( mprec, mwetd, leapyear = leap_year(yr) ) ) %>%
-        right_join( ddf, by = c("date") ) %>%
-        dplyr::select(-year_dec)
+        right_join( ddf, by = c("date") )
     }
   }
   
@@ -393,8 +401,7 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
       mutate( ccov_int = monthly2daily( mccov, "polynom", mccov_pvy[nmonth], mccov_nxt[1], leapyear = leap_year(yr) ) ) %>%
       ## Reduce CCOV to a maximum 100%
       mutate( ccov = ifelse( ccov_int > 100, 100, ccov_int ) ) %>%
-      right_join( ddf, by = c("date") ) %>%
-      dplyr::select(-year_dec)
+      right_join( ddf, by = c("date") )
   }
   
   ##--------------------------------------------------------------------
@@ -413,8 +420,7 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
     
     ddf <- init_dates_dataframe( yr, yr ) %>%
       mutate( vpd = monthly2daily( mvpd, "polynom", mvpd_pvy[nmonth], mvpd_nxt[1], leapyear = (yr %% 4 == 0) ) ) %>%
-      right_join( ddf, by = c("date") ) %>%
-      dplyr::select(-year_dec)
+      right_join( ddf, by = c("date") )
   }
   
   return( ddf )

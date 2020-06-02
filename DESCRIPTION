@@ -1,7 +1,7 @@
 Package: ingestr
 Type: Package
 Title: Environmental point data ingest
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: person( "Benjamin", "Stocker", email = "benjamin.stocker@gmail.com", role = c("aut", "cre"), comment = c(ORCID = "0000-0003-2697-9096") )
 Maintainer: Benjamin Stocker <benjamin.stocker@gmail.com>
 Description: Ingest site-scale time series of environmental data from large files and remote repositories.

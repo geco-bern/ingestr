@@ -214,8 +214,7 @@ ingest <- function(
 ## give each site and day within year the same co2 value
 expand_co2_bysite <- function(df, sitename, year_start, year_end){
 
-  ddf <- init_dates_dataframe( year_start, year_end ) %>%
-    dplyr::select(-year_dec) %>%
+  ddf <- init_dates_dataframe( year_start, year_end ) %>% 
     dplyr::mutate(year = lubridate::year(date)) %>%
     dplyr::left_join(
       df,
