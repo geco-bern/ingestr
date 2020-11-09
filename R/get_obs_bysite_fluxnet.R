@@ -486,7 +486,7 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
 
   ## check if anything is missing
   if (any(!(getvars %in% names(df)))){
-    rlang::abort(paste("Not all getvars were found in file. Missing: ", getvars[which(!(getvars %in% names(df)))]))
+    rlang::abort(paste("Not all getvars were found in file. Missing variable: ", getvars[which(!(getvars %in% names(df)))], "for site: ", sitename))
   }
 
   if (!return_qc){

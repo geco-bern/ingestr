@@ -146,7 +146,7 @@ ingest <- function(
 	  # Get CO2 data year, independent of site
 	  #-----------------------------------------------------------
 	  df_co2 <- climate::meteo_noaa_co2() %>%
-	    as_tibble() %>%
+	    dplyr::select(yy, co2_avg) %>%
 	    dplyr::rename(year = yy) %>%
 	    group_by(year) %>%
 	    summarise(co2_avg = mean(co2_avg, na.rm = TRUE))
