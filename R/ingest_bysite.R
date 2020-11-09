@@ -160,17 +160,13 @@ ingest_bysite <- function(
     # Get CO2 data year, independent of site
     #-----------------------------------------------------------
     df_co2 <- climate::meteo_noaa_co2() %>%
-      as_tibble() %>%
-      dplyr::rename(year = yy) %>%
-      group_by(year) %>%
-      summarise(co2_avg = mean(co2_avg, na.rm = TRUE))
+      dplyr::select(year = yy, month = mm, co2_avg)
 
     df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
-      # dplyr::select(-year_dec) %>%
-      dplyr::mutate(year = lubridate::year(date)) %>%
+      dplyr::mutate(month = month(date), year = year(date)) %>% 
       dplyr::left_join(
         df_co2,
-        by = "year"
+        by = c("year", "month")
       ) %>%
       dplyr::mutate(sitename = sitename) %>%
       dplyr::select(sitename, date, co2 = co2_avg)

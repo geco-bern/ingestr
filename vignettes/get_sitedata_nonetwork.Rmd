@@ -1,0 +1,243 @@
+---
+title: "Description of how to get site data"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ingestr)
+```
+
+
+## Descriptions
+
+This is an example for how to collect data to force the P-model (rsofun run) for a site where we don't have network measured data but instead extract climate forcing data from global files (WATCH-WFDEI and CRU).
+
+## WATCH-WFDEI
+
+Let's extract data for the location corresponding to FLUXNET site 'CH-Lae' (lon = 8.365, lat = 47.4781). This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 degree resolution), provided as monthly files containing all days in each month. The data directory specified here (`dir = "~/data/watch_wfdei/"`) contains subdirectories with names containing the variable names (corresponding to the ones specified by the argument `getvars = list(temp = "Tair")`). We read data for just one year here (2007).
+```{r message=FALSE, echo = T, results = 'hide'}
+df_watch <- ingest_bysite(
+  sitename  = "efg",  # can be any name
+  source    = "watch_wfdei",
+  getvars   = list(temp = "Tair", prec = "Rainf", vpd = "Qair", ppfd = "SWin"),
+  dir       = "~/data/watch_wfdei/",
+  timescale = "d",
+  year_start = 2015,
+  year_end  = 2015,
+  lon       = 117.369258403,
+  lat       = 30.026229678,
+  verbose   = FALSE
+  )
+df_watch
+```
+
+## Local measured data
+
+### Daily data
+
+Read file with daily data and compare to WATCH-WFDEI.
+```{r}
+library(lubridate)
+df_site <- read_csv("~/data/neecf/climate_data/site_ds_neecf_daily.csv") %>% 
+  mutate(date = lubridate::ymd(paste0(as.character(year), "-01-01"))) %>% 
+  mutate(date = date + months(month-1)) %>% 
+  mutate(date = date + days(day-1)) %>% 
+  rename(prec_obs = precipitation, temp_obs = temperature)
+
+df_test <- df_watch %>% 
+  left_join(df_site, by = "date")
+
+df_test %>% 
+  ggplot() +
+  geom_line(aes(date, temp), color = "red") +
+  geom_line(aes(date, temp_obs))
+
+df_test %>% 
+  ggplot() +
+  geom_line(aes(date, prec), color = "red") +
+  geom_line(aes(date, prec_obs))
+```
+
+Overwrite WATCH-WFDEI data if measured data is available.
+```{r}
+ddf <- df_test %>% 
+  mutate(temp = ifelse(!is.na(temp_obs), temp_obs, temp),
+         prec = ifelse(!is.na(prec_obs), prec_obs, prec))
+```
+
+Check.
+```{r}
+ddf %>% 
+  ggplot() +
+  geom_line(aes(date, temp), color = "red") +
+  geom_line(aes(date, temp_obs))
+
+ddf %>% 
+  ggplot() +
+  geom_line(aes(date, prec), color = "red") +
+  geom_line(aes(date, prec_obs))
+```
+
+
+### Sub-daily data
+
+Use sub-daily data to get daytime mean temperature and daytime mean VPD.
+```{r}
+hdf <- read_csv("~/data/neecf/climate_data/site_ds_neecf_halfhourly.csv") %>% 
+  mutate(date_time = ymd_hm(date_time))
+
+hdf %>% slice(1:100) %>% ggplot(aes(date_time, air_temp)) + geom_line()
+```
+
+Get daily mean and daytime mean air temperature
+```{r}
+ddf_hdf <- hdf %>% 
+  mutate(date = date(date_time)) %>% 
+  ungroup() %>% 
+  group_by(date) %>% 
+  summarise(temp_mean = mean(air_temp, na.rm = TRUE))
+```
+Compare.
+```{r}
+df_test <- ddf %>% 
+  left_join(ddf_hdf, by = "date")
+
+df_test %>% 
+  ggplot() +
+  geom_line(aes(date, temp_mean), color = "red") +
+  geom_line(aes(date, temp))
+```
+
+### VPD
+
+Assume relative humidity constant throughout the day, and use observed diurnal temperature variations to calculate diurnal VPD variations.
+```{r}
+hdf <- hdf %>% 
+  mutate(date = ymd(date)) %>% 
+  left_join(dplyr::select(ddf, date, qair), by = "date") %>% 
+  rowwise() %>% 
+  mutate(vpd = calc_vpd( qair = qair, tc = air_temp, tmin = NA, tmax = NA, patm = NA, elv = 330  ))
+
+hdf %>% 
+  slice(1:500) %>% 
+  ggplot(aes(date_time, vpd)) +
+  geom_line()
+
+hdf %>% 
+  ggplot(aes(x = vpd, y = ..density..)) +
+  geom_histogram()
+```
+
+Get daily mean VPD based on hourly VPD.
+```{r}
+ddf_hdf <- hdf %>% 
+  mutate(date = date(date_time)) %>% 
+  ungroup() %>% 
+  group_by(date) %>% 
+  summarise(temp_mean = mean(air_temp, na.rm = TRUE),
+            vpd_mean = mean(vpd, na.rm = TRUE))
+
+ddf_midday_hdf <- hdf %>% 
+  mutate(date = date(date_time)) %>% 
+  dplyr::filter(hour(date_time) %in% 11:16) %>% 
+  ungroup() %>% 
+  group_by(date) %>% 
+  summarise(temp_mean = mean(air_temp, na.rm = TRUE),
+            vpd_mean = mean(vpd, na.rm = TRUE))
+```
+
+Check.
+```{r}
+ddf_hdf %>% ggplot(aes(date, vpd_mean)) + geom_line()
+
+gg1 <- ggplot() +
+  geom_line(data = hdf %>% dplyr::filter(month(date_time) %in% 6:8),
+            aes(date_time, vpd))
+gg2 <- ggplot() +
+  geom_line(data = ddf_midday_hdf %>% dplyr::filter(month(date) %in% 6:8), 
+            aes(date, vpd_mean))
+
+gg3 <- ddf %>% 
+  dplyr::filter(month(date) %in% 6:8) %>% 
+  ggplot(aes(date, prec)) + 
+  geom_line(color = "royalblue")
+
+library(patchwork)
+gg1 / gg2 / gg3
+```
+
+Complement daily data frame `ddf`.
+```{r}
+ddf <- ddf %>% 
+  left_join(
+    ddf_midday_hdf %>% 
+      rename(vpd_midday = vpd_mean, temp_midday = temp_mean),
+    by = "date"
+  )
+```
+
+Check
+```{r}
+ddf %>% 
+  ggplot() +
+  geom_line(aes(date, temp_midday), color = "red") +
+  geom_line(aes(date, temp))
+
+ddf %>% 
+  ggplot() +
+  geom_line(aes(date, vpd_midday))
+
+ddf %>% 
+  ggplot() +
+  geom_line(aes(date, ppfd))
+```
+
+## CRU TS
+
+Cloud cover data.
+```{r message=FALSE}
+df_cru <- ingest_bysite(
+  sitename  = "efg",  # can be any name
+  source    = "cru",
+  getvars   = list(ccov = "cld"),
+  dir       = "~/data/cru/ts_4.01/",
+  timescale = "d",
+  year_start = 2015,
+  year_end  = 2015,
+  lon       = 117.369258403,
+  lat       = 30.026229678,
+  verbose   = FALSE
+  )
+
+df_cru
+```
+
+## CO2
+
+Ingesting CO2 data is particularly simple. We can safely assume it's well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years, and use the same value for all
+sites. Using the R package [climate](https://github.com/bczernecki/climate), we can load CO2 data from Mauna Loa directly into R. This is downloading data from [ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt](ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt). Here, `ingest()` is a wrapper for the function `climate::meteo_noaa_co2()`.
+```{r message=FALSE}
+df_co2 <- ingest_bysite(
+  sitename  = "efg",
+  source  = "co2_mlo",
+  year_start= 2015,
+  year_end  = 2015,
+  verbose = FALSE
+  )
+```
+
+## Combine
+
+... and save.
+```{r}
+ddf <- ddf %>% 
+  left_join(df_cru, by = "date") %>% 
+  left_join(df_co2, by = "date")
+
+write_csv(ddf, path = "~/data/neecf/climate_data/climate_data_collected.csv")
+```

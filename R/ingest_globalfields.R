@@ -58,13 +58,13 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
     ## precipitation
     if ("prec" %in% names(getvars)){
       ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Rainf_daily" ) %>%
-        dplyr::mutate( rain = myvar ) %>%
+        dplyr::rename( rain = myvar ) %>%
         left_join(
           ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Snowf_daily" ) %>%
-            dplyr::mutate( snow = myvar ),
+            dplyr::rename( snow = myvar ),
           by = c("sitename", "date")
         ) %>%
-        dplyr::rename(prec = (rain + snow) * 60 * 60 * 24 ) %>%  # kg/m2/s -> mm/day
+        dplyr::mutate(prec = (rain + snow) * 60 * 60 * 24 ) %>%  # kg/m2/s -> mm/day
         dplyr::right_join(ddf, by = c("sitename", "date"))
     }
     
@@ -79,7 +79,7 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
     if ("ppfd" %in% names(getvars)){
       kfFEC <- 2.04
       ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "SWdown_daily" ) %>%
-        dplyr::rename(ppfd = myvar * kfFEC * 1.0e-6 * 60 * 60 * 24 ) %>%  # umol m-2 s-1 -> mol m-2 d-1
+        dplyr::mutate(ppfd = myvar * kfFEC * 1.0e-6 * 60 * 60 * 24 ) %>%  # umol m-2 s-1 -> mol m-2 d-1
         dplyr::right_join(ddf, by = c("sitename", "date"))
     }
     
@@ -251,12 +251,18 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
     lat      = siteinfo$lat
   )
   
+  if (varnam %in% c("Rainf_daily", "Snowf_daily")){
+    addstring <- "_WFDEI_CRU_"
+  } else {
+    addstring <- "_WFDEI_"
+  }
+  
   ## extract all the data
   df <- expand.grid(allmonths, allyears) %>%
     dplyr::as_tibble() %>%
     setNames(c("mo", "yr")) %>%
     rowwise() %>%
-    dplyr::mutate(filename = paste0( dirn, "/", varnam, "_WFDEI_", sprintf( "%4d", yr ), sprintf( "%02d", mo ), ".nc" )) %>%
+    dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), ".nc" )) %>%
     dplyr::mutate(data = purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat ) ))
   
   ## rearrange to a daily data frame
