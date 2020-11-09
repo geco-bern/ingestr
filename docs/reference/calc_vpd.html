@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Get daytime VPD for all files in a directory. — get_vpd_day_fluxnet2015 • ingestr</title>
+<title>Calculate vapour pressure deficit from relative humidity — calc_vpd • ingestr</title>
 
 
 <!-- jquery -->
@@ -39,11 +39,8 @@
 
 
 
-<meta property="og:title" content="Get daytime VPD for all files in a directory. — get_vpd_day_fluxnet2015" />
-<meta property="og:description" content="Wrapper function to derive daily daytime VPD from half-hourly data 
-for all site-scale data files in a given directory (argument dir).
-filtering hours where the shortwave incoming radiation (SW_IN_F) is
-zero and aggregating taking the mean across remaining hours per day." />
+<meta property="og:title" content="Calculate vapour pressure deficit from relative humidity — calc_vpd" />
+<meta property="og:description" content="xxx" />
 
 
 
@@ -132,36 +129,51 @@ zero and aggregating taking the mean across remaining hours per day." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Get daytime VPD for all files in a directory.</h1>
-    <small class="dont-index">Source: <a href='https://github.com/stineb/ingestr/blob/master/R/get_vpd_day_fluxnet2015.R'><code>R/get_vpd_day_fluxnet2015.R</code></a></small>
-    <div class="hidden name"><code>get_vpd_day_fluxnet2015.Rd</code></div>
+    <h1>Calculate vapour pressure deficit from relative humidity</h1>
+    <small class="dont-index">Source: <a href='https://github.com/stineb/ingestr/blob/master/R/calc_vpd.R'><code>R/calc_vpd.R</code></a></small>
+    <div class="hidden name"><code>calc_vpd.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Wrapper function to derive daily daytime VPD from half-hourly data 
-for all site-scale data files in a given directory (argument <code>dir</code>).
-filtering hours where the shortwave incoming radiation (SW_IN_F) is
-zero and aggregating taking the mean across remaining hours per day.</p>
+    <p>xxx</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_vpd_day_fluxnet2015</span>(<span class='no'>dir</span>)</pre>
+    <pre class="usage"><span class='fu'>calc_vpd</span>(<span class='kw'>qair</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>tc</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>tmin</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>tmax</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>patm</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>elv</span> <span class='kw'>=</span> <span class='fl'>NA</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>dir</th>
-      <td><p>A character string specifying the directory in which to look
-for site-specific half-hourly data files.</p></td>
+      <th>qair</th>
+      <td><p>Air specific humidity (g g-1)</p></td>
+    </tr>
+    <tr>
+      <th>tc</th>
+      <td><p>temperature, deg C</p></td>
+    </tr>
+    <tr>
+      <th>tmin</th>
+      <td><p>(optional) min daily air temp, deg C</p></td>
+    </tr>
+    <tr>
+      <th>tmax</th>
+      <td><p>(optional) max daily air temp, deg C</p></td>
+    </tr>
+    <tr>
+      <th>patm</th>
+      <td><p>Atmospehric pressure (Pa)</p></td>
+    </tr>
+    <tr>
+      <th>elv</th>
+      <td><p>Elevation above sea level (m) (Used only if <code>patm</code> is missing 
+for calculating it based on standard sea level pressure)</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A list of outputs of the function <a href='get_vpd_day_fluxnet2015_byfile.html'>get_vpd_day_fluxnet2015_byfile</a>.</p>
+    <p>vapor pressure deficit (Pa)</p>
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>df</span> <span class='kw'>&lt;-</span> <span class='fu'>get_vpd_day_fluxnet2015</span>(<span class='st'>"./"</span>)</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

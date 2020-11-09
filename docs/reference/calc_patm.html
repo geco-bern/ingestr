@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Get daytime VPD for all files in a directory. — get_vpd_day_fluxnet2015 • ingestr</title>
+<title>Calculates atmospheric pressure — calc_patm • ingestr</title>
 
 
 <!-- jquery -->
@@ -39,11 +39,9 @@
 
 
 
-<meta property="og:title" content="Get daytime VPD for all files in a directory. — get_vpd_day_fluxnet2015" />
-<meta property="og:description" content="Wrapper function to derive daily daytime VPD from half-hourly data 
-for all site-scale data files in a given directory (argument dir).
-filtering hours where the shortwave incoming radiation (SW_IN_F) is
-zero and aggregating taking the mean across remaining hours per day." />
+<meta property="og:title" content="Calculates atmospheric pressure — calc_patm" />
+<meta property="og:description" content="Calculates atmospheric pressure as a function of elevation, by default assuming 
+standard atmosphere (101325 Pa at sea level)" />
 
 
 
@@ -132,36 +130,58 @@ zero and aggregating taking the mean across remaining hours per day." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Get daytime VPD for all files in a directory.</h1>
-    <small class="dont-index">Source: <a href='https://github.com/stineb/ingestr/blob/master/R/get_vpd_day_fluxnet2015.R'><code>R/get_vpd_day_fluxnet2015.R</code></a></small>
-    <div class="hidden name"><code>get_vpd_day_fluxnet2015.Rd</code></div>
+    <h1>Calculates atmospheric pressure</h1>
+    <small class="dont-index">Source: <a href='https://github.com/stineb/ingestr/blob/master/R/calc_patm.R'><code>R/calc_patm.R</code></a></small>
+    <div class="hidden name"><code>calc_patm.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Wrapper function to derive daily daytime VPD from half-hourly data 
-for all site-scale data files in a given directory (argument <code>dir</code>).
-filtering hours where the shortwave incoming radiation (SW_IN_F) is
-zero and aggregating taking the mean across remaining hours per day.</p>
+    <p>Calculates atmospheric pressure as a function of elevation, by default assuming 
+standard atmosphere (101325 Pa at sea level)</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_vpd_day_fluxnet2015</span>(<span class='no'>dir</span>)</pre>
+    <pre class="usage"><span class='fu'>calc_patm</span>(<span class='no'>elv</span>, <span class='kw'>patm0</span> <span class='kw'>=</span> <span class='fl'>101325</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>dir</th>
-      <td><p>A character string specifying the directory in which to look
-for site-specific half-hourly data files.</p></td>
+      <th>elv</th>
+      <td><p>Elevation above sea-level (m.a.s.l.)</p></td>
+    </tr>
+    <tr>
+      <th>patm0</th>
+      <td><p>(Optional) Atmospheric pressure at sea level (Pa), defaults to 101325 Pa.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A list of outputs of the function <a href='get_vpd_day_fluxnet2015_byfile.html'>get_vpd_day_fluxnet2015_byfile</a>.</p>
+    <p>A numeric value for \(p\)</p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>The elevation-dependence of atmospheric pressure is computed by 
+assuming a linear decrease in temperature with elevation and a mean 
+adiabatic lapse rate (Berberan-Santos et al., 1997):
+$$
+   p(z) = p0 ( 1 - Lz / TK0) ^ ( g M / (RL) )
+$$
+where \(z\) is the elevation above mean sea level (m, argument <code>elv</code>), 
+\(g\) is the gravity constant (9.80665 m s-2), \(p0\) is the atmospheric 
+pressure at 0 m a.s.l. (argument <code>patm0</code>, defaults to 101325 Pa), 
+\(L\) is the mean adiabatic lapse rate (0.0065 K m-2), 
+\(M\) is the molecular weight for dry air (0.028963 kg mol-1), 
+\(R\) is the universal gas constant (8.3145 J mol-1 K-1), and \(TK0\)
+is the standard temperature (298.15 K, corresponds to 25 deg C).</p>
+    <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
+
+    <p>Allen, R. G., Pereira, L. S., Raes, D., Smith, M.: 
+             FAO Irrigation and Drainage Paper No. 56, Food and 
+             Agriculture Organization of the United Nations, 1998</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>df</span> <span class='kw'>&lt;-</span> <span class='fu'>get_vpd_day_fluxnet2015</span>(<span class='st'>"./"</span>)</div></pre>
+    <pre class="examples"><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span>(<span class='st'>"Standard atmospheric pressure, in Pa, corrected for 1000 m.a.s.l.:"</span>)</div><div class='output co'>#&gt; [1] "Standard atmospheric pressure, in Pa, corrected for 1000 m.a.s.l.:"</div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span>(<span class='fu'>calc_patm</span>(<span class='fl'>1000</span>))</div><div class='output co'>#&gt; [1] 90241.54</div><div class='input'>
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

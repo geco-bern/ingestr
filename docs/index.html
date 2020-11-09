@@ -59,6 +59,9 @@
     <li>
       <a href="articles/example.html">Examples for ingestr</a>
     </li>
+    <li>
+      <a href="articles/get_sitedata_nonetwork.html">Description of how to get site data</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -169,7 +172,7 @@
 <td>global</td>
 <td><code>wwf</code></td>
 <td>local files</td>
-<td>Olsen et al. (2001)</td>
+<td>Olsen et al. (2001)</td>
 </tr>
 </tbody>
 </table>
@@ -214,8 +217,8 @@
 <li>Log on to Github, and go to <a href="https://github.com/stineb/ingestr">https://github.com/stineb/ingestr</a> and click on ‘Fork’ in the upper right corner. This makes a copy of the repository that belongs to you, meaning that you can modify, commit, and push changes back to your forked repository as you please.</li>
 <li>Clone your fork to your local computer by entering in your terminal (here, it’s cloned to a subdirectory <code>ingestr</code> placed in your home directory):</li>
 </ol>
-<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="bu">cd</span> home</a>
-<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="fu">git</span> clone https://github.com/<span class="op">&lt;</span>your_github_username<span class="op">&gt;</span>/ingestr.git</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="bu">cd</span> home</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="fu">git</span> clone https://github.com/<span class="op">&lt;</span>your_github_username<span class="op">&gt;</span>/ingestr.git</span></code></pre></div>
 <ol>
 <li>In RStudio, create a new project in your local directory <code>~/ingestr/</code>. This opens the repository in RStudio and you have access to the code where all ingestr-functions are implemented (see subdirectory <code>./R/</code>).</li>
 <li>In RStudio, after having edited code, select the ‘Build’ tab and click on ‘Install and Restart’ to build the package again. For quick edits and checks, you may simply source the edited files instead of re-building the whole package. If you like to add new functions, create new a source file in subdirectory <code>./R/</code>, write a nice roxygen header (see other source files as an example), then click on ‘Build’ -&gt; ‘More’ -&gt; ‘Document’, and then again on ‘Install and Restart’.</li>
