@@ -8,7 +8,7 @@ Description: Ingest site-scale time series of environmental data from large file
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Depends: dplyr, purrr, lubridate, tidyr, raster, lubridate, stringi, stringr, sp, ncdf4, signal, climate, rgdal
 VignetteBuilder: knitr
 URL: https://github.com/stineb/ingestr

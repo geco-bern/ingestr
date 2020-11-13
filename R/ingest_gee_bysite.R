@@ -226,7 +226,10 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, qc_name, prod,
       left_join( ddf_meandoy, by="doy" ) %>%
 
       ## fill gaps at head and tail with data from mean seasonal cycle
-      dplyr::mutate( modisvar_filled = ifelse( is.na(modisvar_filtered), meandoy, modisvar_filtered ) )
+      # dplyr::mutate( modisvar_filled = ifelse( is.na(modisvar_filtered), meandoy, modisvar_filtered ) )
+
+      ## Don't fill with mean seasonal cycle!!!
+      dplyr::mutate( modisvar_filled = modisvar_filtered )
 
 
   } else if (prod=="MCD15A3H"){
@@ -291,18 +294,22 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, qc_name, prod,
     ## 100 4 Pixel not produced at all, value couldn???t be retrieved (possible reasons: bad L1B data, unusable MOD09GA data)
     df$qc_bit4 <- substr( df$qc_bitname, start=1, stop=3 )
 
-    df <- df %>%  dplyr::mutate(  good_quality  = ifelse( qc_bit0=="0", TRUE, FALSE ),
-                           terra         = ifelse( qc_bit1=="0", TRUE, FALSE ),
-                           dead_detector = ifelse( qc_bit2=="1", TRUE, FALSE ),
-                           CloudState    = ifelse( qc_bit3=="00", 0, ifelse( qc_bit3=="01", 1, ifelse( qc_bit3=="10", 2, 3 ) ) ),
-                           SCF_QC        = ifelse( qc_bit4=="000", 0, ifelse( qc_bit4=="001", 1, ifelse( qc_bit4=="010", 2, ifelse( qc_bit4=="011", 3, 4 ) ) ) )
-      ) %>%
+    df <- df %>%
+      rowwise() %>%
+      dplyr::mutate( good_quality  = ifelse( qc_bit0=="0", TRUE, FALSE ),
+                     terra         = ifelse( qc_bit1=="0", TRUE, FALSE ),
+                     dead_detector = ifelse( qc_bit2=="1", TRUE, FALSE ),
+                     CloudState    = ifelse( qc_bit3=="00", 0, ifelse( qc_bit3=="01", 1, ifelse( qc_bit3=="10", 2, 3 ) ) ),
+                     SCF_QC        = ifelse( qc_bit4=="000", 0, ifelse( qc_bit4=="001", 1, ifelse( qc_bit4=="010", 2, ifelse( qc_bit4=="011", 3, 4 ) ) ) )
+                     ) %>%
+
       dplyr::select( -qc_bitname, -FparLai_QC, -qc_bit0, -qc_bit1, -qc_bit2, -qc_bit3, -qc_bit4 ) %>%
       dplyr::rename( modisvar = Fpar ) %>%
-
-      ## Actually filter
-      # df <- df %>% dplyr::filter( CloudState!=1 )  #  good_quality & CloudState!=1 & SCF_QC!=4  & CloudState==0 & !dead_detector & SCF_QC==0
-      dplyr::mutate( modisvar_filtered = ifelse( CloudState!=1 , modisvar, NA )  ) %>%  ## replace by NA for values to be filtered out   & SCF_QC %in% c(0,1)
+      dplyr::mutate( modisvar_filtered = modisvar) %>%
+      rowwise() %>%
+      mutate(CloudState_ok = ifelse(CloudState==0, TRUE, FALSE)) %>%
+      mutate(modisvar_filtered = ifelse( CloudState_ok, modisvar_filtered, NA )) %>%
+      mutate(modisvar_filtered = ifelse( good_quality, modisvar_filtered, NA )  ) %>%
 
       ## don't believe the hype
       dplyr::mutate( modisvar_filtered = ifelse( modisvar_filtered==1.0, NA, modisvar_filtered ) ) %>%
@@ -323,7 +330,10 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, qc_name, prod,
       left_join( ddf_meandoy, by="doy" ) %>%
 
       ## fill gaps at head and tail
-      dplyr::mutate( modisvar_filled = ifelse( is.na(modisvar_filtered), meandoy, modisvar_filtered ) )
+      # dplyr::mutate( modisvar_filled = ifelse( is.na(modisvar_filtered), meandoy, modisvar_filtered ) )
+
+      ## Don't fill with mean seasonal cycle!!!
+      dplyr::mutate( modisvar_filled = modisvar_filtered )
 
 
   } else if (prod=="MOD17A2H"){
@@ -408,8 +418,8 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, qc_name, prod,
   ## Create daily dataframe
   ##--------------------------------------
   ddf <- init_dates_dataframe( year_start, year_end ) %>%
-    dplyr::mutate( doy = lubridate::yday(date) ) %>% 
-    mutate( ndayyear = ifelse( lubridate::leap_year(lubridate::year(date)), 366, 365  ) ) %>% 
+    dplyr::mutate( doy = lubridate::yday(date) ) %>%
+    mutate( ndayyear = ifelse( lubridate::leap_year(lubridate::year(date)), 366, 365  ) ) %>%
     mutate( year_dec = lubridate::year(date) + (lubridate::yday(date) - 1) / ndayyear ) %>%
     dplyr::select( -ndayyear )
 
