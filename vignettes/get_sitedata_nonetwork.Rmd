@@ -34,6 +34,16 @@ df_watch <- ingest_bysite(
   verbose   = FALSE
   )
 df_watch
+df_watch %>% 
+  ggplot(aes(date, ppfd)) + 
+  geom_line()
+
+df_watch %>% 
+  mutate(doy = yday(date)) %>% 
+  group_by(doy) %>% 
+  summarise_if(is.numeric, mean, na.rm = TRUE) %>% 
+  ggplot(aes(doy, ppfd)) + 
+  geom_line()
 ```
 
 ## Local measured data
