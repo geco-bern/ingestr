@@ -307,7 +307,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, qc_name, prod,
       dplyr::rename( modisvar = Fpar ) %>%
       dplyr::mutate( modisvar_filtered = modisvar) %>%
       rowwise() %>%
-      mutate(CloudState_ok = ifelse(CloudState==0, TRUE, FALSE)) %>%
+      mutate(CloudState_ok = ifelse(CloudState %in% c(0), TRUE, FALSE)) %>%
       mutate(modisvar_filtered = ifelse( CloudState_ok, modisvar_filtered, NA )) %>%
       mutate(modisvar_filtered = ifelse( good_quality, modisvar_filtered, NA )  ) %>%
 

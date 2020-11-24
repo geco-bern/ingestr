@@ -108,6 +108,93 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
 }
 
 
+#' Defines settings for settings for MODIS download using MODISTools
+#'
+#' Defines settings for settings for Google Earth Engine download
+#' for a pre-defined set of "bundles" (\code{c("modis_fpar", 
+#' "modis_evi", "modis_lai", "modis_gpp")}). 
+#' 
+#' @param bundle A character string specifying which dataset (bundle) to download.
+#' Defaults to \code{"modis_fpar"}. Available are: \code{c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")}.
+#' @param data_path A character string specifying the path of where the data should be downloaded to.
+#' Defaults to \code{"."} (present working directory). 
+#' @param method_interpol A character string specifying which interpolation method to use. Defaults to linear interpolation (\code{"linear"}). 
+#' Alternatives are 
+#' @param keep A logical specifying whether to keep all intermediate data (before filtering, and before imputing mean seasonal cycle),
+#' and all alternative interpolation results. Defaults to \code{FALSE}.
+#' @param overwrite_raw A logical specifying whether raw data as downloaded from GEE is to be overwritten. Defaults to \code{FALSE},
+#' i.e. data is read from exisitng file if available.
+#' @param overwrite_interpol A logical specifying whether processed (interpolated) data, is to be overwritten. Defaults to \code{FALSE},
+#' i.e. data is read from exisitng file if available.
+#' @return A named list containing information required for download from Google
+#' Earth Engine.
+#' @export
+#'
+#' @examples \dontrun{settings_gee <- get_settings_gee()}
+#' 
+get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_interpol = "linear", keep = FALSE, 
+                              overwrite_raw = FALSE, overwrite_interpol = FALSE ){
+
+  if (bundle == "modis_fpar"){
+    ##--------------------------------------------------------------------
+    ## MODIS FPAR, 500 m, 4-daily
+    ## Info see here: https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H
+    ##--------------------------------------------------------------------
+    out <- list(
+      prod     = "MCD15A3H",
+      band_var = "Fpar_500m",
+      band_qc  = "FparLai_QC",
+      varnam   = "fapar",
+      period   = 4,
+      prod_suffix = "MCD15A3H",
+      productnam = "MODIS_FPAR_MCD15A3H"
+      )
+
+  } else if (bundle == "modis_evi"){
+    ##--------------------------------------------------------------------
+    ## EVI
+    ## See info here: https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMOD13Q1
+    ##--------------------------------------------------------------------
+    out <- list(
+      prod     = "MOD13Q1",
+      band_var = "250m_16_days_EVI",
+      band_qc  = "250m_16_days_VI_Quality",
+      varnam   = "fapar",
+      period   = 16,
+      prod_suffix = "MOD13Q1",
+      productnam = "MODIS_EVI_MOD13Q1"
+      )
+
+  } else if (bundle == "modis_ndvi"){
+    ##--------------------------------------------------------------------
+    ## EVI
+    ## See info here: https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMOD13Q1
+    ##--------------------------------------------------------------------
+    out <- list(
+      prod     = "MOD13Q1",
+      band_var = "250m_16_days_NDVI",
+      band_qc  = "250m_16_days_VI_Quality",
+      varnam   = "ndvi",
+      period   = 16,
+      prod_suffix = "MOD13Q1",
+      productnam = "MODIS_NDVI_MOD13Q1"
+      )
+
+  } else {
+    rlang::abort("get_settings_modis(): Could not identify required argument 'bundle'.")
+  }
+
+  out$data_path          <- data_path
+  out$method_interpol    <- method_interpol
+  out$keep               <- keep
+  out$overwrite_raw      <- overwrite_raw
+  out$overwrite_interpol <- overwrite_interpol
+  
+  return(out)
+
+}
+
+
 #' Defines settings for settings for FLUXNET data ingestion
 #'
 #' Defines settings for settings for FLUXNET data ingestion

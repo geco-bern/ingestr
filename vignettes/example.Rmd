@@ -176,6 +176,87 @@ df %>%
 
 Looks sweet.
 
+## MODIS LP DAAC
+
+To facilitate the selection of data products and bands to be downloaded, you may use the function `get_settings_modis)` which defines defaults for different data bundles (`c("modis_fpar", "modis_evi")` are available).
+
+- `"modis_fpar"`: MODIS/006/MCD15A3H, band Fpar
+- `"modis_evi"`: MODIS/006/MOD13Q1, band EVI
+
+The following example is for downloading MODIS FPAR data.
+```{r}
+settings_modis <- get_settings_modis(
+  bundle            = "modis_ndvi",
+  data_path         = "~/data/modis_subsets/",
+  method_interpol   = "loess",
+  keep              = TRUE,
+  overwrite_raw     = FALSE,
+  overwrite_interpol= TRUE
+  )
+```
+
+This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`.
+```{r}
+df_modis_fpar <- ingest_bysite(
+  sitename  = "CH-Lae",
+  source    = "modis",
+  year_start= 2000,
+  year_end  = 2019,
+  lon       = 8.365,
+  lat       = 47.47808,
+  settings  = settings_modis,
+  verbose   = FALSE
+  )
+```
+
+Plot this data.
+Plot this data.
+```{r}
+plot_fapar_ingestr_bysite(
+  df_modis_fpar %>% 
+    dplyr::filter(year(date) %in% 2010:2015), 
+  settings_modis)
+```
+
+
+```{r}
+df <- read_csv("~/data/modis_subsets/raw/MODIS_NDVI_MOD13Q1_CH-Lae.csv")
+
+df_ndvi_spatialmean <- df %>%
+  dplyr::filter(band == "250m_16_days_NDVI") %>% 
+  mutate(calendar_date = ymd(calendar_date)) %>% 
+  group_by(calendar_date) %>%
+  summarise(mean = mean(value), min = min(value), max = max(value)) %>%
+  mutate(mean = mean * scale_factor, min = min * scale_factor, max = max * scale_factor)
+
+df_ndvi_spatialmean %>% 
+  ggplot(aes(x = calendar_date)) +
+  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") +
+  geom_line(aes(y = mean))
+
+df_modis_fpar %>% 
+  ggplot() +
+  geom_point(aes(date, modisvar_filtered)) +
+  geom_line(aes(date, linear))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Google Earth Engine
 
 The library `gee_subset` by Koen Hufkens can be downloaded from this [link](https://khufkens.github.io/gee_subset/) and used to extract data directly from Google Earth Engine. Note that this requires the following programmes to be available:
@@ -252,7 +333,7 @@ This can now be used to download the data to the directory specified by argument
 df_gee_modis_fpar <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "gee",
-  year_start= 2007,
+  year_start= 2004,
   year_end  = 2014,
   lon       = 3.5958,
   lat       = 43.7414,

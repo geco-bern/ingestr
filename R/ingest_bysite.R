@@ -123,6 +123,18 @@ ingest_bysite <- function(
                                verbose = FALSE
                               )
 
+  } else if (source == "modis"){
+
+    siteinfo <- tibble(
+      sitename = sitename,
+      lon = lon,
+      lat = lat) %>%
+      mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
+      mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
+
+    df_tmp <- ingest_modis_bysite(siteinfo, settings)
+
+
   } else if (source == "gee"){
     #-----------------------------------------------------------
     # Get data from Google Earth Engine

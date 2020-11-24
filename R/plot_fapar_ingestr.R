@@ -44,11 +44,12 @@ plot_fapar_ingestr_bysite <- function(df, settings, sitename = NULL){
 
   gg <- ggplot() +
     geom_point(  data = df, aes(x = date, y = modisvar), col = 'red') +
-    geom_point(  data = df, aes(x = date, y = modisvar_filled), col = 'blue') +
+    # geom_point(  data = df, aes(x = date, y = modisvar_filled), col = 'blue') +
     geom_point(  data = df, aes(x = date, y = modisvar_filtered), col = 'black') +
     geom_line(  data = df, aes(x = date, y = linear), col = 'red') +
     geom_line(  data = df, aes(x = date, y = spline), col = 'cyan') +
     geom_line(  data = df, aes(x = date, y = loess), col = 'blue') +
+    geom_line(  data = df, aes(x = date, y = sgfilter), col = 'green') +
     labs(x = "Date", y = "fAPAR", title = sitename, subtitle = settings$prod)
 
   return(gg)
