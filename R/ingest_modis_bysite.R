@@ -5,21 +5,6 @@
 #'
 #' @param df_siteinfo xxx
 #' @param settings xxx
-## #' @param start_date xxx
-## #' @param end_date xxx
-## #' @param overwrite_raw xxx
-## #' @param overwrite_interpol xxx
-## #' @param band_var xxx
-## #' @param band_qc xxx
-## #' @param prod xxx
-## #' @param prod_suffix xxx
-## #' @param varnam xxx
-## #' @param productnam xxx
-## #' @param scale_factor xxx
-## #' @param period xxx
-## #' @param data_path xxx
-## #' @param method_interpol xxx
-## #' @param keep xxx
 #'
 #' @return A named list containing information required for download from Google
 #' Earth Engine.
@@ -27,26 +12,7 @@
 #'
 #' @examples settings_gee <- get_settings_gee( bundle = "modis_fpar" )
 #'
-ingest_modis_bysite <- function(
-  df_siteinfo,
-  settings
-
-  # start_date,
-  # end_date,
-  # overwrite_raw,
-  # overwrite_interpol,
-  # band_var,
-  # band_qc,
-  # prod,
-  # prod_suffix,
-  # varnam,
-  # productnam,
-  # scale_factor,
-  # period,
-  # data_path,
-  # method_interpol,
-  # keep
-  ){
+ingest_modis_bysite <- function( df_siteinfo, settings ){
 
   ##---------------------------------------------
   ## Define names
@@ -404,17 +370,9 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     dplyr::mutate( modisvar_filled = replace( modisvar_filled, modisvar_filled<0, 0  ) ) %>%
     dplyr::mutate( modisvar_filled = replace( modisvar_filled, modisvar_filled>1, 1  ) )
 
-
   ## extrapolate missing values at head and tail again
   ##--------------------------------------
   ddf$modisvar_filled <- extrapolate_missing_headtail(dplyr::select(ddf, var = modisvar_filled))
-
-
-  # ddf %>%
-  #   ggplot() +
-  #   geom_point(aes(date, modisvar), color = "red") +
-  #   geom_point(aes(date, modisvar_filtered)) +
-  #   geom_line(aes(date, modisvar_filled), color = "royalblue")
 
   return( ddf )
 
