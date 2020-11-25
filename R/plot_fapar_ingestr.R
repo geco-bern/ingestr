@@ -39,18 +39,46 @@ plot_fapar_ingestr_bysite <- function(df, settings, sitename = NULL){
 
   if (is.null(sitename)) sitename <- df$sitename[[1]]
 
-  df <- df %>%
-    tidyr::drop_na(linear)
+  # df2 <- df %>%
+  #   tidyr::drop_na(linear) %>%
+  #   pivot_longer(c(linear, spline, loess), names_to = "interpolation_method", values_to = "data_interpolated") %>%
+  #   left_join(
+  #     df %>%
+  #       tidyr::drop_na(linear) %>%
+  #       pivot_longer(c(modisvar, modisvar_filtered), names_to = "filter_level", values_to = "data_modis"),
+  #     by = "date"
+  #   )
+
+  # gg <- ggplot() +
+  #   geom_point(data = df2, aes(x = date, y = data_modis, color = filter_level)) +
+  #   geom_line(data = df2, aes(x = date, y = data_interpolated, color = interpolation_method))
 
   gg <- ggplot() +
-    geom_point(  data = df, aes(x = date, y = modisvar), col = 'red') +
+    geom_point(  data = df, aes(x = date, y = modisvar), color = "red") +
     # geom_point(  data = df, aes(x = date, y = modisvar_filled), col = 'blue') +
-    geom_point(  data = df, aes(x = date, y = modisvar_filtered), col = 'black') +
-    geom_line(  data = df, aes(x = date, y = linear), col = 'red') +
-    geom_line(  data = df, aes(x = date, y = spline), col = 'cyan') +
-    geom_line(  data = df, aes(x = date, y = loess), col = 'blue') +
-    geom_line(  data = df, aes(x = date, y = sgfilter), col = 'green') +
-    labs(x = "Date", y = "fAPAR", title = sitename, subtitle = settings$prod)
+    geom_point(  data = df, aes(x = date, y = modisvar_filtered), color = "black") +
+    geom_line(  data = df, aes(x = date, y = linear, color = "linear")) +
+    geom_line(  data = df, aes(x = date, y = spline, color = "spline")) +
+    geom_line(  data = df, aes(x = date, y = loess, color = "loess")) +
+    # geom_line(  data = df, aes(x = date, y = sgfilter), col = 'green') +
+    labs(x = "Date", y = settings$varnam, title = sitename, subtitle = paste(settings$prod, settings$band_var)) +
+    scale_color_manual(name = "Interpolation",
+                       breaks = c("linear", "spline", "loess"),
+                       values = c("linear" = "red", "spline" = "cyan", "loess" = "blue") )
+    # scale_color_manual(name = "Filtering",
+    #                    breaks = c("filtered", "kept"),
+    #                    values = c("kept" = "black", "filtered" = "red") )
+
+
+  # gg <- ggplot() +
+  #   geom_point(  data = df, aes(x = date, y = modisvar), col = 'red') +
+  #   # geom_point(  data = df, aes(x = date, y = modisvar_filled), col = 'blue') +
+  #   geom_point(  data = df, aes(x = date, y = modisvar_filtered), col = 'black') +
+  #   geom_line(  data = df, aes(x = date, y = linear), col = 'red') +
+  #   geom_line(  data = df, aes(x = date, y = spline), col = 'cyan') +
+  #   geom_line(  data = df, aes(x = date, y = loess), col = 'blue') +
+  #   geom_line(  data = df, aes(x = date, y = sgfilter), col = 'green') +
+  #   labs(x = "Date", y = "fAPAR", title = sitename, subtitle = settings$prod)
 
   return(gg)
 }

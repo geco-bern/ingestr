@@ -178,12 +178,15 @@ Looks sweet.
 
 ## MODIS LP DAAC
 
-To facilitate the selection of data products and bands to be downloaded, you may use the function `get_settings_modis)` which defines defaults for different data bundles (`c("modis_fpar", "modis_evi")` are available).
+This uses the [*MODISTools*](https://docs.ropensci.org/MODISTools/) R package making its interface consistent with ingestr. Settings can be specified and passed on using the `settings` argument. To facilitate the selection of data products and bands to be downloaded, you may use the function `get_settings_modis)` which defines defaults for different data bundles (`c("modis_fpar", "modis_ndvi", "modis_evi")` are available).
 
-- `"modis_fpar"`: MODIS/006/MCD15A3H, band Fpar
-- `"modis_evi"`: MODIS/006/MOD13Q1, band EVI
+- `"modis_fpar"`: MODIS collection 6, MCD15A3H, band `Fpar_500m`
+- `"modis_evi"`: MODIS collection 6, MOD13Q1, band `250m_16_days_EVI`
+- `"modis_ndvi"`: MODIS collection 6, MOD13Q1, band `250m_16_days_NDVI`
 
-The following example is for downloading MODIS FPAR data.
+The filtering criteria are hard-coded specifically for each product, using its respective quality control information (see function `gapfill_interpol()` in `R/ingest_modis_bysite.R`).
+
+The following example is for downloading MODIS NDVI data.
 ```{r}
 settings_modis <- get_settings_modis(
   bundle            = "modis_ndvi",
@@ -209,7 +212,6 @@ df_modis_fpar <- ingest_bysite(
   )
 ```
 
-Plot this data.
 Plot this data.
 ```{r}
 plot_fapar_ingestr_bysite(

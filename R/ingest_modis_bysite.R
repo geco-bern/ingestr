@@ -284,12 +284,12 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     ##--------------------------------------
     rlang::inform("loess...")
     idxs    <- which(!is.na(ddf$modisvar_filtered))
-    myloess <- try( with( ddf, loess( modisvar_filtered[idxs] ~ year_dec[idxs], span=0.01 ) ))
+    myloess <- try( with( ddf, loess( modisvar_filtered[idxs] ~ year_dec[idxs], span=0.02 ) ))
     i <- 0
     while (class(myloess)=="try-error" && i<50){
       i <- i + 1
       # print(paste("i=",i))
-      myloess <- try( with( ddf, loess( modisvar_filtered[idxs] ~ year_dec[idxs], span=(0.01+0.002*(i-1)) ) ))
+      myloess <- try( with( ddf, loess( modisvar_filtered[idxs] ~ year_dec[idxs], span=(0.02+0.002*(i-1)) ) ))
     }
 
     ## predict LOESS
