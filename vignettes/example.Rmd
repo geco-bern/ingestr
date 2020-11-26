@@ -194,7 +194,7 @@ settings_modis <- get_settings_modis(
   method_interpol   = "loess",
   keep              = TRUE,
   overwrite_raw     = FALSE,
-  overwrite_interpol= TRUE
+  overwrite_interpol= FALSE
   )
 ```
 

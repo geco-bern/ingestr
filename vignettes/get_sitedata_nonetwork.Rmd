@@ -242,6 +242,65 @@ df_co2 <- ingest_bysite(
   )
 ```
 
+## fAPAR
+
+To facilitate the selection of data products and bands to be downloaded, you may use the function `get_settings_gee()` which defines defaults for different data bundles (`c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")` are available).
+
+- `"modis_fpar"`: MODIS/006/MCD15A3H, band Fpar
+- `"modis_evi"`: MODIS/006/MOD13Q1, band EVI
+- `"modis_lai"`: MOD15A2, band `Lai_1km`
+- `"modis_gpp"`: MODIS/006/MOD17A2H, band Gpp
+
+The following example is for downloading MODIS FPAR data.
+```{r}
+settings_gee <- get_settings_gee(
+  bundle            = "modis_fpar",
+  python_path       = system("which python", intern = TRUE),
+  gee_path          = "~/google_earth_engine_subsets/gee_subset/",
+  data_path         = "~/data/gee_subsets/",
+  method_interpol   = "spline",
+  keep              = TRUE,
+  overwrite_raw     = FALSE,
+  overwrite_interpol= TRUE
+  )
+```
+
+This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`.
+```{r}
+df_gee_modis_fpar <- ingest_bysite(
+  sitename  = "efg",
+  source    = "gee",
+  year_start= 2000,
+  year_end  = 2019,
+  lon       = 117.369258403,
+  lat       = 30.026229678,
+  settings  = settings_gee,
+  verbose   = FALSE
+  )
+```
+
+Plot this data.
+```{r}
+plot_fapar_ingestr_bysite(
+  df_gee_modis_fpar %>% 
+    dplyr::filter(year(date)==2015), 
+  settings_gee)
+
+df_gee_modis_fpar %>% 
+  dplyr::filter(good_quality) %>% 
+  dplyr::filter(CloudState == 0) %>% 
+  ggplot(aes(date, modisvar_filtered)) +
+  geom_point()
+
+df_gee_modis_fpar %>% 
+  dplyr::filter(good_quality) %>% 
+  dplyr::filter(CloudState == 0) %>% 
+  # dplyr::filter(modisvar_filtered < 0.5) %>% 
+  View()
+```
+
+
+
 ## Combine
 
 ... and save.
