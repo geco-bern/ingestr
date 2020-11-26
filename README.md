@@ -9,18 +9,16 @@ Data can be ingested for different data types (argument `source` in functions `i
 | [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/)    | ecosystem fluxes, meteo, soil moisture   | site     | `fluxnet`     | local files   |            |
 | [WATCH-WFDEI](http://www.eu-watch.org/data_availability)             | meteo                                    | global   | `watch_wfdei` | local files   |            |
 | [CRU](https://crudata.uea.ac.uk/cru/data/hrg/)                       | meteo                                    | global   | `cru`         | local files   |            |
+| MODIS LP DAAC                                                        | remote sensing                           | global   | `modis`       | remote server | using [*MODISTools*](https://docs.ropensci.org/MODISTools/) |
 | Google Earth Engine                                                  | remote sensing                           | global   | `gee`         | remote server | using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library |
 | [ETOPO1](https://www.ngdc.noaa.gov/mgg/global/)                      | elevation                                | global   | `etopo1`      | local files   |            |
 | [Mauna Loa CO2](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html) | CO2 concentration                        | site     | `co2_mlo`     | remote server | using the [climate](https://github.com/bczernecki/climate) R package |
 | HWSD                                                                 | soil                                     | global   | `hwsd`        | local files   | using an adaption of David Le Bauer's [rhwsd](https://github.com/dlebauer/rhwsd) R package |
 | [WWF Ecoregions](https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c) | vegetation classification   | global   | `wwf`         | local files   | Olsen et al. (2001)| 
 
+
 Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is descrbed in Section 'Example for a set of sites'.
 **Note** that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.
-
-MODIS data (not yet implemented):
-
-  - [MODISTools](https://docs.ropensci.org/MODISTools/) R package to access data on remote server ORNL DAAC (not yet implemented).
 
 
 ## Installation

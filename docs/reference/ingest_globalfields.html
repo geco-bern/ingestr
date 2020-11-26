@@ -100,9 +100,6 @@
     <li>
       <a href="../articles/example.html">Examples for ingestr</a>
     </li>
-    <li>
-      <a href="../articles/get_sitedata_nonetwork.html">Description of how to get site data</a>
-    </li>
   </ul>
 </li>
 <li>
@@ -138,16 +135,16 @@
     <p>Read climate data from files as global fields</p>
     </div>
 
-    <pre class="usage"><span class='fu'>ingest_globalfields</span>(
-  <span class='no'>siteinfo</span>,
-  <span class='no'>source</span>,
-  <span class='no'>getvars</span>,
-  <span class='no'>dir</span>,
-  <span class='no'>timescale</span>,
-  <span class='kw'>standardise_units</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>layer</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
-)</pre>
+    <pre class="usage"><span class='fu'>ingest_globalfields</span><span class='op'>(</span>
+  <span class='va'>siteinfo</span>,
+  <span class='va'>source</span>,
+  <span class='va'>getvars</span>,
+  <span class='va'>dir</span>,
+  <span class='va'>timescale</span>,
+  standardise_units <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  layer <span class='op'>=</span> <span class='cn'>NULL</span>,
+  verbose <span class='op'>=</span> <span class='cn'>FALSE</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -199,7 +196,9 @@ following ingestr-standard units.</p></td>
     <p>A data frame (tibble) containing the time series of ingested data, nested for each site.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) <span class='no'>inputdata</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='ingest_bysite.html'>ingest_bysite</a></span>()</div></pre>
+    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='va'>inputdata</span> <span class='op'>&lt;-</span> <span class='fu'><a href='ingest_bysite.html'>ingest_bysite</a></span><span class='op'>(</span><span class='op'>)</span>  
+
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -215,7 +214,7 @@ following ingestr-standard units.</p></td>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

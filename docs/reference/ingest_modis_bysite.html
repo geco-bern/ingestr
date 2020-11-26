@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Get FLUXNET 2015 observational data for one site based on the GePiSaT method flux decomposition. — get_obs_bysite_gpp_gepisat • ingestr</title>
+<title>Defines settings for settings for Google Earth Engine download — ingest_modis_bysite • ingestr</title>
 
 
 <!-- jquery -->
@@ -39,9 +39,9 @@
 
 
 
-<meta property="og:title" content="Get FLUXNET 2015 observational data for one site based on the GePiSaT method flux decomposition. — get_obs_bysite_gpp_gepisat" />
-<meta property="og:description" content="Function for reading observational GPP data from GePiSaT (Tyler's 
-alternative flux decomposition) for FLUXNET 2015 stations." />
+<meta property="og:title" content="Defines settings for settings for Google Earth Engine download — ingest_modis_bysite" />
+<meta property="og:description" content="Returns a list of two data frames, one with data at original
+modis dates (df), and one interpolated to all days (ddf)." />
 
 
 
@@ -127,41 +127,38 @@ alternative flux decomposition) for FLUXNET 2015 stations." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Get FLUXNET 2015 observational data for one site based on the GePiSaT method flux decomposition.</h1>
-    <small class="dont-index">Source: <a href='https://github.com/stineb/ingestr/blob/master/R/get_obs_bysite_gpp_gepisat.R'><code>R/get_obs_bysite_gpp_gepisat.R</code></a></small>
-    <div class="hidden name"><code>get_obs_bysite_gpp_gepisat.Rd</code></div>
+    <h1>Defines settings for settings for Google Earth Engine download</h1>
+    <small class="dont-index">Source: <a href='https://github.com/stineb/ingestr/blob/master/R/ingest_modis_bysite.R'><code>R/ingest_modis_bysite.R</code></a></small>
+    <div class="hidden name"><code>ingest_modis_bysite.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Function for reading observational GPP data from GePiSaT (Tyler's 
-alternative flux decomposition) for FLUXNET 2015 stations.</p>
+    <p>Returns a list of two data frames, one with data at original
+modis dates (df), and one interpolated to all days (ddf).</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_obs_bysite_gpp_gepisat</span><span class='op'>(</span><span class='va'>sitename</span>, <span class='va'>path_gepisat</span>, timescale <span class='op'>=</span> <span class='st'>"d"</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>ingest_modis_bysite</span><span class='op'>(</span><span class='va'>df_siteinfo</span>, <span class='va'>settings</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>sitename</th>
-      <td><p>A character string specifying the site name for which FLUXNET 2015 data is searched (based on the site name appearing as part of the respective file name). Defaults to NA.</p></td>
+      <th>df_siteinfo</th>
+      <td><p>xxx</p></td>
     </tr>
     <tr>
-      <th>path_gepisat</th>
-      <td><p>A character string specifying the local path of FLUXNET 2015 data.</p></td>
-    </tr>
-    <tr>
-      <th>timescale</th>
-      <td><p>A character specifying the time scale of FLUXNET 2015 data. Only available: <code><a href='https://rdrr.io/r/base/c.html'>c("d")</a></code> for daily.</p></td>
+      <th>settings</th>
+      <td><p>xxx</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A data frame (tibble) containint observational data.</p>
+    <p>A named list containing information required for download from Google
+Earth Engine.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='va'>df</span> <span class='op'>&lt;-</span> <span class='va'>get_obs_bysite_gpp_gepisat</span>
+    <pre class="examples"><div class='input'><span class='va'>settings_gee</span> <span class='op'>&lt;-</span> <span class='fu'><a href='get_settings_gee.html'>get_settings_gee</a></span><span class='op'>(</span> bundle <span class='op'>=</span> <span class='st'>"modis_fpar"</span> <span class='op'>)</span>
 
 </div></pre>
   </div>

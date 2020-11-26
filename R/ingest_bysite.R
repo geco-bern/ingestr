@@ -175,7 +175,7 @@ ingest_bysite <- function(
       dplyr::select(year = yy, month = mm, co2_avg)
 
     df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
-      dplyr::mutate(month = month(date), year = year(date)) %>% 
+      dplyr::mutate(month = month(date), year = year(date)) %>%
       dplyr::left_join(
         df_co2,
         by = c("year", "month")

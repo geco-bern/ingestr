@@ -9,10 +9,7 @@ output:
 
 ```{r setup, include=FALSE}
 library(ingestr)
-# library(readr)
-# library(dplyr)
-# library(lubridate)
-# library(rsofun)
+library(tidyverse)
 ```
 
 # Overview
@@ -26,6 +23,7 @@ Data can be ingested for different data types (argument `source` in functions `i
 | [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/)    | ecosystem fluxes, meteo, soil moisture   | site     | `fluxnet`     | local files   |            |
 | [WATCH-WFDEI](http://www.eu-watch.org/data_availability)             | meteo                                    | global   | `watch_wfdei` | local files   |            |
 | [CRU](https://crudata.uea.ac.uk/cru/data/hrg/)                       | meteo                                    | global   | `cru`         | local files   |            |
+| MODIS LP DAAC                                                        | remote sensing                           | global   | `modis`       | remote server | using [*MODISTools*](https://docs.ropensci.org/MODISTools/) |
 | Google Earth Engine                                                  | remote sensing                           | global   | `gee`         | remote server | using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library |
 | [ETOPO1](https://www.ngdc.noaa.gov/mgg/global/)                      | elevation                                | global   | `etopo1`      | local files   |            |
 | [Mauna Loa CO2](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html) | CO2 concentration                        | site     | `co2_mlo`     | remote server | using the [climate](https://github.com/bczernecki/climate) R package |
@@ -34,11 +32,6 @@ Data can be ingested for different data types (argument `source` in functions `i
 
 Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is descrbed in Section 'Example for a set of sites'.
 **Note** that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.
-
-MODIS data (not yet implemented):
-
-  - [MODISTools](https://docs.ropensci.org/MODISTools/) R package to access data on remote server ORNL DAAC (not yet implemented).
-
 
 ## Variable names and units
 
@@ -221,42 +214,26 @@ plot_fapar_ingestr_bysite(
 ```
 
 
-```{r}
-df <- read_csv("~/data/modis_subsets/raw/MODIS_NDVI_MOD13Q1_CH-Lae.csv")
+<!-- ```{r} -->
+<!-- df <- read_csv("~/data/modis_subsets/raw/MODIS_NDVI_MOD13Q1_CH-Lae.csv") -->
 
-df_ndvi_spatialmean <- df %>%
-  dplyr::filter(band == "250m_16_days_NDVI") %>% 
-  mutate(calendar_date = ymd(calendar_date)) %>% 
-  group_by(calendar_date) %>%
-  summarise(mean = mean(value), min = min(value), max = max(value)) %>%
-  mutate(mean = mean * scale_factor, min = min * scale_factor, max = max * scale_factor)
+<!-- df_ndvi_spatialmean <- df %>% -->
+<!--   dplyr::filter(band == "250m_16_days_NDVI") %>%  -->
+<!--   mutate(calendar_date = ymd(calendar_date)) %>%  -->
+<!--   group_by(calendar_date) %>% -->
+<!--   summarise(mean = mean(value), min = min(value), max = max(value)) %>% -->
+<!--   mutate(mean = mean * scale_factor, min = min * scale_factor, max = max * scale_factor) -->
 
-df_ndvi_spatialmean %>% 
-  ggplot(aes(x = calendar_date)) +
-  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") +
-  geom_line(aes(y = mean))
+<!-- df_ndvi_spatialmean %>%  -->
+<!--   ggplot(aes(x = calendar_date)) + -->
+<!--   geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") + -->
+<!--   geom_line(aes(y = mean)) -->
 
-df_modis_fpar %>% 
-  ggplot() +
-  geom_point(aes(date, modisvar_filtered)) +
-  geom_line(aes(date, linear))
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<!-- df_modis_fpar %>%  -->
+<!--   ggplot() + -->
+<!--   geom_point(aes(date, modisvar_filtered)) + -->
+<!--   geom_line(aes(date, linear)) -->
+<!-- ``` -->
 
 
 ## Google Earth Engine

@@ -145,7 +145,7 @@ ingest_gee_bysite <- function(
       ##---------------------------------------------
       ## Clean (gapfill and interpolate) full time series data to 8-days, daily, and monthly
       ##--------------------------------------------------------------------
-      ddf <- gapfill_interpol(
+      ddf <- gapfill_interpol_gee(
         df,
         sitename,
         year_start = lubridate::year(df_siteinfo$date_start),
@@ -182,7 +182,7 @@ ingest_gee_bysite <- function(
 }
 
 
-gapfill_interpol <- function( df, sitename, year_start, year_end, qc_name, prod, method_interpol, keep ){
+gapfill_interpol_gee <- function( df, sitename, year_start, year_end, qc_name, prod, method_interpol, keep ){
   ##--------------------------------------
   ## Returns data frame containing data
   ## (and year, moy, doy) for all available

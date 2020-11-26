@@ -1,9 +1,8 @@
 pandoc: 2.7.3
-pkgdown: 1.5.1
+pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
   calc_daytime_vpd: calc_daytime_vpd.html
   example: example.html
-  get_sitedata_nonetwork: get_sitedata_nonetwork.html
-last_built: 2020-11-09T15:39Z
+last_built: 2020-11-26T08:32Z
 

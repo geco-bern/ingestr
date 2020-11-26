@@ -103,9 +103,6 @@ zero and aggregating taking the mean across remaining hours per day." />
     <li>
       <a href="../articles/example.html">Examples for ingestr</a>
     </li>
-    <li>
-      <a href="../articles/get_sitedata_nonetwork.html">Description of how to get site data</a>
-    </li>
   </ul>
 </li>
 <li>
@@ -144,7 +141,7 @@ filtering hours where the shortwave incoming radiation (SW_IN_F) is
 zero and aggregating taking the mean across remaining hours per day.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_vpd_day_fluxnet2015</span>(<span class='no'>dir</span>)</pre>
+    <pre class="usage"><span class='fu'>get_vpd_day_fluxnet2015</span><span class='op'>(</span><span class='va'>dir</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -161,7 +158,9 @@ for site-specific half-hourly data files.</p></td>
     <p>A list of outputs of the function <a href='get_vpd_day_fluxnet2015_byfile.html'>get_vpd_day_fluxnet2015_byfile</a>.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>df</span> <span class='kw'>&lt;-</span> <span class='fu'>get_vpd_day_fluxnet2015</span>(<span class='st'>"./"</span>)</div></pre>
+    <pre class="examples"><div class='input'><span class='va'>df</span> <span class='op'>&lt;-</span> <span class='fu'>get_vpd_day_fluxnet2015</span><span class='op'>(</span><span class='st'>"./"</span><span class='op'>)</span>
+
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -177,7 +176,7 @@ for site-specific half-hourly data files.</p></td>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

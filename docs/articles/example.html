@@ -59,9 +59,6 @@
     <li>
       <a href="../articles/example.html">Examples for ingestr</a>
     </li>
-    <li>
-      <a href="../articles/get_sitedata_nonetwork.html">Description of how to get site data</a>
-    </li>
   </ul>
 </li>
 <li>
@@ -146,6 +143,15 @@
 <td></td>
 </tr>
 <tr class="even">
+<td>MODIS LP DAAC</td>
+<td>remote sensing</td>
+<td>global</td>
+<td><code>modis</code></td>
+<td>remote server</td>
+<td>using <a href="https://docs.ropensci.org/MODISTools/"><em>MODISTools</em></a>
+</td>
+</tr>
+<tr class="odd">
 <td>Google Earth Engine</td>
 <td>remote sensing</td>
 <td>global</td>
@@ -153,7 +159,7 @@
 <td>remote server</td>
 <td>using Koen Hufken’s <a href="https://khufkens.github.io/gee_subset/">gee_suset</a> library</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="https://www.ngdc.noaa.gov/mgg/global/">ETOPO1</a></td>
 <td>elevation</td>
 <td>global</td>
@@ -161,7 +167,7 @@
 <td>local files</td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><a href="https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html">Mauna Loa CO2</a></td>
 <td>CO2 concentration</td>
 <td>site</td>
@@ -169,7 +175,7 @@
 <td>remote server</td>
 <td>using the <a href="https://github.com/bczernecki/climate">climate</a> R package</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>HWSD</td>
 <td>soil</td>
 <td>global</td>
@@ -177,7 +183,7 @@
 <td>local files</td>
 <td>using an adaption of David Le Bauer’s <a href="https://github.com/dlebauer/rhwsd">rhwsd</a> R package</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><a href="https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c">WWF Ecoregions</a></td>
 <td>vegetation classification</td>
 <td>global</td>
@@ -188,11 +194,6 @@
 </tbody>
 </table>
 <p>Examples to read data for a single site for each data type are given in Section ‘Examples for a single site’. Handling ingestion for multiple sites is descrbed in Section ‘Example for a set of sites’. <strong>Note</strong> that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.</p>
-<p>MODIS data (not yet implemented):</p>
-<ul>
-<li>
-<a href="https://docs.ropensci.org/MODISTools/">MODISTools</a> R package to access data on remote server ORNL DAAC (not yet implemented).</li>
-</ul>
 <div id="variable-names-and-units" class="section level2">
 <h2 class="hasAnchor">
 <a href="#variable-names-and-units" class="anchor"></a>Variable names and units</h2>
@@ -266,27 +267,29 @@
 <h3 class="hasAnchor">
 <a href="#meteo-data" class="anchor"></a>Meteo data</h3>
 <p>Reading from FLUXNET files offers multiple settings to be used specified by the user. Here, we’re specifying that no soil water content data is read (<code>getswc = FALSE</code> in <code>settings_fluxnet</code>, passed to <code><a href="../reference/ingest_bysite.html">ingest_bysite()</a></code> through argument <code>settings</code>).</p>
-<div class="sourceCode" id="cb1"><html><body><pre class="r"><span class="no">settings_fluxnet</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">getswc</span> <span class="kw">=</span> <span class="fl">FALSE</span>)
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">settings_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>getswc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
 
-<span class="no">df_fluxnet</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
-  <span class="kw">sitename</span> <span class="kw">=</span> <span class="st">"FR-Pue"</span>,
-  <span class="kw">source</span> <span class="kw">=</span> <span class="st">"fluxnet"</span>,
-  <span class="kw">getvars</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">temp</span> <span class="kw">=</span> <span class="st">"TA_F"</span>,
-                 <span class="kw">prec</span> <span class="kw">=</span> <span class="st">"P_F"</span>,
-                 <span class="kw">vpd</span>  <span class="kw">=</span> <span class="st">"VPD_F"</span>,
-                 <span class="kw">ppfd</span> <span class="kw">=</span>  <span class="st">"SW_IN_F"</span>,
-                 <span class="kw">netrad</span> <span class="kw">=</span> <span class="st">"NETRAD"</span>,
-                 <span class="kw">patm</span> <span class="kw">=</span> <span class="st">"PA_F"</span>),
-  <span class="kw">dir</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/find.package.html">path.package</a></span>(<span class="st">"ingestr"</span>), <span class="st">"/extdata/"</span>),
-  <span class="kw">settings</span> <span class="kw">=</span> <span class="no">settings_fluxnet</span>,
-  <span class="kw">timescale</span> <span class="kw">=</span> <span class="st">"d"</span>,
-  <span class="kw">year_start</span> <span class="kw">=</span> <span class="fl">2007</span>,
-  <span class="kw">year_end</span> <span class="kw">=</span> <span class="fl">2007</span>,
-  <span class="kw">verbose</span> <span class="kw">=</span> <span class="fl">FALSE</span>
-  )</pre></body></html></div>
+<span class="va">df_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
+  sitename <span class="op">=</span> <span class="st">"FR-Pue"</span>,
+  source <span class="op">=</span> <span class="st">"fluxnet"</span>,
+  getvars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>temp <span class="op">=</span> <span class="st">"TA_F"</span>,
+                 prec <span class="op">=</span> <span class="st">"P_F"</span>,
+                 vpd  <span class="op">=</span> <span class="st">"VPD_F"</span>,
+                 ppfd <span class="op">=</span>  <span class="st">"SW_IN_F"</span>,
+                 netrad <span class="op">=</span> <span class="st">"NETRAD"</span>,
+                 patm <span class="op">=</span> <span class="st">"PA_F"</span><span class="op">)</span>,
+  dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/find.package.html">path.package</a></span><span class="op">(</span><span class="st">"ingestr"</span><span class="op">)</span>, <span class="st">"/extdata/"</span><span class="op">)</span>,
+  settings <span class="op">=</span> <span class="va">settings_fluxnet</span>,
+  timescale <span class="op">=</span> <span class="st">"d"</span>,
+  year_start <span class="op">=</span> <span class="fl">2007</span>,
+  year_end <span class="op">=</span> <span class="fl">2007</span>,
+  verbose <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span></code></pre></div>
 <pre><code>## Warning: Reading only largest daily file available</code></pre>
 <pre><code>## Warning: Unknown columns: ``</code></pre>
-<div class="sourceCode" id="cb4"><html><body><pre class="r"><span class="no">df_fluxnet</span></pre></body></html></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_fluxnet</span></code></pre></div>
 <pre><code>## # A tibble: 365 x 8
 ##    date        temp  prec   vpd  ppfd    netrad   patm sitename
 ##    &lt;date&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;   
@@ -307,24 +310,25 @@
 <h3 class="hasAnchor">
 <a href="#flux-data" class="anchor"></a>Flux data</h3>
 <p>The same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we’re reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (<code>"GPP_NT_VUT_REF"</code> and <code>"GPP_NT_VUT_SE"</code> in argument <code>getvars</code>). The <code>settings</code> argument can be used again to specify settings that are specific to the <code>"fluxnet"</code> data source. Here, we keep only data where at least 80% is based on non-gapfilled half-hourly data (<code>threshold_GPP = 0.8</code>), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (<code>filter_ntdt = TRUE</code>). Negative GPP values are not removed (<code>remove_neg = FALSE</code>). We read data for just one year here (2007).</p>
-<div class="sourceCode" id="cb6"><html><body><pre class="r"><span class="no">settings_fluxnet</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(
-  <span class="kw">getswc</span>       <span class="kw">=</span> <span class="fl">FALSE</span>,
-  <span class="kw">filter_ntdt</span>  <span class="kw">=</span> <span class="fl">TRUE</span>,
-  <span class="kw">threshold_GPP</span><span class="kw">=</span> <span class="fl">0.8</span>,
-  <span class="kw">remove_neg</span>   <span class="kw">=</span> <span class="fl">FALSE</span>
-  )
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">settings_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
+  getswc       <span class="op">=</span> <span class="cn">FALSE</span>,
+  filter_ntdt  <span class="op">=</span> <span class="cn">TRUE</span>,
+  threshold_GPP<span class="op">=</span> <span class="fl">0.8</span>,
+  remove_neg   <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span>
 
-<span class="no">ddf_fluxnet</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
-  <span class="kw">sitename</span>  <span class="kw">=</span> <span class="st">"FR-Pue"</span>,
-  <span class="kw">source</span>    <span class="kw">=</span> <span class="st">"fluxnet"</span>,
-  <span class="kw">getvars</span>   <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>( <span class="kw">gpp</span> <span class="kw">=</span> <span class="st">"GPP_NT_VUT_REF"</span>,
-                    <span class="kw">gpp_unc</span> <span class="kw">=</span> <span class="st">"GPP_NT_VUT_SE"</span>),
-  <span class="kw">dir</span>       <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/find.package.html">path.package</a></span>(<span class="st">"ingestr"</span>), <span class="st">"/extdata/"</span>),
-  <span class="kw">settings</span>  <span class="kw">=</span> <span class="no">settings_fluxnet</span>,
-  <span class="kw">timescale</span> <span class="kw">=</span> <span class="st">"d"</span>,
-  <span class="kw">year_start</span> <span class="kw">=</span> <span class="fl">2007</span>,
-  <span class="kw">year_end</span>  <span class="kw">=</span> <span class="fl">2007</span>
-  )</pre></body></html></div>
+<span class="va">ddf_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
+  sitename  <span class="op">=</span> <span class="st">"FR-Pue"</span>,
+  source    <span class="op">=</span> <span class="st">"fluxnet"</span>,
+  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span> gpp <span class="op">=</span> <span class="st">"GPP_NT_VUT_REF"</span>,
+                    gpp_unc <span class="op">=</span> <span class="st">"GPP_NT_VUT_SE"</span><span class="op">)</span>,
+  dir       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/find.package.html">path.package</a></span><span class="op">(</span><span class="st">"ingestr"</span><span class="op">)</span>, <span class="st">"/extdata/"</span><span class="op">)</span>,
+  settings  <span class="op">=</span> <span class="va">settings_fluxnet</span>,
+  timescale <span class="op">=</span> <span class="st">"d"</span>,
+  year_start <span class="op">=</span> <span class="fl">2007</span>,
+  year_end  <span class="op">=</span> <span class="fl">2007</span>
+  <span class="op">)</span></code></pre></div>
 </div>
 <div id="settings" class="section level3">
 <h3 class="hasAnchor">
@@ -336,43 +340,67 @@
 <h2 class="hasAnchor">
 <a href="#watch-wfdei" class="anchor"></a>WATCH-WFDEI</h2>
 <p>Let’s extract data for the location corresponding to FLUXNET site ‘CH-Lae’ (lon = 8.365, lat = 47.4781). This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 degree resolution), provided as monthly files containing all days in each month. The data directory specified here (<code>dir = "~/data/watch_wfdei/"</code>) contains subdirectories with names containing the variable names (corresponding to the ones specified by the argument <code>getvars = list(temp = "Tair")</code>). We read data for just one year here (2007).</p>
-<div class="sourceCode" id="cb7"><html><body><pre class="r"><span class="no">df_watch</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
-  <span class="kw">sitename</span>  <span class="kw">=</span> <span class="st">"FR-Pue"</span>,
-  <span class="kw">source</span>    <span class="kw">=</span> <span class="st">"watch_wfdei"</span>,
-  <span class="kw">getvars</span>   <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">temp</span> <span class="kw">=</span> <span class="st">"Tair"</span>),
-  <span class="kw">dir</span>       <span class="kw">=</span> <span class="st">"~/data/watch_wfdei/"</span>,
-  <span class="kw">timescale</span> <span class="kw">=</span> <span class="st">"d"</span>,
-  <span class="kw">year_start</span> <span class="kw">=</span> <span class="fl">2007</span>,
-  <span class="kw">year_end</span>  <span class="kw">=</span> <span class="fl">2007</span>,
-  <span class="kw">lon</span>       <span class="kw">=</span> <span class="fl">3.5958</span>,
-  <span class="kw">lat</span>       <span class="kw">=</span> <span class="fl">43.7414</span>,
-  <span class="kw">verbose</span>   <span class="kw">=</span> <span class="fl">FALSE</span>
-  )</pre></body></html></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_watch</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
+  sitename  <span class="op">=</span> <span class="st">"FR-Pue"</span>,
+  source    <span class="op">=</span> <span class="st">"watch_wfdei"</span>,
+  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>temp <span class="op">=</span> <span class="st">"Tair"</span><span class="op">)</span>,
+  dir       <span class="op">=</span> <span class="st">"~/data/watch_wfdei/"</span>,
+  timescale <span class="op">=</span> <span class="st">"d"</span>,
+  year_start <span class="op">=</span> <span class="fl">2007</span>,
+  year_end  <span class="op">=</span> <span class="fl">2007</span>,
+  lon       <span class="op">=</span> <span class="fl">3.5958</span>,
+  lat       <span class="op">=</span> <span class="fl">43.7414</span>,
+  verbose   <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span></code></pre></div>
+<pre><code>## Warning: Problem with `mutate()` input `data`.
+## ℹ Problem with `mutate()` input `data`.
+## ℹ The `x` argument of `as_tibble.matrix()` must have unique column names if `.name_repair` is omitted as of tibble 2.0.0.
+## Using compatibility `.name_repair`.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_warnings()` to see where this warning was generated.
+## ℹ Input `data` is `purrr::map(data, ~as_tibble(.))`.
+## ℹ Input `data` is `purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat))`.</code></pre>
+<pre><code>## Warning: Problem with `mutate()` input `data`.
+## ℹ The `x` argument of `as_tibble.matrix()` must have unique column names if `.name_repair` is omitted as of tibble 2.0.0.
+## Using compatibility `.name_repair`.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_warnings()` to see where this warning was generated.
+## ℹ Input `data` is `purrr::map(data, ~as_tibble(.))`.</code></pre>
+<pre><code>## Warning: Problem with `mutate()` input `data`.
+## ℹ The `x` argument of `as_tibble.matrix()` must have unique column names if `.name_repair` is omitted as of tibble 2.0.0.
+## Using compatibility `.name_repair`.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_warnings()` to see where this warning was generated.
+## ℹ Input `data` is `purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat))`.</code></pre>
 <pre><code>## Warning: The `x` argument of `as_tibble.matrix()` must have unique column names if `.name_repair` is omitted as of tibble 2.0.0.
 ## Using compatibility `.name_repair`.
 ## This warning is displayed once every 8 hours.
 ## Call `lifecycle::last_warnings()` to see where this warning was generated.</code></pre>
-<div class="sourceCode" id="cb9"><html><body><pre class="r"><span class="no">df_watch</span></pre></body></html></div>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_watch</span></code></pre></div>
 </div>
 <div id="cru-ts" class="section level2">
 <h2 class="hasAnchor">
 <a href="#cru-ts" class="anchor"></a>CRU TS</h2>
 <p>As above, let’s extract CRU data for the location corresponding to FLUXNET site ‘FR-Pue’ (lon = 8.365, lat = 47.4781). Note that we’re using <code>tmx</code> (the daily maximum temperature). This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.</p>
-<div class="sourceCode" id="cb10"><html><body><pre class="r"><span class="no">df_cru</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
-  <span class="kw">sitename</span>  <span class="kw">=</span> <span class="st">"FR-Pue"</span>,
-  <span class="kw">source</span>    <span class="kw">=</span> <span class="st">"cru"</span>,
-  <span class="kw">getvars</span>   <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">temp</span> <span class="kw">=</span> <span class="st">"tmx"</span>),
-  <span class="kw">dir</span>       <span class="kw">=</span> <span class="st">"~/data/cru/ts_4.01/"</span>,
-  <span class="kw">timescale</span> <span class="kw">=</span> <span class="st">"d"</span>,
-  <span class="kw">year_start</span> <span class="kw">=</span> <span class="fl">2007</span>,
-  <span class="kw">year_end</span>  <span class="kw">=</span> <span class="fl">2007</span>,
-  <span class="kw">lon</span>       <span class="kw">=</span> <span class="fl">3.5958</span>,
-  <span class="kw">lat</span>       <span class="kw">=</span> <span class="fl">43.7414</span>,
-  <span class="kw">verbose</span>   <span class="kw">=</span> <span class="fl">FALSE</span>
-  )</pre></body></html></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_cru</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
+  sitename  <span class="op">=</span> <span class="st">"FR-Pue"</span>,
+  source    <span class="op">=</span> <span class="st">"cru"</span>,
+  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>temp <span class="op">=</span> <span class="st">"tmx"</span><span class="op">)</span>,
+  dir       <span class="op">=</span> <span class="st">"~/data/cru/ts_4.01/"</span>,
+  timescale <span class="op">=</span> <span class="st">"d"</span>,
+  year_start <span class="op">=</span> <span class="fl">2007</span>,
+  year_end  <span class="op">=</span> <span class="fl">2007</span>,
+  lon       <span class="op">=</span> <span class="fl">3.5958</span>,
+  lat       <span class="op">=</span> <span class="fl">43.7414</span>,
+  verbose   <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span></code></pre></div>
 <pre><code>## Warning in .varName(nc, varname, warn = warn): varname used is: tmx
 ## If that is not correct, you can set it to one of: tmx, stn</code></pre>
-<div class="sourceCode" id="cb12"><html><body><pre class="r"><span class="no">df_cru</span></pre></body></html></div>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_cru</span></code></pre></div>
 <pre><code>## # A tibble: 365 x 3
 ##    date        temp sitename
 ##    &lt;date&gt;     &lt;dbl&gt; &lt;chr&gt;   
@@ -388,18 +416,20 @@
 ## 10 2007-01-10  11.7 FR-Pue  
 ## # … with 355 more rows</code></pre>
 <p>We can compare the temperature recorded at the site and the temperature data extracted from WATCH-WFDEI.</p>
-<div class="sourceCode" id="cb14"><html><body><pre class="r"><span class="no">df</span> <span class="kw">&lt;-</span> <span class="no">df_fluxnet</span> <span class="kw">%&gt;%</span>
-  <span class="fu">rename</span>(<span class="kw">temp_fluxnet</span> <span class="kw">=</span> <span class="no">temp</span>) <span class="kw">%&gt;%</span>
-  <span class="fu">left_join</span>(<span class="fu">rename</span>(<span class="no">df_watch</span>, <span class="kw">temp_watch</span> <span class="kw">=</span> <span class="no">temp</span>), <span class="kw">by</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"sitename"</span>, <span class="st">"date"</span>)) <span class="kw">%&gt;%</span>
-  <span class="fu">left_join</span>(<span class="fu">rename</span>(<span class="no">df_cru</span>, <span class="kw">temp_cru</span> <span class="kw">=</span> <span class="no">temp</span>), <span class="kw">by</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"sitename"</span>, <span class="st">"date"</span>)) <span class="kw">%&gt;%</span>
-  <span class="fu">pivot_longer</span>(<span class="kw">cols</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="no">temp_fluxnet</span>, <span class="no">temp_watch</span>, <span class="no">temp_cru</span>), <span class="kw">names_to</span> <span class="kw">=</span> <span class="st">"source"</span>, <span class="kw">values_to</span> <span class="kw">=</span> <span class="st">"temp"</span>, <span class="kw">names_prefix</span> <span class="kw">=</span> <span class="st">"temp_"</span>)
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df</span> <span class="op">&lt;-</span> <span class="va">df_fluxnet</span> <span class="op">%&gt;%</span>
+  <span class="fu">rename</span><span class="op">(</span>temp_fluxnet <span class="op">=</span> <span class="va">temp</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">left_join</span><span class="op">(</span><span class="fu">rename</span><span class="op">(</span><span class="va">df_watch</span>, temp_watch <span class="op">=</span> <span class="va">temp</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"sitename"</span>, <span class="st">"date"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">left_join</span><span class="op">(</span><span class="fu">rename</span><span class="op">(</span><span class="va">df_cru</span>, temp_cru <span class="op">=</span> <span class="va">temp</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"sitename"</span>, <span class="st">"date"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">pivot_longer</span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">temp_fluxnet</span>, <span class="va">temp_watch</span>, <span class="va">temp_cru</span><span class="op">)</span>, names_to <span class="op">=</span> <span class="st">"source"</span>, values_to <span class="op">=</span> <span class="st">"temp"</span>, names_prefix <span class="op">=</span> <span class="st">"temp_"</span><span class="op">)</span>
 
-<span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">ggplot2</span>)
-<span class="no">df</span> <span class="kw">%&gt;%</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>(<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">x</span> <span class="kw">=</span> <span class="no">date</span>, <span class="kw">y</span> <span class="kw">=</span> <span class="no">temp</span>, <span class="kw">color</span> <span class="kw">=</span> <span class="no">source</span>)) +
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>()</pre></body></html></div>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+<span class="va">df</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">date</span>, y <span class="op">=</span> <span class="va">temp</span>, color <span class="op">=</span> <span class="va">source</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <p><img src="example_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
-<div class="sourceCode" id="cb15"><html><body><pre class="r">  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"2007-01-01"</span>, <span class="st">"2007-12-31"</span>))</pre></body></html></div>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R">  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"2007-01-01"</span>, <span class="st">"2007-12-31"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <pre><code>## &lt;ggproto object: Class ScaleDiscretePosition, ScaleDiscrete, Scale, gg&gt;
 ##     aesthetics: x xmin xmax xend
 ##     axis_order: function
@@ -451,6 +481,83 @@
 ##     super:  &lt;ggproto object: Class ScaleDiscretePosition, ScaleDiscrete, Scale, gg&gt;</code></pre>
 <p>Looks sweet.</p>
 </div>
+<div id="modis-lp-daac" class="section level2">
+<h2 class="hasAnchor">
+<a href="#modis-lp-daac" class="anchor"></a>MODIS LP DAAC</h2>
+<p>This uses the <a href="https://docs.ropensci.org/MODISTools/"><em>MODISTools</em></a> R package making its interface consistent with ingestr. Settings can be specified and passed on using the <code>settings</code> argument. To facilitate the selection of data products and bands to be downloaded, you may use the function <code>get_settings_modis)</code> which defines defaults for different data bundles (<code><a href="https://rdrr.io/r/base/c.html">c("modis_fpar", "modis_ndvi", "modis_evi")</a></code> are available).</p>
+<ul>
+<li>
+<code>"modis_fpar"</code>: MODIS collection 6, MCD15A3H, band <code>Fpar_500m</code>
+</li>
+<li>
+<code>"modis_evi"</code>: MODIS collection 6, MOD13Q1, band <code>250m_16_days_EVI</code>
+</li>
+<li>
+<code>"modis_ndvi"</code>: MODIS collection 6, MOD13Q1, band <code>250m_16_days_NDVI</code>
+</li>
+</ul>
+<p>The filtering criteria are hard-coded specifically for each product, using its respective quality control information (see function <code>gapfill_interpol()</code> in <code>R/ingest_modis_bysite.R</code>).</p>
+<p>The following example is for downloading MODIS NDVI data.</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">settings_modis</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_modis.html">get_settings_modis</a></span><span class="op">(</span>
+  bundle            <span class="op">=</span> <span class="st">"modis_ndvi"</span>,
+  data_path         <span class="op">=</span> <span class="st">"~/data/modis_subsets/"</span>,
+  method_interpol   <span class="op">=</span> <span class="st">"loess"</span>,
+  keep              <span class="op">=</span> <span class="cn">TRUE</span>,
+  overwrite_raw     <span class="op">=</span> <span class="cn">FALSE</span>,
+  overwrite_interpol<span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span></code></pre></div>
+<p>This can now be used to download the data to the directory specified by argument <code>data_path</code> of function <code><a href="../reference/get_settings_gee.html">get_settings_gee()</a></code>.</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_modis_fpar</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
+  sitename  <span class="op">=</span> <span class="st">"CH-Lae"</span>,
+  source    <span class="op">=</span> <span class="st">"modis"</span>,
+  year_start<span class="op">=</span> <span class="fl">2000</span>,
+  year_end  <span class="op">=</span> <span class="fl">2019</span>,
+  lon       <span class="op">=</span> <span class="fl">8.365</span>,
+  lat       <span class="op">=</span> <span class="fl">47.47808</span>,
+  settings  <span class="op">=</span> <span class="va">settings_modis</span>,
+  verbose   <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span></code></pre></div>
+<pre><code>## Parsed with column specification:
+## cols(
+##   date = col_date(format = ""),
+##   year_dec = col_double(),
+##   modisvar_filtered = col_double(),
+##   modisvar = col_double(),
+##   loess = col_double(),
+##   spline = col_double(),
+##   linear = col_double(),
+##   sgfilter = col_double(),
+##   modisvar_filled = col_double()
+## )</code></pre>
+<p>Plot this data.</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/plot_fapar_ingestr_bysite.html">plot_fapar_ingestr_bysite</a></span><span class="op">(</span>
+  <span class="va">df_modis_fpar</span> <span class="op">%&gt;%</span> 
+    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu">year</span><span class="op">(</span><span class="va">date</span><span class="op">)</span> <span class="op">%in%</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2015</span><span class="op">)</span>, 
+  <span class="va">settings_modis</span><span class="op">)</span></code></pre></div>
+<pre><code>## Warning: Removed 2052 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 2055 rows containing missing values (geom_point).</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<!-- ```{r} -->
+<!-- df <- read_csv("~/data/modis_subsets/raw/MODIS_NDVI_MOD13Q1_CH-Lae.csv") -->
+<!-- df_ndvi_spatialmean <- df %>% -->
+<!--   dplyr::filter(band == "250m_16_days_NDVI") %>%  -->
+<!--   mutate(calendar_date = ymd(calendar_date)) %>%  -->
+<!--   group_by(calendar_date) %>% -->
+<!--   summarise(mean = mean(value), min = min(value), max = max(value)) %>% -->
+<!--   mutate(mean = mean * scale_factor, min = min * scale_factor, max = max * scale_factor) -->
+<!-- df_ndvi_spatialmean %>%  -->
+<!--   ggplot(aes(x = calendar_date)) + -->
+<!--   geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") + -->
+<!--   geom_line(aes(y = mean)) -->
+<!-- df_modis_fpar %>%  -->
+<!--   ggplot() + -->
+<!--   geom_point(aes(date, modisvar_filtered)) + -->
+<!--   geom_line(aes(date, linear)) -->
+<!-- ``` -->
+</div>
 <div id="google-earth-engine" class="section level2">
 <h2 class="hasAnchor">
 <a href="#google-earth-engine" class="anchor"></a>Google Earth Engine</h2>
@@ -464,31 +571,31 @@
 <ul>
 <li>In your terminal, change to where you want to have the repository. In this example, we’re cloning it into our home directory:</li>
 </ul>
-<div class="sourceCode" id="cb17"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1"></a><span class="bu">cd</span> ~</span>
-<span id="cb17-2"><a href="#cb17-2"></a><span class="fu">git</span> clone https://github.com/khufkens/google_earth_engine_subsets.git</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1"></a><span class="bu">cd</span> ~</span>
+<span id="cb26-2"><a href="#cb26-2"></a><span class="fu">git</span> clone https://github.com/khufkens/google_earth_engine_subsets.git</span></code></pre></div>
 <p>To get access to using the Google Earth Engine API (required to use the <code>gee_subset</code> library), carry out the following steps in your terminal. This follows steps described <a href="https://github.com/google/earthengine-api/issues/27">here</a>.</p>
 <ol style="list-style-type: decimal">
 <li>Install google API Python client</li>
 </ol>
-<div class="sourceCode" id="cb18"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1"></a><span class="fu">sudo</span> pip install --upgrade google-api-python-client</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1"></a><span class="fu">sudo</span> pip install --upgrade google-api-python-client</span></code></pre></div>
 <p>I had an error and first had to do this here following <a href="https://github.com/pypa/pip/issues/3165">this link</a>:</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1"></a><span class="fu">sudo</span> pip install --ignore-installed six</span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1"></a><span class="fu">sudo</span> pip install --ignore-installed six</span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li>Install pyCrypto</li>
 </ol>
-<div class="sourceCode" id="cb20"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1"></a><span class="fu">sudo</span> pip install pyCrypto --upgrade</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1"></a><span class="fu">sudo</span> pip install pyCrypto --upgrade</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Install Python GEE API</li>
 </ol>
-<div class="sourceCode" id="cb21"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1"></a><span class="fu">sudo</span> pip install earthengine-api</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1"></a><span class="fu">sudo</span> pip install earthengine-api</span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li>Run authentification for GEE</li>
 </ol>
-<div class="sourceCode" id="cb22"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1"></a><span class="ex">earthengine</span> authenticate</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1"></a><span class="ex">earthengine</span> authenticate</span></code></pre></div>
 <ol start="5" style="list-style-type: decimal">
 <li>Finally, try if it works. This shouldn’t return an error:</li>
 </ol>
-<div class="sourceCode" id="cb23"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1"></a><span class="ex">python</span> -c <span class="st">"import ee; ee.Initialize()"</span></span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1"></a><span class="ex">python</span> -c <span class="st">"import ee; ee.Initialize()"</span></span></code></pre></div>
 <div id="modis-fpar" class="section level3">
 <h3 class="hasAnchor">
 <a href="#modis-fpar" class="anchor"></a>MODIS FPAR</h3>
@@ -505,27 +612,29 @@
 <code>"modis_gpp"</code>: MODIS/006/MOD17A2H, band Gpp</li>
 </ul>
 <p>The following example is for downloading MODIS FPAR data.</p>
-<div class="sourceCode" id="cb24"><html><body><pre class="r"><span class="no">settings_gee</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/get_settings_gee.html">get_settings_gee</a></span>(
-  <span class="kw">bundle</span>            <span class="kw">=</span> <span class="st">"modis_fpar"</span>,
-  <span class="kw">python_path</span>       <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.html">system</a></span>(<span class="st">"which python"</span>, <span class="kw">intern</span> <span class="kw">=</span> <span class="fl">TRUE</span>),
-  <span class="kw">gee_path</span>          <span class="kw">=</span> <span class="st">"~/google_earth_engine_subsets/gee_subset/"</span>,
-  <span class="kw">data_path</span>         <span class="kw">=</span> <span class="st">"~/data/gee_subsets/"</span>,
-  <span class="kw">method_interpol</span>   <span class="kw">=</span> <span class="st">"linear"</span>,
-  <span class="kw">keep</span>              <span class="kw">=</span> <span class="fl">TRUE</span>,
-  <span class="kw">overwrite_raw</span>     <span class="kw">=</span> <span class="fl">FALSE</span>,
-  <span class="kw">overwrite_interpol</span><span class="kw">=</span> <span class="fl">TRUE</span>
-  )</pre></body></html></div>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">settings_gee</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_gee.html">get_settings_gee</a></span><span class="op">(</span>
+  bundle            <span class="op">=</span> <span class="st">"modis_fpar"</span>,
+  python_path       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.html">system</a></span><span class="op">(</span><span class="st">"which python"</span>, intern <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
+  gee_path          <span class="op">=</span> <span class="st">"~/google_earth_engine_subsets/gee_subset/"</span>,
+  data_path         <span class="op">=</span> <span class="st">"~/data/gee_subsets/"</span>,
+  method_interpol   <span class="op">=</span> <span class="st">"linear"</span>,
+  keep              <span class="op">=</span> <span class="cn">TRUE</span>,
+  overwrite_raw     <span class="op">=</span> <span class="cn">FALSE</span>,
+  overwrite_interpol<span class="op">=</span> <span class="cn">TRUE</span>
+  <span class="op">)</span></code></pre></div>
 <p>This can now be used to download the data to the directory specified by argument <code>data_path</code> of function <code><a href="../reference/get_settings_gee.html">get_settings_gee()</a></code>.</p>
-<div class="sourceCode" id="cb25"><html><body><pre class="r"><span class="no">df_gee_modis_fpar</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
-  <span class="kw">sitename</span>  <span class="kw">=</span> <span class="st">"CH-Lae"</span>,
-  <span class="kw">source</span>    <span class="kw">=</span> <span class="st">"gee"</span>,
-  <span class="kw">year_start</span><span class="kw">=</span> <span class="fl">2007</span>,
-  <span class="kw">year_end</span>  <span class="kw">=</span> <span class="fl">2014</span>,
-  <span class="kw">lon</span>       <span class="kw">=</span> <span class="fl">3.5958</span>,
-  <span class="kw">lat</span>       <span class="kw">=</span> <span class="fl">43.7414</span>,
-  <span class="kw">settings</span>  <span class="kw">=</span> <span class="no">settings_gee</span>,
-  <span class="kw">verbose</span>   <span class="kw">=</span> <span class="fl">FALSE</span>
-  )</pre></body></html></div>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_gee_modis_fpar</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
+  sitename  <span class="op">=</span> <span class="st">"CH-Lae"</span>,
+  source    <span class="op">=</span> <span class="st">"gee"</span>,
+  year_start<span class="op">=</span> <span class="fl">2004</span>,
+  year_end  <span class="op">=</span> <span class="fl">2014</span>,
+  lon       <span class="op">=</span> <span class="fl">3.5958</span>,
+  lat       <span class="op">=</span> <span class="fl">43.7414</span>,
+  settings  <span class="op">=</span> <span class="va">settings_gee</span>,
+  verbose   <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span></code></pre></div>
 <pre><code>## Parsed with column specification:
 ## cols(
 ##   id = col_character(),
@@ -543,27 +652,32 @@
 <pre><code>## Warning: Filling values with last available data point at head</code></pre>
 <pre><code>## Warning: Filling values with last available data point at tail.</code></pre>
 <p>Plot this data.</p>
-<div class="sourceCode" id="cb33"><html><body><pre class="r"><span class="fu"><a href="../reference/plot_fapar_ingestr_bysite.html">plot_fapar_ingestr_bysite</a></span>(<span class="no">df_gee_modis_fpar</span>, <span class="no">settings_gee</span>)</pre></body></html></div>
-<pre><code>## Warning: Removed 818 rows containing missing values (geom_point).
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/plot_fapar_ingestr_bysite.html">plot_fapar_ingestr_bysite</a></span><span class="op">(</span><span class="va">df_gee_modis_fpar</span>, <span class="va">settings_gee</span><span class="op">)</span></code></pre></div>
+<pre><code>## Warning: Removed 3004 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 3152 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 4 row(s) containing missing values (geom_path).
 
-## Warning: Removed 818 rows containing missing values (geom_point).</code></pre>
-<pre><code>## Warning: Removed 898 rows containing missing values (geom_point).</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+## Warning: Removed 4 row(s) containing missing values (geom_path).</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
 </div>
 </div>
 <div id="co2" class="section level2">
 <h2 class="hasAnchor">
 <a href="#co2" class="anchor"></a>CO2</h2>
 <p>Ingesting CO2 data is particularly simple. We can safely assume it’s well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years, and use the same value for all sites. Using the R package <a href="https://github.com/bczernecki/climate">climate</a>, we can load CO2 data from Mauna Loa directly into R. This is downloading data from <a href="ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt">ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt</a>. Here, <code><a href="../reference/ingest.html">ingest()</a></code> is a wrapper for the function <code><a href="https://rdrr.io/pkg/climate/man/meteo_noaa_co2.html">climate::meteo_noaa_co2()</a></code>.</p>
-<div class="sourceCode" id="cb36"><html><body><pre class="r"><span class="no">df_co2</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
-  <span class="kw">sitename</span>  <span class="kw">=</span> <span class="st">"CH-Lae"</span>,
-  <span class="kw">source</span>  <span class="kw">=</span> <span class="st">"co2_mlo"</span>,
-  <span class="kw">year_start</span><span class="kw">=</span> <span class="fl">2007</span>,
-  <span class="kw">year_end</span>  <span class="kw">=</span> <span class="fl">2014</span>,
-  <span class="kw">verbose</span> <span class="kw">=</span> <span class="fl">FALSE</span>
-  )</pre></body></html></div>
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_co2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
+  sitename  <span class="op">=</span> <span class="st">"CH-Lae"</span>,
+  source  <span class="op">=</span> <span class="st">"co2_mlo"</span>,
+  year_start<span class="op">=</span> <span class="fl">2007</span>,
+  year_end  <span class="op">=</span> <span class="fl">2014</span>,
+  verbose <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span></code></pre></div>
+<pre><code>## [1] "ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt"</code></pre>
 <p>More info can be obtained <a href="https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html">here</a> and by:</p>
-<div class="sourceCode" id="cb37"><html><body><pre class="r">?<span class="kw pkg">climate</span><span class="kw ns">::</span><span class="no"><a href="https://rdrr.io/pkg/climate/man/meteo_noaa_co2.html">meteo_noaa_co2</a></span></pre></body></html></div>
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="op">?</span><span class="fu">climate</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/climate/man/meteo_noaa_co2.html">meteo_noaa_co2</a></span></code></pre></div>
 </div>
 <div id="hwsd" class="section level2">
 <h2 class="hasAnchor">
@@ -572,27 +686,30 @@
 <ol style="list-style-type: decimal">
 <li>The the modified version of David LeBauer’s <a href="https://github.com/dlebauer/rhwsd">rhwsd</a> R package. The modified version can be installed by:</li>
 </ol>
-<div class="sourceCode" id="cb38"><html><body><pre class="r"><span class="kw">if</span>(!<span class="fu"><a href="https://rdrr.io/r/base/library.html">require</a></span>(<span class="no">devtools</span>)){<span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="no">devtools</span>)}
-<span class="kw pkg">devtools</span><span class="kw ns">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span>(<span class="st">"stineb/rhwsd"</span>)</pre></body></html></div>
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/">devtools</a></span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"stineb/rhwsd"</span><span class="op">)</span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li>Install additionally required packages: DBI and RSQLite.</li>
 </ol>
-<div class="sourceCode" id="cb39"><html><body><pre class="r"><span class="no">list.of.packages</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"DBI"</span>, <span class="st">"RSQLite"</span>)
-<span class="no">new.packages</span> <span class="kw">&lt;-</span> <span class="no">list.of.packages</span>[!(<span class="no">list.of.packages</span> <span class="kw">%in%</span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span>()[,<span class="st">"Package"</span>])]
-<span class="kw">if</span>(<span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span>(<span class="no">new.packages</span>)) <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="no">new.packages</span>)</pre></body></html></div>
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">list.of.packages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"DBI"</span>, <span class="st">"RSQLite"</span><span class="op">)</span>
+<span class="va">new.packages</span> <span class="op">&lt;-</span> <span class="va">list.of.packages</span><span class="op">[</span><span class="op">!</span><span class="op">(</span><span class="va">list.of.packages</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>,<span class="st">"Package"</span><span class="op">]</span><span class="op">)</span><span class="op">]</span>
+<span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">new.packages</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">new.packages</span><span class="op">)</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Download the HWSD data file <a href="http://webarchive.iiasa.ac.at/Research/LUC/External-World-soil-database/HWSD_Data/HWSD_RASTER.zip">HWSD_RASTER.zip</a> and extract.</li>
 <li>Move the extracted files to a local directory and adjust the file path in the <code>settings</code> argument accordingly (in this example: <code>"~/data/hwsd/HWSD_RASTER/hwsd.bil"</code>).</li>
 </ol>
 <p>Then, use similarly to above, with providing the path to the downloaded file with the <code>settings</code> argument:</p>
-<div class="sourceCode" id="cb40"><html><body><pre class="r"><span class="no">df_hwsd</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
-  <span class="kw">sitename</span>  <span class="kw">=</span> <span class="st">"CH-Lae"</span>,
-  <span class="kw">source</span>  <span class="kw">=</span> <span class="st">"hwsd"</span>,
-  <span class="kw">lon</span>     <span class="kw">=</span> <span class="fl">3.5958</span>,
-  <span class="kw">lat</span>     <span class="kw">=</span> <span class="fl">43.7414</span>,
-  <span class="kw">settings</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">fil</span> <span class="kw">=</span> <span class="st">"~/data/hwsd/HWSD_RASTER/hwsd.bil"</span>),
-  <span class="kw">verbose</span> <span class="kw">=</span> <span class="fl">FALSE</span>
-  )</pre></body></html></div>
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_hwsd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
+  sitename  <span class="op">=</span> <span class="st">"CH-Lae"</span>,
+  source  <span class="op">=</span> <span class="st">"hwsd"</span>,
+  lon     <span class="op">=</span> <span class="fl">3.5958</span>,
+  lat     <span class="op">=</span> <span class="fl">43.7414</span>,
+  settings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>fil <span class="op">=</span> <span class="st">"~/data/hwsd/HWSD_RASTER/hwsd.bil"</span><span class="op">)</span>,
+  verbose <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span></code></pre></div>
 </div>
 </div>
 <div id="examples-for-a-site-ensemble" class="section level1">
@@ -601,14 +718,16 @@
 <p>To collect data from an ensemble of sites, we have to define a meta data frame, here called <code>siteinfo</code>, with rows for each site and columns <code>lon</code> for longitude, <code>lat</code> for latitude, <code>date_start</code> and <code>date_end</code> for required dates (Dates are objects returned by a <code><a href="http://lubridate.tidyverse.org/reference/ymd.html">lubridate::ymd()</a></code> function call - this stands for year-month-day). The function <code><a href="../reference/ingest.html">ingest()</a></code> can then be used to collect all site-level data as a nested data frame corresponding to the metadata <code>siteinfo</code> with an added column named <code>data</code> where the time series of ingested data is nested inside.</p>
 <p>Note that extracting for an ensemble of sites at once is more efficient for data types that are global files (WATCH-WFDEI, and CRU). In this case, the <code>raster</code> package can be used to efficiently ingest data.</p>
 <p>First, define a list of sites and get site meta information. The required meta information is provided by the exported data frame <code>siteinfo</code> (it comes as part of the ingestr package). This file is created as described in (and using code from) <a href="https://github.com/stineb/metainfo_fluxnet2015">metainfo_fluxnet2015</a>.</p>
-<div class="sourceCode" id="cb41"><html><body><pre class="r"><span class="no">mysites</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"BE-Vie"</span>, <span class="st">"DE-Tha"</span>, <span class="st">"DK-Sor"</span>, <span class="st">"FI-Hyy"</span>, <span class="st">"IT-Col"</span>, <span class="st">"NL-Loo"</span>, <span class="st">"US-MMS"</span>, <span class="st">"US-WCr"</span>, <span class="st">"US-UMB"</span>, <span class="st">"US-Syv"</span>, <span class="st">"DE-Hai"</span>)
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">mysites</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"BE-Vie"</span>, <span class="st">"DE-Tha"</span>, <span class="st">"DK-Sor"</span>, <span class="st">"FI-Hyy"</span>, <span class="st">"IT-Col"</span>, <span class="st">"NL-Loo"</span>, <span class="st">"US-MMS"</span>, <span class="st">"US-WCr"</span>, <span class="st">"US-UMB"</span>, <span class="st">"US-Syv"</span>, <span class="st">"DE-Hai"</span><span class="op">)</span>
 
-<span class="no">siteinfo</span> <span class="kw">&lt;-</span> <span class="kw pkg">ingestr</span><span class="kw ns">::</span><span class="no"><a href="../reference/siteinfo_fluxnet2015.html">siteinfo_fluxnet2015</a></span> <span class="kw">%&gt;%</span>
-  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span>(<span class="no">sitename</span> <span class="kw">%in%</span> <span class="no">mysites</span>) <span class="kw">%&gt;%</span>
-  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(<span class="kw">date_start</span> <span class="kw">=</span> <span class="kw pkg">lubridate</span><span class="kw ns">::</span><span class="fu"><a href="http://lubridate.tidyverse.org/reference/ymd.html">ymd</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span>(<span class="no">year_start</span>, <span class="st">"-01-01"</span>))) <span class="kw">%&gt;%</span>
-  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(<span class="kw">date_end</span> <span class="kw">=</span> <span class="kw pkg">lubridate</span><span class="kw ns">::</span><span class="fu"><a href="http://lubridate.tidyverse.org/reference/ymd.html">ymd</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span>(<span class="no">year_end</span>, <span class="st">"-12-31"</span>)))</pre></body></html></div>
+<span class="va">siteinfo</span> <span class="op">&lt;-</span> <span class="fu">ingestr</span><span class="fu">::</span><span class="va"><a href="../reference/siteinfo_fluxnet2015.html">siteinfo_fluxnet2015</a></span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">sitename</span> <span class="op">%in%</span> <span class="va">mysites</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>date_start <span class="op">=</span> <span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="http://lubridate.tidyverse.org/reference/ymd.html">ymd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">year_start</span>, <span class="st">"-01-01"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>date_end <span class="op">=</span> <span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="http://lubridate.tidyverse.org/reference/ymd.html">ymd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">year_end</span>, <span class="st">"-12-31"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p>This file looks like this:</p>
-<div class="sourceCode" id="cb42"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span>(<span class="no">siteinfo</span>)</pre></body></html></div>
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">siteinfo</span><span class="op">)</span></code></pre></div>
 <pre><code>## # A tibble: 11 x 14
 ##    sitename    lon   lat   elv year_start year_end classid c4      whc
 ##    &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;   &lt;lgl&gt; &lt;dbl&gt;
@@ -633,17 +752,18 @@
 <h3 class="hasAnchor">
 <a href="#meteo-data-1" class="anchor"></a>Meteo data</h3>
 <p>This ingests meteorological data from the FLUXNET files for variables temperature, precipitation, VPD, shortwave incoming radiation, net radiation, and atmospheric pressure. Arguments that are specific for this data source are provided in the <code>settings</code> list.</p>
-<div class="sourceCode" id="cb44"><html><body><pre class="r"><span class="no">ddf_fluxnet</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span>(
-  <span class="kw">siteinfo</span>  <span class="kw">=</span> <span class="no">siteinfo</span>,
-  <span class="kw">source</span>    <span class="kw">=</span> <span class="st">"fluxnet"</span>,
-  <span class="kw">getvars</span>   <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">temp</span> <span class="kw">=</span> <span class="st">"TA_F"</span>, <span class="kw">prec</span> <span class="kw">=</span> <span class="st">"P_F"</span>, <span class="kw">vpd</span>  <span class="kw">=</span> <span class="st">"VPD_F"</span>, <span class="kw">ppfd</span> <span class="kw">=</span>  <span class="st">"SW_IN_F"</span>, <span class="kw">netrad</span> <span class="kw">=</span> <span class="st">"NETRAD"</span>, <span class="kw">patm</span> <span class="kw">=</span> <span class="st">"PA_F"</span>),
-  <span class="kw">dir</span>       <span class="kw">=</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/DD/"</span>,  <span class="co"># adjust this with your local path</span>
-  <span class="kw">settings</span>  <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(
-    <span class="kw">dir_hh</span> <span class="kw">=</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/HH/"</span>, <span class="co"># adjust this with your local path</span>
-    <span class="kw">getswc</span> <span class="kw">=</span> <span class="fl">FALSE</span>),
-  <span class="kw">timescale</span> <span class="kw">=</span> <span class="st">"d"</span>,
-  <span class="kw">verbose</span> <span class="kw">=</span> <span class="fl">TRUE</span>
-  )</pre></body></html></div>
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ddf_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
+  siteinfo  <span class="op">=</span> <span class="va">siteinfo</span>,
+  source    <span class="op">=</span> <span class="st">"fluxnet"</span>,
+  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>temp <span class="op">=</span> <span class="st">"TA_F"</span>, prec <span class="op">=</span> <span class="st">"P_F"</span>, vpd  <span class="op">=</span> <span class="st">"VPD_F"</span>, ppfd <span class="op">=</span>  <span class="st">"SW_IN_F"</span>, netrad <span class="op">=</span> <span class="st">"NETRAD"</span>, patm <span class="op">=</span> <span class="st">"PA_F"</span><span class="op">)</span>,
+  dir       <span class="op">=</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/DD/"</span>,  <span class="co"># adjust this with your local path</span>
+  settings  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
+    dir_hh <span class="op">=</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/HH/"</span>, <span class="co"># adjust this with your local path</span>
+    getswc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,
+  timescale <span class="op">=</span> <span class="st">"d"</span>,
+  verbose <span class="op">=</span> <span class="cn">TRUE</span>
+  <span class="op">)</span></code></pre></div>
 <pre><code>## [1] "Getting FLUXNET data for BE-Vie ..."
 ## [1] "Getting FLUXNET data for DE-Hai ..."
 ## [1] "Getting FLUXNET data for DE-Tha ..."
@@ -660,106 +780,116 @@
 <h3 class="hasAnchor">
 <a href="#flux-data-1" class="anchor"></a>Flux data</h3>
 <p>As described above for a single site, the same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we’re reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (<code>""GPP_NT_VUT_REF""</code>), keep only data where at least 80% is based on non-gapfilled half-hourly data (<code>threshold_GPP = 0.8</code>), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (<code>filter_ntdt = TRUE</code>, see also <code>?get_obs_bysite_fluxnet2015</code>).</p>
-<div class="sourceCode" id="cb46"><html><body><pre class="r"><span class="no">settings_fluxnet</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(
-  <span class="kw">getswc</span>       <span class="kw">=</span> <span class="fl">FALSE</span>,
-  <span class="kw">filter_ntdt</span>  <span class="kw">=</span> <span class="fl">TRUE</span>,
-  <span class="kw">threshold_GPP</span><span class="kw">=</span> <span class="fl">0.8</span>,
-  <span class="kw">remove_neg</span>   <span class="kw">=</span> <span class="fl">FALSE</span>
-  )
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">settings_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
+  getswc       <span class="op">=</span> <span class="cn">FALSE</span>,
+  filter_ntdt  <span class="op">=</span> <span class="cn">TRUE</span>,
+  threshold_GPP<span class="op">=</span> <span class="fl">0.8</span>,
+  remove_neg   <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span>
 
-<span class="no">ddf_fluxnet_gpp</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span>(
-  <span class="kw">siteinfo</span> <span class="kw">=</span> <span class="no">siteinfo</span>,
-  <span class="kw">source</span>   <span class="kw">=</span> <span class="st">"fluxnet"</span>,
-  <span class="kw">getvars</span>  <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">gpp</span> <span class="kw">=</span> <span class="st">"GPP_NT_VUT_REF"</span>,
-  <span class="kw">pp_unc</span>   <span class="kw">=</span> <span class="st">"GPP_NT_VUT_SE"</span>),
-  <span class="kw">dir</span>      <span class="kw">=</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/DD/"</span>, <span class="co"># adjust this with your local path</span>
-  <span class="kw">settings</span> <span class="kw">=</span> <span class="no">settings_fluxnet</span>,
-  <span class="kw">timescale</span><span class="kw">=</span> <span class="st">"d"</span>
-  )</pre></body></html></div>
+<span class="va">ddf_fluxnet_gpp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
+  siteinfo <span class="op">=</span> <span class="va">siteinfo</span>,
+  source   <span class="op">=</span> <span class="st">"fluxnet"</span>,
+  getvars  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>gpp <span class="op">=</span> <span class="st">"GPP_NT_VUT_REF"</span>,
+  pp_unc   <span class="op">=</span> <span class="st">"GPP_NT_VUT_SE"</span><span class="op">)</span>,
+  dir      <span class="op">=</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/DD/"</span>, <span class="co"># adjust this with your local path</span>
+  settings <span class="op">=</span> <span class="va">settings_fluxnet</span>,
+  timescale<span class="op">=</span> <span class="st">"d"</span>
+  <span class="op">)</span></code></pre></div>
 </div>
 </div>
 <div id="watch-wfdei-1" class="section level2">
 <h2 class="hasAnchor">
 <a href="#watch-wfdei-1" class="anchor"></a>WATCH-WFDEI</h2>
 <p>This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 degree resolution), provided as monthly files containing all days in each month. The data directory specified here (<code>dir = "~/data/watch_wfdei/"</code>) contains subdirectories with names containing the variable names (corresponding to the ones specified by the argument <code>getvars = list(temp = "Tair")</code>).</p>
-<div class="sourceCode" id="cb47"><html><body><pre class="r"><span class="no">ddf_watch</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span>(
-  <span class="kw">siteinfo</span> <span class="kw">=</span> <span class="no">siteinfo</span>,
-  <span class="kw">source</span>    <span class="kw">=</span> <span class="st">"watch_wfdei"</span>,
-  <span class="kw">getvars</span>   <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">temp</span> <span class="kw">=</span> <span class="st">"Tair"</span>),
-  <span class="kw">dir</span>       <span class="kw">=</span> <span class="st">"~/data/watch_wfdei/"</span>  <span class="co"># adjust this with your local path</span>
-  )</pre></body></html></div>
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ddf_watch</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
+  siteinfo <span class="op">=</span> <span class="va">siteinfo</span>,
+  source    <span class="op">=</span> <span class="st">"watch_wfdei"</span>,
+  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>temp <span class="op">=</span> <span class="st">"Tair"</span><span class="op">)</span>,
+  dir       <span class="op">=</span> <span class="st">"~/data/watch_wfdei/"</span>  <span class="co"># adjust this with your local path</span>
+  <span class="op">)</span></code></pre></div>
 </div>
 <div id="cru-ts-1" class="section level2">
 <h2 class="hasAnchor">
 <a href="#cru-ts-1" class="anchor"></a>CRU TS</h2>
 <p>This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.</p>
-<div class="sourceCode" id="cb48"><html><body><pre class="r"><span class="no">ddf_cru</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span>(
-  <span class="kw">siteinfo</span> <span class="kw">=</span> <span class="no">siteinfo</span>,
-  <span class="kw">source</span>    <span class="kw">=</span> <span class="st">"cru"</span>,
-  <span class="kw">getvars</span>   <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">temp</span> <span class="kw">=</span> <span class="st">"tmx"</span>),
-  <span class="kw">dir</span>       <span class="kw">=</span> <span class="st">"~/data/cru/ts_4.01/"</span>  <span class="co"># adjust this with your local path</span>
-  )</pre></body></html></div>
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ddf_cru</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
+  siteinfo <span class="op">=</span> <span class="va">siteinfo</span>,
+  source    <span class="op">=</span> <span class="st">"cru"</span>,
+  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>temp <span class="op">=</span> <span class="st">"tmx"</span><span class="op">)</span>,
+  dir       <span class="op">=</span> <span class="st">"~/data/cru/ts_4.01/"</span>  <span class="co"># adjust this with your local path</span>
+  <span class="op">)</span></code></pre></div>
 <pre><code>## Warning in .varName(nc, varname, warn = warn): varname used is: tmx
 ## If that is not correct, you can set it to one of: tmx, stn</code></pre>
 <p>Check it out for the first site (BE-Vie).</p>
-<div class="sourceCode" id="cb50"><html><body><pre class="r"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>() +
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="kw">data</span> <span class="kw">=</span> <span class="no">ddf_fluxnet</span>$<span class="no">data</span><span class="kw">[[</span><span class="fl">1</span>]], <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">x</span> <span class="kw">=</span> <span class="no">date</span>, <span class="kw">y</span> <span class="kw">=</span> <span class="no">temp</span>)) +
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="kw">data</span> <span class="kw">=</span> <span class="no">ddf_watch</span>$<span class="no">data</span><span class="kw">[[</span><span class="fl">1</span>]], <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">x</span> <span class="kw">=</span> <span class="no">date</span>, <span class="kw">y</span> <span class="kw">=</span> <span class="no">temp</span>), <span class="kw">col</span> <span class="kw">=</span> <span class="st">"royalblue"</span>) +
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="kw">data</span> <span class="kw">=</span> <span class="no">ddf_cru</span>$<span class="no">data</span><span class="kw">[[</span><span class="fl">1</span>]], <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">x</span> <span class="kw">=</span> <span class="no">date</span>, <span class="kw">y</span> <span class="kw">=</span> <span class="no">temp</span>), <span class="kw">col</span> <span class="kw">=</span> <span class="st">"red"</span>) +
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span>(<span class="fu">ymd</span>(<span class="st">"2000-01-01"</span>), <span class="fu">ymd</span>(<span class="st">"2005-12-31"</span>))</pre></body></html></div>
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ddf_fluxnet</span><span class="op">$</span><span class="va">data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">date</span>, y <span class="op">=</span> <span class="va">temp</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ddf_watch</span><span class="op">$</span><span class="va">data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">date</span>, y <span class="op">=</span> <span class="va">temp</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"royalblue"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ddf_cru</span><span class="op">$</span><span class="va">data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">date</span>, y <span class="op">=</span> <span class="va">temp</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="fu">ymd</span><span class="op">(</span><span class="st">"2000-01-01"</span><span class="op">)</span>, <span class="fu">ymd</span><span class="op">(</span><span class="st">"2005-12-31"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <pre><code>## Warning: Removed 4745 row(s) containing missing values (geom_path).
 
 ## Warning: Removed 4745 row(s) containing missing values (geom_path).
 
 ## Warning: Removed 4745 row(s) containing missing values (geom_path).</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-27-1.png" width="700"></p>
+<p><img src="example_files/figure-html/unnamed-chunk-30-1.png" width="700"></p>
 </div>
 <div id="google-earth-engine-1" class="section level2">
 <h2 class="hasAnchor">
 <a href="#google-earth-engine-1" class="anchor"></a>Google Earth Engine</h2>
 <p>Using the same settings as specified above, we can download MODIS FPAR data for multiple sites at once from GEE:</p>
-<div class="sourceCode" id="cb52"><html><body><pre class="r"><span class="no">settings_gee</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/get_settings_gee.html">get_settings_gee</a></span>(
-  <span class="kw">bundle</span>            <span class="kw">=</span> <span class="st">"modis_fpar"</span>,
-  <span class="kw">python_path</span>       <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.html">system</a></span>(<span class="st">"which python"</span>, <span class="kw">intern</span> <span class="kw">=</span> <span class="fl">TRUE</span>),
-  <span class="kw">gee_path</span>          <span class="kw">=</span> <span class="st">"~/google_earth_engine_subsets/gee_subset/"</span>,    <span class="co"># adjust this with your local path</span>
-  <span class="kw">data_path</span>         <span class="kw">=</span> <span class="st">"~/data/gee_subsets/"</span>,    <span class="co"># adjust this with your local path</span>
-  <span class="kw">method_interpol</span>   <span class="kw">=</span> <span class="st">"linear"</span>,
-  <span class="kw">keep</span>              <span class="kw">=</span> <span class="fl">TRUE</span>,
-  <span class="kw">overwrite_raw</span>     <span class="kw">=</span> <span class="fl">FALSE</span>,
-  <span class="kw">overwrite_interpol</span><span class="kw">=</span> <span class="fl">TRUE</span>
-  )
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">settings_gee</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_gee.html">get_settings_gee</a></span><span class="op">(</span>
+  bundle            <span class="op">=</span> <span class="st">"modis_fpar"</span>,
+  python_path       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.html">system</a></span><span class="op">(</span><span class="st">"which python"</span>, intern <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
+  gee_path          <span class="op">=</span> <span class="st">"~/google_earth_engine_subsets/gee_subset/"</span>,    <span class="co"># adjust this with your local path</span>
+  data_path         <span class="op">=</span> <span class="st">"~/data/gee_subsets/"</span>,    <span class="co"># adjust this with your local path</span>
+  method_interpol   <span class="op">=</span> <span class="st">"linear"</span>,
+  keep              <span class="op">=</span> <span class="cn">TRUE</span>,
+  overwrite_raw     <span class="op">=</span> <span class="cn">FALSE</span>,
+  overwrite_interpol<span class="op">=</span> <span class="cn">TRUE</span>
+  <span class="op">)</span>
 
-<span class="no">df_gee_modis_fpar</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span>(
-  <span class="kw">siteinfo</span><span class="kw">=</span> <span class="no">siteinfo</span>,
-  <span class="kw">source</span>  <span class="kw">=</span> <span class="st">"gee"</span>,
-  <span class="kw">settings</span><span class="kw">=</span> <span class="no">settings_gee</span>,
-  <span class="kw">verbose</span> <span class="kw">=</span> <span class="fl">FALSE</span>
-  )</pre></body></html></div>
+<span class="va">df_gee_modis_fpar</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
+  siteinfo<span class="op">=</span> <span class="va">siteinfo</span>,
+  source  <span class="op">=</span> <span class="st">"gee"</span>,
+  settings<span class="op">=</span> <span class="va">settings_gee</span>,
+  verbose <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span></code></pre></div>
 <p>Collect all plots.</p>
-<div class="sourceCode" id="cb53"><html><body><pre class="r"><span class="no">list_gg</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/plot_fapar_ingestr.html">plot_fapar_ingestr</a></span>(<span class="no">df_gee_modis_fpar</span>, <span class="no">settings_gee</span>)
-<span class="co">#purrr::map(list_gg, ~print(.))</span></pre></body></html></div>
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">list_gg</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_fapar_ingestr.html">plot_fapar_ingestr</a></span><span class="op">(</span><span class="va">df_gee_modis_fpar</span>, <span class="va">settings_gee</span><span class="op">)</span>
+<span class="co">#purrr::map(list_gg, ~print(.))</span></code></pre></div>
 </div>
 <div id="co2-1" class="section level2">
 <h2 class="hasAnchor">
 <a href="#co2-1" class="anchor"></a>CO2</h2>
 <p>Ingesting CO2 data is particularly simple. We can safely assume it’s well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years, and use the same value for all sites. Using the R package <a href="https://github.com/bczernecki/climate">climate</a>, we can load CO2 data from Mauna Loa directly into R. This is downloading data from <a href="ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt">ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt</a>. Here, <code><a href="../reference/ingest.html">ingest()</a></code> is a wrapper for the function <code><a href="https://rdrr.io/pkg/climate/man/meteo_noaa_co2.html">climate::meteo_noaa_co2()</a></code>.</p>
-<div class="sourceCode" id="cb54"><html><body><pre class="r"><span class="no">df_co2</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span>(
-  <span class="no">siteinfo</span>,
-  <span class="kw">source</span>  <span class="kw">=</span> <span class="st">"co2_mlo"</span>,
-  <span class="kw">verbose</span> <span class="kw">=</span> <span class="fl">FALSE</span>
-  )</pre></body></html></div>
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_co2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
+  <span class="va">siteinfo</span>,
+  source  <span class="op">=</span> <span class="st">"co2_mlo"</span>,
+  verbose <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span></code></pre></div>
+<pre><code>## [1] "ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt"</code></pre>
 <p>More info can be obtained <a href="https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html">here</a> and by:</p>
-<div class="sourceCode" id="cb55"><html><body><pre class="r">?<span class="kw pkg">climate</span><span class="kw ns">::</span><span class="no"><a href="https://rdrr.io/pkg/climate/man/meteo_noaa_co2.html">meteo_noaa_co2</a></span></pre></body></html></div>
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="op">?</span><span class="fu">climate</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/climate/man/meteo_noaa_co2.html">meteo_noaa_co2</a></span></code></pre></div>
 </div>
 <div id="etopo1" class="section level2">
 <h2 class="hasAnchor">
 <a href="#etopo1" class="anchor"></a>ETOPO1</h2>
 <p>This reads from the 1 arc minutes resolution ETOPO1 global elevation data (reading from a Geo-TIFF file). The nested data column contains a tibble one value for variable <code>elv</code>. Download the data from <a href="https://www.ngdc.noaa.gov/mgg/global/">here</a> and specify the local path with the argument <code>dir</code>.</p>
-<div class="sourceCode" id="cb56"><html><body><pre class="r"><span class="no">df_etopo</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span>(
-  <span class="no">siteinfo</span>,
-  <span class="kw">source</span> <span class="kw">=</span> <span class="st">"etopo1"</span>,
-  <span class="kw">dir</span> <span class="kw">=</span> <span class="st">"~/data/etopo/"</span>  <span class="co"># adjust this with your local path</span>
-)</pre></body></html></div>
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_etopo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
+  <span class="va">siteinfo</span>,
+  source <span class="op">=</span> <span class="st">"etopo1"</span>,
+  dir <span class="op">=</span> <span class="st">"~/data/etopo/"</span>  <span class="co"># adjust this with your local path</span>
+<span class="op">)</span></code></pre></div>
 </div>
 <div id="hwsd-1" class="section level2">
 <h2 class="hasAnchor">
@@ -768,39 +898,44 @@
 <ol style="list-style-type: decimal">
 <li>The the modified version of David LeBauer’s <a href="https://github.com/dlebauer/rhwsd">rhwsd</a> R package. The modified version can be installed by:</li>
 </ol>
-<div class="sourceCode" id="cb57"><html><body><pre class="r"><span class="kw">if</span>(!<span class="fu"><a href="https://rdrr.io/r/base/library.html">require</a></span>(<span class="no">devtools</span>)){<span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="no">devtools</span>)}
-<span class="kw pkg">devtools</span><span class="kw ns">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span>(<span class="st">"stineb/rhwsd"</span>)</pre></body></html></div>
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/">devtools</a></span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"stineb/rhwsd"</span><span class="op">)</span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li>Install additionally required packages: DBI and RSQLite.</li>
 </ol>
-<div class="sourceCode" id="cb58"><html><body><pre class="r"><span class="no">list.of.packages</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"DBI"</span>, <span class="st">"RSQLite"</span>)
-<span class="no">new.packages</span> <span class="kw">&lt;-</span> <span class="no">list.of.packages</span>[!(<span class="no">list.of.packages</span> <span class="kw">%in%</span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span>()[,<span class="st">"Package"</span>])]
-<span class="kw">if</span>(<span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span>(<span class="no">new.packages</span>)) <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="no">new.packages</span>)</pre></body></html></div>
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">list.of.packages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"DBI"</span>, <span class="st">"RSQLite"</span><span class="op">)</span>
+<span class="va">new.packages</span> <span class="op">&lt;-</span> <span class="va">list.of.packages</span><span class="op">[</span><span class="op">!</span><span class="op">(</span><span class="va">list.of.packages</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>,<span class="st">"Package"</span><span class="op">]</span><span class="op">)</span><span class="op">]</span>
+<span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">new.packages</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">new.packages</span><span class="op">)</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Download the HWSD data file <a href="http://webarchive.iiasa.ac.at/Research/LUC/External-World-soil-database/HWSD_Data/HWSD_RASTER.zip">HWSD_RASTER.zip</a> and extract.</li>
 <li>Move the extracted files to a local directory and adjust the file path in the <code>settings</code> argument accordingly (in this example: <code>"~/data/hwsd/HWSD_RASTER/hwsd.bil"</code>).</li>
 </ol>
 <p>Then, use similarly to above, with providing the path to the downloaded file with the <code>settings</code> argument:</p>
-<div class="sourceCode" id="cb59"><html><body><pre class="r"><span class="no">df_hwsd</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span>(
-  <span class="no">siteinfo</span>,
-  <span class="kw">source</span> <span class="kw">=</span> <span class="st">"hwsd"</span>,
-  <span class="kw">settings</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">fil</span> <span class="kw">=</span> <span class="st">"~/data/hwsd/HWSD_RASTER/hwsd.bil"</span>)
-  )</pre></body></html></div>
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_hwsd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
+  <span class="va">siteinfo</span>,
+  source <span class="op">=</span> <span class="st">"hwsd"</span>,
+  settings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>fil <span class="op">=</span> <span class="st">"~/data/hwsd/HWSD_RASTER/hwsd.bil"</span><span class="op">)</span>
+  <span class="op">)</span></code></pre></div>
 </div>
 <div id="wwf-ecoregions" class="section level2">
 <h2 class="hasAnchor">
 <a href="#wwf-ecoregions" class="anchor"></a>WWF Ecoregions</h2>
 <p>WWF Ecoregions data are provided as a shapefile, available for download <a href="http://assets.worldwildlife.org/publications/15/files/original/official_teow.zip">here</a>, or <a href="https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c">here</a>. A description of the data is available <a href="http://omap.africanmarineatlas.org/BIOSPHERE/data/note_areas_sp/Ecoregions_Ecosystems/WWF_Ecoregions/WWFecoregions.htm">here</a>. Download the zipped directory and adjust the argument <code>dir</code> to the path of the directory where file <code>wwf_terr_ecos.shp</code> is located. Set the settings list with <code>layer = "wwf_terr_ecos"</code>. Then, ingest data by:</p>
-<div class="sourceCode" id="cb60"><html><body><pre class="r"><span class="no">df_wwf</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span>(
-  <span class="no">siteinfo</span>,
-  <span class="kw">source</span> <span class="kw">=</span> <span class="st">"wwf"</span>,
-  <span class="kw">dir</span> <span class="kw">=</span> <span class="st">"~/data/biomes/wwf_ecoregions/official/"</span>,
-  <span class="kw">settings</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">layer</span> <span class="kw">=</span> <span class="st">"wwf_terr_ecos"</span>)
-)</pre></body></html></div>
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_wwf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
+  <span class="va">siteinfo</span>,
+  source <span class="op">=</span> <span class="st">"wwf"</span>,
+  dir <span class="op">=</span> <span class="st">"~/data/biomes/wwf_ecoregions/official/"</span>,
+  settings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>layer <span class="op">=</span> <span class="st">"wwf_terr_ecos"</span><span class="op">)</span>
+<span class="op">)</span></code></pre></div>
 <pre><code>## OGR data source with driver: ESRI Shapefile 
-## Source: "/Users/benjaminstocker/data/biomes/wwf_ecoregions/official", layer: "wwf_terr_ecos"
+## Source: "/Users/bestocke/data/biomes/wwf_ecoregions/official", layer: "wwf_terr_ecos"
 ## with 14458 features
 ## It has 21 fields</code></pre>
+<pre><code>## Warning in sp::proj4string(shp): CRS object has comment, which is lost in output</code></pre>
 <p>The following provides the biome codes. This information is additionally added by the ingestr package in column <code>BIOME_NAME</code>:</p>
 <table class="table">
 <thead><tr class="header">
@@ -886,7 +1021,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

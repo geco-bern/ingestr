@@ -101,9 +101,6 @@ The function uses the command boxplot.stats() which uses the Tukey's method to i
     <li>
       <a href="../articles/example.html">Examples for ingestr</a>
     </li>
-    <li>
-      <a href="../articles/get_sitedata_nonetwork.html">Description of how to get site data</a>
-    </li>
   </ul>
 </li>
 <li>
@@ -140,7 +137,7 @@ The function uses the command boxplot.stats() which uses the Tukey's method to i
 The function uses the command <code><a href='https://rdrr.io/r/grDevices/boxplot.stats.html'>boxplot.stats()</a></code> which uses the Tukey's method to identify the outliers ranged above and below the <code>coef*</code>IQR.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>remove_outliers</span>(<span class='no'>vec</span>, <span class='kw'>coef</span> <span class='kw'>=</span> <span class='fl'>1.5</span>)</pre>
+    <pre class="usage"><span class='fu'>remove_outliers</span><span class='op'>(</span><span class='va'>vec</span>, coef <span class='op'>=</span> <span class='fl'>1.5</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -160,7 +157,8 @@ The function uses the command <code><a href='https://rdrr.io/r/grDevices/boxplot
     <p>A vector of numeric values of length <code><a href='https://rdrr.io/r/base/length.html'>length(vec)</a></code> whith all elements identical as in <code>vec</code> except that outliers are replaced by NA.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>vec</span> <span class='kw'>&lt;-</span> <span class='fu'>remove_outliers</span>( <span class='no'>vec</span>, <span class='kw'>coef</span><span class='kw'>=</span><span class='fl'>3</span> )</div><div class='output co'>#&gt; <span class='error'>Error in boxplot.stats(vec, coef = coef): object 'vec' not found</span></div><div class='input'>
+    <pre class="examples"><div class='input'><span class='va'>vec</span> <span class='op'>&lt;-</span> <span class='fu'>remove_outliers</span><span class='op'>(</span> <span class='va'>vec</span>, coef<span class='op'>=</span><span class='fl'>3</span> <span class='op'>)</span> 
+</div><div class='output co'>#&gt; <span class='error'>Error in boxplot.stats(vec, coef = coef): object 'vec' not found</span></div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -177,7 +175,7 @@ The function uses the command <code><a href='https://rdrr.io/r/grDevices/boxplot
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

@@ -59,9 +59,6 @@
     <li>
       <a href="articles/example.html">Examples for ingestr</a>
     </li>
-    <li>
-      <a href="articles/get_sitedata_nonetwork.html">Description of how to get site data</a>
-    </li>
   </ul>
 </li>
 <li>
@@ -135,6 +132,15 @@
 <td></td>
 </tr>
 <tr class="even">
+<td>MODIS LP DAAC</td>
+<td>remote sensing</td>
+<td>global</td>
+<td><code>modis</code></td>
+<td>remote server</td>
+<td>using <a href="https://docs.ropensci.org/MODISTools/"><em>MODISTools</em></a>
+</td>
+</tr>
+<tr class="odd">
 <td>Google Earth Engine</td>
 <td>remote sensing</td>
 <td>global</td>
@@ -142,7 +148,7 @@
 <td>remote server</td>
 <td>using Koen Hufken’s <a href="https://khufkens.github.io/gee_subset/">gee_suset</a> library</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="https://www.ngdc.noaa.gov/mgg/global/">ETOPO1</a></td>
 <td>elevation</td>
 <td>global</td>
@@ -150,7 +156,7 @@
 <td>local files</td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><a href="https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html">Mauna Loa CO2</a></td>
 <td>CO2 concentration</td>
 <td>site</td>
@@ -158,7 +164,7 @@
 <td>remote server</td>
 <td>using the <a href="https://github.com/bczernecki/climate">climate</a> R package</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>HWSD</td>
 <td>soil</td>
 <td>global</td>
@@ -166,7 +172,7 @@
 <td>local files</td>
 <td>using an adaption of David Le Bauer’s <a href="https://github.com/dlebauer/rhwsd">rhwsd</a> R package</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><a href="https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c">WWF Ecoregions</a></td>
 <td>vegetation classification</td>
 <td>global</td>
@@ -177,25 +183,22 @@
 </tbody>
 </table>
 <p>Examples to read data for a single site for each data type are given in Section ‘Examples for a single site’. Handling ingestion for multiple sites is descrbed in Section ‘Example for a set of sites’. <strong>Note</strong> that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.</p>
-<p>MODIS data (not yet implemented):</p>
-<ul>
-<li>
-<a href="https://docs.ropensci.org/MODISTools/">MODISTools</a> R package to access data on remote server ORNL DAAC (not yet implemented).</li>
-</ul>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
 <p>To install and load the rsofun package using the latest release run the following command in your R terminal:</p>
-<div class="sourceCode" id="cb1"><pre class="r"><span class="kw">if</span>(!<span class="fu"><a href="https://rdrr.io/r/base/library.html">require</a></span>(<span class="no">devtools</span>)){<span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="no">devtools</span>)}
-<span class="kw pkg">devtools</span><span class="kw ns">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span>(<span class="st">"stineb/ingestr"</span>)
-<span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">ingestr</span>)</pre></div>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/">devtools</a></span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"stineb/ingestr"</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/stineb/ingestr">ingestr</a></span><span class="op">)</span></code></pre></div>
 <div id="dependencies" class="section level3">
 <h3 class="hasAnchor">
 <a href="#dependencies" class="anchor"></a>Dependencies</h3>
 <p>The <code>ingestr</code> package relies heavily on the tidyverse. Dependencies are dplyr, purrr, lubridate, tidyr, raster, lubridate, stringi, stringr, sp, ncdf4, signal, climate. To install all required packages, do:</p>
-<div class="sourceCode" id="cb2"><pre class="r"><span class="no">list_pkgs</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"dplyr"</span>, <span class="st">"purrr"</span>, <span class="st">"lubridate"</span>, <span class="st">"tidyr"</span>, <span class="st">"raster"</span>, <span class="st">"lubridate"</span>, <span class="st">"stringi"</span>, <span class="st">"stringr"</span>, <span class="st">"sp"</span>, <span class="st">"ncdf4"</span>, <span class="st">"signal"</span>, <span class="st">"climate"</span>, <span class="st">"rgdal"</span>)
-<span class="no">new_pkgs</span> <span class="kw">&lt;-</span> <span class="no">list_pkgs</span>[!(<span class="no">list_pkgs</span> <span class="kw">%in%</span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span>()[,<span class="st">"Package"</span>])]
-<span class="kw">if</span>(<span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span>(<span class="no">new_pkgs</span>)) <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="no">new_pkgs</span>)</pre></div>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">list_pkgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"dplyr"</span>, <span class="st">"purrr"</span>, <span class="st">"lubridate"</span>, <span class="st">"tidyr"</span>, <span class="st">"raster"</span>, <span class="st">"lubridate"</span>, <span class="st">"stringi"</span>, <span class="st">"stringr"</span>, <span class="st">"sp"</span>, <span class="st">"ncdf4"</span>, <span class="st">"signal"</span>, <span class="st">"climate"</span>, <span class="st">"rgdal"</span><span class="op">)</span>
+<span class="va">new_pkgs</span> <span class="op">&lt;-</span> <span class="va">list_pkgs</span><span class="op">[</span><span class="op">!</span><span class="op">(</span><span class="va">list_pkgs</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>,<span class="st">"Package"</span><span class="op">]</span><span class="op">)</span><span class="op">]</span>
+<span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">new_pkgs</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">new_pkgs</span><span class="op">)</span></code></pre></div>
 </div>
 </div>
 <div id="example" class="section level2">
@@ -210,7 +213,8 @@
 <ul>
 <li>Directly install the package from the most up-to-date code on GitHub by</li>
 </ul>
-<div class="sourceCode" id="cb3"><pre class="r"><span class="kw pkg">devtools</span><span class="kw ns">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span>(<span class="st">"stineb/ingestr"</span>)</pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"stineb/ingestr"</span><span class="op">)</span></code></pre></div>
 <p>I recommend the following steps if you would like to use and further develop the package (even just for your own application - But keep in mind: others may benefit from your efforts too!):</p>
 <ol>
 <li>Make sure you have a Github account.</li>
@@ -260,7 +264,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>
