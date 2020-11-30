@@ -472,6 +472,51 @@ ggplot() +
   xlim(ymd("2000-01-01"), ymd("2005-12-31"))
 ```
 
+## MODIS LP DAAC
+
+This uses the [*MODISTools*](https://docs.ropensci.org/MODISTools/) R package making its interface consistent with ingestr. Settings can be specified and passed on using the `settings` argument. To facilitate the selection of data products and bands to be downloaded, you may use the function `get_settings_modis)` which defines defaults for different data bundles (`c("modis_fpar", "modis_ndvi", "modis_evi")` are available).
+
+- `"modis_fpar"`: MODIS collection 6, MCD15A3H, band `Fpar_500m`
+- `"modis_evi"`: MODIS collection 6, MOD13Q1, band `250m_16_days_EVI`
+- `"modis_ndvi"`: MODIS collection 6, MOD13Q1, band `250m_16_days_NDVI`
+
+The filtering criteria are hard-coded specifically for each product, using its respective quality control information (see function `gapfill_interpol()` in `R/ingest_modis_bysite.R`).
+
+Downloading with parallel jobs is available for the `"modis"` data ingest, using the package [multidplyr](https://github.com/tidyverse/multidplyr). This is not (yet) available on CRAN, but can be installed with `devtools::install_github("tidyverse/multidplyr")`. To do parallel downloading, set the following arguments in the function `ingest()`: `parallel = TRUE, ncores = <number_of_parallel_jobs>`.
+
+The following example is for downloading MODIS NDVI data.
+```{r}
+settings_modis <- get_settings_modis(
+  bundle            = "modis_ndvi",
+  data_path         = "~/data/modis_subsets/",
+  method_interpol   = "loess",
+  keep              = TRUE,
+  overwrite_raw     = FALSE,
+  overwrite_interpol= TRUE
+  )
+```
+
+This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`.
+```{r}
+df_modis_fpar <- ingest(
+  siteinfo_fluxnet2015 %>% slice(1:3), 
+  source = "modis",
+  settings = settings_modis, 
+  parallel = FALSE,
+  ncores = 2
+  )
+```
+
+Plot this data.
+```{r}
+plot_fapar_ingestr_bysite(
+  df_modis_fpar$data[[1]] %>% 
+    dplyr::filter(year(date) %in% 2010:2015), 
+  settings_modis)
+```
+
+
+
 ## Google Earth Engine
 
 Using the same settings as specified above, we can download MODIS FPAR data for multiple sites at once from GEE:

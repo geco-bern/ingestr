@@ -142,6 +142,8 @@
   <span class='va'>dir</span>,
   <span class='va'>settings</span>,
   timescale <span class='op'>=</span> <span class='st'>"d"</span>,
+  parallel <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  ncores <span class='op'>=</span> <span class='cn'>NULL</span>,
   verbose <span class='op'>=</span> <span class='cn'>FALSE</span>
 <span class='op'>)</span></pre>
 
@@ -177,6 +179,16 @@ the source dataset corresponding to standard names <code>"temp"</code> for tempe
       <th>timescale</th>
       <td><p>A character or vector of characters, specifying the time scale of data used from
 the respective source (if multiple time scales are available, otherwise is disregarded).</p></td>
+    </tr>
+    <tr>
+      <th>parallel</th>
+      <td><p>A logical specifying whether ingest is run as parallel jobs for each site. This option is 
+only available for <code>source = "modis"</code> and requires argument <code>ncores</code> to be set.</p></td>
+    </tr>
+    <tr>
+      <th>ncores</th>
+      <td><p>An integer specifying the number of cores for parallel runs of ingest per site. Required only
+if <code>parallel = TRUE</code></p></td>
     </tr>
     <tr>
       <th>verbose</th>

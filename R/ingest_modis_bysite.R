@@ -327,19 +327,20 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     ddf$linear <- approx( ddf$year_dec, ddf$modisvar_filtered, xout=ddf$year_dec )$y
   }
 
-  if (method_interpol == "sgfilter" || keep){
-    ##--------------------------------------
-    ## SAVITZKY GOLAY FILTER
-    ##--------------------------------------
-    rlang::inform("sgfilter ...")
-    ddf$sgfilter <- rep( NA, nrow(ddf) )
-    idxs <- which(!is.na(ddf$modisvar_filtered))
-    tmp <- try(signal::sgolayfilt( ddf$modisvar_filtered[idxs], p=3, n=51 ))
-    if (class(tmp)!="try-error"){
-      ddf$sgfilter[idxs] <- tmp
-    }
+  ## commented out to avoid dependency to 'signal'
+  # if (method_interpol == "sgfilter" || keep){
+  #   ##--------------------------------------
+  #   ## SAVITZKY GOLAY FILTER
+  #   ##--------------------------------------
+  #   rlang::inform("sgfilter ...")
+  #   ddf$sgfilter <- rep( NA, nrow(ddf) )
+  #   idxs <- which(!is.na(ddf$modisvar_filtered))
+  #   tmp <- try(signal::sgolayfilt( ddf$modisvar_filtered[idxs], p=3, n=51 ))
+  #   if (class(tmp)!="try-error"){
+  #     ddf$sgfilter[idxs] <- tmp
+  #   }
 
-  }
+  # }
 
   ##--------------------------------------
   ## Define 'fapar'
@@ -350,9 +351,11 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     ddf$modisvar_filled <- ddf$spline
   } else if (method_interpol == "linear"){
     ddf$modisvar_filled <- ddf$linear
-  } else if (method_interpol == "sgfilter"){
-    ddf$modisvar_filled <- ddf$sgfilter
-  }
+  } 
+
+  # else if (method_interpol == "sgfilter"){
+  #   ddf$modisvar_filled <- ddf$sgfilter
+  # }
 
   # ## plot daily smoothed line and close plotting device
   # if (do_plot_interpolated) with( ddf, lines( year_dec, fapar, col='red', lwd=2 ) )
