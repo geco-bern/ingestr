@@ -228,13 +228,62 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
 
     ## QC interpreted according to https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H:
 
-    # ## This is interpreted according to https://lpdaac.usgs.gov/sites/default/files/public/product_documentation/mod15_user_guide.pdf, p.9
-
-    ## Ignorant filtering here!
+    ## This is interpreted according to https://lpdaac.usgs.gov/sites/default/files/public/product_documentation/mod15_user_guide.pdf, p.9
     df <- df %>%
+
       dplyr::rename(modisvar = value) %>%
-      dplyr::rowwise() %>%
-      dplyr::mutate(modisvar_filtered = ifelse(qc %in% c(0, 2), modisvar, NA))
+      dplyr::mutate(modisvar_filtered = modisvar) %>%
+
+      ## separate into bits
+      rowwise() %>%
+      mutate(qc_bitname = intToBits( qc )[1:8] %>% rev() %>% as.character() %>% paste(collapse = "")) %>%
+
+      ## MODLAND_QC bits
+      ## 0: Good  quality (main algorithm with or without saturation)
+      ## 1: Other quality (backup  algorithm or fill values)
+      mutate(qc_bit0 = substr( qc_bitname, start=8, stop=8 )) %>%
+      mutate(good_quality = ifelse( qc_bit0=="0", TRUE, FALSE )) %>%
+
+      ## Sensor
+      ## 0: Terra
+      ## 1: Aqua
+      mutate(qc_bit1 = substr( qc_bitname, start=7, stop=7 )) %>%
+      mutate(terra = ifelse( qc_bit1=="0", TRUE, FALSE )) %>%
+
+      ## Dead detector
+      ## 0: Detectors apparently  fine  for up  to  50% of  channels  1,  2
+      ## 1: Dead  detectors caused  >50%  adjacent  detector  retrieval
+      mutate(qc_bit2 = substr( qc_bitname, start=6, stop=6 )) %>%
+      mutate(dead_detector = ifelse( qc_bit2=="1", TRUE, FALSE )) %>%
+
+      ## CloudState
+      ## 00 0  Significant clouds  NOT present (clear)
+      ## 01 1  Significant clouds  WERE  present
+      ## 10 2  Mixed cloud present in  pixel
+      ## 11 3  Cloud state not defined,  assumed clear
+      mutate(qc_bit3 = substr( qc_bitname, start=4, stop=5 )) %>%
+      mutate(CloudState = ifelse( qc_bit3=="00", 0, ifelse( qc_bit3=="01", 1, ifelse( qc_bit3=="10", 2, 3 ) ) )) %>%
+
+      ## SCF_QC (five level confidence score)
+      ## 000 0 Main (RT) method used, best result possible (no saturation)
+      ## 001 1 Main (RT) method used with saturation. Good, very usable
+      ## 010 2 Main (RT) method failed due to bad geometry, empirical algorithm used
+      ## 011 3 Main (RT) method failed due to problems other than geometry, empirical algorithm used
+      ## 100 4 Pixel not produced at all, value couldn???t be retrieved (possible reasons: bad L1B data, unusable MOD09GA data)
+      mutate(qc_bit4 = substr( qc_bitname, start=1, stop=3 )) %>%
+      mutate(SCF_QC = ifelse( qc_bit4=="000", 0, ifelse( qc_bit4=="001", 1, ifelse( qc_bit4=="010", 2, ifelse( qc_bit4=="011", 3, 4 ) ) ) )) %>%
+
+      ## Actually do the filtering
+      mutate(CloudState_ok = ifelse(CloudState %in% c(0), TRUE, FALSE)) %>%
+      mutate(modisvar_filtered = ifelse( CloudState_ok, modisvar_filtered, NA )) %>%
+      mutate(modisvar_filtered = ifelse( good_quality, modisvar_filtered, NA )) %>%
+
+      ## don't believe the hype
+      dplyr::mutate(modisvar_filtered = ifelse( modisvar_filtered==1.0, NA, modisvar_filtered )) %>%
+
+      ## Drop all data identified as outliers = lie outside 3*IQR
+      dplyr::mutate(modisvar_filtered = remove_outliers( modisvar_filtered, coef=3 ))  # maybe too dangerous - removes peaks
+
 
 
   } else if (prod=="MOD17A2H"){
@@ -351,7 +400,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     ddf$modisvar_filled <- ddf$spline
   } else if (method_interpol == "linear"){
     ddf$modisvar_filled <- ddf$linear
-  } 
+  }
 
   # else if (method_interpol == "sgfilter"){
   #   ddf$modisvar_filled <- ddf$sgfilter

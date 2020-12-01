@@ -182,12 +182,12 @@ The filtering criteria are hard-coded specifically for each product, using its r
 The following example is for downloading MODIS NDVI data.
 ```{r}
 settings_modis <- get_settings_modis(
-  bundle            = "modis_ndvi",
+  bundle            = "modis_fpar",
   data_path         = "~/data/modis_subsets/",
   method_interpol   = "loess",
   keep              = TRUE,
   overwrite_raw     = FALSE,
-  overwrite_interpol= FALSE
+  overwrite_interpol= TRUE
   )
 ```
 
@@ -196,7 +196,7 @@ This can now be used to download the data to the directory specified by argument
 df_modis_fpar <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "modis",
-  year_start= 2000,
+  year_start= 2018,
   year_end  = 2019,
   lon       = 8.365,
   lat       = 47.47808,
@@ -208,8 +208,7 @@ df_modis_fpar <- ingest_bysite(
 Plot this data.
 ```{r}
 plot_fapar_ingestr_bysite(
-  df_modis_fpar %>% 
-    dplyr::filter(year(date) %in% 2010:2015), 
+  df_modis_fpar, 
   settings_modis)
 ```
 
@@ -497,7 +496,7 @@ settings_modis <- get_settings_modis(
 ```
 
 This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`.
-```{r}
+```{r warning=FALSE, message=FALSE}
 df_modis_fpar <- ingest(
   siteinfo_fluxnet2015 %>% slice(1:3), 
   source = "modis",
