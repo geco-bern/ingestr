@@ -39,16 +39,14 @@ All ingested data follows standardised variable naming and (optionally) units.
 
 | Variable                           | Variable name | Units                          |
 |-------------------------           |---------------|---------------                 |
-| Gross primary production           | `gpp`         | g CO$^{-2}$ m$^{-2}$ X$^{-1}$  |
+| Gross primary production           | `gpp`         | g CO$^{-2}$ m$^{-2}$ s$^{-1}$  |
 | Air temperature                    | `temp`        | $^\circ$C                      |
-| Precipitation                      | `prec`        | mm X$^{-1}$                    |
+| Precipitation                      | `prec`        | mm s$^{-1}$                    |
 | Vapour pressure deficit            | `vpd`         | Pa                             |
 | Atmospheric pressure               | `patm`        | Pa                             |
-| Net radiation                      | `netrad`      | J m$^{-2}$ X$^{-1}$            |
-| Photosynthetic photon flux density | `ppfd`        | mol m$^{-2}$ X$^{-1}$          |
+| Net radiation                      | `netrad`      | J m$^{-2}$ s$^{-1}$            |
+| Photosynthetic photon flux density | `ppfd`        | mol m$^{-2}$ s$^{-1}$          |
 | Elevation (altitude)               | `elv`         | m a.s.l.                       |        
-
-$X$ stands for 's' for half-hourly and hourly, 'd' for daily, 'm' for monthly, and 'y' for annual data.
 
 Use these variable names for specifying which variable names they correspond to in the original data source (see argument `getvars` to functions `ingest()` and `ingest_bysite()`).
 

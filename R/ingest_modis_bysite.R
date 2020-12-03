@@ -140,7 +140,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
   ##--------------------------------------
   if (prod=="MOD13Q1"){
     ##--------------------------------------
-    ## This is for MOD13Q1 EVI data downloaded from MODIS LP DAAC
+    ## This is for MOD13Q1 Vegetation indeces (NDVI, EVI) data downloaded from MODIS LP DAAC
     ##--------------------------------------
     ## QC interpreted according to https://vip.arizona.edu/documents/MODIS/MODIS_VI_UsersGuide_June_2015_C6.pdf
     df <- df %>%
@@ -230,11 +230,12 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
 
     # ## This is interpreted according to https://lpdaac.usgs.gov/sites/default/files/public/product_documentation/mod15_user_guide.pdf, p.9
 
-    ## Ignorant filtering here!
+    ## No filtering here!
     df <- df %>%
       dplyr::rename(modisvar = value) %>%
       dplyr::rowwise() %>%
-      dplyr::mutate(modisvar_filtered = ifelse(qc %in% c(0, 2), modisvar, NA))
+      dplyr::mutate(modisvar_filtered = modisvar)
+      # dplyr::mutate(modisvar_filtered = ifelse(qc %in% c(0, 2), modisvar, NA))
 
 
   } else if (prod=="MOD17A2H"){
