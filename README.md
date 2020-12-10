@@ -1,8 +1,10 @@
 # ingestr
 
-The package `ingestr` provides functions to extract (ingest) point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution. This can be done for a set of sites at once, given a data frame containing the meta info for each site (see data frame `siteinfo`, with columns `lon` for longitude, `lat` for latitude, `date_start` and `date_end` specifying required dates). The output for such a set of site-level data is a nested data frame with rows for each site and columns `lon`, `lat`, `date_start`, and `date_end` plus an added column where the time series of ingested data is nested inside.
+The package `ingestr` provides functions to extract (ingest) environmental point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution (currently, just daily implemented). This is to make your life simpler when downloading and reading site-scale data, using a common interface with a single function for single-site and multi-site ingest, respectively, and a common and tidy format of ingested data across a variety of data *sources* and formats of original files. *Sources*, refers to both data sets hosted remotely and accessed through an API and local data sets. ingestr is particularly suited for preparing model forcing and offers a set of functionalities to transform original data into common standardized formats and units. This includes interpolation methods for converting monthly climate data (CRU TS currently) to daily time steps. 
 
-Data can be ingested for different data types (argument `source` in functions `ingest()` and `ingest_bysite()`, see Column Source ID in table below). For each data type, functions deal with a specific format of the original data and specific functions to read from respective files or remote servers. The following data types can be handled currently (more to be added by you if you like):
+The key functions are `ingest_bysite()` and `ingest()` for a single-site data ingest and a multi-site data ingest, respectively. For the multi-site data ingest, site meta information is provided through the argument `siteinfo` which takes a data frame with columns `lon` for longitude, `lat` for latitude, and (for time series downloads) `year_start` and `year_end`, specifying required dates (including all days of respective years). Sites are organised along rows. An example site meta info data frame is provided as part of this package for sites included in the FLUXNET2015 Tier 1 data set (`siteinfo_fluxnet2015`, additional columns are not required by `ingest_bysite()` and `ingest()`).
+
+The following *sources* can be handled currently:
 
 | Data source                                                          | Data type                                | Coverage | Source ID     | Reading from  | Remark     |
 |-------------------------                                             |---------------                           |--------- |---------------| ---           |---         |
@@ -16,9 +18,27 @@ Data can be ingested for different data types (argument `source` in functions `i
 | HWSD                                                                 | soil                                     | global   | `hwsd`        | local files   | using an adaption of David Le Bauer's [rhwsd](https://github.com/dlebauer/rhwsd) R package |
 | [WWF Ecoregions](https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c) | vegetation classification   | global   | `wwf`         | local files   | Olsen et al. (2001)| 
 
-
-Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is descrbed in Section 'Example for a set of sites'.
+Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is described in Section 'Example for a set of sites'.
 **Note** that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.
+
+## Variable names and units
+
+All ingested data follows standardized variable naming and (optionally) units. 
+
+| Variable                           | Variable name | Units                          |
+|-------------------------           |---------------|---------------                 |
+| Gross primary production           | `gpp`         | g CO$^{-2}$ m$^{-2}$           |
+| Air temperature                    | `temp`        | $^\circ$C                      |
+| Daily minimum air temperature      | `tmin`        | $^\circ$C                      |
+| Daily maximum air temperature      | `tmax`        | $^\circ$C                      |
+| Precipitation                      | `prec`        | mm s$^{-1}$                    |
+| Vapour pressure deficit            | `vpd`         | Pa                             |
+| Atmospheric pressure               | `patm`        | Pa                             |
+| Net radiation                      | `netrad`      | J m$^{-2}$ s$^{-1}=$ W m$^{-2}$|
+| Photosynthetic photon flux density | `ppfd`        | mol m$^{-2}$ s$^{-1}$          |
+| Elevation (altitude)               | `elv`         | m a.s.l.                       |        
+
+Use these variable names for specifying which variable names they correspond to in the original data source (see argument `getvars` to functions `ingest()` and `ingest_bysite()`). `gpp` is cumulative, corresponding to the time scale of the data. For example, if daily data is read, `gpp` is the total gross primary production per day (g CO$^{-2}$ m$^{-2}$ d$^{-1}$).
 
 
 ## Installation

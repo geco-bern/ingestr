@@ -531,14 +531,8 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
     df <- df %>% dplyr::mutate( patm = patm * 1e3 )
   }
   if ("ppfd" %in% names(df)){
-    if (verbose) rlang::warn("Converting: ppfd = ppfd * 60 * 60 * 24 (given in W m-2, required in J m-2 d-1) \n")
-    df <- df %>% dplyr::mutate( ppfd = ppfd * 60 * 60 * 24 )
-    if (verbose) rlang::warn("Converting: ppfd = ppfd * kfFEC * 1.0e-6 (convert from J/m2/d to mol/m2/d; kfFEC = 2.04 is the flux-to-energy conversion, micro-mol/J (Meek et al., 1984)) \n")
+    if (verbose) rlang::warn("Converting: ppfd = ppfd * kfFEC * 1.0e-6 (convert from J/m2/s to mol/m2/s; kfFEC = 2.04 is the flux-to-energy conversion, micro-mol/J (Meek et al., 1984)) \n")
     df <- df %>% dplyr::mutate( ppfd = ppfd * kfFEC * 1.0e-6 )
-  }
-  if ("netrad" %in% names(df)){
-    if (verbose) rlang::warn("Converting: netrad = NETRAD * 60 * 60 * 24 (given in W m-2 (avg.), required in J m-2 (daily total)) \n")
-    df <- df %>% dplyr::mutate( netrad = netrad * 60 * 60 * 24 )
   }
 
   ## GPP

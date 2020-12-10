@@ -14,6 +14,10 @@
 #' @param settings A list of additional settings used for reading original files.
 #' @param timescale A character or vector of characters, specifying the time scale of data used from
 #' the respective source (if multiple time scales are available, otherwise is disregarded).
+#' @param parallel A logical specifying whether ingest is run as parallel jobs for each site. This option is 
+#' only available for \code{source = "modis"} and requires argument \code{ncores} to be set.
+#' @param ncores An integer specifying the number of cores for parallel runs of ingest per site. Required only
+#' if \code{parallel = TRUE}
 #' @param verbose if \code{TRUE}, additional messages are printed.
 #'
 #' @return A named list of data frames (tibbles) containing input data for each site is returned.
@@ -29,6 +33,8 @@ ingest <- function(
 	dir,
 	settings,
 	timescale = "d",
+	parallel  = FALSE,
+	ncores    = NULL,
 	verbose   = FALSE
   ){
 
@@ -140,6 +146,41 @@ ingest <- function(
 	      keep                 = settings$keep
 	    )
 	  )
+
+	} else if (source == "modis"){
+	  #-----------------------------------------------------------
+	  # Get data from the remote server
+	  #-----------------------------------------------------------
+		if (parallel){
+
+			if (is.null(ncores)) rlang::abort(paste("Aborting. Please provide number of cores for parallel jobs."))
+
+	    cl <- multidplyr::new_cluster(ncores) %>% 
+	      multidplyr::cluster_assign(settings = settings) %>% 
+	      multidplyr::cluster_library(c("dplyr", "purrr", "rlang", "ingestr", "readr", "lubridate", "MODISTools", "tidyr"))
+
+		  ## distribute to cores, making sure all data from a specific site is sent to the same core
+		  ddf <- tibble(ilon = seq(nrow(siteinfo))) %>%
+		    multidplyr::partition(cl) %>%
+		    dplyr::mutate(data = purrr::map( ilon,
+		                                    ~ingest_modis_bysite(
+		                                    	slice(siteinfo, .),
+				      														settings))) %>% 
+		    collect() %>%
+		    tidyr::unnest(data)
+  
+		} else {
+
+		  ddf <- purrr::map(
+		    as.list(seq(nrow(siteinfo))),
+		    ~ingest_modis_bysite(
+		      slice(siteinfo, .),
+		      settings
+		      )
+		  	)
+
+		}
+
 
 	} else if (source == "co2_mlo"){
 	  #-----------------------------------------------------------
