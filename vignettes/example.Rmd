@@ -452,9 +452,9 @@ ddf_fluxnet_gpp <- ingest(
 This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 degree resolution), provided as monthly files containing all days in each month. The data directory specified here (`dir = "~/data/watch_wfdei/"`) contains subdirectories with names containing the variable names (corresponding to the ones specified by the argument `getvars = list(temp = "Tair")`).
 ```{r echo = T, results = 'hide'}
 ddf_watch <- ingest(
-  siteinfo = siteinfo,
+  siteinfo = siteinfo %>% slice(1:3),
   source    = "watch_wfdei",
-  getvars   = list(temp = "Tair"),
+  getvars   = c("temp"),
   dir       = "~/data/watch_wfdei/"  # adjust this with your local path
   )
 ```

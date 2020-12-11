@@ -47,34 +47,6 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
     ##----------------------------------------------------------------------
     ## Read WATCH-WFDEI data (extracting from NetCDF files for this site)
     ##----------------------------------------------------------------------
-    ## temperature
-    if ("temp" %in% getvars){
-      ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Tair_daily" ) %>%
-        dplyr::rename(temp = myvar) %>%
-        dplyr::mutate(temp = temp - 273.15) %>%
-        dplyr::right_join(ddf, by = c("sitename", "date"))
-    }
-    
-    ## precipitation
-    if ("prec" %in% getvars){
-      ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Rainf_daily" ) %>%
-        dplyr::rename( rain = myvar ) %>%
-        left_join(
-          ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Snowf_daily" ) %>%
-            dplyr::rename( snow = myvar ),
-          by = c("sitename", "date")
-        ) %>%
-        dplyr::mutate(prec = (rain + snow) ) %>%  # kg/m2/s
-        dplyr::right_join(ddf, by = c("sitename", "date"))
-    }
-
-    ## atmospheric pressure
-    if ("patm" %in% getvars){
-      ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "PSurf_daily" ) %>%
-        dplyr::rename(patm = myvar) %>%
-        dplyr::right_join(ddf, by = c("sitename", "date"))
-    }
-    
     ## vpd based on relative humidity, air temperature, and atmospheric pressure
     if ("vpd" %in% getvars){
       ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Qair_daily" ) %>%
@@ -93,6 +65,34 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
         ) %>%
         rowwise() %>% 
         dplyr::mutate(vpd = calc_vpd(qair = qair, tc = temp, patm = patm))
+    }
+
+    ## precipitation
+    if ("prec" %in% getvars){
+      ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Rainf_daily" ) %>%
+        dplyr::rename( rain = myvar ) %>%
+        left_join(
+          ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Snowf_daily" ) %>%
+            dplyr::rename( snow = myvar ),
+          by = c("sitename", "date")
+        ) %>%
+        dplyr::mutate(prec = (rain + snow) ) %>%  # kg/m2/s
+        dplyr::right_join(ddf, by = c("sitename", "date"))
+    }
+    
+    ## temperature
+    if ("temp" %in% getvars && !("temp" %in% names(ddf))){
+      ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Tair_daily" ) %>%
+        dplyr::rename(temp = myvar) %>%
+        dplyr::mutate(temp = temp - 273.15) %>%
+        dplyr::right_join(ddf, by = c("sitename", "date"))
+    }
+    
+    ## atmospheric pressure
+    if ("patm" %in% getvars && !("patm" %in% names(ddf))){
+      ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "PSurf_daily" ) %>%
+        dplyr::rename(patm = myvar) %>%
+        dplyr::right_join(ddf, by = c("sitename", "date"))
     }
     
     ## PPFD
@@ -302,7 +302,8 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
     setNames(c("mo", "yr")) %>%
     rowwise() %>%
     dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), ".nc" )) %>%
-    dplyr::mutate(data = purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat ) ))
+    ungroup() %>% 
+    dplyr::mutate(data = purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat, get_time = FALSE ) ))
   
   ## rearrange to a daily data frame
   complement_df <- function(df){
@@ -558,6 +559,7 @@ extract_pointdata_allsites <- function( filename, df_lonlat, get_time = FALSE ){
   ## load file using the raster library
   #print(paste("Creating raster brick from file", filename))
   if (!file.exists(filename)) rlang::abort(paste0("File not found: ", filename))
+  rlang::inform(paste0("Reading file: ", filename))
   rasta <- raster::brick(filename)
   
   df_lonlat <- raster::extract(
