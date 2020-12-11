@@ -91,6 +91,7 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
             dplyr::rename(patm = myvar),
           by = c("sitename", "date")
         ) %>%
+        rowwise() %>% 
         dplyr::mutate(vpd = calc_vpd(qair = qair, tc = temp, patm = patm))
     }
     
@@ -195,7 +196,7 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
     ## cloud cover
     if ("ccov" %in% getvars){
       cruvars <- c(cruvars, "ccov")
-      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "ccov" ) %>%
+      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "cld" ) %>%
         dplyr::select(sitename, date, myvar) %>%
         dplyr::rename(ccov = myvar) %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
@@ -506,6 +507,7 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
       right_join( ddf, by = c("date") ) %>% 
    
       ## calculate VPD (vap is in hPa)
+      rowwise() %>% 
       mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax ))
     
   }
