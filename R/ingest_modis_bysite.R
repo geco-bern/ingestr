@@ -228,7 +228,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
 
     ## QC interpreted according to https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H:
 
-    ## This is interpreted according to https://lpdaac.usgs.gov/sites/default/files/public/product_documentation/mod15_user_guide.pdf, p.9
+    ## This is interpreted according to https://lpdaac.usgs.gov/documents/2/mod15_user_guide.pdf, p.9
     df <- df %>%
 
       dplyr::rename(modisvar = value) %>%

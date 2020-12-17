@@ -115,8 +115,8 @@ medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
 meaning no data is excluded.}
 
 \item{filter_ntdt}{A logical specifying whether agreement of daytime and nighttime-
-based GPP estimates is to be used as a filter. Data points are removed 
-where their difference is below the the 97.5% and above the 2.5% quantile of all 
+based GPP estimates is to be used as a filter. Data points are removed
+where their difference is below the the 97.5% and above the 2.5% quantile of all
 difference values per site. Defaults to \code{FALSE}.}
 
 \item{return_qc}{A logical specifying whether quality control variables

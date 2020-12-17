@@ -1,18 +1,18 @@
 #' Defines settings for settings for Google Earth Engine download
 #'
 #' Defines settings for settings for Google Earth Engine download
-#' for a pre-defined set of "bundles" (\code{c("modis_fpar", 
-#' "modis_evi", "modis_lai", "modis_gpp")}). 
-#' 
+#' for a pre-defined set of "bundles" (\code{c("modis_fpar",
+#' "modis_evi", "modis_lai", "modis_gpp")}).
+#'
 #' @param bundle A character string specifying which dataset (bundle) to download.
 #' Defaults to \code{"modis_fpar"}. Available are: \code{c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")}.
 #' @param python_path A character string specifying the local path to the python executable
 #' @param gee_path A character string specifying the local path to the \code{gee_subseet} library.
-#' Defaults to \code{"."} (present working directory). 
+#' Defaults to \code{"."} (present working directory).
 #' @param data_path A character string specifying the path of where the data should be downloaded to.
-#' Defaults to \code{"."} (present working directory). 
-#' @param method_interpol A character string specifying which interpolation method to use. Defaults to linear interpolation (\code{"linear"}). 
-#' Alternatives are 
+#' Defaults to \code{"."} (present working directory).
+#' @param method_interpol A character string specifying which interpolation method to use. Defaults to linear interpolation (\code{"linear"}).
+#' Alternatives are
 #' @param keep A logical specifying whether to keep all intermediate data (before filtering, and before imputing mean seasonal cycle),
 #' and all alternative interpolation results. Defaults to \code{FALSE}.
 #' @param overwrite_raw A logical specifying whether raw data as downloaded from GEE is to be overwritten. Defaults to \code{FALSE},
@@ -24,9 +24,9 @@
 #' @export
 #'
 #' @examples \dontrun{settings_gee <- get_settings_gee()}
-#' 
+#'
 get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which python", intern = TRUE),
-                              gee_path = ".", data_path = ".", method_interpol = "linear", keep = FALSE, 
+                              gee_path = ".", data_path = ".", method_interpol = "linear", keep = FALSE,
                               overwrite_raw = FALSE, overwrite_interpol = FALSE ){
 
   if (bundle == "modis_fpar"){
@@ -84,7 +84,7 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
       band_qc  = "Psn_QC",              # string defining the quality flag variable name in Google Earth Engine
       prod     = "MODIS/006/MOD17A2H",  # string defining the "ImageCollection ID" on Google Earth Engine
       prod_suffix = "MOD17A2H",         # string to be used here for defining product source (must correspond to part after last / in 'prod')
-      varnam   = "gpp",                 # string to be used here for defining variable   
+      varnam   = "gpp",                 # string to be used here for defining variable
       productnam = "MODIS_GPP",         # string to be used here for defining product source
       scale_factor = 0.0001,
       period = 8,
@@ -102,7 +102,7 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
   out$keep               <- keep
   out$overwrite_raw      <- overwrite_raw
   out$overwrite_interpol <- overwrite_interpol
-  
+
   return(out)
 
 }
@@ -111,15 +111,15 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
 #' Defines settings for settings for MODIS download using MODISTools
 #'
 #' Defines settings for settings for Google Earth Engine download
-#' for a pre-defined set of "bundles" (\code{c("modis_fpar", 
-#' "modis_evi", "modis_lai", "modis_gpp")}). 
-#' 
+#' for a pre-defined set of "bundles" (\code{c("modis_fpar",
+#' "modis_evi", "modis_lai", "modis_gpp")}).
+#'
 #' @param bundle A character string specifying which dataset (bundle) to download.
 #' Defaults to \code{"modis_fpar"}. Available are: \code{c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")}.
 #' @param data_path A character string specifying the path of where the data should be downloaded to.
-#' Defaults to \code{"."} (present working directory). 
-#' @param method_interpol A character string specifying which interpolation method to use. Defaults to linear interpolation (\code{"linear"}). 
-#' Alternatives are 
+#' Defaults to \code{"."} (present working directory).
+#' @param method_interpol A character string specifying which interpolation method to use. Defaults to linear interpolation (\code{"linear"}).
+#' Alternatives are
 #' @param keep A logical specifying whether to keep all intermediate data (before filtering, and before imputing mean seasonal cycle),
 #' and all alternative interpolation results. Defaults to \code{FALSE}.
 #' @param overwrite_raw A logical specifying whether raw data as downloaded from GEE is to be overwritten. Defaults to \code{FALSE},
@@ -131,14 +131,13 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
 #' @export
 #'
 #' @examples \dontrun{settings_gee <- get_settings_gee()}
-#' 
-get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_interpol = "linear", keep = FALSE, 
+#'
+get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_interpol = "linear", keep = FALSE,
                               overwrite_raw = FALSE, overwrite_interpol = FALSE ){
 
   if (bundle == "modis_fpar"){
     ##--------------------------------------------------------------------
     ## MODIS FPAR, 500 m, 4-daily
-    ## Info see here: https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H
     ##--------------------------------------------------------------------
     out <- list(
       prod     = "MCD15A3H",
@@ -150,10 +149,23 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
       productnam = "MODIS_FPAR_MCD15A3H"
       )
 
+  } else if (bundle == "modis_lai"){
+    ##--------------------------------------------------------------------
+    ## MODIS LAI, 500 m, 4-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      prod     = "MCD15A3H",
+      band_var = "Lai_500m",
+      band_qc  = "FparLai_QC",
+      varnam   = "lai",
+      period   = 4,
+      prod_suffix = "MCD15A3H",
+      productnam = "MODIS_LAI_MCD15A3H"
+    )
+
   } else if (bundle == "modis_evi"){
     ##--------------------------------------------------------------------
     ## EVI
-    ## See info here: https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMOD13Q1
     ##--------------------------------------------------------------------
     out <- list(
       prod     = "MOD13Q1",
@@ -189,7 +201,7 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
   out$keep               <- keep
   out$overwrite_raw      <- overwrite_raw
   out$overwrite_interpol <- overwrite_interpol
-  
+
   return(out)
 
 }
@@ -198,7 +210,7 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
 #' Defines settings for settings for FLUXNET data ingestion
 #'
 #' Defines settings for settings for FLUXNET data ingestion
-#' 
+#'
 #' @param dir_hh A character string specifying the local path of
 #' half-hourly FLUXNET data, required to get daytime VPD. Defaults to
 #' \code{"."} (present working directory).
@@ -280,38 +292,38 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
 #' medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
 #' meaning no data is excluded.
 #' @param filter_ntdt A logical specifying whether agreement of daytime and nighttime-
-#' based GPP estimates is to be used as a filter. Data points are removed 
-#' where their difference is below the the 97.5% and above the 2.5% quantile of all 
+#' based GPP estimates is to be used as a filter. Data points are removed
+#' where their difference is below the the 97.5% and above the 2.5% quantile of all
 #' difference values per site. Defaults to \code{FALSE}.
 #' @param return_qc A logical specifying whether quality control variables
 #' should be returned. Defaults to \code{FALSE}.
 #' @param remove_neg A logical specifying whether negative GPP values are to
 #' be removed (replaces with NA). Defaults to \code{FALSE}.
-#' 
+#'
 #' @return A named list containing information required for read data from standard
 #' FLUXNET data files (CSV files).
 #' @export
 #'
 #' @examples \dontrun{settings_gee <- get_settings_fluxnet()}
-#' 
-get_settings_fluxnet <- function( 
+#'
+get_settings_fluxnet <- function(
   dir_hh= ".",
-  dir_hr= ".", 
+  dir_hr= ".",
   getswc             = TRUE,
-  threshold_GPP      = 0.0, 
-  threshold_LE       = 0.0, 
-  threshold_H        = 0.0, 
+  threshold_GPP      = 0.0,
+  threshold_LE       = 0.0,
+  threshold_H        = 0.0,
   threshold_SWC      = 0.0,
-  threshold_WS       = 0.0, 
-  threshold_USTAR    = 0.0, 
-  threshold_T        = 0.0, 
-  threshold_NETRAD   = 0.0, 
-  filter_ntdt        = FALSE, 
+  threshold_WS       = 0.0,
+  threshold_USTAR    = 0.0,
+  threshold_T        = 0.0,
+  threshold_NETRAD   = 0.0,
+  filter_ntdt        = FALSE,
   return_qc          = FALSE,
-  remove_neg         = FALSE, 
-  verbose            = TRUE 
+  remove_neg         = FALSE,
+  verbose            = TRUE
   ){
-  
+
   settings <- list(
     dir_hh= dir_hh,
     dir_hr= dir_hr,
@@ -329,7 +341,7 @@ get_settings_fluxnet <- function(
     remove_neg         = remove_neg,
     verbose            = verbose
     )
-  
+
   return(settings)
-  
+
 }
