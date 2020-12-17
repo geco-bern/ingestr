@@ -47,16 +47,28 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
     ##----------------------------------------------------------------------
     ## Read WATCH-WFDEI data (extracting from NetCDF files for this site)
     ##----------------------------------------------------------------------
-    ## temperature
-    if ("temp" %in% names(getvars)){
-      ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Tair_daily" ) %>%
-        dplyr::rename(temp = myvar) %>%
-        dplyr::mutate(temp = temp - 273.15) %>%
-        dplyr::right_join(ddf, by = c("sitename", "date"))
+    ## vpd based on relative humidity, air temperature, and atmospheric pressure
+    if ("vpd" %in% getvars){
+      ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Qair_daily" ) %>%
+        dplyr::rename(qair = myvar) %>%
+        dplyr::right_join(ddf, by = c("sitename", "date")) %>% 
+        left_join(
+          ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Tair_daily" ) %>%
+            dplyr::rename(temp = myvar) %>% 
+            dplyr::mutate(temp = temp - 273.15),
+          by = c("sitename", "date")
+        ) %>%
+        left_join(
+          ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "PSurf_daily" ) %>%
+            dplyr::rename(patm = myvar),
+          by = c("sitename", "date")
+        ) %>%
+        rowwise() %>% 
+        dplyr::mutate(vpd = calc_vpd(qair = qair, tc = temp, patm = patm))
     }
-    
+
     ## precipitation
-    if ("prec" %in% names(getvars)){
+    if ("prec" %in% getvars){
       ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Rainf_daily" ) %>%
         dplyr::rename( rain = myvar ) %>%
         left_join(
@@ -64,22 +76,30 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
             dplyr::rename( snow = myvar ),
           by = c("sitename", "date")
         ) %>%
-        dplyr::mutate(prec = (rain + snow) * 60 * 60 * 24 ) %>%  # kg/m2/s -> mm/day
+        dplyr::mutate(prec = (rain + snow) ) %>%  # kg/m2/s
         dplyr::right_join(ddf, by = c("sitename", "date"))
     }
     
-    ## humidity
-    if ("vpd" %in% names(getvars)){
-      ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Qair_daily" ) %>%
-        dplyr::rename(qair = myvar) %>%
+    ## temperature
+    if ("temp" %in% getvars && !("temp" %in% names(ddf))){
+      ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "Tair_daily" ) %>%
+        dplyr::rename(temp = myvar) %>%
+        dplyr::mutate(temp = temp - 273.15) %>%
+        dplyr::right_join(ddf, by = c("sitename", "date"))
+    }
+    
+    ## atmospheric pressure
+    if ("patm" %in% getvars && !("patm" %in% names(ddf))){
+      ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "PSurf_daily" ) %>%
+        dplyr::rename(patm = myvar) %>%
         dplyr::right_join(ddf, by = c("sitename", "date"))
     }
     
     ## PPFD
-    if ("ppfd" %in% names(getvars)){
+    if ("ppfd" %in% getvars){
       kfFEC <- 2.04
       ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "SWdown_daily" ) %>%
-        dplyr::mutate(ppfd = myvar * kfFEC * 1.0e-6 * 60 * 60 * 24 ) %>%  # umol m-2 s-1 -> mol m-2 d-1
+        dplyr::mutate(ppfd = myvar * kfFEC * 1.0e-6 ) %>%  # micro-mol m-2 s-1 -> mol m-2 s-1
         dplyr::right_join(ddf, by = c("sitename", "date"))
     }
     
@@ -100,55 +120,52 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
     
     cruvars <- c()
     
-    ## temperature
-    if ("temp" %in% names(getvars) || "vpd" %in% names(getvars)){
+    ## temperature (daily mean air)
+    if ("temp" %in% getvars){
       cruvars <- c(cruvars, "temp")
-      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, getvars[[ "temp" ]] ) %>%
+      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "temp" ) %>%
         dplyr::select(sitename, date, myvar) %>%
         dplyr::rename(temp = myvar) %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
-      
+    }
+
+    ## daily minimum temperature
+    if ("tmin" %in% getvars){
+      cruvars <- c(cruvars, "tmin")
+      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "tmn" ) %>%
+        dplyr::select(sitename, date, myvar) %>%
+        dplyr::rename(tmin = myvar) %>%
+        dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
+        dplyr::select(-date) %>%
+        dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
+    }
+
+    ## daily maximum temperature
+    if ("tmax" %in% getvars){
+      cruvars <- c(cruvars, "tmax")
+      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "tmx" ) %>%
+        dplyr::select(sitename, date, myvar) %>%
+        dplyr::rename(tmax = myvar) %>%
+        dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
+        dplyr::select(-date) %>%
+        dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
     }
     
     ## precipitation
-    if ("prec" %in% names(getvars)){
+    if ("prec" %in% getvars){
       cruvars <- c(cruvars, "prec")
-      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, getvars[["prec"]] ) %>%
+      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "prec" ) %>%
         dplyr::select(sitename, date, myvar) %>%
         dplyr::rename(prec = myvar) %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
-    }
-    
-    ## vpd from vapour pressure
-    if ("vpd" %in% names(getvars)){
-      cruvars <- c(cruvars, "vap")
-      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, getvar[["vap"]] ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(vap = myvar) %>%
-        dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
-        dplyr::select(-date) %>%
-        dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
-    }
-    
-    ## cloud cover
-    if ("ccov" %in% names(getvars)){
-      cruvars <- c(cruvars, "ccov")
-      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, getvars[["ccov"]] ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(ccov = myvar) %>%
-        dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
-        # dplyr::select(-date) %>%
-        dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
-    }
-    
-    ## wet days
-    if ("wetd" %in% names(getvars)){
+      
+      ## also get wet days to generate daily values
       cruvars <- c(cruvars, "wetd")
-      mdf <- ingest_globalfields_cru_byvar(siteinfo,  dir, getvars[["wetd"]] ) %>%
+      mdf <- ingest_globalfields_cru_byvar(siteinfo,  dir, "wetd" ) %>%
         dplyr::select(sitename, date, myvar) %>%
         dplyr::rename(wetd = myvar) %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
@@ -156,13 +173,35 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
     }
     
-    ## VPD
-    ## calculated as a function of vapour pressure and temperature, vapour
-    ## pressure is given by CRU data.
-    if ("vap" %in% cruvars){
-      ## calculate VPD (vap is in hPa)
-      mdf <-  mdf %>%
-        mutate( vpd_vap_cru_temp_cru = calc_vpd( eact = 1e2 * vap, tc = temp ) )
+    ## vpd from vapour pressure
+    if ("vpd" %in% getvars){
+      cruvars <- c(cruvars, "vpd")
+      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "vap" ) %>%
+        dplyr::select(sitename, date, myvar) %>%
+        dplyr::rename(vap = myvar) %>%
+        dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
+        dplyr::select(-date) %>%
+        dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
+      
+      ## also get temperature to convert vapour pressure to vpd
+      cruvars <- c(cruvars, "temp")
+      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "temp" ) %>%
+        dplyr::select(sitename, date, myvar) %>%
+        dplyr::rename(temp = myvar) %>%
+        dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
+        dplyr::select(-date) %>%
+        dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
+    }
+    
+    ## cloud cover
+    if ("ccov" %in% getvars){
+      cruvars <- c(cruvars, "ccov")
+      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "cld" ) %>%
+        dplyr::select(sitename, date, myvar) %>%
+        dplyr::rename(ccov = myvar) %>%
+        dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
+        # dplyr::select(-date) %>%
+        dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
     }
     
     ## expand monthly to daily data
@@ -263,7 +302,8 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
     setNames(c("mo", "yr")) %>%
     rowwise() %>%
     dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), ".nc" )) %>%
-    dplyr::mutate(data = purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat ) ))
+    ungroup() %>% 
+    dplyr::mutate(data = purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat, get_time = FALSE ) ))
   
   ## rearrange to a daily data frame
   complement_df <- function(df){
@@ -371,7 +411,46 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
     }
     
     ddf <- init_dates_dataframe( yr, yr ) %>%
-      mutate( temp = monthly2daily( mtemp, "polynom", mtemp_pvy[nmonth], mtemp_nxt[1], leapyear = leap_year(yr) ) ) %>%
+      mutate( temp = monthly2daily( mtemp, "polynom", mtemp_pvy[nmonth], mtemp_nxt[1], leapyear = lubridate::leap_year(yr) ) ) %>%
+      right_join( ddf, by = c("date") )
+  }
+  
+  ##--------------------------------------------------------------------
+  ## daily minimum air temperature: interpolate using polynomial
+  ##--------------------------------------------------------------------
+  if ("tmin" %in% cruvars || "vpd" %in% cruvars){
+    mtmin     <- dplyr::filter( mdf, year==yr     )$tmin
+    mtmin_pvy <- dplyr::filter( mdf, year==yr_pvy )$tmin
+    mtmin_nxt <- dplyr::filter( mdf, year==yr_nxt )$tmin
+    if (length(mtmin_pvy)==0){
+      mtmin_pvy <- mtmin
+    }
+    if (length(mtmin_nxt)==0){
+      mtmin_nxt <- mtmin
+    }
+    
+    ddf <- init_dates_dataframe( yr, yr ) %>%
+      mutate( tmin = monthly2daily( mtmin, "polynom", mtmin_pvy[nmonth], mtmin_nxt[1], leapyear = lubridate::leap_year(yr) ) ) %>%
+      right_join( ddf, by = c("date") )
+  }
+  
+  
+  ##--------------------------------------------------------------------
+  ## daily minimum air temperature: interpolate using polynomial
+  ##--------------------------------------------------------------------
+  if ("tmax" %in% cruvars || "vpd" %in% cruvars){
+    mtmax     <- dplyr::filter( mdf, year==yr     )$tmax
+    mtmax_pvy <- dplyr::filter( mdf, year==yr_pvy )$tmax
+    mtmax_nxt <- dplyr::filter( mdf, year==yr_nxt )$tmax
+    if (length(mtmax_pvy)==0){
+      mtmax_pvy <- mtmax
+    }
+    if (length(mtmax_nxt)==0){
+      mtmax_nxt <- mtmax
+    }
+    
+    ddf <- init_dates_dataframe( yr, yr ) %>%
+      mutate( tmax = monthly2daily( mtmax, "polynom", mtmax_pvy[nmonth], mtmax_nxt[1], leapyear = lubridate::leap_year(yr) ) ) %>%
       right_join( ddf, by = c("date") )
   }
   
@@ -384,7 +463,7 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
     
     if (any(!is.na(mprec))&&any(!is.na(mwetd))){
       ddf <-  init_dates_dataframe( yr, yr ) %>%
-        mutate( prec = get_daily_prec( mprec, mwetd, leapyear = leap_year(yr) ) ) %>%
+        mutate( prec = get_daily_prec( mprec, mwetd, leapyear = lubridate::leap_year(yr) ) ) %>%
         right_join( ddf, by = c("date") )
     }
   }
@@ -404,7 +483,7 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
     }
     
     ddf <-  init_dates_dataframe( yr, yr ) %>%
-      mutate( ccov_int = monthly2daily( mccov, "polynom", mccov_pvy[nmonth], mccov_nxt[1], leapyear = leap_year(yr) ) ) %>%
+      mutate( ccov_int = monthly2daily( mccov, "polynom", mccov_pvy[nmonth], mccov_nxt[1], leapyear = lubridate::leap_year(yr) ) ) %>%
       ## Reduce CCOV to a maximum 100%
       mutate( ccov = ifelse( ccov_int > 100, 100, ccov_int ) ) %>%
       right_join( ddf, by = c("date") )
@@ -413,10 +492,10 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
   ##--------------------------------------------------------------------
   ## VPD: interpolate using polynomial
   ##--------------------------------------------------------------------
-  if ("vap" %in% cruvars){
-    mvpd     <- dplyr::filter( mdf, year==yr     )$vpd_vap_temp
-    mvpd_pvy <- dplyr::filter( mdf, year==yr_pvy )$vpd_vap_temp
-    mvpd_nxt <- dplyr::filter( mdf, year==yr_nxt )$vpd_vap_temp
+  if ("vpd" %in% cruvars){
+    mvpd     <- dplyr::filter( mdf, year==yr     )$vpd
+    mvpd_pvy <- dplyr::filter( mdf, year==yr_pvy )$vpd
+    mvpd_nxt <- dplyr::filter( mdf, year==yr_nxt )$vpd
     if (length(mvpd_pvy)==0){
       mvpd_pvy <- mvpd
     }
@@ -425,8 +504,13 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
     }
     
     ddf <- init_dates_dataframe( yr, yr ) %>%
-      mutate( vpd = monthly2daily( mvpd, "polynom", mvpd_pvy[nmonth], mvpd_nxt[1], leapyear = (yr %% 4 == 0) ) ) %>%
-      right_join( ddf, by = c("date") )
+      mutate( vpd = monthly2daily( mvpd, "polynom", mvpd_pvy[nmonth], mvpd_nxt[1], leapyear = lubridate::leap_year(yr) ) ) %>%
+      right_join( ddf, by = c("date") ) %>% 
+   
+      ## calculate VPD (vap is in hPa)
+      rowwise() %>% 
+      mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax ))
+    
   }
   
   return( ddf )
@@ -475,6 +559,7 @@ extract_pointdata_allsites <- function( filename, df_lonlat, get_time = FALSE ){
   ## load file using the raster library
   #print(paste("Creating raster brick from file", filename))
   if (!file.exists(filename)) rlang::abort(paste0("File not found: ", filename))
+  rlang::inform(paste0("Reading file: ", filename))
   rasta <- raster::brick(filename)
   
   df_lonlat <- raster::extract(

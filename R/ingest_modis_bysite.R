@@ -140,7 +140,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
   ##--------------------------------------
   if (prod=="MOD13Q1"){
     ##--------------------------------------
-    ## This is for MOD13Q1 EVI data downloaded from MODIS LP DAAC
+    ## This is for MOD13Q1 Vegetation indeces (NDVI, EVI) data downloaded from MODIS LP DAAC
     ##--------------------------------------
     ## QC interpreted according to https://vip.arizona.edu/documents/MODIS/MODIS_VI_UsersGuide_June_2015_C6.pdf
     df <- df %>%
@@ -283,7 +283,6 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
 
       ## Drop all data identified as outliers = lie outside 3*IQR
       dplyr::mutate(modisvar_filtered = remove_outliers( modisvar_filtered, coef=3 ))  # maybe too dangerous - removes peaks
-
 
 
   } else if (prod=="MOD17A2H"){
