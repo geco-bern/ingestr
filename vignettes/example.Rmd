@@ -30,7 +30,7 @@ The following *sources* can be handled currently:
 | [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/)    | ecosystem fluxes, meteo, soil moisture   | site     | `fluxnet`     | local files   |            |
 | [WATCH-WFDEI](http://www.eu-watch.org/data_availability)             | meteo                                    | global   | `watch_wfdei` | local files   |            |
 | [CRU](https://crudata.uea.ac.uk/cru/data/hrg/)                       | meteo                                    | global   | `cru`         | local files   |            |
-| MODIS LP DAAC                                                        | remote sensing                           | global   | `modis`       | remote server | using [*MODISTools*](https://docs.ropensci.org/MODISTools/) |
+| MODIS LP DAAC                                                        | remote sensing                           | global   | `modis`       | remote server | using [MODISTools](https://docs.ropensci.org/MODISTools/) |
 | Google Earth Engine                                                  | remote sensing                           | global   | `gee`         | remote server | using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library |
 | [ETOPO1](https://www.ngdc.noaa.gov/mgg/global/)                      | elevation                                | global   | `etopo1`      | local files   |            |
 | [Mauna Loa CO2](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html) | CO2 concentration                        | site     | `co2_mlo`     | remote server | using the [climate](https://github.com/bczernecki/climate) R package |
@@ -180,7 +180,7 @@ Looks sweet.
 
 ## MODIS LP DAAC
 
-This uses the [*MODISTools*](https://docs.ropensci.org/MODISTools/) R package making its interface consistent with ingestr. Settings can be specified and passed on using the `settings` argument. To facilitate the selection of data products and bands to be downloaded, you may use the function `get_settings_modis)` which defines defaults for different data bundles (`c("modis_fpar", "modis_ndvi", "modis_evi")` are available).
+This uses the [MODISTools](https://docs.ropensci.org/MODISTools/) R package making its interface consistent with ingestr. Settings can be specified and passed on using the `settings` argument. To facilitate the selection of data products and bands to be downloaded, you may use the function `get_settings_modis)` which defines defaults for different data bundles (`c("modis_fpar", "modis_ndvi", "modis_evi")` are available).
 
 - `"modis_fpar"`: MODIS collection 6, MCD15A3H, band `Fpar_500m`
 - `"modis_lai"`: MODIS collection 6, MCD15A3H, band `Lai_500m`
@@ -202,14 +202,14 @@ settings_modis <- get_settings_modis(
 ```
 
 This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`.
-```{r}
+```{r warning=FALSE}
 df_modis_fpar <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "modis",
   year_start= 2018,
   year_end  = 2019,
-  lon       = 8.365,
-  lat       = 47.47808,
+  lon       = 8.36439,
+  lat       = 47.47833,
   settings  = settings_modis,
   verbose   = FALSE
   )
@@ -321,10 +321,10 @@ This can now be used to download the data to the directory specified by argument
 df_gee_modis_fpar <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "gee",
-  year_start= 2004,
-  year_end  = 2014,
-  lon       = 3.5958,
-  lat       = 43.7414,
+  year_start= 2009,
+  year_end  = 2010,
+  lon       = 8.36439,
+  lat       = 47.47833,
   settings  = settings_gee,
   verbose   = FALSE
   )
@@ -377,8 +377,8 @@ Then, use similarly to above, with providing the path to the downloaded file wit
 df_hwsd <- ingest_bysite(
   sitename  = "CH-Lae",
   source  = "hwsd",
-  lon     = 3.5958,
-  lat     = 43.7414,
+  lon     = 8.36439,
+  lat     = 47.47833,
   settings = list(fil = "~/data/hwsd/HWSD_RASTER/hwsd.bil"),
   verbose = FALSE
   )
@@ -467,7 +467,7 @@ This extracts monthly data from the CRU TS data. Interpolation to daily values i
 ddf_cru <- ingest(
   siteinfo = siteinfo,
   source    = "cru",
-  getvars   = list(temp = "tmx"),
+  getvars   = c("tmax"),
   dir       = "~/data/cru/ts_4.01/"  # adjust this with your local path
   )
 ```
@@ -477,13 +477,13 @@ Check it out for the first site (BE-Vie).
 ggplot() +
   geom_line(data = ddf_fluxnet$data[[1]], aes(x = date, y = temp)) +
   geom_line(data = ddf_watch$data[[1]], aes(x = date, y = temp), col = "royalblue") +
-  geom_line(data = ddf_cru$data[[1]], aes(x = date, y = temp), col = "red") +
+  geom_line(data = ddf_cru$data[[1]], aes(x = date, y = tmax), col = "red") +
   xlim(ymd("2000-01-01"), ymd("2005-12-31"))
 ```
 
 ## MODIS LP DAAC
 
-This uses the [*MODISTools*](https://docs.ropensci.org/MODISTools/) R package making its interface consistent with ingestr. Settings can be specified and passed on using the `settings` argument. To facilitate the selection of data products and bands to be downloaded, you may use the function `get_settings_modis)` which defines defaults for different data bundles (`c("modis_fpar", "modis_ndvi", "modis_evi")` are available).
+This uses the [MODISTools](https://docs.ropensci.org/MODISTools/) R package making its interface consistent with ingestr. Settings can be specified and passed on using the `settings` argument. To facilitate the selection of data products and bands to be downloaded, you may use the function `get_settings_modis)` which defines defaults for different data bundles (`c("modis_fpar", "modis_ndvi", "modis_evi")` are available).
 
 - `"modis_fpar"`: MODIS collection 6, MCD15A3H, band `Fpar_500m`
 - `"modis_lai"`: MODIS collection 6, MCD15A3H, band `Lai_500m`
@@ -521,6 +521,16 @@ Plot this data.
 ```{r}
 plot_fapar_ingestr_bysite(
   df_modis_fpar$data[[1]] %>% 
+    dplyr::filter(year(date) %in% 2010:2015), 
+  settings_modis)
+
+plot_fapar_ingestr_bysite(
+  df_modis_fpar$data[[2]] %>% 
+    dplyr::filter(year(date) %in% 2010:2015), 
+  settings_modis)
+
+plot_fapar_ingestr_bysite(
+  df_modis_fpar$data[[3]] %>% 
     dplyr::filter(year(date) %in% 2010:2015), 
   settings_modis)
 ```

@@ -436,23 +436,33 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, qc_name, p
     ## get LOESS spline model for predicting daily values (used below)
     ##--------------------------------------
     rlang::inform("loess...")
-    idxs    <- which(!is.na(ddf$modisvar_filled))
-    myloess <- try( with( ddf, loess( modisvar_filled[idxs] ~ year_dec[idxs], span=0.1 ) ))
-    i <- 0
-    while (class(myloess)=="try-error" && i<50){
-      i <- i + 1
-      # print(paste("i=",i))
-      myloess <- try( with( ddf, loess( modisvar_filled[idxs] ~ year_dec[idxs], span=(0.1+0.02*(i-1)) ) ))
-    }
+
+    ## determine periodicity
+    period <- ddf %>%
+      filter(!is.na(modisvar_filtered)) %>%
+      mutate(prevdate = lag(date)) %>%
+      mutate(period = as.integer(difftime(date, prevdate))) %>%
+      pull(period) %>%
+      min(na.rm = TRUE)
+
+    ## take a three-weeks window for locally weighted regression (loess)
+    ## good explanation: https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
+    ndays_tot <- lubridate::time_length(diff(range(ddf$date)), unit = "day")
+    span <- (20*period)/ndays_tot  # multiply with larger number to get smoother curve
+
+    idxs    <- which(!is.na(ddf$modisvar_filtered))
+    myloess <- try( loess( modisvar_filtered ~ year_dec, data = ddf[idxs,], span=span ) )
 
     ## predict LOESS
-    tmp <- try( with( ddf, predict( myloess, year_dec ) ) )
+    tmp <- try( predict( myloess, newdata = ddf ) )
     if (class(tmp)!="try-error"){
       ddf$loess <- tmp
     } else {
       ddf$loess <- rep( NA, nrow(ddf) )
     }
   }
+
+
   if (method_interpol == "spline" || keep){
     ##--------------------------------------
     ## get SPLINE model for predicting daily values (used below)

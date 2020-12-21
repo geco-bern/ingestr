@@ -169,7 +169,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       ##   1110 L1B data faulty
       ##   1111 Not useful for any other reason/not processed
       mutate(vi_useful = substr( qc_bitname, start=3, stop=6 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(vi_useful %in% c("0000", "0001", "0010", "0100", "1000"), modisvar, NA)) %>%
+      dplyr::mutate(modisvar_filtered = ifelse(vi_useful %in% c("0000", "0001", "0010", "0100", "1000", "1001", "1010", "1100"), modisvar, NA)) %>%
 
       ## Bits 6-7: Aerosol Quantity
       ##  00 Climatology
@@ -274,15 +274,17 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       mutate(SCF_QC = ifelse( qc_bit4=="000", 0, ifelse( qc_bit4=="001", 1, ifelse( qc_bit4=="010", 2, ifelse( qc_bit4=="011", 3, 4 ) ) ) )) %>%
 
       ## Actually do the filtering
-      mutate(CloudState_ok = ifelse(CloudState %in% c(0), TRUE, FALSE)) %>%
-      mutate(modisvar_filtered = ifelse( CloudState_ok, modisvar_filtered, NA )) %>%
-      mutate(modisvar_filtered = ifelse( good_quality, modisvar_filtered, NA )) %>%
+      mutate(modisvar_filtered = ifelse( CloudState %in% c(0), modisvar_filtered, NA )) %>%
+      mutate(modisvar_filtered = ifelse( good_quality, modisvar_filtered, NA ))
 
-      ## don't believe the hype
-      dplyr::mutate(modisvar_filtered = ifelse( modisvar_filtered==1.0, NA, modisvar_filtered )) %>%
+      # mutate(modisvar_filtered = ifelse( !dead_detector, modisvar_filtered, NA )) %>%
+      # mutate(modisvar_filtered = ifelse( SCF_QC %in% c(0,1,2), modisvar_filtered, NA )) %>%
 
-      ## Drop all data identified as outliers = lie outside 3*IQR
-      dplyr::mutate(modisvar_filtered = remove_outliers( modisvar_filtered, coef=3 ))  # maybe too dangerous - removes peaks
+      # ## don't believe the hype -- DOESN'T WORK WITH LAI!!!
+      # dplyr::mutate(modisvar_filtered = ifelse( modisvar_filtered > 1.0, NA, modisvar_filtered )) %>%
+
+      # ## Drop all data identified as outliers = lie outside 3*IQR
+      # dplyr::mutate(modisvar_filtered = remove_outliers( modisvar_filtered, coef=3 ))  # maybe too dangerous - removes peaks
 
 
   } else if (prod=="MOD17A2H"){
@@ -331,17 +333,25 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     ## get LOESS spline model for predicting daily values (used below)
     ##--------------------------------------
     rlang::inform("loess...")
-    idxs    <- which(!is.na(ddf$modisvar_filtered))
-    myloess <- try( with( ddf, loess( modisvar_filtered[idxs] ~ year_dec[idxs], span=0.02 ) ))
-    i <- 0
-    while (class(myloess)=="try-error" && i<50){
-      i <- i + 1
-      # print(paste("i=",i))
-      myloess <- try( with( ddf, loess( modisvar_filtered[idxs] ~ year_dec[idxs], span=(0.02+0.002*(i-1)) ) ))
-    }
 
-    ## predict LOESS
-    tmp <- try( with( ddf, predict( myloess, year_dec ) ) )
+    ## determine periodicity
+    period <- ddf %>%
+      filter(!is.na(modisvar_filtered)) %>%
+      mutate(prevdate = lag(date)) %>%
+      mutate(period = as.integer(difftime(date, prevdate))) %>%
+      pull(period) %>%
+      min(na.rm = TRUE)
+
+    ## take a three-weeks window for locally weighted regression (loess)
+    ## good explanation: https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
+    ndays_tot <- lubridate::time_length(diff(range(ddf$date)), unit = "day")
+    span <- 100/ndays_tot # (20*period)/ndays_tot  # multiply with larger number to get smoother curve
+
+    idxs    <- which(!is.na(ddf$modisvar_filtered))
+    myloess <- try( loess( modisvar_filtered ~ year_dec, data = ddf[idxs,], span=span ) )
+
+    ## predict LOESS to all dates with missing data
+    tmp <- try( predict( myloess, newdata = ddf ) )
     if (class(tmp)!="try-error"){
       ddf$loess <- tmp
     } else {
