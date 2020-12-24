@@ -87,7 +87,13 @@
 <div id="ingestr" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#ingestr" class="anchor"></a>ingestr</h1></div>
-<p>The package <code>ingestr</code> provides functions to extract (ingest) environmental point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution (currently, just daily implemented). This is to make your life simpler when downloading and reading site-scale data, using a common interface with a single function for single-site and multi-site ingest, respectively, and a common and tidy format of ingested data across a variety of data <em>sources</em> and formats of original files. <em>Sources</em>, refers to both data sets hosted remotely and accessed through an API and local data sets. ingestr is particularly suited for preparing model forcing and offers a set of functionalities to transform original data into common standardized formats and units. This includes interpolation methods for converting monthly climate data (CRU TS currently) to daily time steps.</p>
+<p>The package <code>ingestr</code> provides functions to extract (ingest) environmental point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution (currently, just daily implemented). The main functionalities are:</p>
+<ul>
+<li>Temporal downscaling from montly to daily resolution</li>
+<li>Quality filtering, temporal interpolation and smoothing of remote sensing data</li>
+<li>Handling of different APIs and file formats, returning ingested data in <em>tidy</em> format.</li>
+</ul>
+<p>This is to make your life simpler when downloading and reading site-scale data, using a common interface with a single function for single-site and multi-site ingest, respectively, and a common and tidy format of ingested data across a variety of data <em>sources</em> and formats of original files. <em>Sources</em>, refers to both data sets hosted remotely and accessed through an API and local data sets. ingestr is particularly suited for preparing model forcing and offers a set of functionalities to transform original data into common standardized formats and units. This includes interpolation methods for converting monthly climate data (CRU TS currently) to daily time steps.</p>
 <p>The key functions are <code><a href="reference/ingest_bysite.html">ingest_bysite()</a></code> and <code><a href="reference/ingest.html">ingest()</a></code> for a single-site data ingest and a multi-site data ingest, respectively. For the multi-site data ingest, site meta information is provided through the argument <code>siteinfo</code> which takes a data frame with columns <code>lon</code> for longitude, <code>lat</code> for latitude, and (for time series downloads) <code>year_start</code> and <code>year_end</code>, specifying required dates (including all days of respective years). Sites are organised along rows. An example site meta info data frame is provided as part of this package for sites included in the FLUXNET2015 Tier 1 data set (<code>siteinfo_fluxnet2015</code>, additional columns are not required by <code><a href="reference/ingest_bysite.html">ingest_bysite()</a></code> and <code><a href="reference/ingest.html">ingest()</a></code>).</p>
 <p>The following <em>sources</em> can be handled currently:</p>
 <table class="table">
@@ -319,6 +325,12 @@
 <h2>License</h2>
 <ul class="list-unstyled">
 <li><a href="https://www.r-project.org/Licenses/GPL-3">GPL-3</a></li>
+</ul>
+</div>
+<div class="citation">
+<h2>Citation</h2>
+<ul class="list-unstyled">
+<li><a href="authors.html">Citing ingestr</a></li>
 </ul>
 </div>
 <div class="developers">

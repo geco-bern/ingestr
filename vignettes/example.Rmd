@@ -14,7 +14,13 @@ library(tidyverse)
 
 # Overview
 
-The package `ingestr` provides functions to extract (ingest) environmental point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution (currently, just daily implemented). This is to make your life simpler when downloading and reading site-scale data, using a common interface with a single function for single-site and multi-site ingest, respectively, and a common and tidy format of ingested data across a variety of data *sources* and formats of original files. *Sources*, refers to both data sets hosted remotely and accessed through an API and local data sets. ingestr is particularly suited for preparing model forcing and offers a set of functionalities to transform original data into common standardized formats and units. This includes interpolation methods for converting monthly climate data (CRU TS currently) to daily time steps. 
+The package `ingestr` provides functions to extract (ingest) environmental point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution (currently, just daily implemented). 
+
+- Temporal downscaling from montly to daily resolution
+- Quality filtering, temporal interpolation and smoothing of remote sensing data
+- Handling of different APIs and file formats, returning ingested data in *tidy* format.
+
+This is to make your life simpler when downloading and reading site-scale data, using a common interface with a single function for single-site and multi-site ingest, respectively, and a common and tidy format of ingested data across a variety of data *sources* and formats of original files. *Sources*, refers to both data sets hosted remotely and accessed through an API and local data sets. ingestr is particularly suited for preparing model forcing and offers a set of functionalities to transform original data into common standardized formats and units. This includes interpolation methods for converting monthly climate data (CRU TS currently) to daily time steps. 
 
 The key functions are `ingest_bysite()` and `ingest()` for a single-site data ingest and a multi-site data ingest, respectively. For the multi-site data ingest, site meta information is provided through the argument `siteinfo` which takes a data frame with columns `lon` for longitude, `lat` for latitude, and (for time series downloads) `year_start` and `year_end`, specifying required dates (including all days of respective years). Sites are organised along rows. An example site meta info data frame is provided as part of this package for sites included in the FLUXNET2015 Tier 1 data set (additional columns are not required by `ingest_bysite()` and `ingest()`):
 ```{r}
