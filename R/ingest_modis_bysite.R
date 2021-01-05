@@ -275,16 +275,11 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
 
       ## Actually do the filtering
       mutate(modisvar_filtered = ifelse( CloudState %in% c(0), modisvar_filtered, NA )) %>%
-      mutate(modisvar_filtered = ifelse( good_quality, modisvar_filtered, NA ))
+      mutate(modisvar_filtered = ifelse( good_quality, modisvar_filtered, NA )) %>%
 
+      ## new addition 5.1.2021
       # mutate(modisvar_filtered = ifelse( !dead_detector, modisvar_filtered, NA )) %>%
-      # mutate(modisvar_filtered = ifelse( SCF_QC %in% c(0,1,2), modisvar_filtered, NA )) %>%
-
-      # ## don't believe the hype -- DOESN'T WORK WITH LAI!!!
-      # dplyr::mutate(modisvar_filtered = ifelse( modisvar_filtered > 1.0, NA, modisvar_filtered )) %>%
-
-      # ## Drop all data identified as outliers = lie outside 3*IQR
-      # dplyr::mutate(modisvar_filtered = remove_outliers( modisvar_filtered, coef=3 ))  # maybe too dangerous - removes peaks
+      mutate(modisvar_filtered = ifelse( SCF_QC %in% c(0,1), modisvar_filtered, NA ))
 
 
   } else if (prod=="MOD17A2H"){
