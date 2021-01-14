@@ -16,7 +16,7 @@ ingest_globalfields(
 )
 }
 \arguments{
-\item{siteinfo}{A data frame with rows for each site and columns `lon` for longitude, `lat` for latitude, 
+\item{siteinfo}{A data frame with rows for each site and columns `lon` for longitude, `lat` for latitude,
 `date_start` and `date_end` specifying required dates.}
 
 \item{source}{A character used as identifiyer for the type of data source
@@ -47,6 +47,6 @@ A data frame (tibble) containing the time series of ingested data, nested for ea
 Read climate data from files as global fields
 }
 \examples{
-\dontrun{inputdata <- ingest_bysite()}  
+\dontrun{inputdata <- ingest_bysite()}
 
 }

@@ -35,7 +35,7 @@ the source dataset corresponding to standard names \code{"temp"} for temperature
 \item{timescale}{A character or vector of characters, specifying the time scale of data used from
 the respective source (if multiple time scales are available, otherwise is disregarded).}
 
-\item{parallel}{A logical specifying whether ingest is run as parallel jobs for each site. This option is 
+\item{parallel}{A logical specifying whether ingest is run as parallel jobs for each site. This option is
 only available for \code{source = "modis"} and requires argument \code{ncores} to be set.}
 
 \item{ncores}{An integer specifying the number of cores for parallel runs of ingest per site. Required only
