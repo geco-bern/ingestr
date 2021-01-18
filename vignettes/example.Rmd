@@ -33,15 +33,16 @@ The following *sources* can be handled currently:
 
 | Data source                                                          | Data type                                | Coverage | Source ID     | Reading from  | Remark     |
 |-------------------------                                             |---------------                           |--------- |---------------| ---           |---         |
-| [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/)    | ecosystem fluxes, meteo, soil moisture   | site     | `fluxnet`     | local files   |            |
-| [WATCH-WFDEI](http://www.eu-watch.org/data_availability)             | meteo                                    | global   | `watch_wfdei` | local files   |            |
-| [CRU](https://crudata.uea.ac.uk/cru/data/hrg/)                       | meteo                                    | global   | `cru`         | local files   |            |
-| MODIS LP DAAC                                                        | remote sensing                           | global   | `modis`       | remote server | using [MODISTools](https://docs.ropensci.org/MODISTools/) |
-| Google Earth Engine                                                  | remote sensing                           | global   | `gee`         | remote server | using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library |
-| [ETOPO1](https://www.ngdc.noaa.gov/mgg/global/)                      | elevation                                | global   | `etopo1`      | local files   |            |
-| [Mauna Loa CO2](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html) | CO2 concentration                        | site     | `co2_mlo`     | remote server | using the [climate](https://github.com/bczernecki/climate) R package |
-| HWSD                                                                 | soil                                     | global   | `hwsd`        | local files   | using an adaption of David Le Bauer's [rhwsd](https://github.com/dlebauer/rhwsd) R package |
-| [WWF Ecoregions](https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c) | vegetation classification   | global   | `wwf`         | local files   | Olsen et al. (2001)| 
+| [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/)    | time series by site   | site     | `fluxnet`     | local files   |            |
+| [WATCH-WFDEI](http://www.eu-watch.org/data_availability)             | time series raster map                                    | global   | `watch_wfdei` | local files   |            |
+| [CRU](https://crudata.uea.ac.uk/cru/data/hrg/)                       | time series raster map                                    | global   | `cru`         | local files   |            |
+| MODIS LP DAAC                                                        | time series raster map                           | global   | `modis`       | remote server | using [MODISTools](https://docs.ropensci.org/MODISTools/) |
+| Google Earth Engine                                                  | time series raster map                          | global   | `gee`         | remote server | using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library |
+| [ETOPO1](https://www.ngdc.noaa.gov/mgg/global/)                      | raster map                                | global   | `etopo1`      | local files   |            |
+| [Mauna Loa CO2](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html) | time series                        | site     | `co2_mlo`     | remote server | using the [climate](https://github.com/bczernecki/climate) R package |
+| HWSD                                                                 | shapefile map                                     | global   | `hwsd`        | local files   | using an adaption of David Le Bauer's [rhwsd](https://github.com/dlebauer/rhwsd) R package |
+| [WWF Ecoregions](https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c) | shapefile map   | global   | `wwf`         | local files   | Olsen et al. (2001)| 
+| [N deposition](https://link.springer.com/article/10.1007%2Fs10584-011-0155-0)    | time series raster map   | global     | `ndep`     | local files   | Lamarque et al. (2011) |
 
 Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is described in Section 'Example for a set of sites'.
 **Note** that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.
@@ -390,6 +391,24 @@ df_hwsd <- ingest_bysite(
   )
 ```
 
+
+## Nitrogen deposition
+
+This reads nitrogen deposition from global annual maps by Lamarque et al. (2011). This provides annual data separately for NHx and NOy in gN m$^{-2}$ yr$^{-1}$ from a global map provided at half-degree resolution and covering years 1860-2009. 
+```{r, eval = FALSE}
+df_ndep <- ingest_bysite(
+  sitename  = "CH-Lae",
+  source    = "ndep",
+  lon       = 8.36439,
+  lat       = 47.47833,
+  year_start= 2000,
+  year_end  = 2009,
+  timescale = "y",
+  dir       = "~/data/ndep_lamarque/",
+  verbose   = FALSE
+  )
+```
+
 # Examples for a site ensemble
 
 To collect data from an ensemble of sites, we have to define a meta data frame, here called `siteinfo`, with rows for each site and columns `lon` for longitude, `lat` for latitude, `date_start` and `date_end` for required dates (Dates are objects returned by a `lubridate::ymd()` function call - this stands for year-month-day). The function `ingest()` can then be used to collect all site-level data as a nested data frame corresponding to the metadata `siteinfo` with an added column named `data` where the time series of ingested data is nested inside.
@@ -471,7 +490,7 @@ ddf_watch <- ingest(
 This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.
 ```{r message=FALSE}
 ddf_cru <- ingest(
-  siteinfo = siteinfo,
+  siteinfo = siteinfo %>% slice(1:2),
   source    = "cru",
   getvars   = c("tmax"),
   dir       = "~/data/cru/ts_4.01/"  # adjust this with your local path
@@ -660,3 +679,17 @@ The following provides the biome codes. This information is additionally added b
 
 Please cite as:
 *Olson, D. M., Dinerstein, E. ,Wikramanayake, E. D., Burgess, N. D., Powel, G. V. N., Underwood, E. C., Damico, J. A., Itoua, I., Strand, H. E., Morrison, J. C., Loucks, C. J., Ricketts, T. H., Kura, Y., Lamoreux, J. F., Wettengel, W. W., Hedao, P., and Kassem, K.R. 2001 Terrestrial ecoregions of the world: A new map of life on earth. BioScience, 51(11):933–938.*
+
+
+## Nitrogen deposition
+
+This reads nitrogen deposition from global annual maps by Lamarque et al. (2011). This provides annual data separately for NHx and NOy in gN m$^{-2}$ yr$^{-1}$ from a global map provided at half-degree resolution and covering years 1860-2009. 
+```{r, eval = FALSE}
+df_ndep <- ingest(
+  siteinfo %>% slice(1:2),
+  source    = "ndep",
+  timescale = "y",
+  dir       = "~/data/ndep_lamarque/",
+  verbose   = FALSE
+  )
+```

@@ -104,7 +104,7 @@ ingest_bysite <- function(
                                     ) %>%
       mutate(sitename = sitename)
 
-  } else if (source == "cru" || source == "watch_wfdei"){
+  } else if (source == "cru" || source == "watch_wfdei" || source == "ndep"){
     #-----------------------------------------------------------
     # Get data from global fields and one single site
     #-----------------------------------------------------------

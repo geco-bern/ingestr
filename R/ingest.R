@@ -14,7 +14,7 @@
 #' @param settings A list of additional settings used for reading original files.
 #' @param timescale A character or vector of characters, specifying the time scale of data used from
 #' the respective source (if multiple time scales are available, otherwise is disregarded).
-#' @param parallel A logical specifying whether ingest is run as parallel jobs for each site. This option is 
+#' @param parallel A logical specifying whether ingest is run as parallel jobs for each site. This option is
 #' only available for \code{source = "modis"} and requires argument \code{ncores} to be set.
 #' @param ncores An integer specifying the number of cores for parallel runs of ingest per site. Required only
 #' if \code{parallel = TRUE}
@@ -97,7 +97,7 @@ ingest <- function(
 		bind_rows()
 
 
-	} else if (source == "cru" || source == "watch_wfdei"){
+	} else if (source == "cru" || source == "watch_wfdei" || source == "ndep"){
 	  #-----------------------------------------------------------
 	  # Get data from global fields
 	  #-----------------------------------------------------------
@@ -155,8 +155,8 @@ ingest <- function(
 
 			if (is.null(ncores)) rlang::abort(paste("Aborting. Please provide number of cores for parallel jobs."))
 
-	    cl <- multidplyr::new_cluster(ncores) %>% 
-	      multidplyr::cluster_assign(settings = settings) %>% 
+	    cl <- multidplyr::new_cluster(ncores) %>%
+	      multidplyr::cluster_assign(settings = settings) %>%
 	      multidplyr::cluster_library(c("dplyr", "purrr", "rlang", "ingestr", "readr", "lubridate", "MODISTools", "tidyr"))
 
 		  ## distribute to cores, making sure all data from a specific site is sent to the same core
@@ -165,10 +165,10 @@ ingest <- function(
 		    dplyr::mutate(data = purrr::map( ilon,
 		                                    ~ingest_modis_bysite(
 		                                    	slice(siteinfo, .),
-				      														settings))) %>% 
+				      														settings))) %>%
 		    collect() %>%
 		    tidyr::unnest(data)
-  
+
 		} else {
 
 		  ddf <- purrr::map(
@@ -234,10 +234,10 @@ ingest <- function(
 	                             dir = dir,
 	                             getvars = NULL,
 	                             timescale = NULL,
-	                             verbose = FALSE, 
+	                             verbose = FALSE,
 	                             layer = settings$layer
 	  )
-	  
+
 	} else {
 	  rlang::warn(paste("you selected source =", source))
 	  rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
@@ -255,7 +255,7 @@ ingest <- function(
 ## give each site and day within year the same co2 value
 expand_co2_bysite <- function(df, sitename, year_start, year_end){
 
-  ddf <- init_dates_dataframe( year_start, year_end ) %>% 
+  ddf <- init_dates_dataframe( year_start, year_end ) %>%
     dplyr::mutate(year = lubridate::year(date)) %>%
     dplyr::left_join(
       df,

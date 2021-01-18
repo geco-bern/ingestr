@@ -210,6 +210,32 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
         right_join( ddf, by = "date" )
     }
 
+  } else if (source == "ndep"){
+
+    ## create a annual data frame
+    adf <- ddf %>%
+      dplyr::select(sitename, date) %>%
+      dplyr::mutate(year = lubridate::year(date)) %>%
+      dplyr::select(sitename, year) %>%
+      dplyr::distinct()
+
+    ## extract the data for NHx
+    adf <- ingest_globalfields_ndep_byvar(siteinfo, dir, "nhx") %>%
+      dplyr::select(sitename, year, nhx) %>%
+      dplyr::right_join(adf, by = c("sitename", "year"))
+
+    ## extract the data for NOy
+    adf <- ingest_globalfields_ndep_byvar(siteinfo, dir, "noy") %>%
+      dplyr::select(sitename, year, noy) %>%
+      dplyr::right_join(adf, by = c("sitename", "year"))
+
+
+    if (timescale != "y"){
+      rlang::abort("ingest_globalfields() for source = ndep: come up with solution for non-annual time step")
+    } else {
+      ddf <- adf
+    }
+
   } else if (source == "etopo1"){
 
     filename <- list.files(dir, pattern = ".tif")
@@ -325,6 +351,31 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
 
 
 ##--------------------------------------------------------------------
+## Extract N deposition time series for a set of sites at once (opening
+## each file only once).
+##--------------------------------------------------------------------
+ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
+
+  ## construct data frame holding longitude and latitude info
+  df_lonlat <- tibble(
+    sitename = siteinfo$sitename,
+    lon      = siteinfo$lon,
+    lat      = siteinfo$lat
+  )
+
+  ## extract the data
+  filename <- list.files( dir, paste0("ndep_", varnam, "_lamarque11cc_historical_halfdeg.nc") )
+  df <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = TRUE) %>%
+    dplyr::mutate(data = purrr::map(data, ~setNames(., c(varnam, "year"))))
+
+  adf <- df %>%
+    tidyr::unnest(data)
+
+  return(adf)
+}
+
+
+##--------------------------------------------------------------------
 ## Extract temperature time series for a set of sites at once (opening
 ## each file only once).
 ##--------------------------------------------------------------------
@@ -361,7 +412,6 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   return( mdf )
 }
 
-
 ##--------------------------------------------------------------------
 ## Interpolates monthly data to daily data using polynomials or linear
 ## for a single year
@@ -374,7 +424,6 @@ expand_clim_cru_monthly <- function( mdf, cruvars ){
   return( ddf )
 
 }
-
 
 ##--------------------------------------------------------------------
 ## Interpolates monthly data to daily data using polynomials or linear
@@ -554,7 +603,7 @@ find_nearest_cruland_by_lat <- function( lon, lat, filn ){
 ## Extracts point data for a set of sites given by df_lonlat using
 ## functions from the raster package.
 ##--------------------------------------------------------------------
-extract_pointdata_allsites <- function( filename, df_lonlat, get_time = FALSE ){
+extract_pointdata_allsites <- function(filename, df_lonlat, get_time = FALSE){
 
   ## load file using the raster library
   #print(paste("Creating raster brick from file", filename))
