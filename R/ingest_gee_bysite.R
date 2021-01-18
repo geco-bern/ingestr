@@ -116,14 +116,8 @@ ingest_gee_bysite <- function(
     if (file.exists(filnam_raw_csv)){
 
       df <- readr::read_csv( filnam_raw_csv ) %>%   #, col_types = cols()
-        dplyr::mutate(  date_start = ymd(date) ) %>%
-        dplyr::mutate(  date = date_start + days( as.integer(period/2) ),
-                        doy = yday(date),
-                        year = year(date)
-        ) %>%
-        dplyr::mutate( ndayyear = ifelse( leap_year( date ), 366, 365 ) ) %>%
-        dplyr::mutate( year_dec = year(date) + (yday(date)-1) / ndayyear ) %>%
-        dplyr::select( -longitude, -latitude, -product, -ndayyear )
+        dplyr::mutate(  date = ymd(date) ) %>%
+        dplyr::select( -longitude, -latitude, -product )
 
       ## Apply scale factor, specific for each product
       if (any(!is.na(df[[band_var]]))){
@@ -150,6 +144,7 @@ ingest_gee_bysite <- function(
         sitename,
         year_start = lubridate::year(df_siteinfo$date_start),
         year_end   = lubridate::year(df_siteinfo$date_end),
+        var_name = band_var,
         qc_name = band_qc,
         prod = prod_suffix,
         method_interpol = method_interpol,
@@ -182,7 +177,7 @@ ingest_gee_bysite <- function(
 }
 
 
-gapfill_interpol_gee <- function( df, sitename, year_start, year_end, qc_name, prod, method_interpol, keep ){
+gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, qc_name, prod, method_interpol, keep ){
   ##--------------------------------------
   ## Returns data frame containing data
   ## (and year, moy, doy) for all available
@@ -280,7 +275,7 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, qc_name, p
       ## drop it
       dplyr::select(-qc_bitname)
 
-    ## OLD:
+    ## OLD:
     # ##--------------------------------------
     # ## This is for MOD13Q1 EVI data downloaded from Google Earth Engine with gee_subset
     # ## USED AS MODIS EVI GEE for P-model
@@ -324,12 +319,12 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, qc_name, p
     ## This is interpreted according to https://lpdaac.usgs.gov/documents/2/mod15_user_guide.pdf, p.9
     df <- df %>%
 
-      dplyr::rename(modisvar = value) %>%
+      dplyr::rename(modisvar = !!var_name) %>%
       dplyr::mutate(modisvar_filtered = modisvar) %>%
 
       ## separate into bits
       rowwise() %>%
-      mutate(qc_bitname = intToBits( FparLai_QC )[1:8] %>% rev() %>% as.character() %>% paste(collapse = "")) %>%
+      mutate(qc_bitname = intToBits( !!qc_name )[1:8] %>% rev() %>% as.character() %>% paste(collapse = "")) %>%
 
       ## MODLAND_QC bits
       ## 0: Good  quality (main algorithm with or without saturation)
@@ -375,7 +370,7 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, qc_name, p
       mutate(modisvar_filtered = ifelse( SCF_QC %in% c(0,1), modisvar_filtered, NA ))
 
 
-    ## OLD:
+    ## OLD:
     # ##--------------------------------------
     # ## This is for MCD15A3H FPAR data downloaded from Google Earth Engine with gee_subset
     # ## USED AS MODIS FPAR GEE for P-model
@@ -565,17 +560,6 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, qc_name, p
       ## decimal date
       mutate(year_dec = lubridate::decimal_date(date))
 
-  ##--------------------------------------
-  ## Average across pixels by date
-  ##--------------------------------------
-  npixels <- df %>% pull(pixel) %>% unique() %>% length()
-  rlang::inform(paste("Averaging across number of pixels: ", npixels))
-
-  df <- df %>%
-    group_by(date) %>%
-    # dplyr::filter(pixel == XXX) %>%    # to control wich pixel's information to be used.
-    summarise(modisvar_filtered = mean(modisvar_filtered, na.rm = TRUE),
-              modisvar = mean(modisvar, na.rm = TRUE))
 
   ##--------------------------------------
   ## merge N-day dataframe into daily one.
@@ -644,20 +628,18 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, qc_name, p
     ddf$linear <- approx( ddf$year_dec, ddf$modisvar_filtered, xout=ddf$year_dec )$y
   }
 
-  ## commented out to avoid dependency to 'signal'
-  # if (method_interpol == "sgfilter" || keep){
-  #   ##--------------------------------------
-  #   ## SAVITZKY GOLAY FILTER
-  #   ##--------------------------------------
-  #   rlang::inform("sgfilter ...")
-  #   ddf$sgfilter <- rep( NA, nrow(ddf) )
-  #   idxs <- which(!is.na(ddf$modisvar_filtered))
-  #   tmp <- try(signal::sgolayfilt( ddf$modisvar_filtered[idxs], p=3, n=51 ))
-  #   if (class(tmp)!="try-error"){
-  #     ddf$sgfilter[idxs] <- tmp
-  #   }
-
-  # }
+  if (method_interpol == "sgfilter" || keep){
+    ##--------------------------------------
+    ## SAVITZKY GOLAY FILTER
+    ##--------------------------------------
+    rlang::inform("sgfilter ...")
+    ddf$sgfilter <- rep( NA, nrow(ddf) )
+    idxs <- which(!is.na(ddf$modisvar_filtered))
+    tmp <- try(signal::sgolayfilt( ddf$modisvar_filtered[idxs], p=3, n=51 ))
+    if (class(tmp)!="try-error"){
+      ddf$sgfilter[idxs] <- tmp
+    }
+  }
 
   ##--------------------------------------
   ## Define 'fapar'
@@ -668,11 +650,9 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, qc_name, p
     ddf$modisvar_filled <- ddf$spline
   } else if (method_interpol == "linear"){
     ddf$modisvar_filled <- ddf$linear
+  } else if (method_interpol == "sgfilter"){
+    ddf$modisvar_filled <- ddf$sgfilter
   }
-
-  # else if (method_interpol == "sgfilter"){
-  #   ddf$modisvar_filled <- ddf$sgfilter
-  # }
 
   # ## plot daily smoothed line and close plotting device
   # if (do_plot_interpolated) with( ddf, lines( year_dec, fapar, col='red', lwd=2 ) )

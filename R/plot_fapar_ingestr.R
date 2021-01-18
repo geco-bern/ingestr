@@ -53,20 +53,24 @@ plot_fapar_ingestr_bysite <- function(df, settings, sitename = NULL){
   #   geom_point(data = df2, aes(x = date, y = data_modis, color = filter_level)) +
   #   geom_line(data = df2, aes(x = date, y = data_interpolated, color = interpolation_method))
 
+  ddf <- df %>%
+    pivot_longer(cols = c(linear, spline, loess, sgfilter), names_to = "method", values_to = "modisvar_interpol")
+
   gg <- ggplot() +
     geom_point(  data = df, aes(x = date, y = modisvar), color = "red") +
     # geom_point(  data = df, aes(x = date, y = modisvar_filled), col = 'blue') +
     geom_point(  data = df, aes(x = date, y = modisvar_filtered), color = "black") +
-    geom_line(  data = df, aes(x = date, y = linear, color = "linear")) +
+    geom_line(  data = ddf, aes(x = date, y = modisvar_interpol, color = method)) +
+    # geom_line(  data = df, aes(x = date, y = linear, color = "linear")) +
     # geom_line(  data = df, aes(x = date, y = spline, color = "spline")) +
-    geom_line(  data = df, aes(x = date, y = loess, color = "loess")) +
+    # geom_line(  data = df, aes(x = date, y = loess, color = "loess")) +
     # geom_line(  data = df, aes(x = date, y = sgfilter), col = 'green') +
-    labs(x = "Date", y = settings$varnam, title = sitename, subtitle = paste(settings$prod, settings$band_var)) +
-    scale_color_manual(name = "Interpolation",
-                       breaks = c("linear", "loess"),
-                       # breaks = c("linear", "spline", "loess"),
-                       # values = c("linear" = "red", "spline" = "cyan", "loess" = "blue") )
-                       values = c("linear" = "red", "loess" = "blue") )
+    labs(x = "Date", y = settings$varnam, title = sitename, subtitle = paste(settings$prod, settings$band_var))
+    # scale_color_manual(name = "Interpolation",
+    #                    breaks = c("linear", "loess"),
+    #                    # breaks = c("linear", "spline", "loess"),
+    #                    # values = c("linear" = "red", "spline" = "cyan", "loess" = "blue") )
+    #                    values = c("linear" = "red", "loess" = "blue") )
 
 # scale_color_manual(name = "Filtering",
     #                    breaks = c("filtered", "kept"),
