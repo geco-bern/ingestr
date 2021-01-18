@@ -1,6 +1,12 @@
 # ingestr
 
-The package `ingestr` provides functions to extract (ingest) environmental point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution (currently, just daily implemented). This is to make your life simpler when downloading and reading site-scale data, using a common interface with a single function for single-site and multi-site ingest, respectively, and a common and tidy format of ingested data across a variety of data *sources* and formats of original files. *Sources*, refers to both data sets hosted remotely and accessed through an API and local data sets. ingestr is particularly suited for preparing model forcing and offers a set of functionalities to transform original data into common standardized formats and units. This includes interpolation methods for converting monthly climate data (CRU TS currently) to daily time steps. 
+The package `ingestr` provides functions to extract (ingest) environmental point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution (currently, just daily implemented). The main functionalities are:
+
+- Temporal downscaling from montly to daily resolution
+- Quality filtering, temporal interpolation and smoothing of remote sensing data
+- Handling of different APIs and file formats, returning ingested data in *tidy* format.
+
+This is to make your life simpler when downloading and reading site-scale data, using a common interface with a single function for single-site and multi-site ingest, respectively, and a common and tidy format of ingested data across a variety of data *sources* and formats of original files. *Sources*, refers to both data sets hosted remotely and accessed through an API and local data sets. ingestr is particularly suited for preparing model forcing and offers a set of functionalities to transform original data into common standardized formats and units. This includes interpolation methods for converting monthly climate data (CRU TS currently) to daily time steps. 
 
 The key functions are `ingest_bysite()` and `ingest()` for a single-site data ingest and a multi-site data ingest, respectively. For the multi-site data ingest, site meta information is provided through the argument `siteinfo` which takes a data frame with columns `lon` for longitude, `lat` for latitude, and (for time series downloads) `year_start` and `year_end`, specifying required dates (including all days of respective years). Sites are organised along rows. An example site meta info data frame is provided as part of this package for sites included in the FLUXNET2015 Tier 1 data set (`siteinfo_fluxnet2015`, additional columns are not required by `ingest_bysite()` and `ingest()`).
 
@@ -11,7 +17,7 @@ The following *sources* can be handled currently:
 | [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/)    | ecosystem fluxes, meteo, soil moisture   | site     | `fluxnet`     | local files   |            |
 | [WATCH-WFDEI](http://www.eu-watch.org/data_availability)             | meteo                                    | global   | `watch_wfdei` | local files   |            |
 | [CRU](https://crudata.uea.ac.uk/cru/data/hrg/)                       | meteo                                    | global   | `cru`         | local files   |            |
-| MODIS LP DAAC                                                        | remote sensing                           | global   | `modis`       | remote server | using [*MODISTools*](https://docs.ropensci.org/MODISTools/) |
+| MODIS LP DAAC                                                        | remote sensing                           | global   | `modis`       | remote server | using [MODISTools](https://docs.ropensci.org/MODISTools/) |
 | Google Earth Engine                                                  | remote sensing                           | global   | `gee`         | remote server | using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library |
 | [ETOPO1](https://www.ngdc.noaa.gov/mgg/global/)                      | elevation                                | global   | `etopo1`      | local files   |            |
 | [Mauna Loa CO2](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html) | CO2 concentration                        | site     | `co2_mlo`     | remote server | using the [climate](https://github.com/bczernecki/climate) R package |

@@ -27,7 +27,7 @@ Defaults to \code{"."} (present working directory).}
 \item{data_path}{A character string specifying the path of where the data should be downloaded to.
 Defaults to \code{"."} (present working directory).}
 
-\item{method_interpol}{A character string specifying which interpolation method to use. Defaults to linear interpolation (\code{"linear"}). 
+\item{method_interpol}{A character string specifying which interpolation method to use. Defaults to linear interpolation (\code{"linear"}).
 Alternatives are}
 
 \item{keep}{A logical specifying whether to keep all intermediate data (before filtering, and before imputing mean seasonal cycle),
@@ -45,7 +45,7 @@ Earth Engine.
 }
 \description{
 Defines settings for settings for Google Earth Engine download
-for a pre-defined set of "bundles" (\code{c("modis_fpar", 
+for a pre-defined set of "bundles" (\code{c("modis_fpar",
 "modis_evi", "modis_lai", "modis_gpp")}).
 }
 \examples{

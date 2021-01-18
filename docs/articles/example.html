@@ -39,7 +39,7 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -68,7 +68,7 @@
 <ul class="nav navbar-nav navbar-right">
 <li>
   <a href="https://github.com/stineb/ingestr/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -98,8 +98,115 @@
 <div id="overview" class="section level1">
 <h1 class="hasAnchor">
 <a href="#overview" class="anchor"></a>Overview</h1>
-<p>The package <code>ingestr</code> provides functions to extract (ingest) point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution. This can be done for a set of sites at once, given a data frame containing the meta info for each site (see data frame <code>siteinfo</code>, with columns <code>lon</code> for longitude, <code>lat</code> for latitude, <code>date_start</code> and <code>date_end</code> specifying required dates). The output for such a set of site-level data is a nested data frame with rows for each site and columns <code>lon</code>, <code>lat</code>, <code>date_start</code>, and <code>date_end</code> plus an added column where the time series of ingested data is nested inside.</p>
-<p>Data can be ingested for different data types (argument <code>source</code> in functions <code><a href="../reference/ingest.html">ingest()</a></code> and <code><a href="../reference/ingest_bysite.html">ingest_bysite()</a></code>, see Column Source ID in table below). For each data type, functions deal with a specific format of the original data and specific functions to read from respective files or remote servers. The following data types can be handled currently (more to be added by you if you like):</p>
+<p>The package <code>ingestr</code> provides functions to extract (ingest) environmental point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution (currently, just daily implemented). This is to make your life simpler when downloading and reading site-scale data, using a common interface with a single function for single-site and multi-site ingest, respectively, and a common and tidy format of ingested data across a variety of data <em>sources</em> and formats of original files. <em>Sources</em>, refers to both data sets hosted remotely and accessed through an API and local data sets. ingestr is particularly suited for preparing model forcing and offers a set of functionalities to transform original data into common standardized formats and units. This includes interpolation methods for converting monthly climate data (CRU TS currently) to daily time steps.</p>
+<p>The key functions are <code><a href="../reference/ingest_bysite.html">ingest_bysite()</a></code> and <code><a href="../reference/ingest.html">ingest()</a></code> for a single-site data ingest and a multi-site data ingest, respectively. For the multi-site data ingest, site meta information is provided through the argument <code>siteinfo</code> which takes a data frame with columns <code>lon</code> for longitude, <code>lat</code> for latitude, and (for time series downloads) <code>year_start</code> and <code>year_end</code>, specifying required dates (including all days of respective years). Sites are organised along rows. An example site meta info data frame is provided as part of this package for sites included in the FLUXNET2015 Tier 1 data set (additional columns are not required by <code><a href="../reference/ingest_bysite.html">ingest_bysite()</a></code> and <code><a href="../reference/ingest.html">ingest()</a></code>):</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">siteinfo_fluxnet2015</span> <span class="op">%&gt;%</span> 
+  <span class="fu">slice</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="6%">
+<col width="6%">
+<col width="6%">
+<col width="3%">
+<col width="8%">
+<col width="6%">
+<col width="6%">
+<col width="4%">
+<col width="6%">
+<col width="10%">
+<col width="12%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">sitename</th>
+<th align="right">lon</th>
+<th align="right">lat</th>
+<th align="right">elv</th>
+<th align="left">year_start</th>
+<th align="left">year_end</th>
+<th align="left">classid</th>
+<th align="left">c4</th>
+<th align="right">whc</th>
+<th align="left">koeppen_code</th>
+<th align="left">igbp_land_use</th>
+<th align="left">plant_functional_type</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">AR-SLu</td>
+<td align="right">-66.4598</td>
+<td align="right">-33.4648</td>
+<td align="right">499</td>
+<td align="left">2009</td>
+<td align="left">2011</td>
+<td align="left">MF</td>
+<td align="left">FALSE</td>
+<td align="right">268.4240</td>
+<td align="left">Bwk</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">AR-Vir</td>
+<td align="right">-56.1886</td>
+<td align="right">-28.2395</td>
+<td align="right">97</td>
+<td align="left">2009</td>
+<td align="left">2012</td>
+<td align="left">ENF</td>
+<td align="left">FALSE</td>
+<td align="right">302.4276</td>
+<td align="left">Csb</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">AT-Neu</td>
+<td align="right">11.3175</td>
+<td align="right">47.1167</td>
+<td align="right">970</td>
+<td align="left">2002</td>
+<td align="left">2012</td>
+<td align="left">GRA</td>
+<td align="left">FALSE</td>
+<td align="right">270.0856</td>
+<td align="left">Dfc</td>
+<td align="left">Mixed Forests</td>
+<td align="left">Evergreen Broadleaf Trees</td>
+</tr>
+<tr class="even">
+<td align="left">AU-Ade</td>
+<td align="right">131.1178</td>
+<td align="right">-13.0769</td>
+<td align="right">81</td>
+<td align="left">2007</td>
+<td align="left">2009</td>
+<td align="left">WSA</td>
+<td align="left">FALSE</td>
+<td align="right">269.2187</td>
+<td align="left">Aw</td>
+<td align="left">Savannas</td>
+<td align="left">Grass</td>
+</tr>
+<tr class="odd">
+<td align="left">AU-ASM</td>
+<td align="right">133.2490</td>
+<td align="right">-22.2830</td>
+<td align="right">606</td>
+<td align="left">2010</td>
+<td align="left">2013</td>
+<td align="left">ENF</td>
+<td align="left">FALSE</td>
+<td align="right">214.5843</td>
+<td align="left">BSh</td>
+<td align="left">Open Shrublands</td>
+<td align="left">Shrub</td>
+</tr>
+</tbody>
+</table>
+<p>The following <em>sources</em> can be handled currently:</p>
 <table class="table">
 <colgroup>
 <col width="35%">
@@ -148,7 +255,7 @@
 <td>global</td>
 <td><code>modis</code></td>
 <td>remote server</td>
-<td>using <a href="https://docs.ropensci.org/MODISTools/"><em>MODISTools</em></a>
+<td>using <a href="https://docs.ropensci.org/MODISTools/">MODISTools</a>
 </td>
 </tr>
 <tr class="odd">
@@ -193,11 +300,11 @@
 </tr>
 </tbody>
 </table>
-<p>Examples to read data for a single site for each data type are given in Section ‘Examples for a single site’. Handling ingestion for multiple sites is descrbed in Section ‘Example for a set of sites’. <strong>Note</strong> that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.</p>
+<p>Examples to read data for a single site for each data type are given in Section ‘Examples for a single site’. Handling ingestion for multiple sites is described in Section ‘Example for a set of sites’. <strong>Note</strong> that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.</p>
 <div id="variable-names-and-units" class="section level2">
 <h2 class="hasAnchor">
 <a href="#variable-names-and-units" class="anchor"></a>Variable names and units</h2>
-<p>All ingested data follows standardised variable naming and (optionally) units.</p>
+<p>All ingested data follows standardized variable naming and (optionally) units.</p>
 <table class="table">
 <thead><tr class="header">
 <th>Variable</th>
@@ -208,7 +315,7 @@
 <tr class="odd">
 <td>Gross primary production</td>
 <td><code>gpp</code></td>
-<td>g CO<span class="math inline">\(^{-2}\)</span> m<span class="math inline">\(^{-2}\)</span> X<span class="math inline">\(^{-1}\)</span>
+<td>g CO<span class="math inline">\(^{-2}\)</span> m<span class="math inline">\(^{-2}\)</span>
 </td>
 </tr>
 <tr class="even">
@@ -218,9 +325,21 @@
 <span class="math inline">\(^\circ\)</span>C</td>
 </tr>
 <tr class="odd">
+<td>Daily minimum air temperature</td>
+<td><code>tmin</code></td>
+<td>
+<span class="math inline">\(^\circ\)</span>C</td>
+</tr>
+<tr class="even">
+<td>Daily maximum air temperature</td>
+<td><code>tmax</code></td>
+<td>
+<span class="math inline">\(^\circ\)</span>C</td>
+</tr>
+<tr class="odd">
 <td>Precipitation</td>
 <td><code>prec</code></td>
-<td>mm X<span class="math inline">\(^{-1}\)</span>
+<td>mm s<span class="math inline">\(^{-1}\)</span>
 </td>
 </tr>
 <tr class="even">
@@ -236,13 +355,13 @@
 <tr class="even">
 <td>Net radiation</td>
 <td><code>netrad</code></td>
-<td>J m<span class="math inline">\(^{-2}\)</span> X<span class="math inline">\(^{-1}\)</span>
+<td>J m<span class="math inline">\(^{-2}\)</span> s<span class="math inline">\(^{-1}=\)</span> W m<span class="math inline">\(^{-2}\)</span>
 </td>
 </tr>
 <tr class="odd">
 <td>Photosynthetic photon flux density</td>
 <td><code>ppfd</code></td>
-<td>mol m<span class="math inline">\(^{-2}\)</span> X<span class="math inline">\(^{-1}\)</span>
+<td>mol m<span class="math inline">\(^{-2}\)</span> s<span class="math inline">\(^{-1}\)</span>
 </td>
 </tr>
 <tr class="even">
@@ -252,14 +371,13 @@
 </tr>
 </tbody>
 </table>
-<p><span class="math inline">\(X\)</span> stands for ‘s’ for half-hourly and hourly, ‘d’ for daily, ‘m’ for monthly, and ‘y’ for annual data.</p>
-<p>Use these variable names for specifying which variable names they correspond to in the original data source (see argument <code>getvars</code> to functions <code><a href="../reference/ingest.html">ingest()</a></code> and <code><a href="../reference/ingest_bysite.html">ingest_bysite()</a></code>).</p>
+<p>Use these variable names for specifying which variable names they correspond to in the original data source (see argument <code>getvars</code> to functions <code><a href="../reference/ingest.html">ingest()</a></code> and <code><a href="../reference/ingest_bysite.html">ingest_bysite()</a></code>). <code>gpp</code> is cumulative, corresponding to the time scale of the data. For example, if daily data is read, <code>gpp</code> is the total gross primary production per day (g CO<span class="math inline">\(^{-2}\)</span> m<span class="math inline">\(^{-2}\)</span> d<span class="math inline">\(^{-1}\)</span>).</p>
 </div>
 </div>
 <div id="examples-for-a-single-site" class="section level1">
 <h1 class="hasAnchor">
 <a href="#examples-for-a-single-site" class="anchor"></a>Examples for a single site</h1>
-<p>The function <code><a href="../reference/ingest_bysite.html">ingest_bysite()</a></code> can be used to ingest data for a single site. The argument <code>source</code> specifies which data type (source) is to be read from and triggers the use of specific wrapper functions that are designed to read from files whith formats that differ between sources. Source-specific settings for data processing can be provided by argument <code>settings</code> (described for each data source below). More info about other, source-independent arguments are available through the man page (see <code><a href="../reference/ingest_bysite.html">?ingest_bysite</a></code>).</p>
+<p>The function <code><a href="../reference/ingest_bysite.html">ingest_bysite()</a></code> can be used to ingest data for a single site. The argument <code>source</code> specifies which data type (<em>source</em>) is to be read from and triggers the use of specific wrapper functions that are designed to read from original files with formats that differ between sources. Source-specific settings for data processing can be provided by argument <code>settings</code> (described for each data source below). More info about other, source-independent arguments are available through the man page (see <code><a href="../reference/ingest_bysite.html">?ingest_bysite</a></code>).</p>
 <div id="fluxnet" class="section level2">
 <h2 class="hasAnchor">
 <a href="#fluxnet" class="anchor"></a>FLUXNET</h2>
@@ -267,7 +385,7 @@
 <h3 class="hasAnchor">
 <a href="#meteo-data" class="anchor"></a>Meteo data</h3>
 <p>Reading from FLUXNET files offers multiple settings to be used specified by the user. Here, we’re specifying that no soil water content data is read (<code>getswc = FALSE</code> in <code>settings_fluxnet</code>, passed to <code><a href="../reference/ingest_bysite.html">ingest_bysite()</a></code> through argument <code>settings</code>).</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">settings_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>getswc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
 
 <span class="va">df_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
@@ -279,7 +397,7 @@
                  ppfd <span class="op">=</span>  <span class="st">"SW_IN_F"</span>,
                  netrad <span class="op">=</span> <span class="st">"NETRAD"</span>,
                  patm <span class="op">=</span> <span class="st">"PA_F"</span><span class="op">)</span>,
-  dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/find.package.html">path.package</a></span><span class="op">(</span><span class="st">"ingestr"</span><span class="op">)</span>, <span class="st">"/extdata/"</span><span class="op">)</span>,
+  dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/find.package.html">path.package</a></span><span class="op">(</span><span class="st">"ingestr"</span><span class="op">)</span>, <span class="st">"/extdata/"</span><span class="op">)</span>,  <span class="co"># example file delivered through package and located here</span>
   settings <span class="op">=</span> <span class="va">settings_fluxnet</span>,
   timescale <span class="op">=</span> <span class="st">"d"</span>,
   year_start <span class="op">=</span> <span class="fl">2007</span>,
@@ -288,29 +406,29 @@
   <span class="op">)</span></code></pre></div>
 <pre><code>## Warning: Reading only largest daily file available</code></pre>
 <pre><code>## Warning: Unknown columns: ``</code></pre>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_fluxnet</span></code></pre></div>
 <pre><code>## # A tibble: 365 x 8
-##    date        temp  prec   vpd  ppfd    netrad   patm sitename
-##    &lt;date&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;   
-##  1 2007-01-01  9.43   2.2  173.  9.18   359890.  99944 FR-Pue  
-##  2 2007-01-02  8.23   0.6  406. 16.6  -1920573.  99992 FR-Pue  
-##  3 2007-01-03  7.87   0    446. 16.2  -1432681. 100075 FR-Pue  
-##  4 2007-01-04  8.88   0    360.  7.16 -1452748.  99337 FR-Pue  
-##  5 2007-01-05 10.4    0    484. 15.8  -1521004.  99419 FR-Pue  
-##  6 2007-01-06 11.9    0    525  16.2   -966447.  99467 FR-Pue  
-##  7 2007-01-07 12.4    0    441. 13.4    632135.  99252 FR-Pue  
-##  8 2007-01-08 10.0    0    200.  6.19  -259389   98871 FR-Pue  
-##  9 2007-01-09 14.2    0    442. 16.2    859181.  99067 FR-Pue  
-## 10 2007-01-10 10.7    0     18   2.39  -553925.  99444 FR-Pue  
+##    date        temp  prec   vpd      ppfd netrad   patm sitename
+##    &lt;date&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;   
+##  1 2007-01-01  9.43   2.2  173. 0.000106    4.17  99944 FR-Pue  
+##  2 2007-01-02  8.23   0.6  406. 0.000192  -22.2   99992 FR-Pue  
+##  3 2007-01-03  7.87   0    446. 0.000187  -16.6  100075 FR-Pue  
+##  4 2007-01-04  8.88   0    360. 0.0000828 -16.8   99337 FR-Pue  
+##  5 2007-01-05 10.4    0    484. 0.000183  -17.6   99419 FR-Pue  
+##  6 2007-01-06 11.9    0    525  0.000188  -11.2   99467 FR-Pue  
+##  7 2007-01-07 12.4    0    441. 0.000155    7.32  99252 FR-Pue  
+##  8 2007-01-08 10.0    0    200. 0.0000717  -3.00  98871 FR-Pue  
+##  9 2007-01-09 14.2    0    442. 0.000188    9.94  99067 FR-Pue  
+## 10 2007-01-10 10.7    0     18  0.0000277  -6.41  99444 FR-Pue  
 ## # … with 355 more rows</code></pre>
-<p>Note that the argument <code>getvars</code> as specified above triggers the ingestion of the six variables <code>"TA_F", "P_F", "VPD_F",  "SW_IN_F", "NETRAD", "PA_F"</code> and their renaming to <code>"temp", "prec", "vpd", "ppfd", "netrad", "patm"</code>, respecitvely.</p>
+<p><code>getvars</code> defines the variable names in the original files corresponding to the respective variables with ingestr-standard naming (see table above). The example above triggers the ingestion of the six variables <code>"TA_F", "P_F", "VPD_F",  "SW_IN_F", "NETRAD", "PA_F"</code> for <code>"temp", "prec", "vpd", "ppfd", "netrad", "patm"</code>, respectively.</p>
 </div>
 <div id="flux-data" class="section level3">
 <h3 class="hasAnchor">
 <a href="#flux-data" class="anchor"></a>Flux data</h3>
 <p>The same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we’re reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (<code>"GPP_NT_VUT_REF"</code> and <code>"GPP_NT_VUT_SE"</code> in argument <code>getvars</code>). The <code>settings</code> argument can be used again to specify settings that are specific to the <code>"fluxnet"</code> data source. Here, we keep only data where at least 80% is based on non-gapfilled half-hourly data (<code>threshold_GPP = 0.8</code>), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (<code>filter_ntdt = TRUE</code>). Negative GPP values are not removed (<code>remove_neg = FALSE</code>). We read data for just one year here (2007).</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">settings_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
   getswc       <span class="op">=</span> <span class="cn">FALSE</span>,
   filter_ntdt  <span class="op">=</span> <span class="cn">TRUE</span>,
@@ -339,12 +457,12 @@
 <div id="watch-wfdei" class="section level2">
 <h2 class="hasAnchor">
 <a href="#watch-wfdei" class="anchor"></a>WATCH-WFDEI</h2>
-<p>Let’s extract data for the location corresponding to FLUXNET site ‘CH-Lae’ (lon = 8.365, lat = 47.4781). This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 degree resolution), provided as monthly files containing all days in each month. The data directory specified here (<code>dir = "~/data/watch_wfdei/"</code>) contains subdirectories with names containing the variable names (corresponding to the ones specified by the argument <code>getvars = list(temp = "Tair")</code>). We read data for just one year here (2007).</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<p>Let’s extract data for the location corresponding to FLUXNET site ‘CH-Lae’ (lon = 8.365, lat = 47.4781). This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 degree resolution), provided as monthly files containing all days in each month. The data directory specified here (<code>dir = "~/data/watch_wfdei/"</code>) contains sub-directories with names containing the variable names. The argument <code>getvars</code> works a differently compared to <code>"fluxnet"</code>. Here, <code>getvars</code> is a vector of ingestr-standard variable names to be read. ingestr automatically reads from the respective files with WATCH-WFDEI variable names. Available variables are: <code>"temp", "ppfd", "vpd", "patm", "prec"</code>. The latter is the sum of snow and rain. Below, we read data for just one year here (2007).</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_watch</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
   sitename  <span class="op">=</span> <span class="st">"FR-Pue"</span>,
   source    <span class="op">=</span> <span class="st">"watch_wfdei"</span>,
-  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>temp <span class="op">=</span> <span class="st">"Tair"</span><span class="op">)</span>,
+  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"temp"</span><span class="op">)</span>,
   dir       <span class="op">=</span> <span class="st">"~/data/watch_wfdei/"</span>,
   timescale <span class="op">=</span> <span class="st">"d"</span>,
   year_start <span class="op">=</span> <span class="fl">2007</span>,
@@ -360,7 +478,7 @@
 ## This warning is displayed once every 8 hours.
 ## Call `lifecycle::last_warnings()` to see where this warning was generated.
 ## ℹ Input `data` is `purrr::map(data, ~as_tibble(.))`.
-## ℹ Input `data` is `purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat))`.</code></pre>
+## ℹ Input `data` is `purrr::map(...)`.</code></pre>
 <pre><code>## Warning: Problem with `mutate()` input `data`.
 ## ℹ The `x` argument of `as_tibble.matrix()` must have unique column names if `.name_repair` is omitted as of tibble 2.0.0.
 ## Using compatibility `.name_repair`.
@@ -372,23 +490,24 @@
 ## Using compatibility `.name_repair`.
 ## This warning is displayed once every 8 hours.
 ## Call `lifecycle::last_warnings()` to see where this warning was generated.
-## ℹ Input `data` is `purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat))`.</code></pre>
+## ℹ Input `data` is `purrr::map(...)`.</code></pre>
 <pre><code>## Warning: The `x` argument of `as_tibble.matrix()` must have unique column names if `.name_repair` is omitted as of tibble 2.0.0.
 ## Using compatibility `.name_repair`.
 ## This warning is displayed once every 8 hours.
 ## Call `lifecycle::last_warnings()` to see where this warning was generated.</code></pre>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_watch</span></code></pre></div>
 </div>
 <div id="cru-ts" class="section level2">
 <h2 class="hasAnchor">
 <a href="#cru-ts" class="anchor"></a>CRU TS</h2>
-<p>As above, let’s extract CRU data for the location corresponding to FLUXNET site ‘FR-Pue’ (lon = 8.365, lat = 47.4781). Note that we’re using <code>tmx</code> (the daily maximum temperature). This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<p>As above, let’s extract CRU data for the location corresponding to FLUXNET site ‘FR-Pue’ (lon = 8.365, lat = 47.4781). The argument <code>getvars</code> works the same way as for WATCH-WFDEI: is a vector of ingestr-standard variable names to be read. ingestr automatically reads from the respective files with CRU variable names. Available variables are: <code>"temp", "prec", "vpd", "ccov", "wetd"</code>.</p>
+<p>Note that we’re using <code>tmx</code> (the daily maximum temperature). This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_cru</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
   sitename  <span class="op">=</span> <span class="st">"FR-Pue"</span>,
   source    <span class="op">=</span> <span class="st">"cru"</span>,
-  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>temp <span class="op">=</span> <span class="st">"tmx"</span><span class="op">)</span>,
+  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"tmin"</span>, <span class="st">"tmax"</span><span class="op">)</span>,
   dir       <span class="op">=</span> <span class="st">"~/data/cru/ts_4.01/"</span>,
   timescale <span class="op">=</span> <span class="st">"d"</span>,
   year_start <span class="op">=</span> <span class="fl">2007</span>,
@@ -397,97 +516,51 @@
   lat       <span class="op">=</span> <span class="fl">43.7414</span>,
   verbose   <span class="op">=</span> <span class="cn">FALSE</span>
   <span class="op">)</span></code></pre></div>
+<pre><code>## Warning in .varName(nc, varname, warn = warn): varname used is: tmn
+## If that is not correct, you can set it to one of: tmn, stn</code></pre>
 <pre><code>## Warning in .varName(nc, varname, warn = warn): varname used is: tmx
 ## If that is not correct, you can set it to one of: tmx, stn</code></pre>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">df_cru</span></code></pre></div>
-<pre><code>## # A tibble: 365 x 3
-##    date        temp sitename
-##    &lt;date&gt;     &lt;dbl&gt; &lt;chr&gt;   
-##  1 2007-01-01  10.9 FR-Pue  
-##  2 2007-01-02  11.0 FR-Pue  
-##  3 2007-01-03  11.1 FR-Pue  
-##  4 2007-01-04  11.2 FR-Pue  
-##  5 2007-01-05  11.3 FR-Pue  
-##  6 2007-01-06  11.4 FR-Pue  
-##  7 2007-01-07  11.4 FR-Pue  
-##  8 2007-01-08  11.5 FR-Pue  
-##  9 2007-01-09  11.6 FR-Pue  
-## 10 2007-01-10  11.7 FR-Pue  
-## # … with 355 more rows</code></pre>
-<p>We can compare the temperature recorded at the site and the temperature data extracted from WATCH-WFDEI.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_cru</span></code></pre></div>
+<pre><code>## # A tibble: 365 x 4
+##    date        tmax  tmin sitename
+##    &lt;date&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;   
+##  1 2007-01-01  10.9  2.64 FR-Pue  
+##  2 2007-01-02  11.0  2.73 FR-Pue  
+##  3 2007-01-03  11.1  2.81 FR-Pue  
+##  4 2007-01-04  11.2  2.89 FR-Pue  
+##  5 2007-01-05  11.3  2.96 FR-Pue  
+##  6 2007-01-06  11.4  3.03 FR-Pue  
+##  7 2007-01-07  11.4  3.10 FR-Pue  
+##  8 2007-01-08  11.5  3.16 FR-Pue  
+##  9 2007-01-09  11.6  3.22 FR-Pue  
+## 10 2007-01-10  11.7  3.28 FR-Pue  
+## # … with 355 more rows</code></pre>
+<p>We can compare the temperature recorded at the site and the temperature data extracted from WATCH-WFDEI and CRU.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df</span> <span class="op">&lt;-</span> <span class="va">df_fluxnet</span> <span class="op">%&gt;%</span>
   <span class="fu">rename</span><span class="op">(</span>temp_fluxnet <span class="op">=</span> <span class="va">temp</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">left_join</span><span class="op">(</span><span class="fu">rename</span><span class="op">(</span><span class="va">df_watch</span>, temp_watch <span class="op">=</span> <span class="va">temp</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"sitename"</span>, <span class="st">"date"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">left_join</span><span class="op">(</span><span class="fu">rename</span><span class="op">(</span><span class="va">df_cru</span>, temp_cru <span class="op">=</span> <span class="va">temp</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"sitename"</span>, <span class="st">"date"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">pivot_longer</span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">temp_fluxnet</span>, <span class="va">temp_watch</span>, <span class="va">temp_cru</span><span class="op">)</span>, names_to <span class="op">=</span> <span class="st">"source"</span>, values_to <span class="op">=</span> <span class="st">"temp"</span>, names_prefix <span class="op">=</span> <span class="st">"temp_"</span><span class="op">)</span>
+  <span class="fu">left_join</span><span class="op">(</span><span class="fu">rename</span><span class="op">(</span><span class="va">df_cru</span>, temp_min_cru <span class="op">=</span> <span class="va">tmin</span>, temp_max_cru <span class="op">=</span> <span class="va">tmax</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"sitename"</span>, <span class="st">"date"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">pivot_longer</span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">temp_fluxnet</span>, <span class="va">temp_watch</span>, <span class="va">temp_min_cru</span>, <span class="va">temp_max_cru</span><span class="op">)</span>, names_to <span class="op">=</span> <span class="st">"source"</span>, values_to <span class="op">=</span> <span class="st">"temp"</span>, names_prefix <span class="op">=</span> <span class="st">"temp_"</span><span class="op">)</span>
 
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
 <span class="va">df</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">date</span>, y <span class="op">=</span> <span class="va">temp</span>, color <span class="op">=</span> <span class="va">source</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<p><img src="example_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R">  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"2007-01-01"</span>, <span class="st">"2007-12-31"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<pre><code>## &lt;ggproto object: Class ScaleDiscretePosition, ScaleDiscrete, Scale, gg&gt;
-##     aesthetics: x xmin xmax xend
-##     axis_order: function
-##     break_info: function
-##     break_positions: function
-##     breaks: waiver
-##     call: call
-##     clone: function
-##     dimension: function
-##     drop: TRUE
-##     expand: waiver
-##     get_breaks: function
-##     get_breaks_minor: function
-##     get_labels: function
-##     get_limits: function
-##     guide: waiver
-##     is_discrete: function
-##     is_empty: function
-##     labels: waiver
-##     limits: 2007-01-01 2007-12-31
-##     make_sec_title: function
-##     make_title: function
-##     map: function
-##     map_df: function
-##     n.breaks.cache: NULL
-##     na.translate: TRUE
-##     na.value: NA
-##     name: waiver
-##     palette: function
-##     palette.cache: NULL
-##     position: bottom
-##     range: &lt;ggproto object: Class RangeDiscrete, Range, gg&gt;
-##         range: NULL
-##         reset: function
-##         train: function
-##         super:  &lt;ggproto object: Class RangeDiscrete, Range, gg&gt;
-##     range_c: &lt;ggproto object: Class RangeContinuous, Range, gg&gt;
-##         range: NULL
-##         reset: function
-##         train: function
-##         super:  &lt;ggproto object: Class RangeContinuous, Range, gg&gt;
-##     rescale: function
-##     reset: function
-##     scale_name: position_d
-##     train: function
-##     train_df: function
-##     transform: function
-##     transform_df: function
-##     super:  &lt;ggproto object: Class ScaleDiscretePosition, ScaleDiscrete, Scale, gg&gt;</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
 <p>Looks sweet.</p>
 </div>
 <div id="modis-lp-daac" class="section level2">
 <h2 class="hasAnchor">
 <a href="#modis-lp-daac" class="anchor"></a>MODIS LP DAAC</h2>
-<p>This uses the <a href="https://docs.ropensci.org/MODISTools/"><em>MODISTools</em></a> R package making its interface consistent with ingestr. Settings can be specified and passed on using the <code>settings</code> argument. To facilitate the selection of data products and bands to be downloaded, you may use the function <code>get_settings_modis)</code> which defines defaults for different data bundles (<code><a href="https://rdrr.io/r/base/c.html">c("modis_fpar", "modis_ndvi", "modis_evi")</a></code> are available).</p>
+<p>This uses the <a href="https://docs.ropensci.org/MODISTools/">MODISTools</a> R package making its interface consistent with ingestr. Settings can be specified and passed on using the <code>settings</code> argument. To facilitate the selection of data products and bands to be downloaded, you may use the function <code>get_settings_modis)</code> which defines defaults for different data bundles (<code><a href="https://rdrr.io/r/base/c.html">c("modis_fpar", "modis_ndvi", "modis_evi")</a></code> are available).</p>
 <ul>
 <li>
 <code>"modis_fpar"</code>: MODIS collection 6, MCD15A3H, band <code>Fpar_500m</code>
+</li>
+<li>
+<code>"modis_lai"</code>: MODIS collection 6, MCD15A3H, band <code>Lai_500m</code>
 </li>
 <li>
 <code>"modis_evi"</code>: MODIS collection 6, MOD13Q1, band <code>250m_16_days_EVI</code>
@@ -500,46 +573,55 @@
 <p>The following example is for downloading MODIS NDVI data.</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">settings_modis</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_modis.html">get_settings_modis</a></span><span class="op">(</span>
-  bundle            <span class="op">=</span> <span class="st">"modis_ndvi"</span>,
+  bundle            <span class="op">=</span> <span class="st">"modis_lai"</span>,
   data_path         <span class="op">=</span> <span class="st">"~/data/modis_subsets/"</span>,
   method_interpol   <span class="op">=</span> <span class="st">"loess"</span>,
   keep              <span class="op">=</span> <span class="cn">TRUE</span>,
   overwrite_raw     <span class="op">=</span> <span class="cn">FALSE</span>,
-  overwrite_interpol<span class="op">=</span> <span class="cn">FALSE</span>
+  overwrite_interpol<span class="op">=</span> <span class="cn">TRUE</span>
   <span class="op">)</span></code></pre></div>
 <p>This can now be used to download the data to the directory specified by argument <code>data_path</code> of function <code><a href="../reference/get_settings_gee.html">get_settings_gee()</a></code>.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_modis_fpar</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
   sitename  <span class="op">=</span> <span class="st">"CH-Lae"</span>,
   source    <span class="op">=</span> <span class="st">"modis"</span>,
-  year_start<span class="op">=</span> <span class="fl">2000</span>,
+  year_start<span class="op">=</span> <span class="fl">2018</span>,
   year_end  <span class="op">=</span> <span class="fl">2019</span>,
-  lon       <span class="op">=</span> <span class="fl">8.365</span>,
-  lat       <span class="op">=</span> <span class="fl">47.47808</span>,
+  lon       <span class="op">=</span> <span class="fl">8.36439</span>,
+  lat       <span class="op">=</span> <span class="fl">47.47833</span>,
   settings  <span class="op">=</span> <span class="va">settings_modis</span>,
   verbose   <span class="op">=</span> <span class="cn">FALSE</span>
   <span class="op">)</span></code></pre></div>
 <pre><code>## Parsed with column specification:
 ## cols(
-##   date = col_date(format = ""),
-##   year_dec = col_double(),
-##   modisvar_filtered = col_double(),
-##   modisvar = col_double(),
-##   loess = col_double(),
-##   spline = col_double(),
-##   linear = col_double(),
-##   sgfilter = col_double(),
-##   modisvar_filled = col_double()
+##   .default = col_double(),
+##   band = col_character(),
+##   units = col_character(),
+##   site = col_character(),
+##   product = col_character(),
+##   start = col_date(format = ""),
+##   end = col_date(format = ""),
+##   complete = col_logical(),
+##   modis_date = col_character(),
+##   calendar_date = col_date(format = ""),
+##   tile = col_character()
 ## )</code></pre>
+<pre><code>## See spec(...) for full column specifications.</code></pre>
+<pre><code>## Averaging across number of pixels:  25</code></pre>
+<pre><code>## loess...</code></pre>
+<pre><code>## spline...</code></pre>
+<pre><code>## linear ...</code></pre>
 <p>Plot this data.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plot_fapar_ingestr_bysite.html">plot_fapar_ingestr_bysite</a></span><span class="op">(</span>
-  <span class="va">df_modis_fpar</span> <span class="op">%&gt;%</span> 
-    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu">year</span><span class="op">(</span><span class="va">date</span><span class="op">)</span> <span class="op">%in%</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2015</span><span class="op">)</span>, 
+  <span class="va">df_modis_fpar</span>, 
   <span class="va">settings_modis</span><span class="op">)</span></code></pre></div>
-<pre><code>## Warning: Removed 2052 rows containing missing values (geom_point).</code></pre>
-<pre><code>## Warning: Removed 2055 rows containing missing values (geom_point).</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<pre><code>## Warning: Removed 546 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 582 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 32 row(s) containing missing values (geom_path).
+
+## Warning: Removed 32 row(s) containing missing values (geom_path).</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
 <!-- ```{r} -->
 <!-- df <- read_csv("~/data/modis_subsets/raw/MODIS_NDVI_MOD13Q1_CH-Lae.csv") -->
 <!-- df_ndvi_spatialmean <- df %>% -->
@@ -571,31 +653,31 @@
 <ul>
 <li>In your terminal, change to where you want to have the repository. In this example, we’re cloning it into our home directory:</li>
 </ul>
-<div class="sourceCode" id="cb26"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1"></a><span class="bu">cd</span> ~</span>
-<span id="cb26-2"><a href="#cb26-2"></a><span class="fu">git</span> clone https://github.com/khufkens/google_earth_engine_subsets.git</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1"></a><span class="bu">cd</span> ~</span>
+<span id="cb32-2"><a href="#cb32-2"></a><span class="fu">git</span> clone https://github.com/khufkens/google_earth_engine_subsets.git</span></code></pre></div>
 <p>To get access to using the Google Earth Engine API (required to use the <code>gee_subset</code> library), carry out the following steps in your terminal. This follows steps described <a href="https://github.com/google/earthengine-api/issues/27">here</a>.</p>
 <ol style="list-style-type: decimal">
 <li>Install google API Python client</li>
 </ol>
-<div class="sourceCode" id="cb27"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1"></a><span class="fu">sudo</span> pip install --upgrade google-api-python-client</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1"></a><span class="fu">sudo</span> pip install --upgrade google-api-python-client</span></code></pre></div>
 <p>I had an error and first had to do this here following <a href="https://github.com/pypa/pip/issues/3165">this link</a>:</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1"></a><span class="fu">sudo</span> pip install --ignore-installed six</span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1"></a><span class="fu">sudo</span> pip install --ignore-installed six</span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li>Install pyCrypto</li>
 </ol>
-<div class="sourceCode" id="cb29"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1"></a><span class="fu">sudo</span> pip install pyCrypto --upgrade</span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1"></a><span class="fu">sudo</span> pip install pyCrypto --upgrade</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Install Python GEE API</li>
 </ol>
-<div class="sourceCode" id="cb30"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1"></a><span class="fu">sudo</span> pip install earthengine-api</span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1"></a><span class="fu">sudo</span> pip install earthengine-api</span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li>Run authentification for GEE</li>
 </ol>
-<div class="sourceCode" id="cb31"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1"></a><span class="ex">earthengine</span> authenticate</span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1"></a><span class="ex">earthengine</span> authenticate</span></code></pre></div>
 <ol start="5" style="list-style-type: decimal">
 <li>Finally, try if it works. This shouldn’t return an error:</li>
 </ol>
-<div class="sourceCode" id="cb32"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1"></a><span class="ex">python</span> -c <span class="st">"import ee; ee.Initialize()"</span></span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1"></a><span class="ex">python</span> -c <span class="st">"import ee; ee.Initialize()"</span></span></code></pre></div>
 <div id="modis-fpar" class="section level3">
 <h3 class="hasAnchor">
 <a href="#modis-fpar" class="anchor"></a>MODIS FPAR</h3>
@@ -612,7 +694,7 @@
 <code>"modis_gpp"</code>: MODIS/006/MOD17A2H, band Gpp</li>
 </ul>
 <p>The following example is for downloading MODIS FPAR data.</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">settings_gee</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_gee.html">get_settings_gee</a></span><span class="op">(</span>
   bundle            <span class="op">=</span> <span class="st">"modis_fpar"</span>,
   python_path       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.html">system</a></span><span class="op">(</span><span class="st">"which python"</span>, intern <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
@@ -624,14 +706,14 @@
   overwrite_interpol<span class="op">=</span> <span class="cn">TRUE</span>
   <span class="op">)</span></code></pre></div>
 <p>This can now be used to download the data to the directory specified by argument <code>data_path</code> of function <code><a href="../reference/get_settings_gee.html">get_settings_gee()</a></code>.</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_gee_modis_fpar</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
   sitename  <span class="op">=</span> <span class="st">"CH-Lae"</span>,
   source    <span class="op">=</span> <span class="st">"gee"</span>,
-  year_start<span class="op">=</span> <span class="fl">2004</span>,
-  year_end  <span class="op">=</span> <span class="fl">2014</span>,
-  lon       <span class="op">=</span> <span class="fl">3.5958</span>,
-  lat       <span class="op">=</span> <span class="fl">43.7414</span>,
+  year_start<span class="op">=</span> <span class="fl">2009</span>,
+  year_end  <span class="op">=</span> <span class="fl">2010</span>,
+  lon       <span class="op">=</span> <span class="fl">8.36439</span>,
+  lat       <span class="op">=</span> <span class="fl">47.47833</span>,
   settings  <span class="op">=</span> <span class="va">settings_gee</span>,
   verbose   <span class="op">=</span> <span class="cn">FALSE</span>
   <span class="op">)</span></code></pre></div>
@@ -652,21 +734,21 @@
 <pre><code>## Warning: Filling values with last available data point at head</code></pre>
 <pre><code>## Warning: Filling values with last available data point at tail.</code></pre>
 <p>Plot this data.</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plot_fapar_ingestr_bysite.html">plot_fapar_ingestr_bysite</a></span><span class="op">(</span><span class="va">df_gee_modis_fpar</span>, <span class="va">settings_gee</span><span class="op">)</span></code></pre></div>
-<pre><code>## Warning: Removed 3004 rows containing missing values (geom_point).</code></pre>
-<pre><code>## Warning: Removed 3152 rows containing missing values (geom_point).</code></pre>
-<pre><code>## Warning: Removed 4 row(s) containing missing values (geom_path).
+<pre><code>## Warning: Removed 547 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 637 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 72 row(s) containing missing values (geom_path).
 
-## Warning: Removed 4 row(s) containing missing values (geom_path).</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
+## Warning: Removed 72 row(s) containing missing values (geom_path).</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
 </div>
 </div>
 <div id="co2" class="section level2">
 <h2 class="hasAnchor">
 <a href="#co2" class="anchor"></a>CO2</h2>
 <p>Ingesting CO2 data is particularly simple. We can safely assume it’s well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years, and use the same value for all sites. Using the R package <a href="https://github.com/bczernecki/climate">climate</a>, we can load CO2 data from Mauna Loa directly into R. This is downloading data from <a href="ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt">ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt</a>. Here, <code><a href="../reference/ingest.html">ingest()</a></code> is a wrapper for the function <code><a href="https://rdrr.io/pkg/climate/man/meteo_noaa_co2.html">climate::meteo_noaa_co2()</a></code>.</p>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_co2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
   sitename  <span class="op">=</span> <span class="st">"CH-Lae"</span>,
   source  <span class="op">=</span> <span class="st">"co2_mlo"</span>,
@@ -676,7 +758,7 @@
   <span class="op">)</span></code></pre></div>
 <pre><code>## [1] "ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt"</code></pre>
 <p>More info can be obtained <a href="https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html">here</a> and by:</p>
-<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="op">?</span><span class="fu">climate</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/climate/man/meteo_noaa_co2.html">meteo_noaa_co2</a></span></code></pre></div>
 </div>
 <div id="hwsd" class="section level2">
@@ -686,13 +768,13 @@
 <ol style="list-style-type: decimal">
 <li>The the modified version of David LeBauer’s <a href="https://github.com/dlebauer/rhwsd">rhwsd</a> R package. The modified version can be installed by:</li>
 </ol>
-<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/">devtools</a></span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span>
 <span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"stineb/rhwsd"</span><span class="op">)</span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li>Install additionally required packages: DBI and RSQLite.</li>
 </ol>
-<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">list.of.packages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"DBI"</span>, <span class="st">"RSQLite"</span><span class="op">)</span>
 <span class="va">new.packages</span> <span class="op">&lt;-</span> <span class="va">list.of.packages</span><span class="op">[</span><span class="op">!</span><span class="op">(</span><span class="va">list.of.packages</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>,<span class="st">"Package"</span><span class="op">]</span><span class="op">)</span><span class="op">]</span>
 <span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">new.packages</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">new.packages</span><span class="op">)</span></code></pre></div>
@@ -701,12 +783,12 @@
 <li>Move the extracted files to a local directory and adjust the file path in the <code>settings</code> argument accordingly (in this example: <code>"~/data/hwsd/HWSD_RASTER/hwsd.bil"</code>).</li>
 </ol>
 <p>Then, use similarly to above, with providing the path to the downloaded file with the <code>settings</code> argument:</p>
-<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_hwsd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
   sitename  <span class="op">=</span> <span class="st">"CH-Lae"</span>,
   source  <span class="op">=</span> <span class="st">"hwsd"</span>,
-  lon     <span class="op">=</span> <span class="fl">3.5958</span>,
-  lat     <span class="op">=</span> <span class="fl">43.7414</span>,
+  lon     <span class="op">=</span> <span class="fl">8.36439</span>,
+  lat     <span class="op">=</span> <span class="fl">47.47833</span>,
   settings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>fil <span class="op">=</span> <span class="st">"~/data/hwsd/HWSD_RASTER/hwsd.bil"</span><span class="op">)</span>,
   verbose <span class="op">=</span> <span class="cn">FALSE</span>
   <span class="op">)</span></code></pre></div>
@@ -718,7 +800,7 @@
 <p>To collect data from an ensemble of sites, we have to define a meta data frame, here called <code>siteinfo</code>, with rows for each site and columns <code>lon</code> for longitude, <code>lat</code> for latitude, <code>date_start</code> and <code>date_end</code> for required dates (Dates are objects returned by a <code><a href="http://lubridate.tidyverse.org/reference/ymd.html">lubridate::ymd()</a></code> function call - this stands for year-month-day). The function <code><a href="../reference/ingest.html">ingest()</a></code> can then be used to collect all site-level data as a nested data frame corresponding to the metadata <code>siteinfo</code> with an added column named <code>data</code> where the time series of ingested data is nested inside.</p>
 <p>Note that extracting for an ensemble of sites at once is more efficient for data types that are global files (WATCH-WFDEI, and CRU). In this case, the <code>raster</code> package can be used to efficiently ingest data.</p>
 <p>First, define a list of sites and get site meta information. The required meta information is provided by the exported data frame <code>siteinfo</code> (it comes as part of the ingestr package). This file is created as described in (and using code from) <a href="https://github.com/stineb/metainfo_fluxnet2015">metainfo_fluxnet2015</a>.</p>
-<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">mysites</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"BE-Vie"</span>, <span class="st">"DE-Tha"</span>, <span class="st">"DK-Sor"</span>, <span class="st">"FI-Hyy"</span>, <span class="st">"IT-Col"</span>, <span class="st">"NL-Loo"</span>, <span class="st">"US-MMS"</span>, <span class="st">"US-WCr"</span>, <span class="st">"US-UMB"</span>, <span class="st">"US-Syv"</span>, <span class="st">"DE-Hai"</span><span class="op">)</span>
 
 <span class="va">siteinfo</span> <span class="op">&lt;-</span> <span class="fu">ingestr</span><span class="fu">::</span><span class="va"><a href="../reference/siteinfo_fluxnet2015.html">siteinfo_fluxnet2015</a></span> <span class="op">%&gt;%</span>
@@ -726,7 +808,7 @@
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>date_start <span class="op">=</span> <span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="http://lubridate.tidyverse.org/reference/ymd.html">ymd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">year_start</span>, <span class="st">"-01-01"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>date_end <span class="op">=</span> <span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="http://lubridate.tidyverse.org/reference/ymd.html">ymd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">year_end</span>, <span class="st">"-12-31"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p>This file looks like this:</p>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">siteinfo</span><span class="op">)</span></code></pre></div>
 <pre><code>## # A tibble: 11 x 14
 ##    sitename    lon   lat   elv year_start year_end classid c4      whc
@@ -752,7 +834,7 @@
 <h3 class="hasAnchor">
 <a href="#meteo-data-1" class="anchor"></a>Meteo data</h3>
 <p>This ingests meteorological data from the FLUXNET files for variables temperature, precipitation, VPD, shortwave incoming radiation, net radiation, and atmospheric pressure. Arguments that are specific for this data source are provided in the <code>settings</code> list.</p>
-<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ddf_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
   siteinfo  <span class="op">=</span> <span class="va">siteinfo</span>,
   source    <span class="op">=</span> <span class="st">"fluxnet"</span>,
@@ -780,7 +862,7 @@
 <h3 class="hasAnchor">
 <a href="#flux-data-1" class="anchor"></a>Flux data</h3>
 <p>As described above for a single site, the same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we’re reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (<code>""GPP_NT_VUT_REF""</code>), keep only data where at least 80% is based on non-gapfilled half-hourly data (<code>threshold_GPP = 0.8</code>), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (<code>filter_ntdt = TRUE</code>, see also <code>?get_obs_bysite_fluxnet2015</code>).</p>
-<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">settings_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
   getswc       <span class="op">=</span> <span class="cn">FALSE</span>,
   filter_ntdt  <span class="op">=</span> <span class="cn">TRUE</span>,
@@ -803,11 +885,11 @@
 <h2 class="hasAnchor">
 <a href="#watch-wfdei-1" class="anchor"></a>WATCH-WFDEI</h2>
 <p>This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 degree resolution), provided as monthly files containing all days in each month. The data directory specified here (<code>dir = "~/data/watch_wfdei/"</code>) contains subdirectories with names containing the variable names (corresponding to the ones specified by the argument <code>getvars = list(temp = "Tair")</code>).</p>
-<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ddf_watch</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
-  siteinfo <span class="op">=</span> <span class="va">siteinfo</span>,
+  siteinfo <span class="op">=</span> <span class="va">siteinfo</span> <span class="op">%&gt;%</span> <span class="fu">slice</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span>,
   source    <span class="op">=</span> <span class="st">"watch_wfdei"</span>,
-  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>temp <span class="op">=</span> <span class="st">"Tair"</span><span class="op">)</span>,
+  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"temp"</span><span class="op">)</span>,
   dir       <span class="op">=</span> <span class="st">"~/data/watch_wfdei/"</span>  <span class="co"># adjust this with your local path</span>
   <span class="op">)</span></code></pre></div>
 </div>
@@ -815,36 +897,39 @@
 <h2 class="hasAnchor">
 <a href="#cru-ts-1" class="anchor"></a>CRU TS</h2>
 <p>This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.</p>
-<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ddf_cru</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
   siteinfo <span class="op">=</span> <span class="va">siteinfo</span>,
   source    <span class="op">=</span> <span class="st">"cru"</span>,
-  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>temp <span class="op">=</span> <span class="st">"tmx"</span><span class="op">)</span>,
+  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"tmax"</span><span class="op">)</span>,
   dir       <span class="op">=</span> <span class="st">"~/data/cru/ts_4.01/"</span>  <span class="co"># adjust this with your local path</span>
   <span class="op">)</span></code></pre></div>
 <pre><code>## Warning in .varName(nc, varname, warn = warn): varname used is: tmx
 ## If that is not correct, you can set it to one of: tmx, stn</code></pre>
 <p>Check it out for the first site (BE-Vie).</p>
-<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ddf_fluxnet</span><span class="op">$</span><span class="va">data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">date</span>, y <span class="op">=</span> <span class="va">temp</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ddf_watch</span><span class="op">$</span><span class="va">data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">date</span>, y <span class="op">=</span> <span class="va">temp</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"royalblue"</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ddf_cru</span><span class="op">$</span><span class="va">data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">date</span>, y <span class="op">=</span> <span class="va">temp</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ddf_cru</span><span class="op">$</span><span class="va">data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">date</span>, y <span class="op">=</span> <span class="va">tmax</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="fu">ymd</span><span class="op">(</span><span class="st">"2000-01-01"</span><span class="op">)</span>, <span class="fu">ymd</span><span class="op">(</span><span class="st">"2005-12-31"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <pre><code>## Warning: Removed 4745 row(s) containing missing values (geom_path).
 
 ## Warning: Removed 4745 row(s) containing missing values (geom_path).
 
 ## Warning: Removed 4745 row(s) containing missing values (geom_path).</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-30-1.png" width="700"></p>
+<p><img src="example_files/figure-html/unnamed-chunk-31-1.png" width="700"></p>
 </div>
 <div id="modis-lp-daac-1" class="section level2">
 <h2 class="hasAnchor">
 <a href="#modis-lp-daac-1" class="anchor"></a>MODIS LP DAAC</h2>
-<p>This uses the <a href="https://docs.ropensci.org/MODISTools/"><em>MODISTools</em></a> R package making its interface consistent with ingestr. Settings can be specified and passed on using the <code>settings</code> argument. To facilitate the selection of data products and bands to be downloaded, you may use the function <code>get_settings_modis)</code> which defines defaults for different data bundles (<code><a href="https://rdrr.io/r/base/c.html">c("modis_fpar", "modis_ndvi", "modis_evi")</a></code> are available).</p>
+<p>This uses the <a href="https://docs.ropensci.org/MODISTools/">MODISTools</a> R package making its interface consistent with ingestr. Settings can be specified and passed on using the <code>settings</code> argument. To facilitate the selection of data products and bands to be downloaded, you may use the function <code>get_settings_modis)</code> which defines defaults for different data bundles (<code><a href="https://rdrr.io/r/base/c.html">c("modis_fpar", "modis_ndvi", "modis_evi")</a></code> are available).</p>
 <ul>
 <li>
 <code>"modis_fpar"</code>: MODIS collection 6, MCD15A3H, band <code>Fpar_500m</code>
+</li>
+<li>
+<code>"modis_lai"</code>: MODIS collection 6, MCD15A3H, band <code>Lai_500m</code>
 </li>
 <li>
 <code>"modis_evi"</code>: MODIS collection 6, MOD13Q1, band <code>250m_16_days_EVI</code>
@@ -856,7 +941,7 @@
 <p>The filtering criteria are hard-coded specifically for each product, using its respective quality control information (see function <code>gapfill_interpol()</code> in <code>R/ingest_modis_bysite.R</code>).</p>
 <p>Downloading with parallel jobs is available for the <code>"modis"</code> data ingest, using the package <a href="https://github.com/tidyverse/multidplyr">multidplyr</a>. This is not (yet) available on CRAN, but can be installed with <code><a href="https://devtools.r-lib.org//reference/remote-reexports.html">devtools::install_github("tidyverse/multidplyr")</a></code>. To do parallel downloading, set the following arguments in the function <code><a href="../reference/ingest.html">ingest()</a></code>: <code>parallel = TRUE, ncores = &lt;number_of_parallel_jobs&gt;</code>.</p>
 <p>The following example is for downloading MODIS NDVI data.</p>
-<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">settings_modis</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_modis.html">get_settings_modis</a></span><span class="op">(</span>
   bundle            <span class="op">=</span> <span class="st">"modis_ndvi"</span>,
   data_path         <span class="op">=</span> <span class="st">"~/data/modis_subsets/"</span>,
@@ -866,7 +951,7 @@
   overwrite_interpol<span class="op">=</span> <span class="cn">TRUE</span>
   <span class="op">)</span></code></pre></div>
 <p>This can now be used to download the data to the directory specified by argument <code>data_path</code> of function <code><a href="../reference/get_settings_gee.html">get_settings_gee()</a></code>.</p>
-<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_modis_fpar</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
   <span class="va">siteinfo_fluxnet2015</span> <span class="op">%&gt;%</span> <span class="fu">slice</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span>, 
   source <span class="op">=</span> <span class="st">"modis"</span>,
@@ -874,631 +959,8 @@
   parallel <span class="op">=</span> <span class="cn">FALSE</span>,
   ncores <span class="op">=</span> <span class="fl">2</span>
   <span class="op">)</span></code></pre></div>
-<pre><code>## Parsed with column specification:
-## cols(
-##   .default = col_double(),
-##   band = col_character(),
-##   units = col_character(),
-##   site = col_character(),
-##   product = col_character(),
-##   start = col_date(format = ""),
-##   end = col_date(format = ""),
-##   complete = col_logical(),
-##   modis_date = col_character(),
-##   calendar_date = col_date(format = ""),
-##   tile = col_character()
-## )</code></pre>
-<pre><code>## See spec(...) for full column specifications.</code></pre>
-<pre><code>## Warning: 5589 parsing failures.
-##  row   col expected        actual                                                       file
-## 5590 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AR-SLu.csv'
-## 5591 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AR-SLu.csv'
-## 5592 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AR-SLu.csv'
-## 5593 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AR-SLu.csv'
-## 5594 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AR-SLu.csv'
-## .... ..... ........ ............. ..........................................................
-## See problems(...) for more details.</code></pre>
-<pre><code>## Averaging across number of pixels:  81</code></pre>
-<pre><code>## loess...</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : span too small. fewer data values than degrees of freedom.</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : at 2009</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : radius 0.00021969</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : all data on boundary of neighborhood. make span bigger</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : pseudoinverse used at 2009</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : neighborhood radius 0.014822</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : reciprocal condition number 1</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : at 2012</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : radius 0.00021969</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : all data on boundary of neighborhood. make span bigger</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : There are other near singularities as well. 0.00021969</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger</code></pre>
-<pre><code>## Error in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x else if (is.data.frame(newdata)) as.matrix(model.frame(delete.response(terms(object)),  : 
-##   NA/NaN/Inf in foreign function call (arg 5)</code></pre>
-<pre><code>## spline...</code></pre>
-<pre><code>## linear ...</code></pre>
-<pre><code>## Warning: Filling values with last available data point at head</code></pre>
-<pre><code>## Warning: Filling values with last available data point at tail.</code></pre>
-<pre><code>## Parsed with column specification:
-## cols(
-##   .default = col_double(),
-##   band = col_character(),
-##   units = col_character(),
-##   site = col_character(),
-##   product = col_character(),
-##   start = col_date(format = ""),
-##   end = col_date(format = ""),
-##   complete = col_logical(),
-##   modis_date = col_character(),
-##   calendar_date = col_date(format = ""),
-##   tile = col_character()
-## )</code></pre>
-<pre><code>## See spec(...) for full column specifications.</code></pre>
-<pre><code>## Warning: 7452 parsing failures.
-##  row   col expected        actual                                                       file
-## 7453 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AR-Vir.csv'
-## 7454 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AR-Vir.csv'
-## 7455 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AR-Vir.csv'
-## 7456 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AR-Vir.csv'
-## 7457 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AR-Vir.csv'
-## .... ..... ........ ............. ..........................................................
-## See problems(...) for more details.</code></pre>
-<pre><code>## Averaging across number of pixels:  81</code></pre>
-<pre><code>## loess...</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : span too small. fewer data values than degrees of freedom.</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : at 2009</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : radius 0.00039239</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : all data on boundary of neighborhood. make span bigger</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : pseudoinverse used at 2009</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : neighborhood radius 0.019809</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : reciprocal condition number 1</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : at 2013</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : radius 0.00039239</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : all data on boundary of neighborhood. make span bigger</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : There are other near singularities as well. 0.00039239</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger
-
-## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : zero-width neighborhood. make span bigger</code></pre>
-<pre><code>## Error in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x else if (is.data.frame(newdata)) as.matrix(model.frame(delete.response(terms(object)),  : 
-##   NA/NaN/Inf in foreign function call (arg 5)</code></pre>
-<pre><code>## spline...</code></pre>
-<pre><code>## linear ...</code></pre>
-<pre><code>## Warning: Filling values with last available data point at head</code></pre>
-<pre><code>## Warning: Filling values with last available data point at tail.</code></pre>
-<pre><code>## Parsed with column specification:
-## cols(
-##   .default = col_double(),
-##   band = col_character(),
-##   units = col_character(),
-##   site = col_character(),
-##   product = col_character(),
-##   start = col_date(format = ""),
-##   end = col_date(format = ""),
-##   complete = col_logical(),
-##   modis_date = col_character(),
-##   calendar_date = col_date(format = ""),
-##   tile = col_character()
-## )</code></pre>
-<pre><code>## See spec(...) for full column specifications.</code></pre>
-<pre><code>## Warning: 20493 parsing failures.
-##   row   col expected        actual                                                       file
-## 20494 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AT-Neu.csv'
-## 20495 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AT-Neu.csv'
-## 20496 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AT-Neu.csv'
-## 20497 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AT-Neu.csv'
-## 20498 scale a double Not Available '~/data/modis_subsets//raw//MODIS_NDVI_MOD13Q1_AT-Neu.csv'
-## ..... ..... ........ ............. ..........................................................
-## See problems(...) for more details.</code></pre>
-<pre><code>## Averaging across number of pixels:  81</code></pre>
-<pre><code>## loess...</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : pseudoinverse used at 2003.4</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : neighborhood radius 0.087671</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : reciprocal condition number 7.0783e-17</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : There are other near singularities as well. 0.0076443</code></pre>
-<pre><code>## Warning in simpleLoess(y, x, w, span, degree = degree, parametric =
-## parametric, : k-d tree limited by memory. ncmax= 241</code></pre>
-<pre><code>## spline...</code></pre>
-<pre><code>## linear ...</code></pre>
-<pre><code>## Warning in max(idxs): no non-missing arguments to max; returning -Inf</code></pre>
-<pre><code>## Warning: Filling values with last available data point at tail.</code></pre>
 <p>Plot this data.</p>
-<div class="sourceCode" id="cb123"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plot_fapar_ingestr_bysite.html">plot_fapar_ingestr_bysite</a></span><span class="op">(</span>
   <span class="va">df_modis_fpar</span><span class="op">$</span><span class="va">data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span> <span class="op">%&gt;%</span> 
     <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu">year</span><span class="op">(</span><span class="va">date</span><span class="op">)</span> <span class="op">%in%</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2015</span><span class="op">)</span>, 
@@ -1507,15 +969,40 @@
 <pre><code>## Warning: Removed 684 rows containing missing values (geom_point).
 
 ## Warning: Removed 684 rows containing missing values (geom_point).</code></pre>
-<pre><code>## Warning: Removed 12 row(s) containing missing values (geom_path).</code></pre>
-<pre><code>## Warning: Removed 730 row(s) containing missing values (geom_path).</code></pre>
-<p><img src="example_files/figure-html/unnamed-chunk-33-1.png" width="700"></p>
+<pre><code>## Warning: Removed 12 row(s) containing missing values (geom_path).
+
+## Warning: Removed 12 row(s) containing missing values (geom_path).</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-34-1.png" width="700"></p>
+<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/plot_fapar_ingestr_bysite.html">plot_fapar_ingestr_bysite</a></span><span class="op">(</span>
+  <span class="va">df_modis_fpar</span><span class="op">$</span><span class="va">data</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span> <span class="op">%&gt;%</span> 
+    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu">year</span><span class="op">(</span><span class="va">date</span><span class="op">)</span> <span class="op">%in%</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2015</span><span class="op">)</span>, 
+  <span class="va">settings_modis</span><span class="op">)</span></code></pre></div>
+<pre><code>## Warning: Unknown or uninitialised column: `sitename`.</code></pre>
+<pre><code>## Warning: Removed 1027 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 1029 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 13 row(s) containing missing values (geom_path).
+
+## Warning: Removed 13 row(s) containing missing values (geom_path).</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-34-2.png" width="700"></p>
+<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/plot_fapar_ingestr_bysite.html">plot_fapar_ingestr_bysite</a></span><span class="op">(</span>
+  <span class="va">df_modis_fpar</span><span class="op">$</span><span class="va">data</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span> <span class="op">%&gt;%</span> 
+    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu">year</span><span class="op">(</span><span class="va">date</span><span class="op">)</span> <span class="op">%in%</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2015</span><span class="op">)</span>, 
+  <span class="va">settings_modis</span><span class="op">)</span></code></pre></div>
+<pre><code>## Warning: Unknown or uninitialised column: `sitename`.</code></pre>
+<pre><code>## Warning: Removed 1027 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 1029 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 13 row(s) containing missing values (geom_path).
+
+## Warning: Removed 13 row(s) containing missing values (geom_path).</code></pre>
+<p><img src="example_files/figure-html/unnamed-chunk-34-3.png" width="700"></p>
 </div>
 <div id="google-earth-engine-1" class="section level2">
 <h2 class="hasAnchor">
 <a href="#google-earth-engine-1" class="anchor"></a>Google Earth Engine</h2>
 <p>Using the same settings as specified above, we can download MODIS FPAR data for multiple sites at once from GEE:</p>
-<div class="sourceCode" id="cb128"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">settings_gee</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_gee.html">get_settings_gee</a></span><span class="op">(</span>
   bundle            <span class="op">=</span> <span class="st">"modis_fpar"</span>,
   python_path       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.html">system</a></span><span class="op">(</span><span class="st">"which python"</span>, intern <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
@@ -1534,7 +1021,7 @@
   verbose <span class="op">=</span> <span class="cn">FALSE</span>
   <span class="op">)</span></code></pre></div>
 <p>Collect all plots.</p>
-<div class="sourceCode" id="cb129"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">list_gg</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_fapar_ingestr.html">plot_fapar_ingestr</a></span><span class="op">(</span><span class="va">df_gee_modis_fpar</span>, <span class="va">settings_gee</span><span class="op">)</span>
 <span class="co">#purrr::map(list_gg, ~print(.))</span></code></pre></div>
 </div>
@@ -1542,7 +1029,7 @@
 <h2 class="hasAnchor">
 <a href="#co2-1" class="anchor"></a>CO2</h2>
 <p>Ingesting CO2 data is particularly simple. We can safely assume it’s well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years, and use the same value for all sites. Using the R package <a href="https://github.com/bczernecki/climate">climate</a>, we can load CO2 data from Mauna Loa directly into R. This is downloading data from <a href="ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt">ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt</a>. Here, <code><a href="../reference/ingest.html">ingest()</a></code> is a wrapper for the function <code><a href="https://rdrr.io/pkg/climate/man/meteo_noaa_co2.html">climate::meteo_noaa_co2()</a></code>.</p>
-<div class="sourceCode" id="cb130"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_co2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
   <span class="va">siteinfo</span>,
   source  <span class="op">=</span> <span class="st">"co2_mlo"</span>,
@@ -1550,14 +1037,14 @@
   <span class="op">)</span></code></pre></div>
 <pre><code>## [1] "ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt"</code></pre>
 <p>More info can be obtained <a href="https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html">here</a> and by:</p>
-<div class="sourceCode" id="cb132"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="op">?</span><span class="fu">climate</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/climate/man/meteo_noaa_co2.html">meteo_noaa_co2</a></span></code></pre></div>
 </div>
 <div id="etopo1" class="section level2">
 <h2 class="hasAnchor">
 <a href="#etopo1" class="anchor"></a>ETOPO1</h2>
 <p>This reads from the 1 arc minutes resolution ETOPO1 global elevation data (reading from a Geo-TIFF file). The nested data column contains a tibble one value for variable <code>elv</code>. Download the data from <a href="https://www.ngdc.noaa.gov/mgg/global/">here</a> and specify the local path with the argument <code>dir</code>.</p>
-<div class="sourceCode" id="cb133"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_etopo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
   <span class="va">siteinfo</span>,
   source <span class="op">=</span> <span class="st">"etopo1"</span>,
@@ -1571,13 +1058,13 @@
 <ol style="list-style-type: decimal">
 <li>The the modified version of David LeBauer’s <a href="https://github.com/dlebauer/rhwsd">rhwsd</a> R package. The modified version can be installed by:</li>
 </ol>
-<div class="sourceCode" id="cb134"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/">devtools</a></span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span>
 <span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"stineb/rhwsd"</span><span class="op">)</span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li>Install additionally required packages: DBI and RSQLite.</li>
 </ol>
-<div class="sourceCode" id="cb135"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">list.of.packages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"DBI"</span>, <span class="st">"RSQLite"</span><span class="op">)</span>
 <span class="va">new.packages</span> <span class="op">&lt;-</span> <span class="va">list.of.packages</span><span class="op">[</span><span class="op">!</span><span class="op">(</span><span class="va">list.of.packages</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>,<span class="st">"Package"</span><span class="op">]</span><span class="op">)</span><span class="op">]</span>
 <span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">new.packages</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">new.packages</span><span class="op">)</span></code></pre></div>
@@ -1586,7 +1073,7 @@
 <li>Move the extracted files to a local directory and adjust the file path in the <code>settings</code> argument accordingly (in this example: <code>"~/data/hwsd/HWSD_RASTER/hwsd.bil"</code>).</li>
 </ol>
 <p>Then, use similarly to above, with providing the path to the downloaded file with the <code>settings</code> argument:</p>
-<div class="sourceCode" id="cb136"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_hwsd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
   <span class="va">siteinfo</span>,
   source <span class="op">=</span> <span class="st">"hwsd"</span>,
@@ -1597,7 +1084,7 @@
 <h2 class="hasAnchor">
 <a href="#wwf-ecoregions" class="anchor"></a>WWF Ecoregions</h2>
 <p>WWF Ecoregions data are provided as a shapefile, available for download <a href="http://assets.worldwildlife.org/publications/15/files/original/official_teow.zip">here</a>, or <a href="https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c">here</a>. A description of the data is available <a href="http://omap.africanmarineatlas.org/BIOSPHERE/data/note_areas_sp/Ecoregions_Ecosystems/WWF_Ecoregions/WWFecoregions.htm">here</a>. Download the zipped directory and adjust the argument <code>dir</code> to the path of the directory where file <code>wwf_terr_ecos.shp</code> is located. Set the settings list with <code>layer = "wwf_terr_ecos"</code>. Then, ingest data by:</p>
-<div class="sourceCode" id="cb137"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_wwf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
   <span class="va">siteinfo</span>,
   source <span class="op">=</span> <span class="st">"wwf"</span>,
