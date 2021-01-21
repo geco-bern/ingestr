@@ -48,7 +48,7 @@ ingest_bysite <- function(
   verbose = FALSE
   ){
 
-  if (!(source %in% c("etopo1", "hwsd"))){
+  if (!(source %in% c("etopo1", "hwsd", "soilgrids"))){
     ## initialise data frame with all required dates
     df <- init_dates_dataframe(
       year_start,
@@ -213,13 +213,51 @@ ingest_bysite <- function(
     con <- rhwsd::get_hwsd_con()
     df <- rhwsd::get_hwsd(x = siteinfo, con = con, hwsd.bil = settings$fil )
 
+  } else if (source == "soilgrids"){
+    #-----------------------------------------------------------
+    # Get SoilGrids soil data. year_start and year_end not required
+    # Code from https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md
+    #-----------------------------------------------------------
+    siteinfo <- data.frame(
+      id = sitename,
+      longitude = lon,
+      latitude = lat
+    )
+
+    spdata <- sf::st_as_sf(siteinfo, coords = c("longitude", "latitude"), crs = 4326)
+
+    igh <- '+proj=igh +lat_0=0 +lon_0=0 +datum=WGS84 +units=m +no_defs'
+    spdata_igh <- sf::st_transform(spdata, igh)
+
+    data_igh <- data.frame(sf::st_coordinates(spdata_igh), id = spdata_igh$id)
+
+    fun_pixel_values  <- function(rowPX, data, VOI, VOI_LYR){
+      as.numeric(
+        gdallocationinfo(
+          srcfile = paste0(settings$webdav_path, "/", VOI, "/", VOI_LYR, ".vrt"),
+          x = data[rowPX, "X"],
+          y = data[rowPX, "Y"],
+          geoloc = TRUE,
+          valonly = TRUE))
+    }
+
+    #value_pixels <- unlist(lapply(1:nrow(siteinfo), function(x){fun_pixel_values(x, data_igh, settings$voi, settings$voi_layer)}))
+    value_pixels <- fun_pixel_values(1, data_igh, settings$voi, settings$voi_layer)
+    df <- siteinfo %>%
+      as_tibble() %>%
+      mutate(var = value_pixels) %>%
+      dplyr::select(-longitude, -latitude) %>%
+      rename(sitename = id, !!settings$voi := var) %>%
+      group_by(sitename) %>%
+      nest()
+
   } else {
     rlang::warn(paste("you selected source =", source))
     rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
   }
 
   ## add data frame to nice data frame containing all required time steps
-  if (!(source %in% c("etopo1", "hwsd"))){
+  if (!(source %in% c("etopo1", "hwsd", "soilgrids"))){
     if (timescale=="m"){
       df <- df_tmp %>%
         mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%

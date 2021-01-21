@@ -348,3 +348,35 @@ get_settings_fluxnet <- function(
   return(settings)
 
 }
+
+#' Defines settings for settings for SoilGrids ingest
+#'
+#' Defines settings for settings for SoilGrids ingest. Handles the specification of the required layer identifier.
+#'
+#' @param varnam A charachter string specifying the variable of interest.
+#' See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for naming conventions.
+#' @param depth A character string specifying soil depth layer.
+#' See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for available layers.
+#' Defaults to \code{"0-5cm"}.
+#' @param agg A character string specifying the aggregation statistic for depth layer-specific values. Defaults to
+#' \code{"mean"}. See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for
+#' available statistics.
+#' @return A named list containing information required for download from SoilGrids
+#' @export
+#'
+#' @examples \dontrun{settings <- get_settings_soilgrids("soc")}
+#'
+get_settings_soilgrids <- function(varnam, depth = "0-5cm", agg = "mean"){
+
+  out <- list()
+
+  out$voi <- varnam
+
+  ## specify layer of interest
+  out$voi_layer <- paste(varnam, depth, agg, sep = "_")
+
+  ## set other variables necessary for the WCS call for all kinds of requests
+  out$webdav_path = '/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/'
+
+  return(out)
+}

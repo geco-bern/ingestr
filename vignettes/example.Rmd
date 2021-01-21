@@ -409,6 +409,26 @@ df_ndep <- ingest_bysite(
   verbose   = FALSE
   )
 ```
+## SoilGrids
+
+Point extractions from [SoilGrids](https://soilgrids.org/) layers are implemented following [this](https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md) and are provided through [ISRIC](https://www.isric.org/).
+
+Available layers and variable naming conventions are described [here](https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean). Which variable is to be extracted and for which soil depth layer can be specified in the settings, a list returned by the function call `get_settings_soilgrids()`.
+```{r}
+settings_soilgrids <- get_settings_soilgrids(varnam = "nitrogen")
+```
+
+
+```{r, eval = FALSE}
+df_soilgrids <- ingest_bysite(
+  sitename  = "CH-Lae",
+  source    = "soilgrids",
+  lon       = 8.36439,
+  lat       = 47.47833,
+  settings  = settings_soilgrids
+  )
+```
+
 
 # Examples for a site ensemble
 
@@ -687,7 +707,8 @@ Please cite as:
 This reads nitrogen deposition from global annual maps by Lamarque et al. (2011). This provides annual data separately for NHx and NOy in gN m$^{-2}$ yr$^{-1}$ from a global map provided at half-degree resolution and covering years 1860-2009. 
 ```{r, eval = FALSE}
 df_ndep <- ingest(
-  siteinfo %>% slice(1:2),
+  siteinfo_fluxnet2015 %>% 
+    slice(1:2),
   source    = "ndep",
   timescale = "y",
   dir       = "~/data/ndep_lamarque/",
