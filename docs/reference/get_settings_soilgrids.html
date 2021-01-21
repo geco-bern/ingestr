@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Defines settings for settings for MODIS download using MODISTools — get_settings_modis • ingestr</title>
+<title>Defines settings for settings for SoilGrids ingest — get_settings_soilgrids • ingestr</title>
 
 
 <!-- jquery -->
@@ -39,10 +39,8 @@
 
 
 
-<meta property="og:title" content="Defines settings for settings for MODIS download using MODISTools — get_settings_modis" />
-<meta property="og:description" content="Defines settings for settings for Google Earth Engine download
-for a pre-defined set of &quot;bundles&quot; (c(&quot;modis_fpar&quot;,
-&quot;modis_evi&quot;, &quot;modis_lai&quot;, &quot;modis_gpp&quot;))." />
+<meta property="og:title" content="Defines settings for settings for SoilGrids ingest — get_settings_soilgrids" />
+<meta property="og:description" content="Defines settings for settings for SoilGrids ingest. Handles the specification of the required layer identifier." />
 
 
 
@@ -128,74 +126,45 @@ for a pre-defined set of &quot;bundles&quot; (c(&quot;modis_fpar&quot;,
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Defines settings for settings for MODIS download using MODISTools</h1>
+    <h1>Defines settings for settings for SoilGrids ingest</h1>
     <small class="dont-index">Source: <a href='https://github.com/stineb/ingestr/blob/master/R/get_settings.R'><code>R/get_settings.R</code></a></small>
-    <div class="hidden name"><code>get_settings_modis.Rd</code></div>
+    <div class="hidden name"><code>get_settings_soilgrids.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Defines settings for settings for Google Earth Engine download
-for a pre-defined set of "bundles" (<code><a href='https://rdrr.io/r/base/c.html'>c("modis_fpar",
-"modis_evi", "modis_lai", "modis_gpp")</a></code>).</p>
+    <p>Defines settings for settings for SoilGrids ingest. Handles the specification of the required layer identifier.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_settings_modis</span><span class='op'>(</span>
-  bundle <span class='op'>=</span> <span class='st'>"modis_fpar"</span>,
-  data_path <span class='op'>=</span> <span class='st'>"."</span>,
-  method_interpol <span class='op'>=</span> <span class='st'>"linear"</span>,
-  keep <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  overwrite_raw <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  overwrite_interpol <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  n_focal <span class='op'>=</span> <span class='fl'>0</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>get_settings_soilgrids</span><span class='op'>(</span><span class='va'>varnam</span>, depth <span class='op'>=</span> <span class='st'>"0-5cm"</span>, agg <span class='op'>=</span> <span class='st'>"mean"</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>bundle</th>
-      <td><p>A character string specifying which dataset (bundle) to download.
-Defaults to <code>"modis_fpar"</code>. Available are: <code><a href='https://rdrr.io/r/base/c.html'>c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")</a></code>.</p></td>
+      <th>varnam</th>
+      <td><p>A charachter string specifying the variable of interest.
+See <a href='https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean'>https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean</a> for naming conventions.</p></td>
     </tr>
     <tr>
-      <th>data_path</th>
-      <td><p>A character string specifying the path of where the data should be downloaded to.
-Defaults to <code>"."</code> (present working directory).</p></td>
+      <th>depth</th>
+      <td><p>A character string specifying soil depth layer.
+See <a href='https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean'>https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean</a> for available layers.
+Defaults to <code>"0-5cm"</code>.</p></td>
     </tr>
     <tr>
-      <th>method_interpol</th>
-      <td><p>A character string specifying which interpolation method to use. Defaults to linear interpolation (<code>"linear"</code>).
-Alternatives are</p></td>
-    </tr>
-    <tr>
-      <th>keep</th>
-      <td><p>A logical specifying whether to keep all intermediate data (before filtering, and before imputing mean seasonal cycle),
-and all alternative interpolation results. Defaults to <code>FALSE</code>.</p></td>
-    </tr>
-    <tr>
-      <th>overwrite_raw</th>
-      <td><p>A logical specifying whether raw data as downloaded from GEE is to be overwritten. Defaults to <code>FALSE</code>,
-i.e. data is read from exisitng file if available.</p></td>
-    </tr>
-    <tr>
-      <th>overwrite_interpol</th>
-      <td><p>A logical specifying whether processed (interpolated) data, is to be overwritten. Defaults to <code>FALSE</code>,
-i.e. data is read from exisitng file if available.</p></td>
-    </tr>
-    <tr>
-      <th>n_focal</th>
-      <td><p>An integer specifying the distance (in number of pixels) around the center pixel to be used for averaging. Defaults
-to zero (using only the center pixel).</p></td>
+      <th>agg</th>
+      <td><p>A character string specifying the aggregation statistic for depth layer-specific values. Defaults to
+<code>"mean"</code>. See <a href='https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean'>https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean</a> for
+available statistics.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A named list containing information required for download from Google
-Earth Engine.</p>
+    <p>A named list containing information required for download from SoilGrids</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='va'>settings_gee</span> <span class='op'>&lt;-</span> <span class='fu'><a href='get_settings_gee.html'>get_settings_gee</a></span><span class='op'>(</span><span class='op'>)</span>
+    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='va'>settings</span> <span class='op'>&lt;-</span> <span class='fu'>get_settings_soilgrids</span><span class='op'>(</span><span class='st'>"soc"</span><span class='op'>)</span>
 
 </div></pre>
   </div>
