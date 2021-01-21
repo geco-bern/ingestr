@@ -107,7 +107,8 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
       year_end        = lubridate::year(df_siteinfo$date_end),
       prod            = settings$prod,
       method_interpol = settings$method_interpol,
-      keep            = settings$keep
+      keep            = settings$keep,
+      n_focal         = settings$n_focal
     )
 
     ##---------------------------------------------
@@ -125,7 +126,7 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
 }
 
 
-gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_interpol, keep ){
+gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_interpol, keep, n_focal ){
   ##--------------------------------------
   ## Returns data frame containing data
   ## (and year, moy, doy) for all available
@@ -307,10 +308,32 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
   ##--------------------------------------
   npixels <- df %>% pull(pixel) %>% unique() %>% length()
   rlang::inform(paste("Averaging across number of pixels: ", npixels))
+  n_side <- sqrt(npixels)
+
+  ## determine across which pixels to average
+  arr_pixelnumber <- matrix(1:npixels, n_side, n_side, byrow = TRUE)
+
+  ## determine the distance from ("layer around") the focal point
+  i_focal <- ceiling(n_side/2)
+  j_focal <- ceiling(n_side/2)
+  if (i_focal != j_focal){ rlang::abort("Aborting. Non-quadratic subset.") }
+  if ((n_focal + 1) > i_focal){ rlang::abort(paste("Aborting. Not enough pixels available for your choice of n_focal:", n_focal)) }
+
+  arr_distance <- matrix(rep(NA, npixels), n_side, n_side, byrow = TRUE)
+  for (i in seq(n_side)){
+    for (j in seq(n_side)){
+      arr_distance[i,j] <- max(abs(i - i_focal), abs(j - j_focal))
+    }
+  }
+
+  ## create a mask based on the selected layer (0 for focal point only)
+  arr_mask <- arr_pixelnumber
+  arr_mask[which(arr_distance > n_focal)] <- NA
+  vec_usepixels <- c(arr_mask) %>% na.omit() %>% as.vector()
 
   df <- df %>%
     group_by(date) %>%
-    # dplyr::filter(pixel == XXX) %>%    # to control wich pixel's information to be used.
+    dplyr::filter(pixel %in% vec_usepixels) %>%    # to control which pixel's information to be used.
     summarise(modisvar_filtered = mean(modisvar_filtered, na.rm = TRUE),
               modisvar = mean(modisvar, na.rm = TRUE))
 

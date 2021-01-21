@@ -194,7 +194,7 @@ This uses the [MODISTools](https://docs.ropensci.org/MODISTools/) R package maki
 - `"modis_evi"`: MODIS collection 6, MOD13Q1, band `250m_16_days_EVI`
 - `"modis_ndvi"`: MODIS collection 6, MOD13Q1, band `250m_16_days_NDVI`
 
-The filtering criteria are hard-coded specifically for each product, using its respective quality control information (see function `gapfill_interpol()` in `R/ingest_modis_bysite.R`).
+The filtering criteria are hard-coded specifically for each product, using its respective quality control information (see function `gapfill_interpol()` in `R/ingest_modis_bysite.R`). For more information on the settings do `?get_settings_modis`.
 
 The following example is for downloading MODIS NDVI data.
 ```{r}
@@ -204,7 +204,8 @@ settings_modis <- get_settings_modis(
   method_interpol   = "loess",
   keep              = TRUE,
   overwrite_raw     = FALSE,
-  overwrite_interpol= TRUE
+  overwrite_interpol= TRUE,
+  n_focal           = 0
   )
 ```
 

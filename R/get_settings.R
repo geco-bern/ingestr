@@ -126,6 +126,8 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
 #' i.e. data is read from exisitng file if available.
 #' @param overwrite_interpol A logical specifying whether processed (interpolated) data, is to be overwritten. Defaults to \code{FALSE},
 #' i.e. data is read from exisitng file if available.
+#' @param n_focal An integer specifying the distance (in number of pixels) around the center pixel to be used for averaging. Defaults
+#' to zero (using only the center pixel).
 #' @return A named list containing information required for download from Google
 #' Earth Engine.
 #' @export
@@ -133,7 +135,7 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
 #' @examples \dontrun{settings_gee <- get_settings_gee()}
 #'
 get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_interpol = "linear", keep = FALSE,
-                              overwrite_raw = FALSE, overwrite_interpol = FALSE ){
+                              overwrite_raw = FALSE, overwrite_interpol = FALSE, n_focal = 0 ){
 
   if (bundle == "modis_fpar"){
     ##--------------------------------------------------------------------
@@ -201,6 +203,7 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
   out$keep               <- keep
   out$overwrite_raw      <- overwrite_raw
   out$overwrite_interpol <- overwrite_interpol
+  out$n_focal            <- n_focal
 
   return(out)
 
