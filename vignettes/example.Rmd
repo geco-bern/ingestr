@@ -43,6 +43,7 @@ The following *sources* can be handled currently:
 | HWSD                                                                 | shapefile map                                     | global   | `hwsd`        | local files   | using an adaption of David Le Bauer's [rhwsd](https://github.com/dlebauer/rhwsd) R package |
 | [WWF Ecoregions](https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c) | shapefile map   | global   | `wwf`         | local files   | Olsen et al. (2001)| 
 | [N deposition](https://link.springer.com/article/10.1007%2Fs10584-011-0155-0)    | time series raster map   | global     | `ndep`     | local files   | Lamarque et al. (2011) |
+| [SoilGrids](https://www.isric.org/explore/soilgrids)                 | raster map | global     | `soilgrids`     | remote server   | Hengl et al. (2017) |
 
 Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is described in Section 'Example for a set of sites'.
 **Note** that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.
@@ -418,7 +419,7 @@ Available layers and variable naming conventions are described [here](https://ww
 settings_soilgrids <- get_settings_soilgrids(varnam = "nitrogen")
 ```
 
-
+Now, the data can be ingested.
 ```{r, eval = FALSE}
 df_soilgrids <- ingest_bysite(
   sitename  = "CH-Lae",
@@ -427,6 +428,12 @@ df_soilgrids <- ingest_bysite(
   lat       = 47.47833,
   settings  = settings_soilgrids
   )
+```
+
+This returns a data frame with a nested column `data` which contains actually just a 1 x 1 tibble. This is to be consistent with other ingest options. You may prefer to have a normal flat data frame. Just do:
+```{r}
+df_soilgrids %>% 
+  unnest(data)
 ```
 
 
@@ -714,4 +721,28 @@ df_ndep <- ingest(
   dir       = "~/data/ndep_lamarque/",
   verbose   = FALSE
   )
+```
+
+## SoilGrids
+
+Point extractions from [SoilGrids](https://soilgrids.org/) layers are implemented following [this](https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md) and are provided through [ISRIC](https://www.isric.org/).
+
+Available layers and variable naming conventions are described [here](https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean). Which variable is to be extracted and for which soil depth layer can be specified in the settings, a list returned by the function call `get_settings_soilgrids()`.
+```{r}
+settings_soilgrids <- get_settings_soilgrids(varnam = "nitrogen")
+```
+
+Now, the data can be ingested.
+```{r, eval = FALSE}
+df_soilgrids <- ingest(
+  siteinfo_fluxnet2015 %>% slice(1:2),
+  source    = "soilgrids",
+  settings  = settings_soilgrids
+  )
+```
+
+This returns a data frame with a nested column `data` which contains actually just a 1 x 1 tibble. This is to be consistent with other ingest options. You may prefer to have a normal flat data frame. Just do:
+```{r}
+df_soilgrids %>% 
+  unnest(data)
 ```
