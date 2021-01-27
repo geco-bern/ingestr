@@ -38,7 +38,7 @@ ingest <- function(
 	verbose   = FALSE
   ){
 
-  if (!(source %in% c("hwsd", "etopo1", "wwf", "soilgrids"))){
+  if (!(source %in% c("hwsd", "etopo1", "wwf", "soilgrids", "wise"))){
 
     ## complement dates information
     if (!("year_start" %in% names(siteinfo))){
@@ -271,6 +271,26 @@ ingest <- function(
 	    dplyr::select(id, var) %>%
 	    rename(sitename = id, !!settings$voi := var)
 
+	} else if (source == "wise"){
+	  #-----------------------------------------------------------
+	  # Get WISE30secs soil data. year_start and year_end not required
+	  #-----------------------------------------------------------
+	  ddf <- purrr::map_dfc(as.list(settings$varnam), ~ingest_wise_byvar(., siteinfo, layer = settings$layer, dir = dir))
+	  
+	  if (length(settings$varnam) > 1){
+	    ddf <- ddf %>% 
+	      rename(lon = lon...1, lat = lat...2) %>% 
+	      dplyr::select(-starts_with("lon..."), -starts_with("lat...")) %>% 
+	      right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>% 
+	      dplyr::select(-lon, -lat)
+	    
+	  } else {
+	    ddf <- ddf %>% 
+	      right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>% 
+	      dplyr::select(-lon, -lat)
+	
+	  }
+	    
 	} else {
 
 	  rlang::warn(paste("you selected source =", source))

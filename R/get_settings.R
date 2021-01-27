@@ -380,3 +380,29 @@ get_settings_soilgrids <- function(varnam, depth = "0-5cm", agg = "mean"){
 
   return(out)
 }
+
+#' Defines settings for settings for WISE30sec ingest
+#'
+#' Defines settings for settings for WISE30sec ingest. Handles the specification of the required layer identifier.
+#'
+#' @param varnam A charachter string specifying the variable of interest.
+#' See \url{https://www.isric.org/documents/document-type/isric-report-201501-world-soil-property-estimates-broad-scale-modelling} for naming conventions.
+#' @param layer An integer specifying soil layer.
+#' See \url{https://www.isric.org/documents/document-type/isric-report-201501-world-soil-property-estimates-broad-scale-modelling} for available layers.
+#' Defaults to \code{1}.
+#' @return A named list containing information required for download from WISE30sec
+#' @export
+#'
+#' @examples \dontrun{settings <- get_settings_wise("CNrt")}
+#'
+get_settings_wise <- function(varnam, layer = 1){
+  
+  out <- list()
+  
+  out$varnam <- varnam
+  
+  ## specify layer of interest
+  out$layer <- layer
+  
+  return(out)
+}
