@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Data ingest — ingest • ingestr</title>
+<title>WISE30sec ingest — ingest_wise_byvar • ingestr</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Data ingest — ingest" />
-<meta property="og:description" content="Ingests data for site scale simulations with rsofun (or any other Dynamic Vegetation Model)." />
+<meta property="og:title" content="WISE30sec ingest — ingest_wise_byvar" />
+<meta property="og:description" content="Ingests WISE30sec data" />
 
 
 
@@ -126,83 +126,46 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Data ingest</h1>
-    <small class="dont-index">Source: <a href='https://github.com/stineb/ingestr/blob/master/R/ingest.R'><code>R/ingest.R</code></a></small>
-    <div class="hidden name"><code>ingest.Rd</code></div>
+    <h1>WISE30sec ingest</h1>
+    <small class="dont-index">Source: <a href='https://github.com/stineb/ingestr/blob/master/R/ingest_wise_byvar.R'><code>R/ingest_wise_byvar.R</code></a></small>
+    <div class="hidden name"><code>ingest_wise_byvar.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Ingests data for site scale simulations with rsofun (or any other Dynamic Vegetation Model).</p>
+    <p>Ingests WISE30sec data</p>
     </div>
 
-    <pre class="usage"><span class='fu'>ingest</span>(
-  <span class='no'>siteinfo</span>,
-  <span class='no'>source</span>,
-  <span class='no'>getvars</span>,
-  <span class='no'>dir</span>,
-  <span class='no'>settings</span>,
-  <span class='kw'>timescale</span> <span class='kw'>=</span> <span class='st'>"d"</span>,
-  <span class='kw'>parallel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>ncores</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
-)</pre>
+    <pre class="usage"><span class='fu'>ingest_wise_byvar</span>(<span class='no'>var</span>, <span class='no'>df_lonlat</span>, <span class='kw'>layer</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='no'>dir</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>siteinfo</th>
-      <td><p>A data frame containing site meta info. Required columns are: <code>"sitename", "date_start", "date_end", "lon", "lat", "elv"</code>.</p></td>
+      <th>var</th>
+      <td><p>A character string specifying the variable name (WISE30sec standard)</p></td>
     </tr>
     <tr>
-      <th>source</th>
-      <td><p>A character used as identifiyer for the type of data source
-(e.g., <code>"fluxnet"</code>). See vignette for a full description of available options.</p></td>
+      <th>df_lonlat</th>
+      <td><p>A data frame containing columns <code>lon</code> and <code>lat</code> specifying points for extraction.</p></td>
     </tr>
     <tr>
-      <th>getvars</th>
-      <td><p>A named list of characters specifying the variable names in
-the source dataset corresponding to standard names <code>"temp"</code> for temperature,
-<code>"prec"</code> for precipitation, <code>"patm"</code> for atmospheric pressure,
-<code>"vpd"</code> for vapour pressure deficit, <code>"netrad"</code> for net radiation,
-<code>"swin"</code> for shortwave incoming radiation.</p></td>
+      <th>layer</th>
+      <td><p>An integer specifying soil layer.
+See <a href='https://www.isric.org/documents/document-type/isric-report-201501-world-soil-property-estimates-broad-scale-modelling'>https://www.isric.org/documents/document-type/isric-report-201501-world-soil-property-estimates-broad-scale-modelling</a> for available layers.
+Defaults to <code>1</code>.</p></td>
     </tr>
     <tr>
       <th>dir</th>
-      <td><p>A character specifying the directory where data is located.</p></td>
-    </tr>
-    <tr>
-      <th>settings</th>
-      <td><p>A list of additional settings used for reading original files.</p></td>
-    </tr>
-    <tr>
-      <th>timescale</th>
-      <td><p>A character or vector of characters, specifying the time scale of data used from
-the respective source (if multiple time scales are available, otherwise is disregarded).</p></td>
-    </tr>
-    <tr>
-      <th>parallel</th>
-      <td><p>A logical specifying whether ingest is run as parallel jobs for each site. This option is
-only available for <code>source = "modis"</code> and requires argument <code>ncores</code> to be set.</p></td>
-    </tr>
-    <tr>
-      <th>ncores</th>
-      <td><p>An integer specifying the number of cores for parallel runs of ingest per site. Required only
-if <code>parallel = TRUE</code></p></td>
-    </tr>
-    <tr>
-      <th>verbose</th>
-      <td><p>if <code>TRUE</code>, additional messages are printed.</p></td>
+      <td><p>A character string specifying the path to the local directory containing WISE30sec data.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A named list of data frames (tibbles) containing input data for each site is returned.</p>
+    <p>A data frame with ingested data</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>inputdata</span> <span class='kw'>&lt;-</span> <span class='fu'>prepare_input_sofun</span>( <span class='kw'>settings_input</span> <span class='kw'>=</span> <span class='no'>settings_input</span>, <span class='kw'>settings_sims</span> <span class='kw'>=</span> <span class='no'>settings_sims</span>, <span class='kw'>overwrite_climate</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span> )</div><div class='output co'>#&gt; <span class='error'>Error in prepare_input_sofun(settings_input = settings_input, settings_sims = settings_sims,     overwrite_climate = FALSE, verbose = TRUE): could not find function "prepare_input_sofun"</span></div><div class='input'>
-</div></pre>
+    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) <span class='no'>settings</span> <span class='kw'>&lt;-</span> <span class='fu'>ingest_wise_byvar</span>(<span class='st'>"CNrt"</span>)</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

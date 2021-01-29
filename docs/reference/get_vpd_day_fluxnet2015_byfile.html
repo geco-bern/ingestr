@@ -83,7 +83,7 @@ hours per day." />
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa-home fa-lg"></span>
+    <span class="fas fa fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -112,7 +112,7 @@ hours per day." />
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/stineb/ingestr/">
-    <span class="fab fa-github fa-lg"></span>
+    <span class="fab fa fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -141,7 +141,7 @@ is greater than zero and aggregating taking the mean across remaining
 hours per day.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_vpd_day_fluxnet2015_byfile</span><span class='op'>(</span><span class='va'>filename_hh</span>, write <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>get_vpd_day_fluxnet2015_byfile</span>(<span class='no'>filename_hh</span>, <span class='kw'>write</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -163,8 +163,7 @@ written to a file.</p></td>
     <p>A data frame (tibble) containing daily daytime VPD.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='va'>df</span> <span class='op'>&lt;-</span> <span class='fu'>get_vpd_day_fluxnet2015_byfile</span><span class='op'>(</span><span class='st'>"./FLX_BE-Vie_FLUXNET2015_FULLSET_HH_1996-2014_1-3.csv"</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='error'>Error: Half-hourly file does not exist: ./FLX_BE-Vie_FLUXNET2015_FULLSET_HH_1996-2014_1-3.csv</span></div><div class='input'>
+    <pre class="examples"><div class='input'><span class='no'>df</span> <span class='kw'>&lt;-</span> <span class='fu'>get_vpd_day_fluxnet2015_byfile</span>(<span class='st'>"./FLX_BE-Vie_FLUXNET2015_FULLSET_HH_1996-2014_1-3.csv"</span>)</div><div class='output co'>#&gt; <span class='error'>Error: Half-hourly file does not exist: ./FLX_BE-Vie_FLUXNET2015_FULLSET_HH_1996-2014_1-3.csv</span></div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -181,7 +180,7 @@ written to a file.</p></td>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>
