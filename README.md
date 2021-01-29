@@ -14,7 +14,7 @@ The following *sources* can be handled currently:
 
 | Data source                                                          | Data type                                | Coverage | Source ID     | Reading from  | Remark     |
 |-------------------------                                             |---------------                           |--------- |---------------| ---           |---         |
-| [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/)    | time series by site   | site     | `fluxnet`     | local files   |            |
+| [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/)    | time series by site   | site     | `fluxnet`     | local files   |  Extraction by site name |
 | [WATCH-WFDEI](http://www.eu-watch.org/data_availability)             | time series raster map                                    | global   | `watch_wfdei` | local files   |            |
 | [CRU](https://crudata.uea.ac.uk/cru/data/hrg/)                       | time series raster map                                    | global   | `cru`         | local files   |            |
 | MODIS LP DAAC                                                        | time series raster map                           | global   | `modis`       | remote server | using [MODISTools](https://docs.ropensci.org/MODISTools/) |
@@ -25,8 +25,9 @@ The following *sources* can be handled currently:
 | [WWF Ecoregions](https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c) | shapefile map   | global   | `wwf`         | local files   | Olsen et al. (2001)| 
 | [N deposition](https://link.springer.com/article/10.1007%2Fs10584-011-0155-0)    | time series raster map   | global     | `ndep`     | local files   | Lamarque et al. (2011) |
 | [SoilGrids](https://www.isric.org/explore/soilgrids)                 | raster map | global     | `soilgrids`     | remote server   | Hengl et al. (2017) |
+| [ISRIC WISE30sec](https://data.isric.org/geonetwork/srv/api/records/dc7b283a-8f19-45e1-aaed-e9bd515119bc)  | raster map | global     | `wise`     | local files   | [Batjes (2016)](http://dx.doi.org/10.1016/j.geoderma.2016.01.034 ) |
 
-Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is described in Section 'Example for a set of sites'.
+Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is described in Section 'Example for a set of sites'. Unless remarked otherwise, extraction goes by longitude/latitude values.
 **Note** that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.
 
 ## Variable names and units

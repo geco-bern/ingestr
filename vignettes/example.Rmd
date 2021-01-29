@@ -44,6 +44,8 @@ The following *sources* can be handled currently:
 | [WWF Ecoregions](https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c) | shapefile map   | global   | `wwf`         | local files   | Olsen et al. (2001)| 
 | [N deposition](https://link.springer.com/article/10.1007%2Fs10584-011-0155-0)    | time series raster map   | global     | `ndep`     | local files   | Lamarque et al. (2011) |
 | [SoilGrids](https://www.isric.org/explore/soilgrids)                 | raster map | global     | `soilgrids`     | remote server   | Hengl et al. (2017) |
+| [ISRIC WISE30sec](https://data.isric.org/geonetwork/srv/api/records/dc7b283a-8f19-45e1-aaed-e9bd515119bc)  | raster map | global     | `wise`     | local files   | [Batjes (2016)](http://dx.doi.org/10.1016/j.geoderma.2016.01.034 ) |
+
 
 Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is described in Section 'Example for a set of sites'.
 **Note** that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.
@@ -210,7 +212,10 @@ settings_modis <- get_settings_modis(
   )
 ```
 
-This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`.
+This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`. The data downloaded through MODISTools is then stored in `<data_path>/raw/`. When calling the functions `ingest()` or `ingest_bysite()` with the setting `overwrite_raw = FALSE`, the raw data file is read and not re-downloaded if available locally. Raw data contains information only for dates where MODIS data is provided. `ingest()` and `ingest_bysite()` interpolate to daily values following the setting `method_interpol`. 
+
+Note also that downloaded raw data are cutouts including pixels of 1 km within the focal point indicated by the site longitude and latitude (using arguments `km_lr = 1.0` and `km_ab = 1.0` in the `MODISTools::mt_subset()` call). This is hard-coded in ingestr. To select a smaller radius of pixels around the focal point included for taking the mean, set the setting `n_focal` to an integer (0:N), with 0 selecting only the single centre pixel in which the site is located, N=1 for including one pixel around the centre (nine in total), N=2 for 25 in total etc.
+
 ```{r warning=FALSE}
 df_modis_fpar <- ingest_bysite(
   sitename  = "CH-Lae",
@@ -502,7 +507,7 @@ settings_wise <- get_settings_wise(varnam = c("CNrt", "CECS"), layer = 1:3)
 ```
 
 Now, the data can be ingested.
-```{r}
+```{r eval=FALSE}
 df_wise <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "wise",
@@ -646,7 +651,11 @@ df_modis_fpar <- ingest(
   )
 ```
 
-Plot this data.
+This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`. The data downloaded through MODISTools is then stored in `<data_path>/raw/`. When calling the functions `ingest()` or `ingest_bysite()` with the setting `overwrite_raw = FALSE`, the raw data file is read and not re-downloaded if available locally. Raw data contains information only for dates where MODIS data is provided. `ingest()` and `ingest_bysite()` interpolate to daily values following the setting `method_interpol`. 
+
+Note also that downloaded raw data are cutouts including pixels of 1 km within the focal point indicated by the site longitude and latitude (using arguments `km_lr = 1.0` and `km_ab = 1.0` in the `MODISTools::mt_subset()` call). This is hard-coded in ingestr. To select a smaller radius of pixels around the focal point included for taking the mean, set the setting `n_focal` to an integer (0:N), with 0 selecting only the single centre pixel in which the site is located, N=1 for including one pixel around the centre (nine in total), N=2 for 25 in total etc.
+
+Plot the ingested data.
 ```{r}
 plot_fapar_ingestr_bysite(
   df_modis_fpar$data[[1]] %>% 
@@ -832,11 +841,11 @@ See above (section *Examples for a single site*) for a description of variables 
 The following settings specify data extraction for the C:N ratio of the top three layers. The returned value is the mean across selected soil layers, weighted by the respective layer's depth. `dir` specifies the path to the downloaded data bundle. Don't change the structure of it. ingestr reads from two files: `<dir>/GISfiles/wise30sec_fin` and `<dir>/Interchangeable_format/HW30s_FULL.txt`.
 
 ```{r}
-settings_wise <- get_settings_wise(varnam = "CNrt", layer = 1:3)
+settings_wise <- get_settings_wise(varnam = c("CNrt", "CECS"), layer = 1:3)
 ```
 
 Now, the data can be ingested.
-```{r}
+```{r eval=FALSE}
 df_wise <- ingest(
   siteinfo_fluxnet2015 %>% slice(1:2),
   source    = "wise",

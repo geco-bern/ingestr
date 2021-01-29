@@ -81,7 +81,7 @@ and defining calibration target (which flux decomposition method etc.)" />
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -110,7 +110,7 @@ and defining calibration target (which flux decomposition method etc.)" />
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/stineb/ingestr/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -137,27 +137,27 @@ and defining calibration target (which flux decomposition method etc.)" />
 and defining calibration target (which flux decomposition method etc.)</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_obs_bysite_fluxnet</span>(
-  <span class='no'>sitename</span>,
-  <span class='no'>dir</span>,
-  <span class='kw'>dir_hh</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>dir_hr</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='no'>timescale</span>,
-  <span class='no'>getvars</span>,
-  <span class='kw'>getswc</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>threshold_GPP</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>threshold_LE</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>threshold_H</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>threshold_SWC</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>threshold_WS</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>threshold_USTAR</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>threshold_T</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>threshold_NETRAD</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>filter_ntdt</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>return_qc</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>remove_neg</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>
-)</pre>
+    <pre class="usage"><span class='fu'>get_obs_bysite_fluxnet</span><span class='op'>(</span>
+  <span class='va'>sitename</span>,
+  <span class='va'>dir</span>,
+  dir_hh <span class='op'>=</span> <span class='cn'>NULL</span>,
+  dir_hr <span class='op'>=</span> <span class='cn'>NULL</span>,
+  <span class='va'>timescale</span>,
+  <span class='va'>getvars</span>,
+  getswc <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  threshold_GPP <span class='op'>=</span> <span class='fl'>0</span>,
+  threshold_LE <span class='op'>=</span> <span class='fl'>0</span>,
+  threshold_H <span class='op'>=</span> <span class='fl'>0</span>,
+  threshold_SWC <span class='op'>=</span> <span class='fl'>0</span>,
+  threshold_WS <span class='op'>=</span> <span class='fl'>0</span>,
+  threshold_USTAR <span class='op'>=</span> <span class='fl'>0</span>,
+  threshold_T <span class='op'>=</span> <span class='fl'>0</span>,
+  threshold_NETRAD <span class='op'>=</span> <span class='fl'>0</span>,
+  filter_ntdt <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  return_qc <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  remove_neg <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  verbose <span class='op'>=</span> <span class='cn'>TRUE</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -321,7 +321,9 @@ be removed (replaces with NA).</p></td>
 named and in units corresponding to rsofun standard.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) <span class='no'>df</span> <span class='kw'>&lt;-</span> <span class='no'>get_obs_bysite_fluxnet</span></div></pre>
+    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='va'>df</span> <span class='op'>&lt;-</span> <span class='va'>get_obs_bysite_fluxnet</span>
+
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -337,7 +339,7 @@ named and in units corresponding to rsofun standard.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

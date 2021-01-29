@@ -39,7 +39,7 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -68,7 +68,7 @@
 <ul class="nav navbar-nav navbar-right">
 <li>
   <a href="https://github.com/stineb/ingestr/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -82,7 +82,7 @@
 
       
 
-      </header><script src="calc_daytime_vpd_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
+      </header><script src="calc_daytime_vpd_files/header-attrs-2.6/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Calculate daytime VPD</h1>
@@ -96,21 +96,27 @@
     
     
 <p>Daytime VPD is not provided in the daily FLUXNET2015 data files. Instead, we can derive it based on the half-hourly data, averaging half-hourly VPD of time steps where the shortwave incoming radiation <code>"SW_IN_F"</code> is greater than zero (i.e., during the day). To do this, we can set the <code>getvars</code> argment to <code><a href="https://rdrr.io/r/base/list.html">list(vpd  = "VPD_F_DAY")</a></code> and additionally provide the directory where half-hourly files are located locally through the argument <code>settings</code>. We do this just for one year here (only year 2000 data is provided as external data in this package).</p>
-<div class="sourceCode" id="cb1"><html><body><pre class="r"><span class="no">settings_fluxnet</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">dir_hh</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/find.package.html">path.package</a></span>(<span class="st">"ingestr"</span>), <span class="st">"/extdata/"</span>), <span class="kw">getswc</span> <span class="kw">=</span> <span class="fl">FALSE</span>)
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">settings_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>dir_hh <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/find.package.html">path.package</a></span><span class="op">(</span><span class="st">"ingestr"</span><span class="op">)</span>, <span class="st">"/extdata/"</span><span class="op">)</span>, getswc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
 
-<span class="no">df_fluxnet</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span>(
-  <span class="kw">sitename</span> <span class="kw">=</span> <span class="st">"FR-Pue"</span>,
-  <span class="kw">source</span> <span class="kw">=</span> <span class="st">"fluxnet"</span>,
-  <span class="kw">getvars</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">vpd</span>  <span class="kw">=</span> <span class="st">"VPD_F_DAY"</span>),
-  <span class="kw">dir</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/find.package.html">path.package</a></span>(<span class="st">"ingestr"</span>), <span class="st">"/extdata/"</span>),
-  <span class="kw">settings</span> <span class="kw">=</span> <span class="no">settings_fluxnet</span>,
-  <span class="kw">timescale</span> <span class="kw">=</span> <span class="st">"d"</span>,
-  <span class="kw">year_start</span> <span class="kw">=</span> <span class="fl">2007</span>,
-  <span class="kw">year_end</span> <span class="kw">=</span> <span class="fl">2007</span>,
-  <span class="kw">verbose</span> <span class="kw">=</span> <span class="fl">FALSE</span>
-  )</pre></body></html></div>
+<span class="va">df_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
+  sitename <span class="op">=</span> <span class="st">"FR-Pue"</span>,
+  source <span class="op">=</span> <span class="st">"fluxnet"</span>,
+  getvars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>vpd  <span class="op">=</span> <span class="st">"VPD_F_DAY"</span><span class="op">)</span>,
+  dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/find.package.html">path.package</a></span><span class="op">(</span><span class="st">"ingestr"</span><span class="op">)</span>, <span class="st">"/extdata/"</span><span class="op">)</span>,
+  settings <span class="op">=</span> <span class="va">settings_fluxnet</span>,
+  timescale <span class="op">=</span> <span class="st">"d"</span>,
+  year_start <span class="op">=</span> <span class="fl">2007</span>,
+  year_end <span class="op">=</span> <span class="fl">2007</span>,
+  verbose <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span></code></pre></div>
+<pre><code>## Warning: The `path` argument of `write_csv()` is deprecated as of readr 1.4.0.
+## Please use the `file` argument instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_warnings()` to see where this warning was generated.</code></pre>
 <pre><code>## Warning: Unknown columns: ``</code></pre>
-<div class="sourceCode" id="cb3"><html><body><pre class="r"><span class="no">df_fluxnet</span></pre></body></html></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">df_fluxnet</span></code></pre></div>
 <pre><code>## # A tibble: 365 x 3
 ##    date         vpd sitename
 ##    &lt;date&gt;     &lt;dbl&gt; &lt;chr&gt;   
@@ -140,7 +146,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

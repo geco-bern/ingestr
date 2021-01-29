@@ -54,8 +54,8 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
           band      = c(settings$band_var, settings$band_qc), # chosen bands
           start     = df_siteinfo$date_start,                 # start date: 1st Jan 2009
           end       = df_siteinfo$date_end,                   # end date: 19th Dec 2014
-          km_lr     = 0.55,                                   # kilometers left & right of the chosen location (lat/lon above)
-          km_ab     = 0.55,                                   # kilometers above and below the location
+          km_lr     = 1.0,                                    # kilometers left & right of the chosen location (lat/lon above)
+          km_ab     = 1.0,                                    # kilometers above and below the location
           site_name = df_siteinfo$sitename,                   # the site name we want to give the data
           internal  = TRUE,
           progress  = TRUE
