@@ -203,6 +203,20 @@ ingest <- function(
 	    )
 
 
+	} else if (source == "fapar_unity"){
+	  #-----------------------------------------------------------
+	  # Assume fapar = 1 for all dates
+	  #-----------------------------------------------------------
+	  ddf <- purrr::map(
+	    as.list(seq(nrow(siteinfo))),
+	    ~expand_bysite(
+	      sitename = siteinfo$sitename[.],
+	      year_start = lubridate::year(siteinfo$date_start[.]),
+	      year_end   = lubridate::year(siteinfo$date_end[.])
+	      ) %>%
+	      mutate(fapar = 1.0)
+	  )
+
 	} else if (source == "etopo1"){
 	  #-----------------------------------------------------------
 	  # Get ETOPO1 elevation data. year_start and year_end not required
@@ -276,21 +290,21 @@ ingest <- function(
 	  # Get WISE30secs soil data. year_start and year_end not required
 	  #-----------------------------------------------------------
 	  ddf <- purrr::map_dfc(as.list(settings$varnam), ~ingest_wise_byvar(., siteinfo, layer = settings$layer, dir = dir))
-	  
+
 	  if (length(settings$varnam) > 1){
-	    ddf <- ddf %>% 
-	      rename(lon = lon...1, lat = lat...2) %>% 
-	      dplyr::select(-starts_with("lon..."), -starts_with("lat...")) %>% 
-	      right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>% 
+	    ddf <- ddf %>%
+	      rename(lon = lon...1, lat = lat...2) %>%
+	      dplyr::select(-starts_with("lon..."), -starts_with("lat...")) %>%
+	      right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
 	      dplyr::select(-lon, -lat)
-	    
+
 	  } else {
-	    ddf <- ddf %>% 
-	      right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>% 
+	    ddf <- ddf %>%
+	      right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
 	      dplyr::select(-lon, -lat)
-	
+
 	  }
-	    
+
 	} else {
 
 	  rlang::warn(paste("you selected source =", source))
@@ -320,5 +334,14 @@ expand_co2_bysite <- function(df, sitename, year_start, year_end){
     dplyr::select(sitename, date, co2 = co2_avg)
 
   return(ddf)
+}
+
+expand_bysite <- function(sitename, year_start, year_end){
+
+  ddf <- init_dates_dataframe( year_start, year_end ) %>%
+    dplyr::mutate(sitename = sitename)
+
+  return(ddf)
+
 }
 

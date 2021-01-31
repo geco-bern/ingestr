@@ -184,7 +184,14 @@ ingest_bysite <- function(
       dplyr::select(sitename, date, co2 = co2_avg)
 
 
-  }  else if (source == "etopo1"){
+  }  else if (source == "fapar_unity"){
+    #-----------------------------------------------------------
+    # Assume fapar = 1 for all dates
+    #-----------------------------------------------------------
+    df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
+      dplyr::mutate(sitename = sitename, fapar = 1.0)
+
+  } else if (source == "etopo1"){
     #-----------------------------------------------------------
     # Get ETOPO1 elevation data. year_start and year_end not required
     #-----------------------------------------------------------
@@ -262,24 +269,24 @@ ingest_bysite <- function(
     )
 
     df <- purrr::map_dfc(as.list(settings$varnam), ~ingest_wise_byvar(., siteinfo, layer = settings$layer, dir = dir))
-    
+
     if (length(settings$varnam) > 1){
-      df <- df %>% 
-        rename(lon = lon...1, lat = lat...2) %>% 
-        dplyr::select(-starts_with("lon..."), -starts_with("lat...")) %>% 
-        right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>% 
-        dplyr::select(-lon, -lat) %>% 
+      df <- df %>%
+        rename(lon = lon...1, lat = lat...2) %>%
+        dplyr::select(-starts_with("lon..."), -starts_with("lat...")) %>%
+        right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
+        dplyr::select(-lon, -lat) %>%
         group_by(sitename) %>%
         nest()
     } else {
-      df <- df %>% 
-        right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>% 
-        dplyr::select(-lon, -lat) %>% 
+      df <- df %>%
+        right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
+        dplyr::select(-lon, -lat) %>%
         group_by(sitename) %>%
         nest()
-      
+
     }
-    
+
   } else {
     rlang::warn(paste("you selected source =", source))
     rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")

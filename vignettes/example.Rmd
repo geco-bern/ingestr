@@ -854,3 +854,15 @@ df_wise <- ingest(
   )
 ```
 
+## Dummy fAPAR data
+
+Ingestr, i.a., designed to collect forcing data for the rsofun modelling framework. Within that, you may chose to run the P-model for predicting leaf-level quantities (acclimated Vcmax and Jmax). These are independent of fAPAR. Still, forcing for fAPAR (variable standard name `fapar`) is required and can be set to 1.0 for all sites and required dates. To get an object in the required standard format, use `ingest` with `source = "fapar_unity"`:
+
+```{r}
+ddf_fapar_unity <- ingest(
+  siteinfo  = siteinfo,
+  source    = "fapar_unity"
+  )
+
+ddf_fapar_unity$data[[1]] %>% head()
+```
