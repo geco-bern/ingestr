@@ -257,33 +257,16 @@ ingest <- function(
 	  # Get SoilGrids soil data. year_start and year_end not required
 	  # Code from https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md
 	  #-----------------------------------------------------------
-	  siteinfo <- siteinfo %>%
-	    rename(id = sitename, longitude = lon, latitude = lat)
-
-	  spdata <- sf::st_as_sf(siteinfo, coords = c("longitude", "latitude"), crs = 4326)
-
-	  igh <- '+proj=igh +lat_0=0 +lon_0=0 +datum=WGS84 +units=m +no_defs'
-	  spdata_igh <- sf::st_transform(spdata, igh)
-
-	  data_igh <- data.frame(sf::st_coordinates(spdata_igh), id = spdata_igh$id)
-
-	  fun_pixel_values  <- function(rowPX, data, VOI, VOI_LYR){
-	    as.numeric(
-	      gdallocationinfo(
-	        srcfile = paste0(settings$webdav_path, "/", VOI, "/", VOI_LYR, ".vrt"),
-	        x = data[rowPX, "X"],
-	        y = data[rowPX, "Y"],
-	        geoloc = TRUE,
-	        valonly = TRUE))
-	  }
-
-	  value_pixels <- unlist(lapply(1:nrow(siteinfo), function(x){fun_pixel_values(x, data_igh, settings$voi, settings$voi_layer)}))
-
-	  ddf <- siteinfo %>%
-	    as_tibble() %>%
-	    mutate(var = value_pixels) %>%
-	    dplyr::select(id, var) %>%
-	    rename(sitename = id, !!settings$voi := var)
+	  ddf <- purrr::map_dfr(
+	    as.list(seq(nrow(siteinfo))),
+	    ~ingest_soilgrids_bysite(
+	      siteinfo$sitename[.], 
+	      siteinfo$lon[.], 
+	      siteinfo$lat[.],
+	      settings
+	      )
+	    ) %>% 
+	    unnest(data)
 
 	} else if (source == "wise"){
 	  #-----------------------------------------------------------

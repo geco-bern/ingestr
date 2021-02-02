@@ -9,7 +9,9 @@ output:
 
 ```{r setup, include=FALSE}
 library(ingestr)
-library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(readr)
 ```
 
 # Overview
@@ -32,20 +34,33 @@ siteinfo_fluxnet2015 %>%
 
 The following *sources* can be handled currently:
 
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | Data source                                                                                               | Data type              | Coverage | Source ID     | Reading from  | Remark                                                                                     |
-|-----------------------------------------------------------------------------------------------------------|------------------------|----------|---------------|---------------|--------------------------------------------------------------------------------------------|
++===========================================================================================================+========================+==========+===============+===============+============================================================================================+
 | [FLUXNET](https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/)                                         | time series by site    | site     | `fluxnet`     | local files   |                                                                                            |
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | [WATCH-WFDEI](http://www.eu-watch.org/data_availability)                                                  | time series raster map | global   | `watch_wfdei` | local files   |                                                                                            |
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | [CRU](https://crudata.uea.ac.uk/cru/data/hrg/)                                                            | time series raster map | global   | `cru`         | local files   |                                                                                            |
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | MODIS LP DAAC                                                                                             | time series raster map | global   | `modis`       | remote server | using [MODISTools](https://docs.ropensci.org/MODISTools/)                                  |
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | Google Earth Engine                                                                                       | time series raster map | global   | `gee`         | remote server | using Koen Hufken's [gee_suset](https://khufkens.github.io/gee_subset/) library            |
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | [ETOPO1](https://www.ngdc.noaa.gov/mgg/global/)                                                           | raster map             | global   | `etopo1`      | local files   |                                                                                            |
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | [Mauna Loa CO2](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html)                                      | time series            | site     | `co2_mlo`     | remote server | using the [climate](https://github.com/bczernecki/climate) R package                       |
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | HWSD                                                                                                      | shapefile map          | global   | `hwsd`        | local files   | using an adaption of David Le Bauer's [rhwsd](https://github.com/dlebauer/rhwsd) R package |
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | [WWF Ecoregions](https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c)                         | shapefile map          | global   | `wwf`         | local files   | Olsen et al. (2001)                                                                        |
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | [N deposition](https://link.springer.com/article/10.1007%2Fs10584-011-0155-0)                             | time series raster map | global   | `ndep`        | local files   | Lamarque et al. (2011)                                                                     |
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | [SoilGrids](https://www.isric.org/explore/soilgrids)                                                      | raster map             | global   | `soilgrids`   | remote server | Hengl et al. (2017)                                                                        |
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | [ISRIC WISE30sec](https://data.isric.org/geonetwork/srv/api/records/dc7b283a-8f19-45e1-aaed-e9bd515119bc) | raster map             | global   | `wise`        | local files   | [Batjes (2016)](http://dx.doi.org/10.1016/j.geoderma.2016.01.034)                          |
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 
 Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is described in Section 'Example for a set of sites'. **Note** that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.
 
@@ -355,7 +370,7 @@ settings_gee <- get_settings_gee(
 
 This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`.
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, eval=FALSE}
 df_gee_modis_fpar <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "gee",
@@ -453,25 +468,48 @@ Point extractions from [SoilGrids](https://soilgrids.org/) layers are implemente
 
 Available layers and variable naming conventions are described [here](https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean). Which variable is to be extracted and for which soil depth layer can be specified in the settings, a list returned by the function call `get_settings_soilgrids()`.
 
-Available variables are described in the table below. Note the conversion factor, which is not (yet) applied by ingestr.
+Available variables are described in the table below. Conversion facto are applied by ingestr. Hence, the returned data is in units as described in the table below as "Conventional units".
 
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | Name     | Description                                                                        | Mapped units   | Conversion factor | Conventional units |
-|----------|------------------------------------------------------------------------------------|----------------|-------------------|--------------------|
++==========+====================================================================================+================+===================+====================+
 | bdod     | Bulk density of the fine earth fraction                                            | cg/cm³         | 100               | kg/dm³             |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | cec      | Cation Exchange Capacity of the soil                                               | mmol(c)/kg     | 10                | cmol(c)/kg         |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | cfvo     | Volumetric fraction of coarse fragments (\> 2 mm)                                  | cm3/dm3 (vol‰) | 10                | cm3/100cm3 (vol%)  |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | clay     | Proportion of clay particles (\< 0.002 mm) in the fine earth fraction              | g/kg           | 10                | g/100g (%)         |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | nitrogen | Total nitrogen (N)                                                                 | cg/kg          | 100               | g/kg               |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | phh2o    | Soil pH                                                                            | pHx10          | 10                | pH                 |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | sand     | Proportion of sand particles (\> 0.05 mm) in the fine earth fraction               | g/kg           | 10                | g/100g (%)         |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | silt     | Proportion of silt particles (≥ 0.002 mm and ≤ 0.05 mm) in the fine earth fraction | g/kg           | 10                | g/100g (%)         |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | soc      | Soil organic carbon content in the fine earth fraction                             | dg/kg          | 10                | g/kg               |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | ocd      | Organic carbon density                                                             | hg/dm³         | 10                | kg/dm³             |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | ocs      | Organic carbon stocks                                                              | t/ha           | 10                | kg/m²              |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
+
+Data is available for the following six layers.
+
+| Layer 	          | 1 | 2  | 3  | 4  | 5   | 6   |
+| ---               |---|--- |--- |--- |---  |---  |
+| Top depth (cm)    | 0 | 5  | 15 | 30 | 60  | 100 |
+| Bottom depth (cm) | 5 | 15 | 30 | 60 | 100 | 200 |
+
+The specify which data is to be ingested define the settings using the function `get_settings_soilgrids()`, and provide standard variable names as a vector of character strings for argument `varnam`, and layers as a vector of integers for argument `layer`. For example:
 
 ```{r}
-settings_soilgrids <- get_settings_soilgrids(varnam = "nitrogen")
+settings_soilgrids <- get_settings_soilgrids(varnam = c("nitrogen", "cec"), layer = 1:3)
 ```
+
+The ingested data is then averaged across specified layers, weighted with respective layer depths.
 
 Now, the data can be ingested.
 
@@ -498,28 +536,49 @@ This reads from local files. Download them from ISRIC [here](https://data.isric.
 
 Point extraction from the global gridded WISE30sec data product ([Batjes et al., 2016](http://dx.doi.org/10.1016/j.geoderma.2016.01.034)) can be done for a set of variables and soil layers by specifying the ingest demand in the settings. ingestr returns data as a mean across available map units for selected location (pixel), weighted by the fractional coverage of map units for this pixel. The table below describes available variables (info based on [ISRIC Report 2015/01](https://www.isric.org/documents/document-type/isric-report-201501-world-soil-property-estimates-broad-scale-modelling)).
 
++-------+----------------------------------------------------------------------------------------------------------+
 | Name  | Description                                                                                              |
-|-------|----------------------------------------------------------------------------------------------------------|
++=======+==========================================================================================================+
 | CFRAG | Coarse fragments (vol. % \> 2mm), mean                                                                   |
++-------+----------------------------------------------------------------------------------------------------------+
 | SDTO  | Sand (mass %), mean                                                                                      |
++-------+----------------------------------------------------------------------------------------------------------+
 | STPC  | Silt (mass %)                                                                                            |
++-------+----------------------------------------------------------------------------------------------------------+
 | CLPC  | Clay (mass %)                                                                                            |
++-------+----------------------------------------------------------------------------------------------------------+
 | PSCL  | Texture class (SOTER conventions)                                                                        |
++-------+----------------------------------------------------------------------------------------------------------+
 | BULK  | Bulk density (kg dm-3, g cm-3)                                                                           |
++-------+----------------------------------------------------------------------------------------------------------+
 | TAWC  | Available water capacity (cm m-1, -33 to -1500 kPa, conform USDA standards) Standard deviation for above |
++-------+----------------------------------------------------------------------------------------------------------+
 | CECS  | Cation exchange capacity (cmol kg-1) of fine earth fraction                                              |
++-------+----------------------------------------------------------------------------------------------------------+
 | BSAT  | Base saturation as percentage of CECsoil                                                                 |
++-------+----------------------------------------------------------------------------------------------------------+
 | ESP   | Exchangeable sodium percentage                                                                           |
++-------+----------------------------------------------------------------------------------------------------------+
 | CECc  | CECclay, corrected for contribution of organic matter (cmol kg-1)                                        |
++-------+----------------------------------------------------------------------------------------------------------+
 | PHAQ  | pH measured in water                                                                                     |
++-------+----------------------------------------------------------------------------------------------------------+
 | TCEQ  | Total carbonate equivalent (g C kg-1)                                                                    |
++-------+----------------------------------------------------------------------------------------------------------+
 | GYPS  | Gypsum content (g kg-1)                                                                                  |
++-------+----------------------------------------------------------------------------------------------------------+
 | ELCO  | Electrical conductivity (dS m-1)                                                                         |
++-------+----------------------------------------------------------------------------------------------------------+
 | ORGC  | Organic carbon content (g kg-1)                                                                          |
++-------+----------------------------------------------------------------------------------------------------------+
 | TOTN  | Total nitrogen (g kg-1)                                                                                  |
++-------+----------------------------------------------------------------------------------------------------------+
 | CNrt  | C/N ratio                                                                                                |
++-------+----------------------------------------------------------------------------------------------------------+
 | ECEC  | Effective CEC (cmol kg-1)                                                                                |
++-------+----------------------------------------------------------------------------------------------------------+
 | ALSA  | Aluminum saturation (as % of ECEC)                                                                       |
++-------+----------------------------------------------------------------------------------------------------------+
 
 By default, data is extracted for the top layer only. Data is provided for the following seven layers (depths in cm).
 
@@ -863,10 +922,10 @@ df_ndep <- ingest(
 
 Point extractions from [SoilGrids](https://soilgrids.org/) layers are implemented following [this](https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md) and are provided through [ISRIC](https://www.isric.org/).
 
-Available layers and variable naming conventions are described [here](https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean). Which variable is to be extracted and for which soil depth layer can be specified in the settings, a list returned by the function call `get_settings_soilgrids()`.
+Available layers, variable naming conventions, and units are described above (section *Examples for a single site - SoilGrids*) and [here](https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean). Which variable is to be extracted and for which soil depth layer can be specified in the settings, a list returned by the function call `get_settings_soilgrids()`.
 
 ```{r}
-settings_soilgrids <- get_settings_soilgrids(varnam = "nitrogen")
+settings_soilgrids <- get_settings_soilgrids(varnam = c("nitrogen", "cec"), layer = 1:3)
 ```
 
 Now, the data can be ingested.

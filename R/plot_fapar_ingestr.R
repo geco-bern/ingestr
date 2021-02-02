@@ -65,12 +65,13 @@ plot_fapar_ingestr_bysite <- function(df, settings, sitename = NULL){
     # geom_line(  data = df, aes(x = date, y = spline, color = "spline")) +
     # geom_line(  data = df, aes(x = date, y = loess, color = "loess")) +
     # geom_line(  data = df, aes(x = date, y = sgfilter), col = 'green') +
-    labs(x = "Date", y = settings$varnam, title = sitename, subtitle = paste(settings$prod, settings$band_var))
+    labs(x = "Date", y = settings$varnam, title = sitename, subtitle = paste(settings$prod, settings$band_var)) +
     # scale_color_manual(name = "Interpolation",
     #                    breaks = c("linear", "loess"),
     #                    # breaks = c("linear", "spline", "loess"),
     #                    # values = c("linear" = "red", "spline" = "cyan", "loess" = "blue") )
     #                    values = c("linear" = "red", "loess" = "blue") )
+    ylim(0, max(df$modisvar, na.rm = TRUE))
 
 # scale_color_manual(name = "Filtering",
     #                    breaks = c("filtered", "kept"),

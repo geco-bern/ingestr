@@ -215,12 +215,12 @@
 <p>The following <em>sources</em> can be handled currently:</p>
 <table class="table">
 <colgroup>
-<col width="35%">
-<col width="21%">
-<col width="12%">
-<col width="21%">
+<col width="40%">
+<col width="9%">
 <col width="4%">
-<col width="4%">
+<col width="5%">
+<col width="5%">
+<col width="34%">
 </colgroup>
 <thead><tr class="header">
 <th>Data source</th>
@@ -636,7 +636,7 @@
   <span class="va">settings_modis</span><span class="op">)</span></code></pre></div>
 <pre><code>## Warning: Removed 546 rows containing missing values (geom_point).</code></pre>
 <pre><code>## Warning: Removed 614 rows containing missing values (geom_point).</code></pre>
-<pre><code>## Warning: Removed 180 row(s) containing missing values (geom_path).</code></pre>
+<pre><code>## Warning: Removed 243 row(s) containing missing values (geom_path).</code></pre>
 <p><img src="example_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
 <!-- ```{r} -->
 <!-- df <- read_csv("~/data/modis_subsets/raw/MODIS_NDVI_MOD13Q1_CH-Lae.csv") -->
@@ -736,17 +736,17 @@
 <p>Plot this data.</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plot_fapar_ingestr_bysite.html">plot_fapar_ingestr_bysite</a></span><span class="op">(</span><span class="va">df_gee_modis_fpar</span>, <span class="va">settings_gee</span><span class="op">)</span></code></pre></div>
-<pre><code>## Warning: Removed 547 rows containing missing values (geom_point).
+<pre><code>## Warning: Removed 638 rows containing missing values (geom_point).
 
-## Warning: Removed 547 rows containing missing values (geom_point).</code></pre>
-<pre><code>## Warning: Removed 12 row(s) containing missing values (geom_path).</code></pre>
+## Warning: Removed 638 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 1454 row(s) containing missing values (geom_path).</code></pre>
 <p><img src="example_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
 </div>
 </div>
 <div id="co2" class="section level2">
 <h2 class="hasAnchor">
 <a href="#co2" class="anchor"></a>CO2</h2>
-<p>Ingesting CO2 data is particularly simple. We can safely assume it’s well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years, and use the same value for all sites. Using the R package <a href="https://github.com/bczernecki/climate">climate</a>, we can load CO2 data from Mauna Loa directly into R. This is downloading data from <a href="ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt">ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt</a>. Here, <code><a href="../reference/ingest.html">ingest()</a></code> is a wrapper for the function <code><a href="https://rdrr.io/pkg/climate/man/meteo_noaa_co2.html">climate::meteo_noaa_co2()</a></code>.</p>
+<p>Ingesting CO2 data is particularly simple. We can safely assume it’s well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years, and use the same value for all sites. Using the R package <a href="https://github.com/bczernecki/climate">climate</a>, we can load CO2 data from Mauna Loa directly into R. This is downloading data from <a href="ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt" class="uri">ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt</a>. Here, <code><a href="../reference/ingest.html">ingest()</a></code> is a wrapper for the function <code><a href="https://rdrr.io/pkg/climate/man/meteo_noaa_co2.html">climate::meteo_noaa_co2()</a></code>.</p>
 <div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_co2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
   sitename  <span class="op">=</span> <span class="st">"CH-Lae"</span>,
@@ -767,8 +767,8 @@
 <li>The the modified version of David LeBauer’s <a href="https://github.com/dlebauer/rhwsd">rhwsd</a> R package. The modified version can be installed by:</li>
 </ol>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/">devtools</a></span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span>
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"stineb/rhwsd"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"stineb/rhwsd"</span><span class="op">)</span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li>Install additionally required packages: DBI and RSQLite.</li>
 </ol>
@@ -813,14 +813,14 @@
 <a href="#soilgrids" class="anchor"></a>SoilGrids</h2>
 <p>Point extractions from <a href="https://soilgrids.org/">SoilGrids</a> layers are implemented following <a href="https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md">this</a> and are provided through <a href="https://www.isric.org/">ISRIC</a>.</p>
 <p>Available layers and variable naming conventions are described <a href="https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean">here</a>. Which variable is to be extracted and for which soil depth layer can be specified in the settings, a list returned by the function call <code><a href="../reference/get_settings_soilgrids.html">get_settings_soilgrids()</a></code>.</p>
-<p>Available variables are described in the table below. Note the conversion factor, which is not (yet) applied by ingestr.</p>
+<p>Available variables are described in the table below. Conversion facto are applied by ingestr. Hence, the returned data is in units as described in the table below as “Conventional units”.</p>
 <table class="table">
 <colgroup>
-<col width="20%">
-<col width="20%">
-<col width="20%">
-<col width="20%">
-<col width="20%">
+<col width="7%">
+<col width="55%">
+<col width="11%">
+<col width="12%">
+<col width="13%">
 </colgroup>
 <thead><tr class="header">
 <th>Name</th>
@@ -909,8 +909,42 @@
 </tr>
 </tbody>
 </table>
+<p>Data is available for the following six layers.</p>
+<table class="table">
+<thead><tr class="header">
+<th>Layer</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Top depth (cm)</td>
+<td>0</td>
+<td>5</td>
+<td>15</td>
+<td>30</td>
+<td>60</td>
+<td>100</td>
+</tr>
+<tr class="even">
+<td>Bottom depth (cm)</td>
+<td>5</td>
+<td>15</td>
+<td>30</td>
+<td>60</td>
+<td>100</td>
+<td>200</td>
+</tr>
+</tbody>
+</table>
+<p>The specify which data is to be ingested define the settings using the function <code><a href="../reference/get_settings_soilgrids.html">get_settings_soilgrids()</a></code>, and provide standard variable names as a vector of character strings for argument <code>varnam</code>, and layers as a vector of integers for argument <code>layer</code>. For example:</p>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">settings_soilgrids</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_soilgrids.html">get_settings_soilgrids</a></span><span class="op">(</span>varnam <span class="op">=</span> <span class="st">"nitrogen"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="va">settings_soilgrids</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_soilgrids.html">get_settings_soilgrids</a></span><span class="op">(</span>varnam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"nitrogen"</span>, <span class="st">"cec"</span><span class="op">)</span>, layer <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></code></pre></div>
+<p>The ingested data is then averaged across specified layers, weighted with respective layer depths.</p>
 <p>Now, the data can be ingested.</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_soilgrids</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
@@ -924,11 +958,11 @@
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_soilgrids</span> <span class="op">%&gt;%</span> 
   <span class="fu">unnest</span><span class="op">(</span><span class="va">data</span><span class="op">)</span></code></pre></div>
-<pre><code>## # A tibble: 1 x 2
+<pre><code>## # A tibble: 1 x 3
 ## # Groups:   sitename [1]
-##   sitename nitrogen
-##   &lt;chr&gt;       &lt;dbl&gt;
-## 1 CH-Lae        847</code></pre>
+##   sitename   cec nitrogen
+##   &lt;chr&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 CH-Lae   88900  1465500</code></pre>
 </div>
 <div id="isric-wise30sec" class="section level2">
 <h2 class="hasAnchor">
@@ -937,8 +971,8 @@
 <p>Point extraction from the global gridded WISE30sec data product (<a href="http://dx.doi.org/10.1016/j.geoderma.2016.01.034">Batjes et al., 2016</a>) can be done for a set of variables and soil layers by specifying the ingest demand in the settings. ingestr returns data as a mean across available map units for selected location (pixel), weighted by the fractional coverage of map units for this pixel. The table below describes available variables (info based on <a href="https://www.isric.org/documents/document-type/isric-report-201501-world-soil-property-estimates-broad-scale-modelling">ISRIC Report 2015/01</a>).</p>
 <table class="table">
 <colgroup>
-<col width="50%">
-<col width="50%">
+<col width="6%">
+<col width="93%">
 </colgroup>
 <thead><tr class="header">
 <th>Name</th>
@@ -1224,7 +1258,7 @@
 </li>
 </ul>
 <p>The filtering criteria are hard-coded specifically for each product, using its respective quality control information (see function <code>gapfill_interpol()</code> in <code>R/ingest_modis_bysite.R</code>).</p>
-<p>Downloading with parallel jobs is available for the <code>"modis"</code> data ingest, using the package <a href="https://github.com/tidyverse/multidplyr">multidplyr</a>. This is not (yet) available on CRAN, but can be installed with <code><a href="https://devtools.r-lib.org//reference/remote-reexports.html">devtools::install_github("tidyverse/multidplyr")</a></code>. To do parallel downloading, set the following arguments in the function <code><a href="../reference/ingest.html">ingest()</a></code>: <code>parallel = TRUE, ncores = &lt;number_of_parallel_jobs&gt;</code>.</p>
+<p>Downloading with parallel jobs is available for the <code>"modis"</code> data ingest, using the package <a href="https://github.com/tidyverse/multidplyr">multidplyr</a>. This is not (yet) available on CRAN, but can be installed with <code>devtools::install_github("tidyverse/multidplyr")</code>. To do parallel downloading, set the following arguments in the function <code><a href="../reference/ingest.html">ingest()</a></code>: <code>parallel = TRUE, ncores = &lt;number_of_parallel_jobs&gt;</code>.</p>
 <p>The following example is for downloading MODIS NDVI data.</p>
 <div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">settings_modis</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_modis.html">get_settings_modis</a></span><span class="op">(</span>
@@ -1274,9 +1308,9 @@
     <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu">year</span><span class="op">(</span><span class="va">date</span><span class="op">)</span> <span class="op">%in%</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2015</span><span class="op">)</span>, 
   <span class="va">settings_modis</span><span class="op">)</span></code></pre></div>
 <pre><code>## Warning: Unknown or uninitialised column: `sitename`.</code></pre>
-<pre><code>## Warning: Removed 1027 rows containing missing values (geom_point).</code></pre>
-<pre><code>## Warning: Removed 1041 rows containing missing values (geom_point).</code></pre>
-<pre><code>## Warning: Removed 39 row(s) containing missing values (geom_path).</code></pre>
+<pre><code>## Warning: Removed 1032 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 1045 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 44 row(s) containing missing values (geom_path).</code></pre>
 <p><img src="example_files/figure-html/unnamed-chunk-40-3.png" width="700"></p>
 </div>
 <div id="google-earth-engine-1" class="section level2">
@@ -1309,7 +1343,7 @@
 <div id="co2-1" class="section level2">
 <h2 class="hasAnchor">
 <a href="#co2-1" class="anchor"></a>CO2</h2>
-<p>Ingesting CO2 data is particularly simple. We can safely assume it’s well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years, and use the same value for all sites. Using the R package <a href="https://github.com/bczernecki/climate">climate</a>, we can load CO2 data from Mauna Loa directly into R. This is downloading data from <a href="ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt">ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt</a>. Here, <code><a href="../reference/ingest.html">ingest()</a></code> is a wrapper for the function <code><a href="https://rdrr.io/pkg/climate/man/meteo_noaa_co2.html">climate::meteo_noaa_co2()</a></code>.</p>
+<p>Ingesting CO2 data is particularly simple. We can safely assume it’s well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years, and use the same value for all sites. Using the R package <a href="https://github.com/bczernecki/climate">climate</a>, we can load CO2 data from Mauna Loa directly into R. This is downloading data from <a href="ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt" class="uri">ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt</a>. Here, <code><a href="../reference/ingest.html">ingest()</a></code> is a wrapper for the function <code><a href="https://rdrr.io/pkg/climate/man/meteo_noaa_co2.html">climate::meteo_noaa_co2()</a></code>.</p>
 <div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_co2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
   <span class="va">siteinfo</span>,
@@ -1339,8 +1373,8 @@
 <li>The the modified version of David LeBauer’s <a href="https://github.com/dlebauer/rhwsd">rhwsd</a> R package. The modified version can be installed by:</li>
 </ol>
 <div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/">devtools</a></span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span>
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"stineb/rhwsd"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"stineb/rhwsd"</span><span class="op">)</span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li>Install additionally required packages: DBI and RSQLite.</li>
 </ol>
@@ -1372,7 +1406,7 @@
   settings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>layer <span class="op">=</span> <span class="st">"wwf_terr_ecos"</span><span class="op">)</span>
 <span class="op">)</span></code></pre></div>
 <pre><code>## OGR data source with driver: ESRI Shapefile 
-## Source: "/Users/bestocke/data/biomes/wwf_ecoregions/official", layer: "wwf_terr_ecos"
+## Source: "/Users/benjaminstocker/data/biomes/wwf_ecoregions/official", layer: "wwf_terr_ecos"
 ## with 14458 features
 ## It has 21 fields</code></pre>
 <pre><code>## Warning in sp::proj4string(shp): CRS object has comment, which is lost in output</code></pre>
@@ -1461,9 +1495,9 @@
 <h2 class="hasAnchor">
 <a href="#soilgrids-1" class="anchor"></a>SoilGrids</h2>
 <p>Point extractions from <a href="https://soilgrids.org/">SoilGrids</a> layers are implemented following <a href="https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md">this</a> and are provided through <a href="https://www.isric.org/">ISRIC</a>.</p>
-<p>Available layers and variable naming conventions are described <a href="https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean">here</a>. Which variable is to be extracted and for which soil depth layer can be specified in the settings, a list returned by the function call <code><a href="../reference/get_settings_soilgrids.html">get_settings_soilgrids()</a></code>.</p>
+<p>Available layers, variable naming conventions, and units are described above (section <em>Examples for a single site - SoilGrids</em>) and <a href="https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean">here</a>. Which variable is to be extracted and for which soil depth layer can be specified in the settings, a list returned by the function call <code><a href="../reference/get_settings_soilgrids.html">get_settings_soilgrids()</a></code>.</p>
 <div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">settings_soilgrids</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_soilgrids.html">get_settings_soilgrids</a></span><span class="op">(</span>varnam <span class="op">=</span> <span class="st">"nitrogen"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="va">settings_soilgrids</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_soilgrids.html">get_settings_soilgrids</a></span><span class="op">(</span>varnam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"nitrogen"</span>, <span class="st">"cec"</span><span class="op">)</span>, layer <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></code></pre></div>
 <p>Now, the data can be ingested.</p>
 <div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_soilgrids</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
@@ -1475,12 +1509,12 @@
 <div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">df_soilgrids</span> <span class="op">%&gt;%</span> 
   <span class="fu">unnest</span><span class="op">(</span><span class="va">data</span><span class="op">)</span></code></pre></div>
-<pre><code>## # A tibble: 2 x 2
+<pre><code>## # A tibble: 2 x 3
 ## # Groups:   sitename [2]
-##   sitename nitrogen
-##   &lt;chr&gt;       &lt;dbl&gt;
-## 1 AR-SLu         95
-## 2 AR-Vir        327</code></pre>
+##   sitename   cec nitrogen
+##   &lt;chr&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 AR-SLu   49100   217500
+## 2 AR-Vir   55850   538500</code></pre>
 </div>
 <div id="isric-wise30sec-1" class="section level2">
 <h2 class="hasAnchor">
@@ -1498,6 +1532,27 @@
   settings  <span class="op">=</span> <span class="va">settings_wise</span>,
   dir       <span class="op">=</span> <span class="st">"~/data/soil/wise"</span>
   <span class="op">)</span></code></pre></div>
+</div>
+<div id="dummy-fapar-data" class="section level2">
+<h2 class="hasAnchor">
+<a href="#dummy-fapar-data" class="anchor"></a>Dummy fAPAR data</h2>
+<p>Ingestr, i.a., designed to collect forcing data for the rsofun modelling framework. Within that, you may chose to run the P-model for predicting leaf-level quantities (acclimated Vcmax and Jmax). These are independent of fAPAR. Still, forcing for fAPAR (variable standard name <code>fapar</code>) is required and can be set to 1.0 for all sites and required dates. To get an object in the required standard format, use <code>ingest</code> with <code>source = "fapar_unity"</code>:</p>
+<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ddf_fapar_unity</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span>
+  siteinfo  <span class="op">=</span> <span class="va">siteinfo</span>,
+  source    <span class="op">=</span> <span class="st">"fapar_unity"</span>
+  <span class="op">)</span>
+
+<span class="va">ddf_fapar_unity</span><span class="op">$</span><span class="va">data</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<pre><code>## # A tibble: 6 x 2
+##   date       fapar
+##   &lt;date&gt;     &lt;dbl&gt;
+## 1 1996-01-01     1
+## 2 1996-01-02     1
+## 3 1996-01-03     1
+## 4 1996-01-04     1
+## 5 1996-01-05     1
+## 6 1996-01-06     1</code></pre>
 </div>
 </div>
   </div>

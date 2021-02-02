@@ -355,7 +355,7 @@ get_settings_fluxnet <- function(
 #'
 #' @param varnam A charachter string specifying the variable of interest.
 #' See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for naming conventions.
-#' @param depth A character string specifying soil depth layer.
+#' @param layer An integer or vector of integers specifying the soil layers.
 #' See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for available layers.
 #' Defaults to \code{"0-5cm"}.
 #' @param agg A character string specifying the aggregation statistic for depth layer-specific values. Defaults to
@@ -366,15 +366,29 @@ get_settings_fluxnet <- function(
 #'
 #' @examples \dontrun{settings <- get_settings_soilgrids("soc")}
 #'
-get_settings_soilgrids <- function(varnam, depth = "0-5cm", agg = "mean"){
+get_settings_soilgrids <- function(varnam, layer = 1, agg = "mean"){
 
-  out <- list()
+  ## for association of layer character codes
+  df_layer_code <- tibble(layer = 1:6, code = c("0-5cm", "5-15cm", "15-30cm", "30-60cm", "60-100cm", "100-200cm"))
 
-  out$voi <- varnam
-
+  ## for association of conversion factors
+  df_conversion <- tibble(varnam = c("bdod", "cec", "cfvo", "clay", "nitrogen", "phh2o", "sand", "silt", "soc", "ocd", "ocs"),
+                          factor = c(100, 10 , 10 , 10 , 100, 10 , 10 , 10 , 10 , 10 , 10))
+  
   ## specify layer of interest
-  out$voi_layer <- paste(varnam, depth, agg, sep = "_")
-
+  df_voi_layer <- expand.grid(varnam, layer) %>% 
+    setNames(c("varnam", "layer")) %>% 
+    as_tibble() %>% 
+    left_join(df_layer_code, by = "layer") %>% 
+    mutate(data_layer = paste(varnam, code, agg, sep = "_")) %>% 
+    left_join(df_conversion, by = "varnam")
+  
+  out <- list()
+  out$voi_layer <- df_voi_layer %>% pull(data_layer)
+  out$voi <- df_voi_layer %>% pull(varnam)
+  out$factor <- df_voi_layer %>% pull(factor)
+  out$layer <- df_voi_layer %>% pull(layer)
+  
   ## set other variables necessary for the WCS call for all kinds of requests
   out$webdav_path = '/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/'
 
