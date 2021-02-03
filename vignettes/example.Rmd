@@ -61,6 +61,10 @@ The following *sources* can be handled currently:
 +-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | [ISRIC WISE30sec](https://data.isric.org/geonetwork/srv/api/records/dc7b283a-8f19-45e1-aaed-e9bd515119bc) | raster map             | global   | `wise`        | local files   | [Batjes (2016)](http://dx.doi.org/10.1016/j.geoderma.2016.01.034)                          |
 +-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
+| [GSDE Soil](http://globalchange.bnu.edu.cn/research/soilwd.jsp)                                           | raster map             | global   | `gsde`        | local files   | [Shangguan et al. 2014](https://doi.org/10.1002/2013MS000293)                              |
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
+| [WorldClim](https://www.worldclim.org/data/worldclim21.html)                                              | raster map             | global   | `gsde`        | local files   | [Fick & Hijmans, 2017](https://doi.org/10.1002/joc.5086)                                   |
++-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 
 Examples to read data for a single site for each data type are given in Section 'Examples for a single site'. Handling ingestion for multiple sites is described in Section 'Example for a set of sites'. **Note** that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.
 
@@ -383,12 +387,6 @@ df_gee_modis_fpar <- ingest_bysite(
   )
 ```
 
-Plot this data.
-
-```{r}
-plot_fapar_ingestr_bysite(df_gee_modis_fpar, settings_gee)
-```
-
 ## CO2
 
 Ingesting CO2 data is particularly simple. We can safely assume it's well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years, and use the same value for all sites. Using the R package [climate](https://github.com/bczernecki/climate), we can load CO2 data from Mauna Loa directly into R. This is downloading data from <ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt>. Here, `ingest()` is a wrapper for the function `climate::meteo_noaa_co2()`.
@@ -498,10 +496,10 @@ Available variables are described in the table below. Conversion facto are appli
 
 Data is available for the following six layers.
 
-| Layer 	          | 1 | 2  | 3  | 4  | 5   | 6   |
-| ---               |---|--- |--- |--- |---  |---  |
-| Top depth (cm)    | 0 | 5  | 15 | 30 | 60  | 100 |
-| Bottom depth (cm) | 5 | 15 | 30 | 60 | 100 | 200 |
+| Layer             | 1   | 2   | 3   | 4   | 5   | 6   |
+|-------------------|-----|-----|-----|-----|-----|-----|
+| Top depth (cm)    | 0   | 5   | 15  | 30  | 60  | 100 |
+| Bottom depth (cm) | 5   | 15  | 30  | 60  | 100 | 200 |
 
 The specify which data is to be ingested define the settings using the function `get_settings_soilgrids()`, and provide standard variable names as a vector of character strings for argument `varnam`, and layers as a vector of integers for argument `layer`. For example:
 
@@ -609,6 +607,98 @@ df_wise <- ingest_bysite(
   settings  = settings_wise,
   dir       = "~/data/soil/wise"
   )
+```
+
+## GSDE Soil
+
+Global Soil Dataset for use in Earth System Models (GSDE) by [Shangguan et al. 2014](https://doi.org/10.1002/2013MS000293), obtained from [here](http://globalchange.bnu.edu.cn/research/soilwd.jsp). Available variables are given in the table below.
+
+| No. | Attribute                              | units         | variable name  |
+|-----|----------------------------------------|---------------|----------------|
+| 1   | total carbon                           | %of weight    | TC             |
+| 2   | organic carbon                         | %of weight    | OC             |
+| 3   | total N                                | %of weight    | TN             |
+| 7   | pH(H2O)                                |               | PHH2O          |
+| 8   | pH(KCl)                                |               | PHK            |
+| 9   | pH(CaCl2)                              |               | PHCA           |
+| 15  | Exchangeable aluminum                  | cmol/kg       | EXA            |
+| 27  | The amount of P using the Bray1 method | ppm of weight | PBR            |
+| 28  | The amount of P by Olsen method        | ppm of weight | POL            |
+| 29  | P retention by New Zealand method      | \% of weight  | PNZ            |
+| 30  | The amount of water soluble P          | ppm of weight | PHO            |
+| 31  | The amount of P by Mehlich method      | ppm of weight | PMEH           |
+| 33  | Total P                                | \% of weight  | TP             |
+| 34  | Total potassium                        | \% of weight  | TK             |
+
+The 8 layers are:
+```{r}
+df_layers <- tibble(layer = 1:8, bottom = c(4.5, 9.1, 16.6, 28.9, 49.3, 82.9, 138.3, 229.6)) %>% 
+  mutate(top = lag(bottom)) %>% 
+  mutate(top = ifelse(is.na(top), 0, top))
+df_layers
+```
+
+Specify the settings directly as a list with elements `varnam` (a vector of character strings specifying the variables as defined in the table above), and `layer` (a vector of integers specifying the layers over which a depth-weighted average is taken). 
+```{r}
+settings_gsde <- list(varnam = c("TN", "PBR", "PHH2O"), layer = 1:3)
+```
+
+Now, the data can be ingested.
+
+```{r}
+df_gsde <- ingest_bysite(
+  sitename  = "CH-Lae",
+  source    = "gsde",
+  lon       = 8.36439,
+  lat       = 47.47833,
+  settings  = settings_gsde,
+  dir       = "~/data/soil/shangguan"
+  )
+```
+
+And data is returned with variables along columns inside a nested column `data`, and sites along rows (as for all ingestr). Make it flat by:
+```{r}
+df_gsde %>% 
+  unnest(data)
+```
+
+## WorldClim
+
+This ingests Worldclim monthly climatology (averaged over 1970-2000) at 30 seconds spatial resolution by [Fick & Hijmans, 2017](https://doi.org/10.1002/joc.5086), obtained [here](https://www.worldclim.org/data/worldclim21.html). Available variables are:
+
+| Variable name  | Description   | Units          |
+|----------------|---------------|----------------|
+| bio            | Bioclimatic variables (description [here](https://www.worldclim.org/data/bioclim.html))  | |
+| tmin           | Minimum temperature | °C |
+| tmax           | Maximum temperature | °C |
+| tavg           | Average temperature | °C |
+| prec           | Precipitation       | mm |
+| srad           | Solar radiation     | kJ m-2 day-1 |
+| wind           | Wind speed          | m s-1 |
+| vapr           | Water vapour pressure |  kPa |
+
+Specify the settings directly as a list with elements `varnam` (a vector of character strings specifying the variables as defined in the table above), and `layer` (a vector of integers specifying the layers over which a depth-weighted average is taken). 
+```{r}
+settings_worldclim <- list(varnam = c("bio"))
+```
+
+Now, the data can be ingested.
+
+```{r}
+df_worldclim <- ingest_bysite(
+  sitename  = "CH-Lae",
+  source    = "worldclim",
+  lon       = 8.36439,
+  lat       = 47.47833,
+  settings  = settings_worldclim,
+  dir       = "~/data/worldclim"
+  )
+```
+
+And for Flat-Earthers:
+```{r}
+df_worldclim %>% 
+  unnest(data)
 ```
 
 # Examples for a site ensemble
@@ -965,6 +1055,63 @@ df_wise <- ingest(
   source    = "wise",
   settings  = settings_wise,
   dir       = "~/data/soil/wise"
+  )
+```
+
+## GSDE Soil
+
+Global Soil Dataset for use in Earth System Models (GSDE) by [Shangguan et al. 2014](https://doi.org/10.1002/2013MS000293), obtained from [here](http://globalchange.bnu.edu.cn/research/soilwd.jsp). Available variables and layers are given in the table in the section above (*Examples for a single site - GSDE Soil*)
+
+Specify the settings directly as a list with elements `varnam` (a vector of character strings specifying the variables as defined in the table above), and `layer` (a vector of integers specifying the layers over which a depth-weighted average is taken). 
+```{r}
+settings_gsde <- list(varnam = c("PBR", "PHH2O"), layer = 1:8)
+```
+
+Now, the data can be ingested.
+
+```{r}
+df_gsde <- ingest(
+  siteinfo_fluxnet2015 %>% slice(1:2),
+  source    = "gsde",
+  settings  = settings_gsde,
+  dir       = "~/data/soil/shangguan"
+  )
+```
+
+And data is returned with variables along columns inside a nested column `data`, and sites along rows (as for all ingestr). Make it flat by:
+```{r}
+df_gsde %>% 
+  unnest(data)
+```
+
+## WorldClim
+
+This ingests Worldclim monthly climatology (averaged over 1970-2000) at 30 seconds spatial resolution by [Fick & Hijmans, 2017](https://doi.org/10.1002/joc.5086), obtained [here](https://www.worldclim.org/data/worldclim21.html). Available variables are:
+
+| Variable name  | Description   | Units          |
+|----------------|---------------|----------------|
+| bio            | Bioclimatic variables (description [here](https://www.worldclim.org/data/bioclim.html))  | |
+| tmin           | Minimum temperature | °C |
+| tmax           | Maximum temperature | °C |
+| tavg           | Average temperature | °C |
+| prec           | Precipitation       | mm |
+| srad           | Solar radiation     | kJ m-2 day-1 |
+| wind           | Wind speed          | m s-1 |
+| vapr           | Water vapour pressure |  kPa |
+
+Specify the settings directly as a list with elements `varnam` (a vector of character strings specifying the variables as defined in the table above), and `layer` (a vector of integers specifying the layers over which a depth-weighted average is taken). 
+```{r}
+settings_worldclim <- list(varnam = c("bio"))
+```
+
+Now, the data can be ingested.
+
+```{r}
+df_worldclim <- ingest(
+  siteinfo_fluxnet2015 %>% slice(1:2),
+  source    = "worldclim",
+  settings  = settings_worldclim,
+  dir       = "~/data/worldclim"
   )
 ```
 

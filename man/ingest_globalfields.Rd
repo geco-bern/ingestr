@@ -36,7 +36,8 @@ the respective source (if multiple time scales are available, otherwise is disre
 \item{standardise_units}{A logical specifying whether units in ingested data are to be standardised
 following ingestr-standard units.}
 
-\item{layer}{(Optional) A character string specifying the layer from a shapefile or a raster brick to be read.}
+\item{layer}{(Optional) A character string specifying the layer from a shapefile or a raster brick to be read 
+or to be used to identify file name for gsde.}
 
 \item{verbose}{if \code{TRUE}, additional messages are printed.}
 }

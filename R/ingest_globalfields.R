@@ -16,7 +16,8 @@
 #' the respective source (if multiple time scales are available, otherwise is disregarded).
 #' @param standardise_units A logical specifying whether units in ingested data are to be standardised
 #' following ingestr-standard units.
-#' @param layer (Optional) A character string specifying the layer from a shapefile or a raster brick to be read.
+#' @param layer (Optional) A character string specifying the layer from a shapefile or a raster brick to be read 
+#' or to be used to identify file name for gsde.
 #' @param verbose if \code{TRUE}, additional messages are printed.
 #'
 #' @return A data frame (tibble) containing the time series of ingested data, nested for each site.
@@ -27,7 +28,7 @@
 #'
 ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, standardise_units = TRUE, layer = NULL, verbose = FALSE ){
 
-  if (!(source %in% c("etopo1", "wwf"))){
+  if (!(source %in% c("etopo1", "wwf", "gsde", "worldclim"))){
     ## get a data frame with all dates for all sites
     ddf <- purrr::map(
       as.list(seq(nrow(siteinfo))),
@@ -255,6 +256,62 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
       dplyr::rename(elv = V1) %>%
       dplyr::select(sitename, elv)
 
+  } else if (source == "gsde"){
+
+    ## re-construct this data frame (tibble) - otherwise SpatialPointsDataframe() won't work
+    df_lonlat <- tibble(
+      sitename = siteinfo$sitename,
+      lon      = siteinfo$lon,
+      lat      = siteinfo$lat
+    )
+    
+    ## top soil layers
+    filename <- list.files(dir, pattern = paste0(layer, "1.nc"))
+    if (length(filename) > 1) rlang::abort("ingest_globalfields(): Found more than 1 file for source 'gsde'.")
+    if (length(filename) == 0) rlang::abort("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir'.")
+    ddf_top <- extract_pointdata_allsites( paste0(dir, "/", filename), df_lonlat, get_time = FALSE ) %>%
+      dplyr::select(-lon, -lat) %>%
+      tidyr::unnest(data) %>%
+      dplyr::rename(!!layer := V1) %>%
+      dplyr::select(sitename, !!layer)
+
+    ## bottom soil layers
+    filename <- list.files(dir, pattern = paste0(layer, "2.nc"))
+    if (length(filename) > 1) rlang::abort("ingest_globalfields(): Found more than 1 file for source 'gsde'.")
+    if (length(filename) == 0) rlang::abort("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir'.")
+    ddf_bottom <- extract_pointdata_allsites( paste0(dir, "/", filename), df_lonlat, get_time = FALSE ) %>%
+      dplyr::select(-lon, -lat) %>%
+      tidyr::unnest(data) %>%
+      dplyr::rename(!!layer := V1) %>%
+      dplyr::select(sitename, !!layer)
+    
+    ## combine for layers read from each file
+    ddf <- bind_rows(ddf_top, ddf_bottom) %>% 
+      group_by(sitename) %>% 
+      nest() %>% 
+      mutate(data = purrr::map(data, ~mutate(., layer = 1:8))) %>% 
+      unnest(data)
+
+    ## apply conversion factor
+    df_conv <- tibble(varnam := c("TC", "OC", "TN", "PHH2O", "PHK", "PHCA", "EXA", "PBR", "POL", "PNZ", "PHO", "PMEH", "TP", "TK"),    
+                      fact = c(0.01, 0.01, 0.01, 0.1, 0.1, 0.1, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.01, 0.0001, 0.01))
+    
+    ddf <- ddf %>% 
+      mutate(varnam = !!layer) %>% 
+      left_join(df_conv, by = "varnam") %>%
+      rename(value = !!layer) %>% 
+      
+      ## interpret missing values
+      na_if(-999) %>% 
+      mutate(value = ifelse(varnam %in% c("PHH2O", "PHK", "PHCA") & value == 100,
+                            NA,
+                            value)) %>% 
+      
+      ## apply conversion factor
+      mutate(value = value * fact) %>% 
+      dplyr::select(-fact, -varnam) %>% 
+      rename(!!layer := value)
+      
   } else if (source == "wwf"){
 
     df_biome_codes <- tibble(
@@ -279,6 +336,25 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
     ddf <- extract_pointdata_allsites_shp( dir, dplyr::select(siteinfo, sitename, lon, lat), layer ) %>%
       left_join(df_biome_codes, by = "BIOME")
 
+
+  } else if (source == "worldclim"){
+    
+    ## re-construct this data frame (tibble) - otherwise SpatialPointsDataframe() won't work
+    df_lonlat <- tibble(
+      sitename = siteinfo$sitename,
+      lon      = siteinfo$lon,
+      lat      = siteinfo$lat
+    )
+    
+    vec_filn <- list.files(dir, pattern = paste0(layer, ".*.tif"))
+    
+    ddf <- purrr::map2(as.list(vec_filn), as.list(str_remove(vec_filn, paste0("wc2.1_30s_", layer, "_")) %>% str_remove(".tif")),
+               ~{extract_pointdata_allsites( paste0(dir, "/", .x), df_lonlat, get_time = FALSE ) %>%
+                   dplyr::select(-lon, -lat) %>%
+                   tidyr::unnest(data) %>%
+                   dplyr::rename(!!paste0(layer, "_", .y) := V1) %>%
+                   dplyr::select(sitename, !!paste0(layer, "_", .y))}) %>% 
+      purrr::reduce(left_join, by = "sitename")
 
   }
 
