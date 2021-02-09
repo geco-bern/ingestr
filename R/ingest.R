@@ -38,7 +38,7 @@ ingest <- function(
 	verbose   = FALSE
   ){
 
-  if (!(source %in% c("hwsd", "etopo1", "wwf"))){
+  if (!(source %in% c("hwsd", "etopo1", "wwf", "soilgrids", "wise", "gsde", "worldclim"))){
 
     ## complement dates information
     if (!("year_start" %in% names(siteinfo))){
@@ -203,6 +203,20 @@ ingest <- function(
 	    )
 
 
+	} else if (source == "fapar_unity"){
+	  #-----------------------------------------------------------
+	  # Assume fapar = 1 for all dates
+	  #-----------------------------------------------------------
+	  ddf <- purrr::map(
+	    as.list(seq(nrow(siteinfo))),
+	    ~expand_bysite(
+	      sitename = siteinfo$sitename[.],
+	      year_start = lubridate::year(siteinfo$date_start[.]),
+	      year_end   = lubridate::year(siteinfo$date_end[.])
+	      ) %>%
+	      mutate(fapar = 1.0)
+	  )
+
 	} else if (source == "etopo1"){
 	  #-----------------------------------------------------------
 	  # Get ETOPO1 elevation data. year_start and year_end not required
@@ -238,9 +252,103 @@ ingest <- function(
 	                             layer = settings$layer
 	  )
 
-	} else {
+	} else if (source == "soilgrids"){
+	  #-----------------------------------------------------------
+	  # Get SoilGrids soil data. year_start and year_end not required
+	  # Code from https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md
+	  #-----------------------------------------------------------
+	  ddf <- purrr::map_dfr(
+	    as.list(seq(nrow(siteinfo))),
+	    ~ingest_soilgrids_bysite(
+	      siteinfo$sitename[.], 
+	      siteinfo$lon[.], 
+	      siteinfo$lat[.],
+	      settings
+	      )
+	    ) %>% 
+	    unnest(data)
+
+	} else if (source == "wise"){
+	  #-----------------------------------------------------------
+	  # Get WISE30secs soil data. year_start and year_end not required
+	  #-----------------------------------------------------------
+	  ddf <- purrr::map_dfc(as.list(settings$varnam), ~ingest_wise_byvar(., siteinfo, layer = settings$layer, dir = dir))
+
+	  if (length(settings$varnam) > 1){
+	    ddf <- ddf %>%
+	      rename(lon = lon...1, lat = lat...2) %>%
+	      dplyr::select(-starts_with("lon..."), -starts_with("lat...")) %>%
+	      right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
+	      dplyr::select(-lon, -lat)
+
+	  } else {
+	    ddf <- ddf %>%
+	      right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
+	      dplyr::select(-lon, -lat)
+
+	  }
+
+	} else if (source == "gsde"){
+	  #-----------------------------------------------------------
+	  # Get GSDE soil data from tif files (2 files, for bottom and top layers)
+	  #-----------------------------------------------------------
+	  aggregate_layers <- function(df, varnam, layer){
+	    
+	    df_layers <- tibble(layer = 1:8, bottom = c(4.5, 9.1, 16.6, 28.9, 49.3, 82.9, 138.3, 229.6)) %>% 
+	      mutate(top = lag(bottom)) %>% 
+	      mutate(top = ifelse(is.na(top), 0, top)) %>% 
+	      rowwise() %>% 
+	      mutate(depth = bottom - top) %>% 
+	      dplyr::select(-top, -bottom)
+	    
+	    z_tot_use <- df_layers %>%
+	      ungroup() %>% 
+	      dplyr::filter(layer %in% settings$layer) %>%
+	      summarise(depth_tot_cm = sum(depth)) %>%
+	      pull(depth_tot_cm)
+	    
+	    ## weighted sum, weighting by layer depth
+	    df %>%
+	      left_join(df_layers, by = "layer") %>%
+	      rename(var = !!varnam) %>% 
+	      dplyr::filter(layer %in% settings$layer) %>%
+	      mutate(var_wgt = var * depth / z_tot_use) %>%
+	      group_by(sitename) %>%
+	      summarise(var := sum(var_wgt)) %>% 
+	      rename(!!varnam := var)
+	  }
+	  
+	  ddf <- purrr::map(
+	    as.list(settings$varnam),
+	    ~ingest_globalfields(siteinfo,
+	                         source = source,
+	                         getvars = NULL,
+	                         dir = dir,
+	                         timescale = NULL,
+	                         verbose = FALSE,
+	                         layer = .
+	    )) %>% 
+	    map2(as.list(settings$varnam), ~aggregate_layers(.x, .y, settings$layer)) %>% 
+	    purrr::reduce(left_join, by = "sitename")
+	  
+	 }  else if (source == "worldclim"){
+	   #-----------------------------------------------------------
+	   # Get WorldClim data from global raster file
+	   #-----------------------------------------------------------
+	   ddf <- ingest_globalfields(siteinfo,
+	                              source = source,
+	                              dir = dir,
+	                              getvars = NULL,
+	                              timescale = NULL,
+	                              verbose = FALSE,
+	                              layer = settings$varnam
+	   )
+	   
+	 } else {
+
 	  rlang::warn(paste("you selected source =", source))
 	  rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
+
 	}
 
   ddf <- ddf %>%
@@ -265,5 +373,14 @@ expand_co2_bysite <- function(df, sitename, year_start, year_end){
     dplyr::select(sitename, date, co2 = co2_avg)
 
   return(ddf)
+}
+
+expand_bysite <- function(sitename, year_start, year_end){
+
+  ddf <- init_dates_dataframe( year_start, year_end ) %>%
+    dplyr::mutate(sitename = sitename)
+
+  return(ddf)
+
 }
 

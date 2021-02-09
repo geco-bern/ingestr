@@ -126,6 +126,8 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
 #' i.e. data is read from exisitng file if available.
 #' @param overwrite_interpol A logical specifying whether processed (interpolated) data, is to be overwritten. Defaults to \code{FALSE},
 #' i.e. data is read from exisitng file if available.
+#' @param n_focal An integer specifying the distance (in number of pixels) around the center pixel to be used for averaging. Defaults
+#' to zero (using only the center pixel).
 #' @return A named list containing information required for download from Google
 #' Earth Engine.
 #' @export
@@ -133,7 +135,7 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
 #' @examples \dontrun{settings_gee <- get_settings_gee()}
 #'
 get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_interpol = "linear", keep = FALSE,
-                              overwrite_raw = FALSE, overwrite_interpol = FALSE ){
+                              overwrite_raw = FALSE, overwrite_interpol = FALSE, n_focal = 0 ){
 
   if (bundle == "modis_fpar"){
     ##--------------------------------------------------------------------
@@ -201,6 +203,7 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
   out$keep               <- keep
   out$overwrite_raw      <- overwrite_raw
   out$overwrite_interpol <- overwrite_interpol
+  out$n_focal            <- n_focal
 
   return(out)
 
@@ -344,4 +347,76 @@ get_settings_fluxnet <- function(
 
   return(settings)
 
+}
+
+#' Defines settings for settings for SoilGrids ingest
+#'
+#' Defines settings for settings for SoilGrids ingest. Handles the specification of the required layer identifier.
+#'
+#' @param varnam A charachter string specifying the variable of interest.
+#' See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for naming conventions.
+#' @param layer An integer or vector of integers specifying the soil layers.
+#' See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for available layers.
+#' Defaults to \code{"0-5cm"}.
+#' @param agg A character string specifying the aggregation statistic for depth layer-specific values. Defaults to
+#' \code{"mean"}. See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for
+#' available statistics.
+#' @return A named list containing information required for download from SoilGrids
+#' @export
+#'
+#' @examples \dontrun{settings <- get_settings_soilgrids("soc")}
+#'
+get_settings_soilgrids <- function(varnam, layer = 1, agg = "mean"){
+
+  ## for association of layer character codes
+  df_layer_code <- tibble(layer = 1:6, code = c("0-5cm", "5-15cm", "15-30cm", "30-60cm", "60-100cm", "100-200cm"))
+
+  ## for association of conversion factors
+  df_conversion <- tibble(varnam = c("bdod", "cec", "cfvo", "clay", "nitrogen", "phh2o", "sand", "silt", "soc", "ocd", "ocs"),
+                          factor = c(100, 10 , 10 , 10 , 100, 10 , 10 , 10 , 10 , 10 , 10))
+  
+  ## specify layer of interest
+  df_voi_layer <- expand.grid(varnam, layer) %>% 
+    setNames(c("varnam", "layer")) %>% 
+    as_tibble() %>% 
+    left_join(df_layer_code, by = "layer") %>% 
+    mutate(data_layer = paste(varnam, code, agg, sep = "_")) %>% 
+    left_join(df_conversion, by = "varnam")
+  
+  out <- list()
+  out$voi_layer <- df_voi_layer %>% pull(data_layer)
+  out$voi <- df_voi_layer %>% pull(varnam)
+  out$factor <- df_voi_layer %>% pull(factor)
+  out$layer <- df_voi_layer %>% pull(layer)
+  
+  ## set other variables necessary for the WCS call for all kinds of requests
+  out$webdav_path = '/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/'
+
+  return(out)
+}
+
+#' Defines settings for settings for WISE30sec ingest
+#'
+#' Defines settings for settings for WISE30sec ingest. Handles the specification of the required layer identifier.
+#'
+#' @param varnam A charachter string specifying the variable of interest.
+#' See \url{https://www.isric.org/documents/document-type/isric-report-201501-world-soil-property-estimates-broad-scale-modelling} for naming conventions.
+#' @param layer An integer specifying soil layer.
+#' See \url{https://www.isric.org/documents/document-type/isric-report-201501-world-soil-property-estimates-broad-scale-modelling} for available layers.
+#' Defaults to \code{1}.
+#' @return A named list containing information required for download from WISE30sec
+#' @export
+#'
+#' @examples \dontrun{settings <- get_settings_wise("CNrt")}
+#'
+get_settings_wise <- function(varnam, layer = 1){
+  
+  out <- list()
+  
+  out$varnam <- varnam
+  
+  ## specify layer of interest
+  out$layer <- layer
+  
+  return(out)
 }

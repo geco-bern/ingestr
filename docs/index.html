@@ -98,12 +98,12 @@
 <p>The following <em>sources</em> can be handled currently:</p>
 <table class="table">
 <colgroup>
-<col width="35%">
-<col width="21%">
-<col width="12%">
-<col width="21%">
-<col width="4%">
-<col width="4%">
+<col width="40%">
+<col width="9%">
+<col width="3%">
+<col width="5%">
+<col width="5%">
+<col width="34%">
 </colgroup>
 <thead><tr class="header">
 <th>Data source</th>
@@ -116,15 +116,15 @@
 <tbody>
 <tr class="odd">
 <td><a href="https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/">FLUXNET</a></td>
-<td>ecosystem fluxes, meteo, soil moisture</td>
+<td>time series by site</td>
 <td>site</td>
 <td><code>fluxnet</code></td>
 <td>local files</td>
-<td></td>
+<td>Extraction by site name</td>
 </tr>
 <tr class="even">
 <td><a href="http://www.eu-watch.org/data_availability">WATCH-WFDEI</a></td>
-<td>meteo</td>
+<td>time series raster map</td>
 <td>global</td>
 <td><code>watch_wfdei</code></td>
 <td>local files</td>
@@ -132,7 +132,7 @@
 </tr>
 <tr class="odd">
 <td><a href="https://crudata.uea.ac.uk/cru/data/hrg/">CRU</a></td>
-<td>meteo</td>
+<td>time series raster map</td>
 <td>global</td>
 <td><code>cru</code></td>
 <td>local files</td>
@@ -140,7 +140,7 @@
 </tr>
 <tr class="even">
 <td>MODIS LP DAAC</td>
-<td>remote sensing</td>
+<td>time series raster map</td>
 <td>global</td>
 <td><code>modis</code></td>
 <td>remote server</td>
@@ -149,7 +149,7 @@
 </tr>
 <tr class="odd">
 <td>Google Earth Engine</td>
-<td>remote sensing</td>
+<td>time series raster map</td>
 <td>global</td>
 <td><code>gee</code></td>
 <td>remote server</td>
@@ -157,7 +157,7 @@
 </tr>
 <tr class="even">
 <td><a href="https://www.ngdc.noaa.gov/mgg/global/">ETOPO1</a></td>
-<td>elevation</td>
+<td>raster map</td>
 <td>global</td>
 <td><code>etopo1</code></td>
 <td>local files</td>
@@ -165,7 +165,7 @@
 </tr>
 <tr class="odd">
 <td><a href="https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html">Mauna Loa CO2</a></td>
-<td>CO2 concentration</td>
+<td>time series</td>
 <td>site</td>
 <td><code>co2_mlo</code></td>
 <td>remote server</td>
@@ -173,7 +173,7 @@
 </tr>
 <tr class="even">
 <td>HWSD</td>
-<td>soil</td>
+<td>shapefile map</td>
 <td>global</td>
 <td><code>hwsd</code></td>
 <td>local files</td>
@@ -181,19 +181,59 @@
 </tr>
 <tr class="odd">
 <td><a href="https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c">WWF Ecoregions</a></td>
-<td>vegetation classification</td>
+<td>shapefile map</td>
 <td>global</td>
 <td><code>wwf</code></td>
 <td>local files</td>
 <td>Olsen et al. (2001)</td>
 </tr>
+<tr class="even">
+<td><a href="https://link.springer.com/article/10.1007%2Fs10584-011-0155-0">N deposition</a></td>
+<td>time series raster map</td>
+<td>global</td>
+<td><code>ndep</code></td>
+<td>local files</td>
+<td>Lamarque et al. (2011)</td>
+</tr>
+<tr class="odd">
+<td><a href="https://www.isric.org/explore/soilgrids">SoilGrids</a></td>
+<td>raster map</td>
+<td>global</td>
+<td><code>soilgrids</code></td>
+<td>remote server</td>
+<td>Hengl et al. (2017)</td>
+</tr>
+<tr class="even">
+<td><a href="https://data.isric.org/geonetwork/srv/api/records/dc7b283a-8f19-45e1-aaed-e9bd515119bc">ISRIC WISE30sec</a></td>
+<td>raster map</td>
+<td>global</td>
+<td><code>wise</code></td>
+<td>local files</td>
+<td><a href="http://dx.doi.org/10.1016/j.geoderma.2016.01.034">Batjes (2016)</a></td>
+</tr>
+<tr class="odd">
+<td><a href="http://globalchange.bnu.edu.cn/research/soilwd.jsp">GSDE Soil</a></td>
+<td>raster map</td>
+<td>global</td>
+<td><code>gsde</code></td>
+<td>local files</td>
+<td><a href="https://doi.org/10.1002/2013MS000293">Shangguan et al. 2014</a></td>
+</tr>
+<tr class="even">
+<td><a href="https://www.worldclim.org/data/worldclim21.html">WorldClim</a></td>
+<td>raster map</td>
+<td>global</td>
+<td><code>gsde</code></td>
+<td>local files</td>
+<td><a href="https://doi.org/10.1002/joc.5086">Fick &amp; Hijmans, 2017</a></td>
+</tr>
 </tbody>
 </table>
-<p>Examples to read data for a single site for each data type are given in Section ‘Examples for a single site’. Handling ingestion for multiple sites is described in Section ‘Example for a set of sites’. <strong>Note</strong> that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.</p>
+<p>Examples to read data for a single site for each data type are given in Section ‘Examples for a single site’. Handling ingestion for multiple sites is described in Section ‘Example for a set of sites’. Unless remarked otherwise, extraction goes by longitude/latitude values. <strong>Note</strong> that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.</p>
 <div id="variable-names-and-units" class="section level2">
 <h2 class="hasAnchor">
 <a href="#variable-names-and-units" class="anchor"></a>Variable names and units</h2>
-<p>All ingested data follows standardized variable naming and (optionally) units.</p>
+<p>All ingested data follows standardized variable naming and SI units. For example:</p>
 <table class="table">
 <thead><tr class="header">
 <th>Variable</th>
@@ -204,31 +244,31 @@
 <tr class="odd">
 <td>Gross primary production</td>
 <td><code>gpp</code></td>
-<td>g CO<span class="math inline"><em></em><sup> − 2</sup></span> m<span class="math inline"><em></em><sup> − 2</sup></span>
+<td>g CO<span class="math inline"><sup> − 2</sup></span> m<span class="math inline"><sup> − 2</sup></span>
 </td>
 </tr>
 <tr class="even">
 <td>Air temperature</td>
 <td><code>temp</code></td>
 <td>
-<span class="math inline"><em></em><sup>∘</sup></span>C</td>
+<span class="math inline">$^\\circ$</span>C</td>
 </tr>
 <tr class="odd">
 <td>Daily minimum air temperature</td>
 <td><code>tmin</code></td>
 <td>
-<span class="math inline"><em></em><sup>∘</sup></span>C</td>
+<span class="math inline">$^\\circ$</span>C</td>
 </tr>
 <tr class="even">
 <td>Daily maximum air temperature</td>
 <td><code>tmax</code></td>
 <td>
-<span class="math inline"><em></em><sup>∘</sup></span>C</td>
+<span class="math inline">$^\\circ$</span>C</td>
 </tr>
 <tr class="odd">
 <td>Precipitation</td>
 <td><code>prec</code></td>
-<td>mm s<span class="math inline"><em></em><sup> − 1</sup></span>
+<td>mm s<span class="math inline"><sup> − 1</sup></span>
 </td>
 </tr>
 <tr class="even">
@@ -244,13 +284,13 @@
 <tr class="even">
 <td>Net radiation</td>
 <td><code>netrad</code></td>
-<td>J m<span class="math inline"><em></em><sup> − 2</sup></span> s<span class="math inline"><em></em><sup> − 1</sup>=</span> W m<span class="math inline"><em></em><sup> − 2</sup></span>
+<td>J m<span class="math inline"><sup> − 2</sup></span> s<span class="math inline"><sup> − 1</sup>=</span> W m<span class="math inline"><sup> − 2</sup></span>
 </td>
 </tr>
 <tr class="odd">
 <td>Photosynthetic photon flux density</td>
 <td><code>ppfd</code></td>
-<td>mol m<span class="math inline"><em></em><sup> − 2</sup></span> s<span class="math inline"><em></em><sup> − 1</sup></span>
+<td>mol m<span class="math inline"><sup> − 2</sup></span> s<span class="math inline"><sup> − 1</sup></span>
 </td>
 </tr>
 <tr class="even">
@@ -260,15 +300,15 @@
 </tr>
 </tbody>
 </table>
-<p>Use these variable names for specifying which variable names they correspond to in the original data source (see argument <code>getvars</code> to functions <code><a href="reference/ingest.html">ingest()</a></code> and <code><a href="reference/ingest_bysite.html">ingest_bysite()</a></code>). <code>gpp</code> is cumulative, corresponding to the time scale of the data. For example, if daily data is read, <code>gpp</code> is the total gross primary production per day (g CO<span class="math inline"><em></em><sup> − 2</sup></span> m<span class="math inline"><em></em><sup> − 2</sup></span> d<span class="math inline"><em></em><sup> − 1</sup></span>).</p>
+<p>Use these variable names for specifying which variable names they correspond to in the original data source (see argument <code>getvars</code> to functions <code><a href="reference/ingest.html">ingest()</a></code> and <code><a href="reference/ingest_bysite.html">ingest_bysite()</a></code>). <code>gpp</code> is cumulative, corresponding to the time scale of the data. For example, if daily data is read, <code>gpp</code> is the total gross primary production per day (g CO<span class="math inline"><sup> − 2</sup></span> m<span class="math inline"><sup> − 2</sup></span> d<span class="math inline"><sup> − 1</sup></span>).</p>
 </div>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
 <p>To install and load the rsofun package using the latest release run the following command in your R terminal:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/">devtools</a></span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span>
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"stineb/ingestr"</span><span class="op">)</span>
+<code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"stineb/ingestr"</span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/stineb/ingestr">ingestr</a></span><span class="op">)</span></code></pre></div>
 <div id="dependencies" class="section level3">
 <h3 class="hasAnchor">
@@ -293,21 +333,21 @@
 <li>Directly install the package from the most up-to-date code on GitHub by</li>
 </ul>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"stineb/ingestr"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"stineb/ingestr"</span><span class="op">)</span></code></pre></div>
 <p>I recommend the following steps if you would like to use and further develop the package (even just for your own application - But keep in mind: others may benefit from your efforts too!):</p>
 <ol>
 <li>Make sure you have a Github account.</li>
-<li>Log on to Github, and go to <a href="https://github.com/stineb/ingestr">https://github.com/stineb/ingestr</a> and click on ‘Fork’ in the upper right corner. This makes a copy of the repository that belongs to you, meaning that you can modify, commit, and push changes back to your forked repository as you please.</li>
+<li>Log on to Github, and go to <a href="https://github.com/stineb/ingestr" class="uri">https://github.com/stineb/ingestr</a> and click on ‘Fork’ in the upper right corner. This makes a copy of the repository that belongs to you, meaning that you can modify, commit, and push changes back to your forked repository as you please.</li>
 <li>Clone your fork to your local computer by entering in your terminal (here, it’s cloned to a subdirectory <code>ingestr</code> placed in your home directory):</li>
 </ol>
-<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="bu">cd</span> home</span>
-<span id="cb4-2"><a href="#cb4-2"></a><span class="fu">git</span> clone https://github.com/<span class="op">&lt;</span>your_github_username<span class="op">&gt;</span>/ingestr.git</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> home</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/<span class="op">&lt;</span>your_github_username<span class="op">&gt;</span>/ingestr.git</span></code></pre></div>
 <ol>
 <li>In RStudio, create a new project in your local directory <code>~/ingestr/</code>. This opens the repository in RStudio and you have access to the code where all ingestr-functions are implemented (see subdirectory <code>./R/</code>).</li>
 <li>In RStudio, after having edited code, select the ‘Build’ tab and click on ‘Install and Restart’ to build the package again. For quick edits and checks, you may simply source the edited files instead of re-building the whole package. If you like to add new functions, create new a source file in subdirectory <code>./R/</code>, write a nice roxygen header (see other source files as an example), then click on ‘Build’ -&gt; ‘More’ -&gt; ‘Document’, and then again on ‘Install and Restart’.</li>
 <li>If you’re happy with your new edits and additions to the package, you may want to have it fet back to the original repository. To do so, please create a new <em>pull request</em> in GitHub: Click on ‘New pull request’ on <a href="https://github.com/stineb/ingestr">the repository page</a> and follow the inuitive steps. Thanks!</li>
 </ol>
-<p>This package is still in its maturing phase. To stay up-to-date with the latest version, regularly re-install from GitHub (<code><a href="https://devtools.r-lib.org//reference/remote-reexports.html">devtools::install_github("stineb/ingestr")</a></code>), or - if you’re building from a locally (<em>git</em>) cloned repository - regularly do a <code>git pull</code> and re-install the package.</p>
+<p>This package is still in its maturing phase. To stay up-to-date with the latest version, regularly re-install from GitHub (<code>devtools::install_github("stineb/ingestr")</code>), or - if you’re building from a locally (<em>git</em>) cloned repository - regularly do a <code>git pull</code> and re-install the package.</p>
 </div>
 </div>
 </div>
