@@ -63,9 +63,7 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
           ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "PSurf_daily" ) %>%
             dplyr::rename(patm = myvar),
           by = c("sitename", "date")
-        ) %>%
-        rowwise() %>%
-        dplyr::mutate(vpd = calc_vpd(qair = qair, tc = temp, patm = patm))
+        )
     }
 
     ## precipitation
@@ -100,7 +98,7 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
     if ("ppfd" %in% getvars){
       kfFEC <- 2.04
       ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "SWdown_daily" ) %>%
-        dplyr::mutate(ppfd = myvar * kfFEC * 1.0e-6 ) %>%  # micro-mol m-2 s-1 -> mol m-2 s-1
+        dplyr::mutate(ppfd = myvar * kfFEC * 1.0e-6 ) %>%  # W m-2 -> mol m-2 s-1
         dplyr::right_join(ddf, by = c("sitename", "date"))
     }
 
@@ -346,14 +344,23 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
       lat      = siteinfo$lat
     )
     
-    vec_filn <- list.files(dir, pattern = paste0(layer, ".*.tif"))
+    ingest_globalfields_worldclim_byvar <- function(varnam){
+      
+      vec_filn <- list.files(dir, pattern = paste0(varnam, ".*.tif"))
+      
+      ddf <- purrr::map2(as.list(vec_filn), as.list(str_remove(vec_filn, paste0("wc2.1_30s_", varnam, "_")) %>% str_remove(".tif")),
+                         ~{extract_pointdata_allsites( paste0(dir, "/", .x), df_lonlat, get_time = FALSE ) %>%
+                             dplyr::select(-lon, -lat) %>%
+                             tidyr::unnest(data) %>%
+                             dplyr::rename(!!paste0(varnam, "_", .y) := V1) %>%
+                             dplyr::select(sitename, !!paste0(varnam, "_", .y))}) %>% 
+        purrr::reduce(left_join, by = "sitename")
+      
+      return(ddf)
+    }
     
-    ddf <- purrr::map2(as.list(vec_filn), as.list(str_remove(vec_filn, paste0("wc2.1_30s_", layer, "_")) %>% str_remove(".tif")),
-               ~{extract_pointdata_allsites( paste0(dir, "/", .x), df_lonlat, get_time = FALSE ) %>%
-                   dplyr::select(-lon, -lat) %>%
-                   tidyr::unnest(data) %>%
-                   dplyr::rename(!!paste0(layer, "_", .y) := V1) %>%
-                   dplyr::select(sitename, !!paste0(layer, "_", .y))}) %>% 
+    ddf <- purrr::map(as.list(layer),
+                      ~ingest_globalfields_worldclim_byvar(.)) %>% 
       purrr::reduce(left_join, by = "sitename")
 
   }

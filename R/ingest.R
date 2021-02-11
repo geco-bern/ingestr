@@ -101,6 +101,16 @@ ingest <- function(
 	  #-----------------------------------------------------------
 	  # Get data from global fields
 	  #-----------------------------------------------------------
+		# if (settings$correct_bias == "worldclim"){
+		#   if (source == "watch_wfdei"){
+		#     rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
+		#     siteinfo <- siteinfo %>%
+		#     	mutate(year_start = 1979, 
+		#     				 year_end = ifelse(year_end > 2000, year_end, 2000))
+		#   }
+		# }
+
+		## this returns a flat data frame with data from all sites
     ddf <- ingest_globalfields(siteinfo,
                                source = source,
                                dir = dir,
@@ -108,6 +118,178 @@ ingest <- function(
                                timescale = timescale,
                                verbose = FALSE
     )
+
+    ## bias-correct atmospheric pressure - per default
+    if ("patm" %in% getvars){
+
+      df_patm_base <- siteinfo %>%
+      	select(sitename, elv) %>%
+      	mutate(patm_base = calc_patm(elv))
+
+      df_patm_mean <- ddf %>% 
+      	group_by(sitename) %>%
+        summarise(patm_mean = mean(patm, na.rm = TRUE)) %>%
+        left_join(df_patm_base, by = "sitename") %>%
+        mutate(scale = patm_base / patm_mean) %>%
+        right_join(ddf, by = "sitename") %>%
+        mutate(patm = patm * scale) %>% 
+        select(-patm_base, -elv, -patm_mean, -scale)
+
+    }
+
+    if (settings$correct_bias == "worldclim"){
+      #-----------------------------------------------------------
+      # Bias correction using WorldClim data
+      #-----------------------------------------------------------
+      getvars_wc <- c()
+      if ("temp" %in% getvars){getvars_wc <- c(getvars_wc, "tavg")}
+      if ("prec" %in% getvars){getvars_wc <- c(getvars_wc, "prec")}
+      if ("ppfd" %in% getvars){getvars_wc <- c(getvars_wc, "srad")}
+      if ("wind" %in% getvars){getvars_wc <- c(getvars_wc, "wind")}
+      if ("vpd" %in% getvars){getvars_wc <- c(getvars_wc, "vapr")}
+      
+      df_fine <- ingest_globalfields(siteinfo,
+                                     source = "worldclim",
+                                     dir = settings$dir_bias,
+                                     getvars = NULL,
+                                     timescale = NULL,
+                                     verbose = FALSE,
+                                     layer = getvars_wc
+      )
+      
+      ## Bias correction for temperature: substract difference
+      if ("tavg" %in% getvars_wc){
+        df_bias <- df_fine %>% 
+          pivot_longer(cols = starts_with("tavg_"), names_to = "month", values_to = "tavg", names_prefix = "tavg_") %>% 
+          mutate(month = as.integer(month)) %>% 
+          rename(temp_fine = tavg) %>% 
+          right_join(ddf %>% 
+                       mutate(month = lubridate::month(date)) %>% 
+                       group_by(sitename, month) %>% 
+                       summarise(temp = mean(temp, na.rm = TRUE)),
+                     by = c("sitename", "month")) %>% 
+          mutate(bias = temp - temp_fine) %>% 
+          dplyr::select(-temp, -temp_fine)
+        
+        ## correct bias by month
+        ddf <- ddf %>% 
+          mutate(month = lubridate::month(date)) %>% 
+          left_join(df_bias %>% dplyr::select(sitename, month, bias), by = c("sitename", "month")) %>% 
+          mutate(temp = temp - bias) %>% 
+          dplyr::select(-bias, -month)
+      }
+      
+      ## Bias correction for precipitation: scale by ratio (snow and rain equally)
+      if ("prec" %in% getvars_wc){
+        df_bias <- df_fine %>% 
+          pivot_longer(cols = starts_with("prec_"), names_to = "month", values_to = "prec", names_prefix = "prec_") %>% 
+          mutate(month = as.integer(month)) %>% 
+          rename(prec_fine = prec) %>% 
+          mutate(prec_fine = prec_fine / days_in_month(month)) %>%   # mm/month -> mm/d
+          mutate(prec_fine = prec_fine / (60 * 60 * 24)) %>%         # mm/d -> mm/sec
+          right_join(ddf %>% 
+                       mutate(month = lubridate::month(date)) %>% 
+                       group_by(sitename, month) %>% 
+                       summarise(prec = mean(prec, na.rm = TRUE)),
+                     by = c("sitename", "month")) %>% 
+          mutate(scale = prec_fine / prec) %>% 
+          dplyr::select(-prec, -prec_fine)
+        
+        ## correct bias by month
+        ddf <- ddf %>% 
+          mutate(month = lubridate::month(date)) %>% 
+          left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
+          mutate(prec = prec * scale, rain = rain * scale, snow = snow * scale) %>% 
+          dplyr::select(-scale, -month)
+      }
+      
+      ## Bias correction for shortwave radiation: scale by ratio
+      if ("srad" %in% getvars_wc){
+        kfFEC <- 2.04
+        df_bias <- df_fine %>% 
+          pivot_longer(cols = starts_with("srad_"), names_to = "month", values_to = "srad", names_prefix = "srad_") %>% 
+          mutate(month = as.integer(month)) %>% 
+          rename(srad_fine = srad) %>% 
+          mutate(ppfd_fine = 1e3 * srad_fine * kfFEC * 1.0e-6 / (60 * 60 * 24) ) %>%   # kJ m-2 day-1 -> mol m−2 s−1 PAR
+          right_join(ddf %>% 
+                       mutate(month = lubridate::month(date)) %>% 
+                       group_by(sitename, month) %>% 
+                       summarise(ppfd = mean(ppfd, na.rm = TRUE)),
+                     by = c("sitename", "month")) %>% 
+          mutate(scale = ppfd_fine / ppfd) %>% 
+          dplyr::select(-srad_fine, -ppfd_fine, -ppfd)
+        
+        ## correct bias by month
+        ddf <- ddf %>% 
+          mutate(month = lubridate::month(date)) %>% 
+          left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
+          mutate(ppfd = ppfd * scale) %>% 
+          dplyr::select(-scale, -month)
+      }
+      
+      ## Bias correction for atmospheric pressure: scale by ratio
+      if ("wind" %in% getvars_wc){
+        df_bias <- df_fine %>% 
+          pivot_longer(cols = starts_with("wind_"), names_to = "month", values_to = "wind", names_prefix = "wind_") %>% 
+          mutate(month = as.integer(month)) %>% 
+          rename(wind_fine = wind) %>% 
+          right_join(ddf %>% 
+                       mutate(month = lubridate::month(date)) %>% 
+                       group_by(sitename, month) %>% 
+                       summarise(wind = mean(wind, na.rm = TRUE)),
+                     by = c("sitename", "month")) %>% 
+          mutate(scale = wind_fine / wind) %>% 
+          dplyr::select(-wind_fine, -wind)
+        
+        ## correct bias by month
+        ddf <- ddf %>% 
+          mutate(month = lubridate::month(date)) %>% 
+          left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
+          mutate(wind = wind * scale) %>% 
+          dplyr::select(-scale, -month)
+      }
+      
+      ## Bias correction for relative humidity (actually vapour pressure): scale
+      if ("vapr" %in% getvars_wc){
+        
+        ## calculate vapour pressure from specific humidity - needed for bias correction with worldclim data
+        ddf <- ddf %>% 
+          rowwise() %>% 
+          dplyr::mutate(vapr = calc_vp(qair = qair, tc = temp, patm = patm)) %>% 
+          ungroup()
+        
+        df_bias <- df_fine %>% 
+          pivot_longer(cols = starts_with("vapr_"), names_to = "month", values_to = "vapr", names_prefix = "vapr_") %>% 
+          mutate(month = as.integer(month)) %>% 
+          rename(vapr_fine = vapr) %>% 
+          mutate(vapr_fine = vapr_fine * 1e3) %>%   # kPa -> Pa
+          right_join(ddf %>% 
+                       mutate(month = lubridate::month(date)) %>% 
+                       group_by(sitename, month) %>% 
+                       summarise(vapr = mean(vapr, na.rm = TRUE)),
+                     by = c("sitename", "month")) %>% 
+          mutate(scale = vapr_fine / vapr) %>% 
+          dplyr::select(-vapr_fine, -vapr)
+        
+        ## correct bias by month
+        ddf <- ddf %>% 
+          mutate(month = lubridate::month(date)) %>% 
+          left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
+          mutate(vapr = vapr * scale) %>% 
+          dplyr::select(-scale, -month)
+      }      
+      
+      
+      ## Calculate vapour pressure deficit from specific humidity
+      if ("vpd" %in% getvars){
+        ddf <- ddf %>%
+          rowwise() %>%
+          dplyr::mutate(vpd = calc_vpd(eact = vapr, tc = temp, patm = patm)) %>% 
+          ungroup()
+      }
+      
+    }
+    
 
 	} else if (source == "gee"){
 	  #-----------------------------------------------------------
