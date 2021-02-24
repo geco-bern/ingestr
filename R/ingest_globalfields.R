@@ -439,10 +439,10 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
     
     ## take 10 years for climatology (mean annual cycle)
     year_start_read <- 1979
-    year_end <- 1988
+    year_end_read <- 1988
     
     allmonths <- 1:12
-    allyears <- year_start_read:year_end
+    allyears <- year_start_read:year_end_read
     
     ## extract all the data
     df <- expand.grid(allmonths, allyears) %>%
@@ -466,13 +466,13 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
       summarise(myvar = mean(myvar))
     
     ## create data frames containing all required dates pre-1979
-    ddf_pre <- init_dates_dataframe(year_start, year_end) %>% 
+    ddf_pre <- init_dates_dataframe(year_start, min(1978, year_end)) %>% 
       mutate(doy = lubridate::yday(date)) %>% 
       left_join(ddf_pre, by = "doy") %>% 
       dplyr::select(-doy)
     
     ## combine the two along rows
-    tmp <- left_join(
+    ddf <- left_join(
       ddf %>% 
         ungroup() %>% 
         group_by(sitename) %>% 
@@ -485,7 +485,8 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
       by = "sitename") %>% 
       mutate(data = purrr::map2(data_pre, data, ~bind_rows(.x, .y))) %>% 
       dplyr::select(-data_pre) %>% 
-      unnest(data)
+      unnest(data) %>% 
+      arrange(date)  # to make sure
   }
 
   return( ddf )
