@@ -9,7 +9,7 @@ ingest_bysite(
   source,
   getvars,
   dir,
-  settings = list(),
+  settings = NULL,
   timescale = "d",
   year_start = NA,
   year_end = NA,

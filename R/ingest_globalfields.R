@@ -377,7 +377,7 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
 ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
 
   dirn <- paste0( dir, "/", varnam, "/" )
-
+  
   ## loop over all year and months that are required
   year_start <- ddf %>%
     dplyr::pull(date) %>%
@@ -388,9 +388,13 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
     dplyr::pull(date) %>%
     max() %>%
     lubridate::year()
+  
+  ## check if data is required for years before 1979 (when watch wfdei is available)
+  pre_data <- year_start < 1979
+  year_start_read <- max(1979, year_start)
 
   allmonths <- 1:12
-  allyears <- year_start:year_end
+  allyears <- year_start_read:year_end
 
   ## construct data frame holding longitude and latitude info
   df_lonlat <- tibble(
@@ -428,6 +432,61 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
     dplyr::select(sitename, mo, yr, dom, myvar) %>%
     dplyr::mutate(date = lubridate::ymd(paste0(as.character(yr), "-", sprintf( "%02d", mo), "-", sprintf( "%02d", dom))) ) %>%
     dplyr::select(-mo, -yr, -dom)
+  
+  ## create data frame containing all dates, using mean annual cycle (of 1979-1988) for all years before 1979
+  if (pre_data){
+    rlang::inform("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1988) for all years before 1979.")
+    
+    ## take 10 years for climatology (mean annual cycle)
+    year_start_read <- 1979
+    year_end <- 1988
+    
+    allmonths <- 1:12
+    allyears <- year_start_read:year_end
+    
+    ## extract all the data
+    df <- expand.grid(allmonths, allyears) %>%
+      dplyr::as_tibble() %>%
+      setNames(c("mo", "yr")) %>%
+      rowwise() %>%
+      dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), ".nc" )) %>%
+      ungroup() %>%
+      dplyr::mutate(data = purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat, get_time = FALSE ) ))
+    
+    ## rearrange to a daily data frame
+    ddf_pre <- df %>%
+      tidyr::unnest(data) %>%
+      dplyr::mutate(data = purrr::map(data, ~complement_df(.))) %>%
+      tidyr::unnest(data) %>%
+      dplyr::select(sitename, mo, yr, dom, myvar) %>%
+      dplyr::mutate(date = lubridate::ymd(paste0(as.character(yr), "-", sprintf( "%02d", mo), "-", sprintf( "%02d", dom))) ) %>%
+      dplyr::select(-mo, -yr, -dom) %>% 
+      mutate(doy = lubridate::yday(date)) %>% 
+      group_by(sitename, doy) %>% 
+      summarise(myvar = mean(myvar))
+    
+    ## create data frames containing all required dates pre-1979
+    ddf_pre <- init_dates_dataframe(year_start, year_end) %>% 
+      mutate(doy = lubridate::yday(date)) %>% 
+      left_join(ddf_pre, by = "doy") %>% 
+      dplyr::select(-doy)
+    
+    ## combine the two along rows
+    tmp <- left_join(
+      ddf %>% 
+        ungroup() %>% 
+        group_by(sitename) %>% 
+        nest(),
+      ddf_pre %>% 
+        ungroup() %>% 
+        group_by(sitename) %>% 
+        nest() %>% 
+        rename(data_pre = data),
+      by = "sitename") %>% 
+      mutate(data = purrr::map2(data_pre, data, ~bind_rows(.x, .y))) %>% 
+      dplyr::select(-data_pre) %>% 
+      unnest(data)
+  }
 
   return( ddf )
 }
