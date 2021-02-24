@@ -9,12 +9,13 @@ ingest_bysite(
   source,
   getvars,
   dir,
-  settings = list(),
+  settings = NULL,
   timescale = "d",
   year_start = NA,
   year_end = NA,
   lon = ifelse(source == "fluxnet", NA),
   lat = ifelse(source == "fluxnet", NA),
+  elv = NA,
   verbose = FALSE
 )
 }
@@ -53,6 +54,10 @@ or remote data servers. If \code{source = "fluxnet"}, this is not required and s
 
 \item{lat}{A numeric value specifying the longitude for which data is extraced from global files
 or remote data servers. If \code{source = "fluxnet"}, this is not required and set ot \code{NA}.}
+
+\item{elv}{A numeric value specifying the elevation of the site in m a.s.l., This is only required
+for \code{source = "watch_wfdei"}, where the ingested data for atmospheric pressure (\code{patm}) 
+is bias-corrected by elevation using  the adiabatic lapse rate (implemented by \link{calc_patm}).}
 
 \item{verbose}{if \code{TRUE}, additional messages are printed. Defaults to \code{FALSE}.}
 }

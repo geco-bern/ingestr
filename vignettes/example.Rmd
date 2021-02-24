@@ -158,14 +158,16 @@ Let's extract data for the location corresponding to FLUXNET site 'CH-Lae' (lon 
 df_watch <- ingest_bysite(
   sitename  = "FR-Pue",
   source    = "watch_wfdei",
-  getvars   = c("temp"),
+  getvars   = c("vpd"),
   dir       = "~/data/watch_wfdei/",
   timescale = "d",
   year_start = 2007,
   year_end  = 2007,
   lon       = 3.5958,
   lat       = 43.7414,
-  verbose   = FALSE
+  elv       = 200,
+  verbose   = FALSE,
+  settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
   )
 df_watch
 ```
@@ -775,10 +777,11 @@ This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 d
 
 ```{r echo = T, results = 'hide'}
 ddf_watch <- ingest(
-  siteinfo = siteinfo %>% slice(1:3),
+  siteinfo = siteinfo %>% slice(1:2),
   source    = "watch_wfdei",
-  getvars   = c("temp"),
-  dir       = "~/data/watch_wfdei/"  # adjust this with your local path
+  getvars   = c("temp", "prec"),
+  dir       = "~/data/watch_wfdei/",  # adjust this with your local path
+  settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
   )
 ```
 
