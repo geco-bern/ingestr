@@ -154,6 +154,8 @@ The argument `settings` in functions `ingest_bysite()` and `ingest()` is used to
 
 Let's extract data for the location corresponding to FLUXNET site 'CH-Lae' (lon = 8.365, lat = 47.4781). This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 degree resolution), provided as monthly files containing all days in each month. The data directory specified here (`dir = "~/data/watch_wfdei/"`) contains sub-directories with names containing the variable names. The argument `getvars` works a differently compared to `"fluxnet"`. Here, `getvars` is a vector of ingestr-standard variable names to be read. ingestr automatically reads from the respective files with WATCH-WFDEI variable names. Available variables are: `"temp", "ppfd", "vpd", "patm", "prec"`. The latter is the sum of snow and rain. Below, we read data for just one year here (2007).
 
+A bias correction may be applied by specifying the settings as in the example below. By specifying `correct_bias = "worldclim"` (the only option currently available), this uses a high-resolution (30'') monthly climatology based on years 1970-2000 and corrects the WATCH-WFDEI data by month, based on the difference (ratio for variables other than temperature) of its monthly means, averaged across 1979-2000.
+
 ```{r message=FALSE, echo = T, results = 'hide'}
 df_watch <- ingest_bysite(
   sitename  = "FR-Pue",
@@ -774,6 +776,8 @@ ddf_fluxnet_gpp <- ingest(
 ## WATCH-WFDEI
 
 This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 degree resolution), provided as monthly files containing all days in each month. The data directory specified here (`dir = "~/data/watch_wfdei/"`) contains subdirectories with names containing the variable names (corresponding to the ones specified by the argument `getvars = list(temp = "Tair")`).
+
+A bias correction may be applied by specifying the settings as in the example below. By specifying `correct_bias = "worldclim"` (the only option currently available), this uses a high-resolution (30'') monthly climatology based on years 1970-2000 and corrects the WATCH-WFDEI data by month, based on the difference (ratio for variables other than temperature) of its monthly means, averaged across 1979-2000.
 
 ```{r echo = T, results = 'hide'}
 ddf_watch <- ingest(
