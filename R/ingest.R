@@ -101,14 +101,33 @@ ingest <- function(
 	  #-----------------------------------------------------------
 	  # Get data from global fields
 	  #-----------------------------------------------------------
-		# if (settings$correct_bias == "worldclim"){
-		#   if (source == "watch_wfdei"){
-		#     rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
-		#     siteinfo <- siteinfo %>%
-		#     	mutate(year_start = 1979, 
-		#     				 year_end = ifelse(year_end > 2000, year_end, 2000))
-		#   }
-		# }
+	  ## special treatment of dates when bias correction is applied
+	  if (!identical(NULL, settings$correct_bias)){
+	    if (settings$correct_bias == "worldclim"){
+	      if (source == "watch_wfdei"){
+	        rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
+	        
+	        ## save data frame with required dates for all sites (may be different by site)
+	        ddf_dates <- purrr::map(
+	          as.list(seq(nrow(siteinfo))),
+	          ~ingestr::init_dates_dataframe(
+	            year(siteinfo$date_start[.]),
+	            year(siteinfo$date_end[.]),
+	            noleap = TRUE,
+	            timescale = "d"))
+	        names(ddf_dates) <- siteinfo$sitename
+	        ddf_dates <- ddf_dates %>%
+	          bind_rows(.id = "sitename")
+	        
+	        ## modify to read 1979 to at least 2000
+	        siteinfo <- siteinfo %>%
+	          mutate(year_start = 1979,
+	                 year_end = ifelse(year_end > 2000, year_end, 2000)) %>% 
+	          mutate(date_start = lubridate::ymd(paste0(year_start, "01-01")),
+	                 date_end   = lubridate::ymd(paste0(year_end, "01-01")))
+	      }
+	    }
+	  }
 
 		## this returns a flat data frame with data from all sites
     ddf <- ingest_globalfields(siteinfo,
@@ -138,7 +157,6 @@ ingest <- function(
     }
     
     if (!identical(NULL, settings$correct_bias)){
-      
       if (settings$correct_bias == "worldclim"){
         #-----------------------------------------------------------
         # Bias correction using WorldClim data
@@ -166,6 +184,7 @@ ingest <- function(
             mutate(month = as.integer(month)) %>% 
             rename(temp_fine = tavg) %>% 
             right_join(ddf %>% 
+                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
                          mutate(month = lubridate::month(date)) %>% 
                          group_by(sitename, month) %>% 
                          summarise(temp = mean(temp, na.rm = TRUE)),
@@ -190,6 +209,7 @@ ingest <- function(
             mutate(prec_fine = prec_fine / days_in_month(month)) %>%   # mm/month -> mm/d
             mutate(prec_fine = prec_fine / (60 * 60 * 24)) %>%         # mm/d -> mm/sec
             right_join(ddf %>% 
+                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
                          mutate(month = lubridate::month(date)) %>% 
                          group_by(sitename, month) %>% 
                          summarise(prec = mean(prec, na.rm = TRUE)),
@@ -214,6 +234,7 @@ ingest <- function(
             rename(srad_fine = srad) %>% 
             mutate(ppfd_fine = 1e3 * srad_fine * kfFEC * 1.0e-6 / (60 * 60 * 24) ) %>%   # kJ m-2 day-1 -> mol m−2 s−1 PAR
             right_join(ddf %>% 
+                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
                          mutate(month = lubridate::month(date)) %>% 
                          group_by(sitename, month) %>% 
                          summarise(ppfd = mean(ppfd, na.rm = TRUE)),
@@ -236,6 +257,7 @@ ingest <- function(
             mutate(month = as.integer(month)) %>% 
             rename(wind_fine = wind) %>% 
             right_join(ddf %>% 
+                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
                          mutate(month = lubridate::month(date)) %>% 
                          group_by(sitename, month) %>% 
                          summarise(wind = mean(wind, na.rm = TRUE)),
@@ -266,6 +288,7 @@ ingest <- function(
             rename(vapr_fine = vapr) %>% 
             mutate(vapr_fine = vapr_fine * 1e3) %>%   # kPa -> Pa
             right_join(ddf %>% 
+                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
                          mutate(month = lubridate::month(date)) %>% 
                          group_by(sitename, month) %>% 
                          summarise(vapr = mean(vapr, na.rm = TRUE)),
@@ -289,6 +312,10 @@ ingest <- function(
             dplyr::mutate(vpd = calc_vpd(eact = vapr, tc = temp, patm = patm)) %>% 
             ungroup()
         }
+        
+        ## keep only required dates
+        ddf <- ddf %>% 
+          right_join(ddf_dates, by = c("sitename", "date"))
         
       }
       
