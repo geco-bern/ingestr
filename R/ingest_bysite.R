@@ -41,7 +41,7 @@ ingest_bysite <- function(
   sitename,
   source,
   getvars,
-  dir,
+  dir = NULL,
   settings  = NULL,
   timescale = "d",
   year_start = NA,
@@ -379,9 +379,21 @@ ingest_bysite <- function(
     #-----------------------------------------------------------
     # Get CO2 data year, independent of site
     #-----------------------------------------------------------
-    df_co2 <- climate::meteo_noaa_co2() %>%
-      dplyr::select(year = yy, month = mm, co2_avg)
-
+    ## if 'dir' is provided, try reading from existing file, otherwise download
+    path <- paste0(dir, "/df_co2_mlo.csv")
+    if (!identical(NULL, dir)){
+      if (file.exists(path)){
+        df_co2 <- read_csv(path)
+      } else {
+        df_co2 <- climate::meteo_noaa_co2() %>%
+          dplyr::select(year = yy, month = mm, co2_avg)
+        readr::write_csv(df_co2, file = path)        
+      }
+    } else {
+      df_co2 <- climate::meteo_noaa_co2() %>%
+        dplyr::select(year = yy, month = mm, co2_avg)
+    }
+    
     df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
       dplyr::mutate(month = month(date), year = year(date)) %>%
       dplyr::left_join(
