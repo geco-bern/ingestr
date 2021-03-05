@@ -30,7 +30,7 @@ ingest <- function(
 	siteinfo,
 	source,
 	getvars,
-	dir,
+	dir       = NULL,
 	settings  = NULL,
 	timescale = "d",
 	parallel  = FALSE,
@@ -119,10 +119,10 @@ ingest <- function(
 	        ddf_dates <- ddf_dates %>%
 	          bind_rows(.id = "sitename")
 	        
-	        ## modify to read 1979 to at least 2000
+	        ## modify to read from at least 1979 to at least 2000
 	        siteinfo <- siteinfo %>%
-	          mutate(year_start = 1979,
-	                 year_end = ifelse(year_end > 2000, year_end, 2000)) %>% 
+	          mutate(year_start = ifelse(year_start < 1979, year_start, 1979),
+	                 year_end   = ifelse(year_end > 2000, year_end, 2000)) %>% 
 	          mutate(date_start = lubridate::ymd(paste0(year_start, "01-01")),
 	                 date_end   = lubridate::ymd(paste0(year_end, "01-01")))
 	      }
@@ -398,12 +398,27 @@ ingest <- function(
 	  #-----------------------------------------------------------
 	  # Get CO2 data year, independent of site
 	  #-----------------------------------------------------------
-	  df_co2 <- climate::meteo_noaa_co2() %>%
-	    dplyr::select(yy, co2_avg) %>%
-	    dplyr::rename(year = yy) %>%
+	  ## if 'dir' is provided, try reading from existing file, otherwise download
+	  path <- paste0(dir, "/df_co2_mlo.csv")
+	  if (!identical(NULL, dir)){
+	    if (file.exists(path)){
+	      df_co2 <- read_csv(path)
+	    } else {
+	      df_co2 <- climate::meteo_noaa_co2() %>%
+	        dplyr::select(year = yy, month = mm, co2_avg)
+	      readr::write_csv(df_co2, file = path)        
+	    }
+	  } else {
+	    df_co2 <- climate::meteo_noaa_co2() %>%
+	      dplyr::select(year = yy, month = mm, co2_avg)
+	  }
+
+	  ## aggregate to annual means	  
+	  df_co2 <- df_co2 %>% 
 	    group_by(year) %>%
 	    summarise(co2_avg = mean(co2_avg, na.rm = TRUE))
 
+	  ## expand to data frame for each site
 	  ddf <- purrr::map(
 	    as.list(seq(nrow(siteinfo))),
 	    ~expand_co2_bysite(

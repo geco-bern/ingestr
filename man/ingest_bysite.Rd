@@ -8,7 +8,7 @@ ingest_bysite(
   sitename,
   source,
   getvars,
-  dir,
+  dir = NULL,
   settings = NULL,
   timescale = "d",
   year_start = NA,

@@ -156,6 +156,8 @@ Let's extract data for the location corresponding to FLUXNET site 'CH-Lae' (lon 
 
 A bias correction may be applied by specifying the settings as in the example below. By specifying `correct_bias = "worldclim"` (the only option currently available), this uses a high-resolution (30'') monthly climatology based on years 1970-2000 and corrects the WATCH-WFDEI data by month, based on the difference (ratio for variables other than temperature) of its monthly means, averaged across 1979-2000.
 
+WATCH-WFDEI data is available for years from 1979. If `year_start` is before that, the mean seasonal cycle, averaged across 1979-1988 is returned for all years before 1979.
+
 ```{r message=FALSE, echo = T, results = 'hide'}
 df_watch <- ingest_bysite(
   sitename  = "FR-Pue",
@@ -405,7 +407,9 @@ df_co2 <- ingest_bysite(
   )
 ```
 
-More info can be obtained [here](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html) and by:
+Argument `dir` can be provided here, too. In that case, CO2 data is written (after download if it's not yet available) and read to/from a file located at `<dir>/df_co2_mlo.csv`.
+
+More info about the **climate** package and the data can be obtained [here](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html) and by:
 
 ```{r, eval=FALSE}
 ?climate::meteo_noaa_co2
@@ -779,6 +783,8 @@ This extracts from original WATCH-WFDEI files, provided as NetCDF (global, 0.5 d
 
 A bias correction may be applied by specifying the settings as in the example below. By specifying `correct_bias = "worldclim"` (the only option currently available), this uses a high-resolution (30'') monthly climatology based on years 1970-2000 and corrects the WATCH-WFDEI data by month, based on the difference (ratio for variables other than temperature) of its monthly means, averaged across 1979-2000.
 
+WATCH-WFDEI data is available for years from 1979. If `year_start` is before that, the mean seasonal cycle, averaged across 1979-1988 is returned for all years before 1979.
+
 ```{r echo = T, results = 'hide'}
 ddf_watch <- ingest(
   siteinfo = siteinfo %>% slice(1:2),
@@ -916,7 +922,9 @@ df_co2 <- ingest(
   )
 ```
 
-More info can be obtained [here](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html) and by:
+Argument `dir` can be provided here, too. In that case, CO2 data is written (after download if it's not yet available) and read to/from a file located at `<dir>/df_co2_mlo.csv`.
+
+More info about the **climate** package and the data can be obtained [here](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html) and by:
 
 ```{r, eval=FALSE}
 ?climate::meteo_noaa_co2
