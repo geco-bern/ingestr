@@ -16,7 +16,8 @@
 #' the respective source (if multiple time scales are available, otherwise is disregarded).
 #' @param standardise_units A logical specifying whether units in ingested data are to be standardised
 #' following ingestr-standard units.
-#' @param layer (Optional) A character string specifying the layer from a shapefile or a raster brick to be read.
+#' @param layer (Optional) A character string specifying the layer from a shapefile or a raster brick to be read 
+#' or to be used to identify file name for gsde.
 #' @param verbose if \code{TRUE}, additional messages are printed.
 #'
 #' @return A data frame (tibble) containing the time series of ingested data, nested for each site.
@@ -27,11 +28,11 @@
 #'
 ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, standardise_units = TRUE, layer = NULL, verbose = FALSE ){
 
-  if (!(source %in% c("etopo1", "wwf"))){
+  if (!(source %in% c("etopo1", "wwf", "gsde", "worldclim"))){
     ## get a data frame with all dates for all sites
     ddf <- purrr::map(
       as.list(seq(nrow(siteinfo))),
-      ~init_dates_dataframe(
+      ~ingestr::init_dates_dataframe(
         year(siteinfo$date_start[.]),
         year(siteinfo$date_end[.]),
         noleap = TRUE,
@@ -62,9 +63,7 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
           ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "PSurf_daily" ) %>%
             dplyr::rename(patm = myvar),
           by = c("sitename", "date")
-        ) %>%
-        rowwise() %>%
-        dplyr::mutate(vpd = calc_vpd(qair = qair, tc = temp, patm = patm))
+        )
     }
 
     ## precipitation
@@ -99,7 +98,7 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
     if ("ppfd" %in% getvars){
       kfFEC <- 2.04
       ddf <- ingest_globalfields_watch_byvar( ddf, siteinfo, dir, "SWdown_daily" ) %>%
-        dplyr::mutate(ppfd = myvar * kfFEC * 1.0e-6 ) %>%  # micro-mol m-2 s-1 -> mol m-2 s-1
+        dplyr::mutate(ppfd = myvar * kfFEC * 1.0e-6 ) %>%  # W m-2 -> mol m-2 s-1
         dplyr::right_join(ddf, by = c("sitename", "date"))
     }
 
@@ -255,6 +254,62 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
       dplyr::rename(elv = V1) %>%
       dplyr::select(sitename, elv)
 
+  } else if (source == "gsde"){
+
+    ## re-construct this data frame (tibble) - otherwise SpatialPointsDataframe() won't work
+    df_lonlat <- tibble(
+      sitename = siteinfo$sitename,
+      lon      = siteinfo$lon,
+      lat      = siteinfo$lat
+    )
+    
+    ## top soil layers
+    filename <- list.files(dir, pattern = paste0(layer, "1.nc"))
+    if (length(filename) > 1) rlang::abort("ingest_globalfields(): Found more than 1 file for source 'gsde'.")
+    if (length(filename) == 0) rlang::abort("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir'.")
+    ddf_top <- extract_pointdata_allsites( paste0(dir, "/", filename), df_lonlat, get_time = FALSE ) %>%
+      dplyr::select(-lon, -lat) %>%
+      tidyr::unnest(data) %>%
+      dplyr::rename(!!layer := V1) %>%
+      dplyr::select(sitename, !!layer)
+
+    ## bottom soil layers
+    filename <- list.files(dir, pattern = paste0(layer, "2.nc"))
+    if (length(filename) > 1) rlang::abort("ingest_globalfields(): Found more than 1 file for source 'gsde'.")
+    if (length(filename) == 0) rlang::abort("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir'.")
+    ddf_bottom <- extract_pointdata_allsites( paste0(dir, "/", filename), df_lonlat, get_time = FALSE ) %>%
+      dplyr::select(-lon, -lat) %>%
+      tidyr::unnest(data) %>%
+      dplyr::rename(!!layer := V1) %>%
+      dplyr::select(sitename, !!layer)
+    
+    ## combine for layers read from each file
+    ddf <- bind_rows(ddf_top, ddf_bottom) %>% 
+      group_by(sitename) %>% 
+      nest() %>% 
+      mutate(data = purrr::map(data, ~mutate(., layer = 1:8))) %>% 
+      unnest(data)
+
+    ## apply conversion factor
+    df_conv <- tibble(varnam := c("TC", "OC", "TN", "PHH2O", "PHK", "PHCA", "EXA", "PBR", "POL", "PNZ", "PHO", "PMEH", "TP", "TK"),    
+                      fact = c(0.01, 0.01, 0.01, 0.1, 0.1, 0.1, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.01, 0.0001, 0.01))
+    
+    ddf <- ddf %>% 
+      mutate(varnam = !!layer) %>% 
+      left_join(df_conv, by = "varnam") %>%
+      rename(value = !!layer) %>% 
+      
+      ## interpret missing values
+      na_if(-999) %>% 
+      mutate(value = ifelse(varnam %in% c("PHH2O", "PHK", "PHCA") & value == 100,
+                            NA,
+                            value)) %>% 
+      
+      ## apply conversion factor
+      mutate(value = value * fact) %>% 
+      dplyr::select(-fact, -varnam) %>% 
+      rename(!!layer := value)
+      
   } else if (source == "wwf"){
 
     df_biome_codes <- tibble(
@@ -280,6 +335,34 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
       left_join(df_biome_codes, by = "BIOME")
 
 
+  } else if (source == "worldclim"){
+    
+    ## re-construct this data frame (tibble) - otherwise SpatialPointsDataframe() won't work
+    df_lonlat <- tibble(
+      sitename = siteinfo$sitename,
+      lon      = siteinfo$lon,
+      lat      = siteinfo$lat
+    )
+    
+    ingest_globalfields_worldclim_byvar <- function(varnam){
+      
+      vec_filn <- list.files(dir, pattern = paste0(varnam, ".*.tif"))
+      
+      ddf <- purrr::map2(as.list(vec_filn), as.list(str_remove(vec_filn, paste0("wc2.1_30s_", varnam, "_")) %>% str_remove(".tif")),
+                         ~{extract_pointdata_allsites( paste0(dir, "/", .x), df_lonlat, get_time = FALSE ) %>%
+                             dplyr::select(-lon, -lat) %>%
+                             tidyr::unnest(data) %>%
+                             dplyr::rename(!!paste0(varnam, "_", .y) := V1) %>%
+                             dplyr::select(sitename, !!paste0(varnam, "_", .y))}) %>% 
+        purrr::reduce(left_join, by = "sitename")
+      
+      return(ddf)
+    }
+    
+    ddf <- purrr::map(as.list(layer),
+                      ~ingest_globalfields_worldclim_byvar(.)) %>% 
+      purrr::reduce(left_join, by = "sitename")
+
   }
 
   return( ddf )
@@ -294,7 +377,7 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
 ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
 
   dirn <- paste0( dir, "/", varnam, "/" )
-
+  
   ## loop over all year and months that are required
   year_start <- ddf %>%
     dplyr::pull(date) %>%
@@ -305,9 +388,18 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
     dplyr::pull(date) %>%
     max() %>%
     lubridate::year()
+  
+  ## check if data is required for years before 1979 (when watch wfdei is available)
+  pre_data <- year_start < 1979
 
-  allmonths <- 1:12
-  allyears <- year_start:year_end
+  ## if pre-1979 data are required, read at least 10 first years to get mean climatology
+  if (pre_data){
+    year_start_read <- 1979
+    year_end_read <- max(1988, year_end)
+  } else {
+    year_start_read <- year_start
+    year_end_read <- year_end
+  }
 
   ## construct data frame holding longitude and latitude info
   df_lonlat <- tibble(
@@ -322,7 +414,9 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
     addstring <- "_WFDEI_"
   }
 
-  ## extract all the data
+  ## extract all the data for all the dates (cutting to required dates by site is done in ingest())
+  allmonths <- 1:12
+  allyears <- year_start_read:year_end_read
   df <- expand.grid(allmonths, allyears) %>%
     dplyr::as_tibble() %>%
     setNames(c("mo", "yr")) %>%
@@ -345,6 +439,56 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
     dplyr::select(sitename, mo, yr, dom, myvar) %>%
     dplyr::mutate(date = lubridate::ymd(paste0(as.character(yr), "-", sprintf( "%02d", mo), "-", sprintf( "%02d", dom))) ) %>%
     dplyr::select(-mo, -yr, -dom)
+  
+  ## create data frame containing all dates, using mean annual cycle (of 1979-1988) for all years before 1979
+  if (pre_data){
+    rlang::inform("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1988) for all years before 1979.")
+    
+    ## get mean seasonal cycle, averaged over 1979:1988
+    ddf_meandoy <- ddf %>% 
+      dplyr::filter(lubridate::year(date) %in% 1979:1988) %>% 
+      mutate(doy = lubridate::yday(date)) %>% 
+      group_by(sitename, doy) %>% 
+      summarise(myvar = mean(myvar))
+
+    ## get a data frame with all dates for all sites
+    ddf_tmp <- purrr::map(
+      as.list(seq(nrow(siteinfo))),
+      ~ingestr::init_dates_dataframe(
+        year(siteinfo$date_start[.]),
+        min(1978, year(siteinfo$date_end[.])),
+        noleap = TRUE,
+        timescale = "d"))
+    names(ddf_tmp) <- siteinfo$sitename
+    ddf_pre <- ddf_tmp %>%
+      bind_rows(.id = "sitename") %>%
+      drop_na() %>% 
+      mutate(doy = lubridate::yday(date)) %>%
+      left_join(ddf_meandoy, by = c("sitename", "doy")) %>%
+      dplyr::select(-doy)
+    
+    # ddf_pre <- init_dates_dataframe(year_start, min(1978, year_end)) %>% 
+    #   mutate(doy = lubridate::yday(date)) %>% 
+    #   left_join(ddf_pre, by = "doy") %>% 
+    #   dplyr::select(-doy)
+    
+    ## combine the two along rows
+    ddf <- left_join(
+      ddf %>% 
+        ungroup() %>% 
+        group_by(sitename) %>% 
+        nest(),
+      ddf_pre %>% 
+        ungroup() %>% 
+        group_by(sitename) %>% 
+        nest() %>% 
+        rename(data_pre = data),
+      by = "sitename") %>% 
+      mutate(data = purrr::map2(data_pre, data, ~bind_rows(.x, .y))) %>% 
+      dplyr::select(-data_pre) %>% 
+      unnest(data) %>% 
+      arrange(date)  # to make sure
+  }
 
   return( ddf )
 }

@@ -9,7 +9,7 @@ ingest(
   source,
   getvars,
   dir,
-  settings,
+  settings = NULL,
   timescale = "d",
   parallel = FALSE,
   ncores = NULL,

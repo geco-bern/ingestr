@@ -50,13 +50,18 @@ init_dates_dataframe <- function( yrstart, yrend, startmoy=1, startdoy=1, timesc
     startdate <- lubridate::ymd_hms( paste0( as.character(yrstart), "-", sprintf( "%02d", startmoy), "-01 00:00:00" ) ) + lubridate::days( startdoy - 1 )
     enddate   <- lubridate::ymd_hms( paste0( as.character(yrend  ), "-", sprintf( "%02d", endmoy  ), "-", sprintf( "%02d", enddom  ), " 23:30:00" ) )
   }
-
-  ddf <-  tibble( date = seq( from = startdate, to = enddate, by = freq ) )
-          # mutate( ndayyear = ifelse( lubridate::leap_year(lubridate::year(date)), 366, 365  ) )
-          # mutate( year_dec = lubridate::year(date) + (lubridate::yday(date) - 1) / ndayyear ) %>%
-          # dplyr::select( -ndayyear )
-
-  if (noleap) ddf <- ddf %>% dplyr::filter( !( month(date)==2 & mday(date)==29 ) )
+  
+  if (startdate > enddate){
+    ddf <- tibble(date = NA)
+  } else {
+    ddf <-  tibble( date = seq( from = startdate, to = enddate, by = freq ) )
+    # mutate( ndayyear = ifelse( lubridate::leap_year(lubridate::year(date)), 366, 365  ) )
+    # mutate( year_dec = lubridate::year(date) + (lubridate::yday(date) - 1) / ndayyear ) %>%
+    # dplyr::select( -ndayyear )
+    
+    if (noleap) ddf <- ddf %>% dplyr::filter( !( month(date)==2 & mday(date)==29 ) )
+    
+  }
 
   return( ddf )
 

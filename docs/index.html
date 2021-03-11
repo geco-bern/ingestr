@@ -98,12 +98,12 @@
 <p>The following <em>sources</em> can be handled currently:</p>
 <table class="table">
 <colgroup>
-<col width="35%">
-<col width="21%">
-<col width="12%">
-<col width="21%">
-<col width="4%">
-<col width="4%">
+<col width="40%">
+<col width="9%">
+<col width="3%">
+<col width="5%">
+<col width="5%">
+<col width="34%">
 </colgroup>
 <thead><tr class="header">
 <th>Data source</th>
@@ -211,13 +211,29 @@
 <td>local files</td>
 <td><a href="http://dx.doi.org/10.1016/j.geoderma.2016.01.034">Batjes (2016)</a></td>
 </tr>
+<tr class="odd">
+<td><a href="http://globalchange.bnu.edu.cn/research/soilwd.jsp">GSDE Soil</a></td>
+<td>raster map</td>
+<td>global</td>
+<td><code>gsde</code></td>
+<td>local files</td>
+<td><a href="https://doi.org/10.1002/2013MS000293">Shangguan et al. 2014</a></td>
+</tr>
+<tr class="even">
+<td><a href="https://www.worldclim.org/data/worldclim21.html">WorldClim</a></td>
+<td>raster map</td>
+<td>global</td>
+<td><code>gsde</code></td>
+<td>local files</td>
+<td><a href="https://doi.org/10.1002/joc.5086">Fick &amp; Hijmans, 2017</a></td>
+</tr>
 </tbody>
 </table>
 <p>Examples to read data for a single site for each data type are given in Section ‘Examples for a single site’. Handling ingestion for multiple sites is described in Section ‘Example for a set of sites’. Unless remarked otherwise, extraction goes by longitude/latitude values. <strong>Note</strong> that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.</p>
 <div id="variable-names-and-units" class="section level2">
 <h2 class="hasAnchor">
 <a href="#variable-names-and-units" class="anchor"></a>Variable names and units</h2>
-<p>All ingested data follows standardized variable naming and (optionally) units.</p>
+<p>All ingested data follows standardized variable naming and SI units. For example:</p>
 <table class="table">
 <thead><tr class="header">
 <th>Variable</th>
@@ -235,19 +251,19 @@
 <td>Air temperature</td>
 <td><code>temp</code></td>
 <td>
-<span class="math inline"><sup>∘</sup></span>C</td>
+<span class="math inline">$^\\circ$</span>C</td>
 </tr>
 <tr class="odd">
 <td>Daily minimum air temperature</td>
 <td><code>tmin</code></td>
 <td>
-<span class="math inline"><sup>∘</sup></span>C</td>
+<span class="math inline">$^\\circ$</span>C</td>
 </tr>
 <tr class="even">
 <td>Daily maximum air temperature</td>
 <td><code>tmax</code></td>
 <td>
-<span class="math inline"><sup>∘</sup></span>C</td>
+<span class="math inline">$^\\circ$</span>C</td>
 </tr>
 <tr class="odd">
 <td>Precipitation</td>
@@ -321,7 +337,7 @@
 <p>I recommend the following steps if you would like to use and further develop the package (even just for your own application - But keep in mind: others may benefit from your efforts too!):</p>
 <ol>
 <li>Make sure you have a Github account.</li>
-<li>Log on to Github, and go to <a href="https://github.com/stineb/ingestr">https://github.com/stineb/ingestr</a> and click on ‘Fork’ in the upper right corner. This makes a copy of the repository that belongs to you, meaning that you can modify, commit, and push changes back to your forked repository as you please.</li>
+<li>Log on to Github, and go to <a href="https://github.com/stineb/ingestr" class="uri">https://github.com/stineb/ingestr</a> and click on ‘Fork’ in the upper right corner. This makes a copy of the repository that belongs to you, meaning that you can modify, commit, and push changes back to your forked repository as you please.</li>
 <li>Clone your fork to your local computer by entering in your terminal (here, it’s cloned to a subdirectory <code>ingestr</code> placed in your home directory):</li>
 </ol>
 <div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> home</span>
