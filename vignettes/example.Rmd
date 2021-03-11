@@ -385,7 +385,7 @@ df_gee_modis_fpar <- ingest_bysite(
 
 Plot this data.
 
-```{r}
+```{r eval = FALSE}
 plot_fapar_ingestr_bysite(df_gee_modis_fpar, settings_gee)
 ```
 
@@ -498,10 +498,10 @@ Available variables are described in the table below. Conversion facto are appli
 
 Data is available for the following six layers.
 
-| Layer 	          | 1 | 2  | 3  | 4  | 5   | 6   |
-| ---               |---|--- |--- |--- |---  |---  |
-| Top depth (cm)    | 0 | 5  | 15 | 30 | 60  | 100 |
-| Bottom depth (cm) | 5 | 15 | 30 | 60 | 100 | 200 |
+| Layer             | 1   | 2   | 3   | 4   | 5   | 6   |
+|-------------------|-----|-----|-----|-----|-----|-----|
+| Top depth (cm)    | 0   | 5   | 15  | 30  | 60  | 100 |
+| Bottom depth (cm) | 5   | 15  | 30  | 60  | 100 | 200 |
 
 The specify which data is to be ingested define the settings using the function `get_settings_soilgrids()`, and provide standard variable names as a vector of character strings for argument `varnam`, and layers as a vector of integers for argument `layer`. For example:
 
@@ -780,7 +780,7 @@ plot_fapar_ingestr_bysite(
 
 Using the same settings as specified above, we can download MODIS FPAR data for multiple sites at once from GEE:
 
-```{r warning=FALSE, message=FALSE, echo = T, results = 'hide'}
+```{r warning=FALSE, message=FALSE, echo = T, results = 'hide', eval = FALSE}
 settings_gee <- get_settings_gee(
   bundle            = "modis_fpar",
   python_path       = system("which python", intern = TRUE),
@@ -802,7 +802,7 @@ df_gee_modis_fpar <- ingest(
 
 Collect all plots.
 
-```{r warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE, eval=FALSE}
 list_gg <- plot_fapar_ingestr(df_gee_modis_fpar, settings_gee)
 #purrr::map(list_gg, ~print(.))
 ```
