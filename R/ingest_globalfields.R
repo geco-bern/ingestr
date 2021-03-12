@@ -354,14 +354,16 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
                              tidyr::unnest(data) %>%
                              dplyr::rename(!!paste0(varnam, "_", .y) := V1) %>%
                              dplyr::select(sitename, !!paste0(varnam, "_", .y))}) %>% 
-        purrr::reduce(left_join, by = "sitename")
+        purrr::reduce(left_join, by = "sitename") %>% 
+        distinct() %>%
+        right_join(df_lonlat, by = "sitename")
       
       return(ddf)
     }
     
     ddf <- purrr::map(as.list(layer),
                       ~ingest_globalfields_worldclim_byvar(.)) %>% 
-      purrr::reduce(left_join, by = "sitename")
+      purrr::reduce(left_join, by = c("sitename", "lon", "lat"))
 
   }
 
