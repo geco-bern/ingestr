@@ -415,6 +415,20 @@ More info about the **climate** package and the data can be obtained [here](http
 ?climate::meteo_noaa_co2
 ```
 
+**THE FOLLOWING IS UNDER CONSTRUCTION. MAKE READABLE FOR FILE AVAILABLE HERE: http://www.pik-potsdam.de/~mmalte/rcps/**
+
+Mauna Loa CO2 is not available for years before 1958. Alternative CO2 data is from CMIP standard forcing with merged time series from atmospheric measurements and ice core reconstructions. This can be selected with `source = "co2_cmip`.
+```{r eval=FALSE, message=FALSE}
+df_co2 <- ingest_bysite(
+  sitename  = "CH-Lae",
+  source  = "co2_cmip",
+  year_start= 2007,
+  year_end  = 2014,
+  verbose = FALSE,
+  dir = "~/data/co2"
+  )
+```
+
 ## HWSD
 
 Four steps are required before you can use `ingest_bysite()` to get HWSD data:
@@ -928,6 +942,17 @@ More info about the **climate** package and the data can be obtained [here](http
 
 ```{r, eval=FALSE}
 ?climate::meteo_noaa_co2
+```
+
+**THE FOLLOWING IS UNDER CONSTRUCTION. MAKE READABLE FOR FILE AVAILABLE HERE: http://www.pik-potsdam.de/~mmalte/rcps/**
+
+Mauna Loa CO2 is not available for years before 1958. Alternative CO2 data is from CMIP standard forcing with merged time series from atmospheric measurements and ice core reconstructions. This can be selected with `source = "co2_cmip`.
+```{r eval=FALSE, message=FALSE}
+df_co2 <- ingest(
+  siteinfo,
+  source  = "co2_cmip",
+  dir = "~/data/co2"
+  )
 ```
 
 ## ETOPO1

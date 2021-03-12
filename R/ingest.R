@@ -427,7 +427,7 @@ ingest <- function(
 	  ## aggregate to annual means	  
 	  df_co2 <- df_co2 %>% 
 	    group_by(year) %>%
-	    summarise(co2_avg = mean(co2_avg, na.rm = TRUE))
+	    summarise(co2 = mean(co2_avg, na.rm = TRUE))
 
 	  ## expand to data frame for each site
 	  ddf <- purrr::map(
@@ -441,6 +441,29 @@ ingest <- function(
 	    )
 
 
+	} else if (source == "co2_cmip"){
+	  #-----------------------------------------------------------
+	  # Get CO2 data year, independent of site
+	  #-----------------------------------------------------------
+	  ## if 'dir' is provided, try reading from existing file, otherwise download
+	  path <- paste0(dir, "/cCO2_rcp85_const850-1765.csv")
+	  if (file.exists(path)){
+	    df_co2 <- read_csv(path)
+	  } else {
+	    rlang::abort("File cCO2_rcp85_const850-1765.csv must be available in directory specified by 'dir'.")     
+	  }
+	  
+	  ## expand to data frame for each site
+	  ddf <- purrr::map(
+	    as.list(seq(nrow(siteinfo))),
+	    ~expand_co2_bysite(
+	      df_co2,
+	      sitename = siteinfo$sitename[.],
+	      year_start = lubridate::year(siteinfo$date_start[.]),
+	      year_end   = lubridate::year(siteinfo$date_end[.])
+	    )
+	  )
+	  
 	} else if (source == "fapar_unity"){
 	  #-----------------------------------------------------------
 	  # Assume fapar = 1 for all dates
@@ -607,8 +630,7 @@ expand_co2_bysite <- function(df, sitename, year_start, year_end){
       df,
       by = "year"
     ) %>%
-    dplyr::mutate(sitename = sitename) %>%
-    dplyr::select(sitename, date, co2 = co2_avg)
+    dplyr::mutate(sitename = sitename)
 
   return(ddf)
 }
