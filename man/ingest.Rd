@@ -8,7 +8,7 @@ ingest(
   siteinfo,
   source,
   getvars,
-  dir,
+  dir = NULL,
   settings = NULL,
   timescale = "d",
   parallel = FALSE,

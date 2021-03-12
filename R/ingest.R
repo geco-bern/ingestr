@@ -196,6 +196,7 @@ ingest <- function(
           ddf <- ddf %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(sitename, month, bias), by = c("sitename", "month")) %>% 
+            arrange(sitename, date) %>% 
             mutate(temp = temp - bias) %>% 
             dplyr::select(-bias, -month)
         }
@@ -215,13 +216,17 @@ ingest <- function(
                          summarise(prec = mean(prec, na.rm = TRUE)),
                        by = c("sitename", "month")) %>% 
             mutate(scale = prec_fine / prec) %>% 
-            dplyr::select(-prec, -prec_fine)
+            dplyr::select(sitename, month, scale)
           
           ## correct bias by month
           ddf <- ddf %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
-            mutate(prec = prec * scale, rain = rain * scale, snow = snow * scale) %>% 
+            arrange(sitename, date) %>% 
+            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
+            mutate(prec = prec * scale, 
+                   rain = rain * scale, 
+                   snow = snow * scale) %>% 
             dplyr::select(-scale, -month)
         }
         
@@ -240,12 +245,14 @@ ingest <- function(
                          summarise(ppfd = mean(ppfd, na.rm = TRUE)),
                        by = c("sitename", "month")) %>% 
             mutate(scale = ppfd_fine / ppfd) %>% 
-            dplyr::select(-srad_fine, -ppfd_fine, -ppfd)
+            dplyr::select(sitename, month, scale)
           
           ## correct bias by month
           ddf <- ddf %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
+            arrange(sitename, date) %>% 
+            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
             mutate(ppfd = ppfd * scale) %>% 
             dplyr::select(-scale, -month)
         }
@@ -263,12 +270,14 @@ ingest <- function(
                          summarise(wind = mean(wind, na.rm = TRUE)),
                        by = c("sitename", "month")) %>% 
             mutate(scale = wind_fine / wind) %>% 
-            dplyr::select(-wind_fine, -wind)
+            dplyr::select(sitename, month, scale)
           
           ## correct bias by month
           ddf <- ddf %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
+            arrange(sitename, date) %>% 
+            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
             mutate(wind = wind * scale) %>% 
             dplyr::select(-scale, -month)
         }
@@ -294,12 +303,14 @@ ingest <- function(
                          summarise(vapr = mean(vapr, na.rm = TRUE)),
                        by = c("sitename", "month")) %>% 
             mutate(scale = vapr_fine / vapr) %>% 
-            dplyr::select(-vapr_fine, -vapr)
+            dplyr::select(sitename, month, scale)
           
           ## correct bias by month
           ddf <- ddf %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
+            arrange(sitename, date) %>% 
+            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
             mutate(vapr = vapr * scale) %>% 
             dplyr::select(-scale, -month)
         }      
