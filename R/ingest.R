@@ -180,6 +180,7 @@ ingest <- function(
         ## Bias correction for temperature: substract difference
         if ("tavg" %in% getvars_wc){
           df_bias <- df_fine %>% 
+            dplyr::select(sitename, starts_with("tavg_")) %>% 
             pivot_longer(cols = starts_with("tavg_"), names_to = "month", values_to = "tavg", names_prefix = "tavg_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(temp_fine = tavg) %>% 
@@ -204,6 +205,7 @@ ingest <- function(
         ## Bias correction for precipitation: scale by ratio (snow and rain equally)
         if ("prec" %in% getvars_wc){
           df_bias <- df_fine %>% 
+            dplyr::select(sitename, starts_with("prec_")) %>% 
             pivot_longer(cols = starts_with("prec_"), names_to = "month", values_to = "prec", names_prefix = "prec_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(prec_fine = prec) %>% 
@@ -234,6 +236,7 @@ ingest <- function(
         if ("srad" %in% getvars_wc){
           kfFEC <- 2.04
           df_bias <- df_fine %>% 
+            dplyr::select(sitename, starts_with("srad_")) %>% 
             pivot_longer(cols = starts_with("srad_"), names_to = "month", values_to = "srad", names_prefix = "srad_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(srad_fine = srad) %>% 
@@ -260,6 +263,7 @@ ingest <- function(
         ## Bias correction for atmospheric pressure: scale by ratio
         if ("wind" %in% getvars_wc){
           df_bias <- df_fine %>% 
+            dplyr::select(sitename, starts_with("wind_")) %>% 
             pivot_longer(cols = starts_with("wind_"), names_to = "month", values_to = "wind", names_prefix = "wind_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(wind_fine = wind) %>% 
@@ -292,6 +296,7 @@ ingest <- function(
             ungroup()
           
           df_bias <- df_fine %>% 
+            dplyr::select(sitename, starts_with("vapr_")) %>% 
             pivot_longer(cols = starts_with("vapr_"), names_to = "month", values_to = "vapr", names_prefix = "vapr_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(vapr_fine = vapr) %>% 
