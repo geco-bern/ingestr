@@ -404,7 +404,29 @@ ingest_bysite <- function(
       dplyr::select(sitename, date, co2 = co2_avg)
 
 
-  }  else if (source == "fapar_unity"){
+  } else if (source == "co2_cmip"){
+    #-----------------------------------------------------------
+    # Get CO2 data year, independent of site
+    #-----------------------------------------------------------
+    ## if 'dir' is provided, try reading from existing file, otherwise download
+    path <- paste0(dir, "/cCO2_rcp85_const850-1765.csv")
+    if (file.exists(path)){
+      df_co2 <- read_csv(path)
+    } else {
+      rlang::abort("File cCO2_rcp85_const850-1765.csv must be available in directory specified by 'dir'.")     
+    }
+    
+    df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
+      dplyr::mutate(month = month(date), year = year(date)) %>%
+      dplyr::left_join(
+        df_co2,
+        by = c("year")
+      ) %>%
+      dplyr::mutate(sitename = sitename) %>%
+      dplyr::select(sitename, date, co2)
+    
+    
+  } else if (source == "fapar_unity"){
     #-----------------------------------------------------------
     # Assume fapar = 1 for all dates
     #-----------------------------------------------------------
