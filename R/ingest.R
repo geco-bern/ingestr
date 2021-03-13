@@ -37,6 +37,11 @@ ingest <- function(
 	ncores    = NULL,
 	verbose   = FALSE
   ){
+  
+  ## Check: all sites are distinct wrt name, lon and lat
+  if (nrow(siteinfo) != nrow(dplyr::distinct(siteinfo, sitename, lon, lat))){
+    rlang::abort("Non-distinct sites present w.r.t. name, lon, and lat.")
+  }
 
   if (!(source %in% c("hwsd", "etopo1", "wwf", "soilgrids", "wise", "gsde", "worldclim"))){
 
@@ -135,8 +140,7 @@ ingest <- function(
                                dir = dir,
                                getvars = getvars,
                                timescale = timescale,
-                               verbose = FALSE
-    )
+                               verbose = FALSE)
 
     ## bias-correct atmospheric pressure - per default
     if ("patm" %in% getvars){
@@ -145,7 +149,7 @@ ingest <- function(
       	dplyr::select(sitename, elv) %>%
       	mutate(patm_base = calc_patm(elv))
 
-      df_patm_mean <- ddf %>% 
+      ddf <- ddf %>% 
       	group_by(sitename) %>%
         summarise(patm_mean = mean(patm, na.rm = TRUE)) %>%
         left_join(df_patm_base, by = "sitename") %>%
@@ -174,8 +178,7 @@ ingest <- function(
                                        getvars = NULL,
                                        timescale = NULL,
                                        verbose = FALSE,
-                                       layer = getvars_wc
-        )
+                                       layer = getvars_wc)
         
         ## Bias correction for temperature: substract difference
         if ("tavg" %in% getvars_wc){
@@ -330,6 +333,9 @@ ingest <- function(
         }
         
         ## keep only required dates
+        
+        # THIS FUCKS IT UP
+        
         ddf <- ddf %>% 
           right_join(ddf_dates, by = c("sitename", "date"))
         
