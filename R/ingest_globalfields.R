@@ -361,7 +361,7 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
     
     ddf <- purrr::map(as.list(layer),
                       ~ingest_globalfields_worldclim_byvar(.)) %>% 
-      purrr::reduce(left_join, by = "sitename")
+      purrr::reduce(left_join, by = c("sitename"))
 
   }
 
@@ -487,7 +487,8 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
       mutate(data = purrr::map2(data_pre, data, ~bind_rows(.x, .y))) %>% 
       dplyr::select(-data_pre) %>% 
       unnest(data) %>% 
-      arrange(date)  # to make sure
+      arrange(date) %>%   # to make sure
+      distinct() # out of desperation
   }
 
   return( ddf )
