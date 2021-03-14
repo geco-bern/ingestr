@@ -197,12 +197,14 @@ ingest <- function(
             dplyr::select(-temp, -temp_fine)
           
           ## correct bias by month
-          ddf <- ddf %>% 
-            mutate(month = lubridate::month(date)) %>% 
-            left_join(df_bias %>% dplyr::select(sitename, month, bias), by = c("sitename", "month")) %>% 
-            arrange(sitename, date) %>% 
-            mutate(temp = temp - bias) %>% 
-            dplyr::select(-bias, -month)
+          if (any(!is.na(df_bias$bias))){
+            ddf <- ddf %>% 
+              mutate(month = lubridate::month(date)) %>% 
+              left_join(df_bias %>% dplyr::select(sitename, month, bias), by = c("sitename", "month")) %>% 
+              arrange(sitename, date) %>% 
+              mutate(temp = temp - bias) %>% 
+              dplyr::select(-bias, -month)
+          }
         }
         
         ## Bias correction for precipitation: scale by ratio (snow and rain equally)
@@ -224,15 +226,17 @@ ingest <- function(
             dplyr::select(sitename, month, scale)
           
           ## correct bias by month
-          ddf <- ddf %>% 
-            mutate(month = lubridate::month(date)) %>% 
-            left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
-            arrange(sitename, date) %>% 
-            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
-            mutate(prec = prec * scale, 
-                   rain = rain * scale, 
-                   snow = snow * scale) %>% 
-            dplyr::select(-scale, -month)
+          if (any(!is.na(df_bias$scale))){
+            ddf <- ddf %>% 
+              mutate(month = lubridate::month(date)) %>% 
+              left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
+              arrange(sitename, date) %>% 
+              mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
+              mutate(prec = prec * scale, 
+                     rain = rain * scale, 
+                     snow = snow * scale) %>% 
+              dplyr::select(-scale, -month)
+          }
         }
         
         ## Bias correction for shortwave radiation: scale by ratio
@@ -254,13 +258,15 @@ ingest <- function(
             dplyr::select(sitename, month, scale)
           
           ## correct bias by month
-          ddf <- ddf %>% 
-            mutate(month = lubridate::month(date)) %>% 
-            left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
-            arrange(sitename, date) %>% 
-            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
-            mutate(ppfd = ppfd * scale) %>% 
-            dplyr::select(-scale, -month)
+          if (any(!is.na(df_bias$scale))){
+            ddf <- ddf %>% 
+              mutate(month = lubridate::month(date)) %>% 
+              left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
+              arrange(sitename, date) %>% 
+              mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
+              mutate(ppfd = ppfd * scale) %>% 
+              dplyr::select(-scale, -month)
+          }
         }
         
         ## Bias correction for atmospheric pressure: scale by ratio
@@ -280,13 +286,15 @@ ingest <- function(
             dplyr::select(sitename, month, scale)
           
           ## correct bias by month
-          ddf <- ddf %>% 
-            mutate(month = lubridate::month(date)) %>% 
-            left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
-            arrange(sitename, date) %>% 
-            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
-            mutate(wind = wind * scale) %>% 
-            dplyr::select(-scale, -month)
+          if (any(!is.na(df_bias$scale))){
+            ddf <- ddf %>% 
+              mutate(month = lubridate::month(date)) %>% 
+              left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
+              arrange(sitename, date) %>% 
+              mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
+              mutate(wind = wind * scale) %>% 
+              dplyr::select(-scale, -month)
+          }
         }
         
         ## Bias correction for relative humidity (actually vapour pressure): scale
@@ -314,13 +322,15 @@ ingest <- function(
             dplyr::select(sitename, month, scale)
           
           ## correct bias by month
-          ddf <- ddf %>% 
-            mutate(month = lubridate::month(date)) %>% 
-            left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
-            arrange(sitename, date) %>% 
-            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
-            mutate(vapr = vapr * scale) %>% 
-            dplyr::select(-scale, -month)
+          if (any(!is.na(df_bias$scale))){
+            ddf <- ddf %>% 
+              mutate(month = lubridate::month(date)) %>% 
+              left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
+              arrange(sitename, date) %>% 
+              mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
+              mutate(vapr = vapr * scale) %>% 
+              dplyr::select(-scale, -month)
+          }
         }      
         
         
@@ -333,9 +343,6 @@ ingest <- function(
         }
         
         ## keep only required dates
-        
-        # THIS FUCKS IT UP
-        
         ddf <- ddf %>% 
           right_join(ddf_dates, by = c("sitename", "date"))
         

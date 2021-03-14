@@ -1,13 +1,12 @@
 citHeader("To cite rsofun in publications use:")
 
 citEntry(entry = "Manual",
-  title        = "ingestr v1.1",
-  author       = personList(as.person("Benjamin D. Stocker"),
-                   as.person("Joan Maspons")),
+  title        = "ingestr v1.2",
+  author       = personList(as.person("Benjamin D. Stocker")),
   month        = "December",
   year         = "2020",
   publisher    = "Zenodo",
-  version      = "v1.1",
+  version      = "v1.2",
   doi          = "10.5281/zenodo.4392703",
   url          = "https://doi.org/10.5281/zenodo.4392703",
 
