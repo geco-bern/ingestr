@@ -146,13 +146,17 @@ ingest <- function(
     sites_missing <- ddf %>%
       group_by(sitename) %>% 
       summarise(across(where(is.double), ~sum(!is.na(.x)))) %>% 
-      dplyr::filter(across(c(-sitename, -date), ~ .x == 0)) %>% 
+      dplyr::filter(across(c(-sitename, -date), ~ .x < 365)) %>% 
       pull(sitename)
     
     if (length(sites_missing) > 0){
       ## determine closest cell with non-NA
-      path <- paste0(dir, "/WFDEI-elevation.nc")
-      if (!file.exists(path)) rlang::abort(paste0("Looking for WATCH-WFDEI elevation file for determining closest land cell, but not found under ", path))
+      if (source == "watch_wfdei"){
+        path <- paste0(dir, "/WFDEI-elevation.nc")
+      } else if (source == "cru"){
+        path <- paste0(dir, "/elv_cru_halfdeg.nc")
+      }
+      if (!file.exists(path)) rlang::abort(paste0("Looking for elevation file for determining closest land cell, but not found under ", path))
       rasta <- raster(path)
       siteinfo_missing <- siteinfo %>% 
         dplyr::filter(sitename %in% sites_missing)
@@ -161,7 +165,8 @@ ingest <- function(
         mutate(lon = xFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA))),
                lat = yFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA)))) %>% 
         rename(lon_orig = x, lat_orig = y) %>% 
-        bind_cols(siteinfo_missing %>% dplyr::select(-lon, -lat))
+        bind_cols(siteinfo_missing %>% dplyr::select(-lon, -lat)) %>% 
+        mutate(success = ifelse(abs(lat-lat_orig)>1.0, FALSE, TRUE))
       
       ## extract again for sites with missing data
       ddf_missing <- ingest_globalfields(siteinfo_missing,
@@ -170,6 +175,11 @@ ingest <- function(
                                          getvars = getvars,
                                          timescale = timescale,
                                          verbose = FALSE)
+      
+      if (sum(!siteinfo_missing$success)>0){
+        rlang::warn("No land found within 1 degree latitude for the following sites: Consider excluding them.")
+        print(siteinfo_missing %>% dplyr::filter(!success))
+      }
       
       ## replace site with adjusted location
       ddf <- ddf %>% 
