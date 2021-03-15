@@ -36,7 +36,7 @@ ingest_soilgrids_bysite <- function(sitename, lon, lat, settings){
         geoloc = TRUE,
         valonly = TRUE))
     
-    if (class(try) == "try-error"){
+    if (class(out) == "try-error"){
       return(rep(NA, length(rowPX)))      
     } else {
       return(as.numeric(out) * factor)
@@ -71,6 +71,7 @@ ingest_soilgrids_bysite <- function(sitename, lon, lat, settings){
                 mutate(value_wgt = value * depth) %>% 
                 group_by(var) %>% 
                 summarise(value = sum(value_wgt)) %>% 
+                mutate(value = value / z_tot_use) %>% 
                 pivot_wider(id_cols = 1:2, names_from = "var", values_from = "value")) %>% 
     dplyr::select(-longitude, -latitude) %>%
     rename(sitename = id) %>%
