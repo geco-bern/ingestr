@@ -141,6 +141,41 @@ ingest <- function(
                                getvars = getvars,
                                timescale = timescale,
                                verbose = FALSE)
+    
+    ## check if data was extracted for all sites (may be located over ocean)
+    sites_missing <- ddf %>%
+      group_by(sitename) %>% 
+      summarise(across(where(is.double), ~sum(!is.na(.x)))) %>% 
+      dplyr::filter(across(c(-sitename, -date), ~ .x == 0)) %>% 
+      pull(sitename)
+    
+    if (length(sites_missing) > 0){
+      ## determine closest cell with non-NA
+      path <- paste0(dir, "/WFDEI-elevation.nc")
+      if (!file.exists(path)) rlang::abort(paste0("Looking for WATCH-WFDEI elevation file for determining closest land cell, but not found under ", path))
+      rasta <- raster(path)
+      siteinfo_missing <- siteinfo %>% 
+        dplyr::filter(sitename %in% sites_missing)
+      siteinfo_missing <- siteinfo_missing %>% 
+        dplyr::select(x = lon, y = lat) %>% 
+        mutate(lon = xFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA))),
+               lat = yFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA)))) %>% 
+        rename(lon_orig = x, lat_orig = y) %>% 
+        bind_cols(siteinfo_missing %>% dplyr::select(-lon, -lat))
+      
+      ## extract again for sites with missing data
+      ddf_missing <- ingest_globalfields(siteinfo_missing,
+                                         source = source,
+                                         dir = dir,
+                                         getvars = getvars,
+                                         timescale = timescale,
+                                         verbose = FALSE)
+      
+      ## replace site with adjusted location
+      ddf <- ddf %>% 
+        dplyr::filter(!(sitename %in% sites_missing)) %>% 
+        bind_rows(ddf_missing) 
+    }
 
     ## bias-correct atmospheric pressure - per default
     if ("patm" %in% getvars){
