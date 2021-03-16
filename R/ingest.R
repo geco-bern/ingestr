@@ -573,16 +573,7 @@ ingest <- function(
 	  # Get SoilGrids soil data. year_start and year_end not required
 	  # Code from https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md
 	  #-----------------------------------------------------------
-	  ddf <- purrr::map_dfr(
-	    as.list(seq(nrow(siteinfo))),
-	    ~ingest_soilgrids_bysite(
-	      siteinfo$sitename[.], 
-	      siteinfo$lon[.], 
-	      siteinfo$lat[.],
-	      settings
-	      )
-	    ) %>% 
-	    unnest(data)
+	  ddf <- ingest_soilgrids(siteinfo, settings)
 
 	} else if (source == "wise"){
 	  #-----------------------------------------------------------
