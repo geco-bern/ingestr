@@ -28,13 +28,20 @@ ingest_soilgrids_bysite <- function(sitename, lon, lat, settings){
   data_igh <- data.frame(sf::st_coordinates(spdata_igh), id = spdata_igh$id)
   
   fun_pixel_values  <- function(rowPX, data, VOI, VOI_LYR, factor){
-    as.numeric(
-      gdallocationinfo(
+    
+    out <- try(gdallocationinfo(
         srcfile = paste0(settings$webdav_path, "/", VOI, "/", VOI_LYR, ".vrt"),
         x = data[rowPX, "X"],
         y = data[rowPX, "Y"],
         geoloc = TRUE,
-        valonly = TRUE)) * factor
+        valonly = TRUE))
+    
+    if (class(out) == "try-error"){
+      return(rep(NA, length(rowPX)))      
+    } else {
+      return(as.numeric(out) * factor)
+    }
+    
   }
   
   #value_pixels <- unlist(lapply(1:nrow(siteinfo), function(x){fun_pixel_values(x, data_igh, settings$voi, settings$voi_layer)}))
@@ -64,6 +71,7 @@ ingest_soilgrids_bysite <- function(sitename, lon, lat, settings){
                 mutate(value_wgt = value * depth) %>% 
                 group_by(var) %>% 
                 summarise(value = sum(value_wgt)) %>% 
+                mutate(value = value / z_tot_use) %>% 
                 pivot_wider(id_cols = 1:2, names_from = "var", values_from = "value")) %>% 
     dplyr::select(-longitude, -latitude) %>%
     rename(sitename = id) %>%
