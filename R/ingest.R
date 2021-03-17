@@ -162,8 +162,8 @@ ingest <- function(
         dplyr::filter(sitename %in% sites_missing)
       siteinfo_missing <- siteinfo_missing %>% 
         dplyr::select(x = lon, y = lat) %>% 
-        mutate(lon = xFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA))),
-               lat = yFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA)))) %>% 
+        mutate(lon = xFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA))[1]),
+               lat = yFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA))[1])) %>% 
         rename(lon_orig = x, lat_orig = y) %>% 
         bind_cols(siteinfo_missing %>% dplyr::select(-lon, -lat)) %>% 
         mutate(success = ifelse(abs(lat-lat_orig)>1.0, FALSE, TRUE))
@@ -573,16 +573,7 @@ ingest <- function(
 	  # Get SoilGrids soil data. year_start and year_end not required
 	  # Code from https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md
 	  #-----------------------------------------------------------
-	  ddf <- purrr::map_dfr(
-	    as.list(seq(nrow(siteinfo))),
-	    ~ingest_soilgrids_bysite(
-	      siteinfo$sitename[.], 
-	      siteinfo$lon[.], 
-	      siteinfo$lat[.],
-	      settings
-	      )
-	    ) %>% 
-	    unnest(data)
+	  ddf <- ingest_soilgrids(siteinfo, settings)
 
 	} else if (source == "wise"){
 	  #-----------------------------------------------------------

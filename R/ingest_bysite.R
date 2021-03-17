@@ -467,7 +467,10 @@ ingest_bysite <- function(
     # Get SoilGrids soil data. year_start and year_end not required
     # Code from https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md
     #-----------------------------------------------------------
-    df <- ingest_soilgrids_bysite(sitename, lon, lat, settings)
+    df <- ingest_soilgrids(
+      tibble(sitename = sitename, lon = lon, lat = lat), 
+      settings
+      )
 
   } else if (source == "wise"){
     #-----------------------------------------------------------
