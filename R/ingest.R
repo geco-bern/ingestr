@@ -162,8 +162,8 @@ ingest <- function(
         dplyr::filter(sitename %in% sites_missing)
       siteinfo_missing <- siteinfo_missing %>% 
         dplyr::select(x = lon, y = lat) %>% 
-        mutate(lon = xFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA))),
-               lat = yFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA)))) %>% 
+        mutate(lon = xFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA))[1]),
+               lat = yFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA))[1])) %>% 
         rename(lon_orig = x, lat_orig = y) %>% 
         bind_cols(siteinfo_missing %>% dplyr::select(-lon, -lat)) %>% 
         mutate(success = ifelse(abs(lat-lat_orig)>1.0, FALSE, TRUE))
