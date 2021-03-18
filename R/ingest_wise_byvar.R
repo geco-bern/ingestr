@@ -33,7 +33,7 @@ ingest_wise_byvar <- function(var, df_lonlat, layer = 1, dir){
     rename(ID = wise30sec_fin)
 
   ## get the NEWSUID for a given ID
-  df_out <- levels(rasta)[[1]] %>%
+  df_out <- raster::levels(rasta)[[1]] %>%
     as_tibble() %>%
     dplyr::filter(ID %in% df_out$ID) %>%
     right_join(df_out, by = "ID") %>%
