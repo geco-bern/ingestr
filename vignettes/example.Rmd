@@ -615,7 +615,7 @@ By default, data is extracted for the top layer only. Data is provided for the f
 The following settings specify data extraction for the C:N ratio of the top three layers. The returned value is the mean across selected soil layers, weighted by the respective layer's depth. `dir` specifies the path to the downloaded data bundle. Don't change the structure of it. ingestr reads from two files: `<dir>/GISfiles/wise30sec_fin` and `<dir>/Interchangeable_format/HW30s_FULL.txt`.
 
 ```{r}
-settings_wise <- get_settings_wise(varnam = c("CNrt", "CECS"), layer = 1:3)
+settings_wise <- get_settings_wise(varnam = c("CNrt"), layer = 1:7)
 ```
 
 Now, the data can be ingested.
