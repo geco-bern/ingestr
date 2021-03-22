@@ -44,7 +44,7 @@ ingest <- function(
   }
 
   if (!(source %in% c("hwsd", "etopo1", "wwf", "soilgrids", "wise", "gsde", "worldclim"))){
-
+    
     ## complement dates information
     if (!("year_start" %in% names(siteinfo))){
       if ("date_start" %in% names(siteinfo)){
@@ -80,6 +80,21 @@ ingest <- function(
       }
     }
 
+  }
+  
+  ## check start < end
+  if (siteinfo %>% 
+      mutate(problem = year_start > year_end) %>% 
+      pull(problem) %>% 
+      any()){
+    rlang::warn("At least one case found where year_start > year_end. The are exchanged now")
+    siteinfo <- siteinfo %>% 
+      mutate(year_start_tmp = ifelse(year_start > year_end, year_end, year_start)) %>% 
+      mutate(year_end = ifelse(year_start > year_end, year_start, year_end)) %>% 
+      mutate(year_start = year_start_tmp) %>% 
+      dplyr::select(-year_start_tmp) %>% 
+      mutate(date_start = lubridate::ymd(paste0(as.character(year_start), "-01-01"))) %>% 
+      mutate(date_end = lubridate::ymd(paste0(as.character(year_end), "-12-31")))
   }
 
 	if (source == "fluxnet"){
