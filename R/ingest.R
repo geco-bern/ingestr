@@ -37,7 +37,7 @@ ingest <- function(
 	ncores    = NULL,
 	verbose   = FALSE
   ){
-  
+
   ## Check: all sites are distinct wrt name, lon and lat
   if (nrow(siteinfo) != nrow(dplyr::distinct(siteinfo, sitename, lon, lat))){
     rlang::abort("Non-distinct sites present w.r.t. name, lon, and lat.")
@@ -126,7 +126,7 @@ ingest <- function(
 	    if (settings$correct_bias == "worldclim"){
 	      if (source == "watch_wfdei"){
 	        rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
-	        
+
 	        ## save data frame with required dates for all sites (may be different by site)
 	        ddf_dates <- purrr::map(
 	          as.list(seq(nrow(siteinfo))),
@@ -138,11 +138,11 @@ ingest <- function(
 	        names(ddf_dates) <- siteinfo$sitename
 	        ddf_dates <- ddf_dates %>%
 	          bind_rows(.id = "sitename")
-	        
+
 	        ## modify to read from at least 1979 to at least 2000
 	        siteinfo <- siteinfo %>%
 	          mutate(year_start = ifelse(year_start < 1979, year_start, 1979),
-	                 year_end   = ifelse(year_end > 2000, year_end, 2000)) %>% 
+	                 year_end   = ifelse(year_end > 2000, year_end, 2000)) %>%
 	          mutate(date_start = lubridate::ymd(paste0(year_start, "01-01")),
 	                 date_end   = lubridate::ymd(paste0(year_end, "01-01")))
 	      }
@@ -156,14 +156,14 @@ ingest <- function(
                                getvars = getvars,
                                timescale = timescale,
                                verbose = FALSE)
-    
+
     ## check if data was extracted for all sites (may be located over ocean)
     sites_missing <- ddf %>%
-      group_by(sitename) %>% 
-      summarise(across(where(is.double), ~sum(!is.na(.x)))) %>% 
-      dplyr::filter(across(c(-sitename, -date), ~ .x < 365)) %>% 
+      group_by(sitename) %>%
+      summarise(across(where(is.double), ~sum(!is.na(.x)))) %>%
+      dplyr::filter(across(c(-sitename, -date), ~ .x < 365)) %>%
       pull(sitename)
-    
+
     if (length(sites_missing) > 0){
       ## determine closest cell with non-NA
       if (source == "watch_wfdei"){
@@ -173,16 +173,16 @@ ingest <- function(
       }
       if (!file.exists(path)) rlang::abort(paste0("Looking for elevation file for determining closest land cell, but not found under ", path))
       rasta <- raster(path)
-      siteinfo_missing <- siteinfo %>% 
+      siteinfo_missing <- siteinfo %>%
         dplyr::filter(sitename %in% sites_missing)
-      siteinfo_missing <- siteinfo_missing %>% 
-        dplyr::select(x = lon, y = lat) %>% 
+      siteinfo_missing <- siteinfo_missing %>%
+        dplyr::select(x = lon, y = lat) %>%
         mutate(lon = xFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA))[1]),
-               lat = yFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA))[1])) %>% 
-        rename(lon_orig = x, lat_orig = y) %>% 
-        bind_cols(siteinfo_missing %>% dplyr::select(-lon, -lat)) %>% 
+               lat = yFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA))[1])) %>%
+        rename(lon_orig = x, lat_orig = y) %>%
+        bind_cols(siteinfo_missing %>% dplyr::select(-lon, -lat)) %>%
         mutate(success = ifelse(abs(lat-lat_orig)>1.0, FALSE, TRUE))
-      
+
       ## extract again for sites with missing data
       ddf_missing <- ingest_globalfields(siteinfo_missing,
                                          source = source,
@@ -190,16 +190,16 @@ ingest <- function(
                                          getvars = getvars,
                                          timescale = timescale,
                                          verbose = FALSE)
-      
+
       if (sum(!siteinfo_missing$success)>0){
         rlang::warn("No land found within 1 degree latitude for the following sites: Consider excluding them.")
         print(siteinfo_missing %>% dplyr::filter(!success))
       }
-      
+
       ## replace site with adjusted location
-      ddf <- ddf %>% 
-        dplyr::filter(!(sitename %in% sites_missing)) %>% 
-        bind_rows(ddf_missing) 
+      ddf <- ddf %>%
+        dplyr::filter(!(sitename %in% sites_missing)) %>%
+        bind_rows(ddf_missing)
     }
 
     ## bias-correct atmospheric pressure - per default
@@ -209,17 +209,17 @@ ingest <- function(
       	dplyr::select(sitename, elv) %>%
       	mutate(patm_base = calc_patm(elv))
 
-      ddf <- ddf %>% 
+      ddf <- ddf %>%
       	group_by(sitename) %>%
         summarise(patm_mean = mean(patm, na.rm = TRUE)) %>%
         left_join(df_patm_base, by = "sitename") %>%
         mutate(scale = patm_base / patm_mean) %>%
         right_join(ddf, by = "sitename") %>%
-        mutate(patm = patm * scale) %>% 
+        mutate(patm = patm * scale) %>%
         dplyr::select(-patm_base, -elv, -patm_mean, -scale)
 
     }
-    
+
     if (!identical(NULL, settings$correct_bias)){
       if (settings$correct_bias == "worldclim"){
         #-----------------------------------------------------------
@@ -231,7 +231,7 @@ ingest <- function(
         if ("ppfd" %in% getvars){getvars_wc <- c(getvars_wc, "srad")}
         if ("wind" %in% getvars){getvars_wc <- c(getvars_wc, "wind")}
         if ("vpd" %in% getvars){getvars_wc <- c(getvars_wc, "vapr")}
-        
+
         df_fine <- ingest_globalfields(siteinfo,
                                        source = "worldclim",
                                        dir = settings$dir_bias,
@@ -239,167 +239,167 @@ ingest <- function(
                                        timescale = NULL,
                                        verbose = FALSE,
                                        layer = getvars_wc)
-        
+
         ## Bias correction for temperature: substract difference
         if ("tavg" %in% getvars_wc){
-          df_bias <- df_fine %>% 
-            dplyr::select(sitename, starts_with("tavg_")) %>% 
-            pivot_longer(cols = starts_with("tavg_"), names_to = "month", values_to = "tavg", names_prefix = "tavg_") %>% 
-            mutate(month = as.integer(month)) %>% 
-            rename(temp_fine = tavg) %>% 
-            right_join(ddf %>% 
-                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
-                         mutate(month = lubridate::month(date)) %>% 
-                         group_by(sitename, month) %>% 
+          df_bias <- df_fine %>%
+            dplyr::select(sitename, starts_with("tavg_")) %>%
+            pivot_longer(cols = starts_with("tavg_"), names_to = "month", values_to = "tavg", names_prefix = "tavg_") %>%
+            mutate(month = as.integer(month)) %>%
+            rename(temp_fine = tavg) %>%
+            right_join(ddf %>%
+                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>%
+                         mutate(month = lubridate::month(date)) %>%
+                         group_by(sitename, month) %>%
                          summarise(temp = mean(temp, na.rm = TRUE)),
-                       by = c("sitename", "month")) %>% 
-            mutate(bias = temp - temp_fine) %>% 
+                       by = c("sitename", "month")) %>%
+            mutate(bias = temp - temp_fine) %>%
             dplyr::select(-temp, -temp_fine)
-          
+
           ## correct bias by month
-          ddf <- ddf %>% 
-            mutate(month = lubridate::month(date)) %>% 
-            left_join(df_bias %>% dplyr::select(sitename, month, bias), by = c("sitename", "month")) %>% 
-            arrange(sitename, date) %>% 
-            mutate(temp = ifelse(is.na(bias), temp, temp - bias)) %>% 
+          ddf <- ddf %>%
+            mutate(month = lubridate::month(date)) %>%
+            left_join(df_bias %>% dplyr::select(sitename, month, bias), by = c("sitename", "month")) %>%
+            arrange(sitename, date) %>%
+            mutate(temp = ifelse(is.na(bias), temp, temp - bias)) %>%
             dplyr::select(-bias, -month)
         }
-        
+
         ## Bias correction for precipitation: scale by ratio (snow and rain equally)
         if ("prec" %in% getvars_wc){
-          df_bias <- df_fine %>% 
-            dplyr::select(sitename, starts_with("prec_")) %>% 
-            pivot_longer(cols = starts_with("prec_"), names_to = "month", values_to = "prec", names_prefix = "prec_") %>% 
-            mutate(month = as.integer(month)) %>% 
-            rename(prec_fine = prec) %>% 
+          df_bias <- df_fine %>%
+            dplyr::select(sitename, starts_with("prec_")) %>%
+            pivot_longer(cols = starts_with("prec_"), names_to = "month", values_to = "prec", names_prefix = "prec_") %>%
+            mutate(month = as.integer(month)) %>%
+            rename(prec_fine = prec) %>%
             mutate(prec_fine = prec_fine / days_in_month(month)) %>%   # mm/month -> mm/d
             mutate(prec_fine = prec_fine / (60 * 60 * 24)) %>%         # mm/d -> mm/sec
-            right_join(ddf %>% 
-                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
-                         mutate(month = lubridate::month(date)) %>% 
-                         group_by(sitename, month) %>% 
+            right_join(ddf %>%
+                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>%
+                         mutate(month = lubridate::month(date)) %>%
+                         group_by(sitename, month) %>%
                          summarise(prec = mean(prec, na.rm = TRUE)),
-                       by = c("sitename", "month")) %>% 
-            mutate(scale = prec_fine / prec) %>% 
+                       by = c("sitename", "month")) %>%
+            mutate(scale = prec_fine / prec) %>%
             dplyr::select(sitename, month, scale)
-          
+
           ## correct bias by month
-          ddf <- ddf %>% 
-            mutate(month = lubridate::month(date)) %>% 
-            left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
-            arrange(sitename, date) %>% 
-            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
-            mutate(prec = ifelse(is.na(scale), prec, prec * scale), 
-                   rain = ifelse(is.na(scale), rain, rain * scale), 
-                   snow = ifelse(is.na(scale), snow, snow * scale)) %>% 
+          ddf <- ddf %>%
+            mutate(month = lubridate::month(date)) %>%
+            left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>%
+            arrange(sitename, date) %>%
+            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>%
+            mutate(prec = ifelse(is.na(scale), prec, prec * scale),
+                   rain = ifelse(is.na(scale), rain, rain * scale),
+                   snow = ifelse(is.na(scale), snow, snow * scale)) %>%
             dplyr::select(-scale, -month)
         }
-        
+
         ## Bias correction for shortwave radiation: scale by ratio
         if ("srad" %in% getvars_wc){
           kfFEC <- 2.04
-          df_bias <- df_fine %>% 
-            dplyr::select(sitename, starts_with("srad_")) %>% 
-            pivot_longer(cols = starts_with("srad_"), names_to = "month", values_to = "srad", names_prefix = "srad_") %>% 
-            mutate(month = as.integer(month)) %>% 
-            rename(srad_fine = srad) %>% 
+          df_bias <- df_fine %>%
+            dplyr::select(sitename, starts_with("srad_")) %>%
+            pivot_longer(cols = starts_with("srad_"), names_to = "month", values_to = "srad", names_prefix = "srad_") %>%
+            mutate(month = as.integer(month)) %>%
+            rename(srad_fine = srad) %>%
             mutate(ppfd_fine = 1e3 * srad_fine * kfFEC * 1.0e-6 / (60 * 60 * 24) ) %>%   # kJ m-2 day-1 -> mol m−2 s−1 PAR
-            right_join(ddf %>% 
-                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
-                         mutate(month = lubridate::month(date)) %>% 
-                         group_by(sitename, month) %>% 
+            right_join(ddf %>%
+                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>%
+                         mutate(month = lubridate::month(date)) %>%
+                         group_by(sitename, month) %>%
                          summarise(ppfd = mean(ppfd, na.rm = TRUE)),
-                       by = c("sitename", "month")) %>% 
-            mutate(scale = ppfd_fine / ppfd) %>% 
+                       by = c("sitename", "month")) %>%
+            mutate(scale = ppfd_fine / ppfd) %>%
             dplyr::select(sitename, month, scale)
-          
+
           ## correct bias by month
-          ddf <- ddf %>% 
-            mutate(month = lubridate::month(date)) %>% 
-            left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
-            arrange(sitename, date) %>% 
-            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
-            mutate(ppfd = ifelse(is.na(scale), ppfd, ppfd * scale)) %>% 
+          ddf <- ddf %>%
+            mutate(month = lubridate::month(date)) %>%
+            left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>%
+            arrange(sitename, date) %>%
+            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>%
+            mutate(ppfd = ifelse(is.na(scale), ppfd, ppfd * scale)) %>%
             dplyr::select(-scale, -month)
         }
-        
+
         ## Bias correction for atmospheric pressure: scale by ratio
         if ("wind" %in% getvars_wc){
-          df_bias <- df_fine %>% 
-            dplyr::select(sitename, starts_with("wind_")) %>% 
-            pivot_longer(cols = starts_with("wind_"), names_to = "month", values_to = "wind", names_prefix = "wind_") %>% 
-            mutate(month = as.integer(month)) %>% 
-            rename(wind_fine = wind) %>% 
-            right_join(ddf %>% 
-                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
-                         mutate(month = lubridate::month(date)) %>% 
-                         group_by(sitename, month) %>% 
+          df_bias <- df_fine %>%
+            dplyr::select(sitename, starts_with("wind_")) %>%
+            pivot_longer(cols = starts_with("wind_"), names_to = "month", values_to = "wind", names_prefix = "wind_") %>%
+            mutate(month = as.integer(month)) %>%
+            rename(wind_fine = wind) %>%
+            right_join(ddf %>%
+                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>%
+                         mutate(month = lubridate::month(date)) %>%
+                         group_by(sitename, month) %>%
                          summarise(wind = mean(wind, na.rm = TRUE)),
-                       by = c("sitename", "month")) %>% 
-            mutate(scale = wind_fine / wind) %>% 
+                       by = c("sitename", "month")) %>%
+            mutate(scale = wind_fine / wind) %>%
             dplyr::select(sitename, month, scale)
-          
+
           ## correct bias by month
-          ddf <- ddf %>% 
-            mutate(month = lubridate::month(date)) %>% 
-            left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
-            arrange(sitename, date) %>% 
-            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
-            mutate(wind = ifelse(is.na(scale), wind, wind * scale)) %>% 
+          ddf <- ddf %>%
+            mutate(month = lubridate::month(date)) %>%
+            left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>%
+            arrange(sitename, date) %>%
+            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>%
+            mutate(wind = ifelse(is.na(scale), wind, wind * scale)) %>%
             dplyr::select(-scale, -month)
-          
+
         }
-        
+
         ## Bias correction for relative humidity (actually vapour pressure): scale
         if ("vapr" %in% getvars_wc){
-          
+
           ## calculate vapour pressure from specific humidity - needed for bias correction with worldclim data
-          ddf <- ddf %>% 
-            rowwise() %>% 
-            dplyr::mutate(vapr = calc_vp(qair = qair, tc = temp, patm = patm)) %>% 
+          ddf <- ddf %>%
+            rowwise() %>%
+            dplyr::mutate(vapr = calc_vp(qair = qair, tc = temp, patm = patm)) %>%
             ungroup()
-          
-          df_bias <- df_fine %>% 
-            dplyr::select(sitename, starts_with("vapr_")) %>% 
-            pivot_longer(cols = starts_with("vapr_"), names_to = "month", values_to = "vapr", names_prefix = "vapr_") %>% 
-            mutate(month = as.integer(month)) %>% 
-            rename(vapr_fine = vapr) %>% 
+
+          df_bias <- df_fine %>%
+            dplyr::select(sitename, starts_with("vapr_")) %>%
+            pivot_longer(cols = starts_with("vapr_"), names_to = "month", values_to = "vapr", names_prefix = "vapr_") %>%
+            mutate(month = as.integer(month)) %>%
+            rename(vapr_fine = vapr) %>%
             mutate(vapr_fine = vapr_fine * 1e3) %>%   # kPa -> Pa
-            right_join(ddf %>% 
-                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
-                         mutate(month = lubridate::month(date)) %>% 
-                         group_by(sitename, month) %>% 
+            right_join(ddf %>%
+                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>%
+                         mutate(month = lubridate::month(date)) %>%
+                         group_by(sitename, month) %>%
                          summarise(vapr = mean(vapr, na.rm = TRUE)),
-                       by = c("sitename", "month")) %>% 
-            mutate(scale = vapr_fine / vapr) %>% 
+                       by = c("sitename", "month")) %>%
+            mutate(scale = vapr_fine / vapr) %>%
             dplyr::select(sitename, month, scale)
-          
+
           ## correct bias by month
-          ddf <- ddf %>% 
-            mutate(month = lubridate::month(date)) %>% 
-            left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>% 
-            arrange(sitename, date) %>% 
-            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>% 
-            mutate(vapr = ifelse(is.na(scale), vapr, vapr * scale)) %>% 
+          ddf <- ddf %>%
+            mutate(month = lubridate::month(date)) %>%
+            left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>%
+            arrange(sitename, date) %>%
+            mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>%
+            mutate(vapr = ifelse(is.na(scale), vapr, vapr * scale)) %>%
             dplyr::select(-scale, -month)
-          
-        }      
-        
-        
+
+        }
+
+
         ## Calculate vapour pressure deficit from specific humidity
         if ("vpd" %in% getvars){
           ddf <- ddf %>%
             rowwise() %>%
-            dplyr::mutate(vpd = calc_vpd(eact = vapr, tc = temp, patm = patm)) %>% 
+            dplyr::mutate(vpd = calc_vpd(eact = vapr, tc = temp, patm = patm)) %>%
             ungroup()
         }
-        
+
         ## keep only required dates
-        ddf <- ddf %>% 
+        ddf <- ddf %>%
           right_join(ddf_dates, by = c("sitename", "date"))
-        
+
       }
-      
+
     }
 
 	} else if (source == "gee"){
@@ -487,15 +487,15 @@ ingest <- function(
 	    } else {
 	      df_co2 <- climate::meteo_noaa_co2() %>%
 	        dplyr::select(year = yy, month = mm, co2_avg)
-	      readr::write_csv(df_co2, file = path)        
+	      readr::write_csv(df_co2, file = path)
 	    }
 	  } else {
 	    df_co2 <- climate::meteo_noaa_co2() %>%
 	      dplyr::select(year = yy, month = mm, co2_avg)
 	  }
 
-	  ## aggregate to annual means	  
-	  df_co2 <- df_co2 %>% 
+	  ## aggregate to annual means
+	  df_co2 <- df_co2 %>%
 	    group_by(year) %>%
 	    summarise(co2 = mean(co2_avg, na.rm = TRUE))
 
@@ -520,9 +520,9 @@ ingest <- function(
 	  if (file.exists(path)){
 	    df_co2 <- read_csv(path)
 	  } else {
-	    rlang::abort("File cCO2_rcp85_const850-1765.csv must be available in directory specified by 'dir'.")     
+	    rlang::abort("File cCO2_rcp85_const850-1765.csv must be available in directory specified by 'dir'.")
 	  }
-	  
+
 	  ## expand to data frame for each site
 	  ddf <- purrr::map(
 	    as.list(seq(nrow(siteinfo))),
@@ -533,7 +533,7 @@ ingest <- function(
 	      year_end   = lubridate::year(siteinfo$date_end[.])
 	    )
 	  )
-	  
+
 	} else if (source == "fapar_unity"){
 	  #-----------------------------------------------------------
 	  # Assume fapar = 1 for all dates
@@ -594,52 +594,55 @@ ingest <- function(
 	  #-----------------------------------------------------------
 	  # Get WISE30secs soil data. year_start and year_end not required
 	  #-----------------------------------------------------------
-	  ddf <- purrr::map_dfc(as.list(settings$varnam), ~ingest_wise_byvar(., siteinfo, layer = settings$layer, dir = dir))
+	  ddf <- purrr::map(as.list(settings$varnam), ~ingest_wise_byvar(., siteinfo, layer = settings$layer, dir = dir)) %>%
+	    purrr::reduce(left_join, by = c("lon", "lat")) %>%
+	    right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
+	    dplyr::select(-lon, -lat)
 
-	  if (length(settings$varnam) > 1){
-	    ddf <- ddf %>%
-	      rename(lon = lon...1, lat = lat...2) %>%
-	      dplyr::select(-starts_with("lon..."), -starts_with("lat...")) %>%
-	      right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
-	      dplyr::select(-lon, -lat)
-
-	  } else {
-	    ddf <- ddf %>%
-	      right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
-	      dplyr::select(-lon, -lat)
-
-	  }
+	  # if (length(settings$varnam) > 1){
+	  #   ddf <- ddf %>%
+	  #     rename(lon = lon...1, lat = lat...2) %>%
+	  #     dplyr::select(-starts_with("lon..."), -starts_with("lat...")) %>%
+	  #     right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
+	  #     dplyr::select(-lon, -lat)
+	  #
+	  # } else {
+	  #   ddf <- ddf %>%
+	  #     right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
+	  #     dplyr::select(-lon, -lat)
+	  #
+	  # }
 
 	} else if (source == "gsde"){
 	  #-----------------------------------------------------------
 	  # Get GSDE soil data from tif files (2 files, for bottom and top layers)
 	  #-----------------------------------------------------------
 	  aggregate_layers <- function(df, varnam, layer){
-	    
-	    df_layers <- tibble(layer = 1:8, bottom = c(4.5, 9.1, 16.6, 28.9, 49.3, 82.9, 138.3, 229.6)) %>% 
-	      mutate(top = lag(bottom)) %>% 
-	      mutate(top = ifelse(is.na(top), 0, top)) %>% 
-	      rowwise() %>% 
-	      mutate(depth = bottom - top) %>% 
+
+	    df_layers <- tibble(layer = 1:8, bottom = c(4.5, 9.1, 16.6, 28.9, 49.3, 82.9, 138.3, 229.6)) %>%
+	      mutate(top = lag(bottom)) %>%
+	      mutate(top = ifelse(is.na(top), 0, top)) %>%
+	      rowwise() %>%
+	      mutate(depth = bottom - top) %>%
 	      dplyr::select(-top, -bottom)
-	    
+
 	    z_tot_use <- df_layers %>%
-	      ungroup() %>% 
+	      ungroup() %>%
 	      dplyr::filter(layer %in% settings$layer) %>%
 	      summarise(depth_tot_cm = sum(depth)) %>%
 	      pull(depth_tot_cm)
-	    
+
 	    ## weighted sum, weighting by layer depth
 	    df %>%
 	      left_join(df_layers, by = "layer") %>%
-	      rename(var = !!varnam) %>% 
+	      rename(var = !!varnam) %>%
 	      dplyr::filter(layer %in% settings$layer) %>%
 	      mutate(var_wgt = var * depth / z_tot_use) %>%
 	      group_by(sitename) %>%
-	      summarise(var := sum(var_wgt)) %>% 
+	      summarise(var := sum(var_wgt)) %>%
 	      rename(!!varnam := var)
 	  }
-	  
+
 	  ddf <- purrr::map(
 	    as.list(settings$varnam),
 	    ~ingest_globalfields(siteinfo,
@@ -649,10 +652,10 @@ ingest <- function(
 	                         timescale = NULL,
 	                         verbose = FALSE,
 	                         layer = .
-	    )) %>% 
-	    map2(as.list(settings$varnam), ~aggregate_layers(.x, .y, settings$layer)) %>% 
+	    )) %>%
+	    map2(as.list(settings$varnam), ~aggregate_layers(.x, .y, settings$layer)) %>%
 	    purrr::reduce(left_join, by = "sitename")
-	  
+
 	 }  else if (source == "worldclim"){
 	   #-----------------------------------------------------------
 	   # Get WorldClim data from global raster file
@@ -665,7 +668,7 @@ ingest <- function(
 	                              verbose = FALSE,
 	                              layer = settings$varnam
 	   )
-	   
+
 	 } else {
 
 	  rlang::warn(paste("you selected source =", source))

@@ -17,7 +17,7 @@
 ingest_wise_byvar <- function(var, df_lonlat, layer = 1, dir){
 
   ## read as a raster
-  rasta <- raster(paste0(dir, "/GISfiles/wise30sec_fin/"))
+  rasta <- raster::raster(paste0(dir, "/GISfiles/wise30sec_fin"))
 
   ## read data table
   ## variables are described in ISRIC_Report_2015_01.pdf, p. 53
@@ -33,7 +33,7 @@ ingest_wise_byvar <- function(var, df_lonlat, layer = 1, dir){
     rename(ID = wise30sec_fin)
 
   ## get the NEWSUID for a given ID
-  df_out <- levels(rasta)[[1]] %>%
+  df_out <- raster::levels(rasta)[[1]] %>%
     as_tibble() %>%
     dplyr::filter(ID %in% df_out$ID) %>%
     right_join(df_out, by = "ID") %>%
