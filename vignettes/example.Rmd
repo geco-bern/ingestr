@@ -169,7 +169,6 @@ df_watch <- ingest_bysite(
   year_end  = 2007,
   lon       = 3.5958,
   lat       = 43.7414,
-  elv       = 200,
   verbose   = FALSE,
   settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
   )
@@ -534,7 +533,7 @@ The ingested data is then averaged across specified layers, weighted with respec
 
 Now, the data can be ingested.
 
-```{r}
+```{r eval=FALSE}
 df_soilgrids <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "soilgrids",
@@ -546,7 +545,7 @@ df_soilgrids <- ingest_bysite(
 
 This returns a data frame with a nested column `data` which contains actually just a 1 x 1 tibble. This is to be consistent with other ingest options. You may prefer to have a normal flat data frame. Just do:
 
-```{r}
+```{r eval=FALSE}
 df_soilgrids %>% 
   unnest(data)
 ```
