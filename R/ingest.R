@@ -43,6 +43,7 @@ ingest <- function(
     rlang::abort("Non-distinct sites present w.r.t. name, lon, and lat.")
   }
 
+  ## Check dates and years for time series types
   if (!(source %in% c("hwsd", "etopo1", "wwf", "soilgrids", "wise", "gsde", "worldclim"))){
     
     ## complement dates information
@@ -79,22 +80,22 @@ ingest <- function(
         rlang::abort("ingest(): Columns 'year_end' and 'date_end' missing in object provided by argument 'siteinfo'")
       }
     }
+    
+    ## check start < end
+    if (siteinfo %>% 
+        mutate(problem = year_start > year_end) %>% 
+        pull(problem) %>% 
+        any()){
+      rlang::warn("At least one case found where year_start > year_end. The are exchanged now")
+      siteinfo <- siteinfo %>% 
+        mutate(year_start_tmp = ifelse(year_start > year_end, year_end, year_start)) %>% 
+        mutate(year_end = ifelse(year_start > year_end, year_start, year_end)) %>% 
+        mutate(year_start = year_start_tmp) %>% 
+        dplyr::select(-year_start_tmp) %>% 
+        mutate(date_start = lubridate::ymd(paste0(as.character(year_start), "-01-01"))) %>% 
+        mutate(date_end = lubridate::ymd(paste0(as.character(year_end), "-12-31")))
+    }
 
-  }
-  
-  ## check start < end
-  if (siteinfo %>% 
-      mutate(problem = year_start > year_end) %>% 
-      pull(problem) %>% 
-      any()){
-    rlang::warn("At least one case found where year_start > year_end. The are exchanged now")
-    siteinfo <- siteinfo %>% 
-      mutate(year_start_tmp = ifelse(year_start > year_end, year_end, year_start)) %>% 
-      mutate(year_end = ifelse(year_start > year_end, year_start, year_end)) %>% 
-      mutate(year_start = year_start_tmp) %>% 
-      dplyr::select(-year_start_tmp) %>% 
-      mutate(date_start = lubridate::ymd(paste0(as.character(year_start), "-01-01"))) %>% 
-      mutate(date_end = lubridate::ymd(paste0(as.character(year_end), "-12-31")))
   }
 
 	if (source == "fluxnet"){
@@ -161,7 +162,7 @@ ingest <- function(
     sites_missing <- ddf %>%
       group_by(sitename) %>%
       summarise(across(where(is.double), ~sum(!is.na(.x)))) %>%
-      dplyr::filter(across(c(-sitename, -date), ~ .x < 365)) %>%
+      dplyr::filter(across(c(-sitename, -date), ~ .x == 0)) %>%
       pull(sitename)
 
     if (length(sites_missing) > 0){
