@@ -346,7 +346,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
 
   # ## extrapolate missing values at head and tail
   # ddf$modisvar <- extrapolate_missing_headtail(dplyr::select(ddf, var = modisvar, doy))
-
+  
   if (method_interpol == "loess" || keep){
     ##--------------------------------------
     ## get LOESS spline model for predicting daily values (used below)
@@ -355,7 +355,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
 
     ## determine periodicity
     period <- ddf %>%
-      filter(!is.na(modisvar_filtered)) %>%
+      dplyr::filter(!is.na(modisvar_filtered)) %>%
       mutate(prevdate = lag(date)) %>%
       mutate(period = as.integer(difftime(date, prevdate))) %>%
       pull(period) %>%
@@ -401,7 +401,12 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     ## LINEAR INTERPOLATION
     ##--------------------------------------
     rlang::inform("linear ...")
-    ddf$linear <- approx( ddf$year_dec, ddf$modisvar_filtered, xout=ddf$year_dec )$y
+    tmp <- try(approx( ddf$year_dec, ddf$modisvar_filtered, xout=ddf$year_dec ))
+    if (class(tmp) == "try-error"){
+      ddf <- ddf %>% mutate(linear = NA)
+    } else {
+      ddf$linear <- tmp$y
+    }
   }
 
   # commented out to avoid dependency to 'signal'

@@ -242,7 +242,7 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
     ##-----------------------------------------------------------------
     ## get file name(s) of file containing daily daytime VPD derived from half-hourly data
     filename_dd_vpd <- list.files( dir,
-                                   pattern = paste0("FLX_", sitename, ".*_VPD_DAY_XXXXX.csv"),
+                                   pattern = paste0("FLX_", sitename, ".*_VPD_DAY.csv"),
                                    recursive = FALSE)
 
     # filename_dd_vpd <- filn_hh %>%
@@ -534,6 +534,19 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
     if (verbose) rlang::warn("Converting: ppfd = ppfd * kfFEC * 1.0e-6 (convert from J/m2/s to mol/m2/s; kfFEC = 2.04 is the flux-to-energy conversion, micro-mol/J (Meek et al., 1984)) \n")
     df <- df %>% dplyr::mutate( ppfd = ppfd * kfFEC * 1.0e-6 )
   }
+
+  if ("prec" %in% names(df)){
+    if (timescale=="d"){
+      ## Daily
+      if (verbose) rlang::warn("Converting: prec = prec / (60 * 60 * 24) (convert from total mm to mm/s \n")
+      df <- df %>% dplyr::mutate( prec = prec / (60 * 60 * 24) )
+    } else  if (timescale=="hh"){
+      ## half-hourly
+      if (verbose) rlang::warn("Converting: prec = prec / (60 * 60 * 24) (convert from total mm to mm/s \n")
+      df <- df %>% dplyr::mutate( prec = prec / (60 * 30) )
+    }
+  }
+  
 
   ## GPP
   # if ("gpp" %in% names(getvars_orig)){
