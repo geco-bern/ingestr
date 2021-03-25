@@ -597,6 +597,7 @@ ingest <- function(
 	  #-----------------------------------------------------------
 	  ddf <- purrr::map(as.list(settings$varnam), ~ingest_wise_byvar(., siteinfo, layer = settings$layer, dir = dir)) %>%
 	    purrr::reduce(left_join, by = c("lon", "lat")) %>%
+	    distinct() %>% 
 	    right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
 	    dplyr::select(-lon, -lat)
 
@@ -618,32 +619,6 @@ ingest <- function(
 	  #-----------------------------------------------------------
 	  # Get GSDE soil data from tif files (2 files, for bottom and top layers)
 	  #-----------------------------------------------------------
-	  aggregate_layers <- function(df, varnam, layer){
-
-	    df_layers <- tibble(layer = 1:8, bottom = c(4.5, 9.1, 16.6, 28.9, 49.3, 82.9, 138.3, 229.6)) %>%
-	      mutate(top = lag(bottom)) %>%
-	      mutate(top = ifelse(is.na(top), 0, top)) %>%
-	      rowwise() %>%
-	      mutate(depth = bottom - top) %>%
-	      dplyr::select(-top, -bottom)
-
-	    z_tot_use <- df_layers %>%
-	      ungroup() %>%
-	      dplyr::filter(layer %in% settings$layer) %>%
-	      summarise(depth_tot_cm = sum(depth)) %>%
-	      pull(depth_tot_cm)
-
-	    ## weighted sum, weighting by layer depth
-	    df %>%
-	      left_join(df_layers, by = "layer") %>%
-	      rename(var = !!varnam) %>%
-	      dplyr::filter(layer %in% settings$layer) %>%
-	      mutate(var_wgt = var * depth / z_tot_use) %>%
-	      group_by(sitename) %>%
-	      summarise(var := sum(var_wgt)) %>%
-	      rename(!!varnam := var)
-	  }
-
 	  ddf <- purrr::map(
 	    as.list(settings$varnam),
 	    ~ingest_globalfields(siteinfo,
@@ -654,7 +629,7 @@ ingest <- function(
 	                         verbose = FALSE,
 	                         layer = .
 	    )) %>%
-	    map2(as.list(settings$varnam), ~aggregate_layers(.x, .y, settings$layer)) %>%
+	    map2(as.list(settings$varnam), ~aggregate_layers_gsde(.x, .y, settings$layer)) %>%
 	    purrr::reduce(left_join, by = "sitename")
 
 	 }  else if (source == "worldclim"){
@@ -709,3 +684,67 @@ expand_bysite <- function(sitename, year_start, year_end){
 
 }
 
+aggregate_layers_gsde <- function(df, varnam, layer){
+  
+  fill_layer_from_above <- function(df, varnam){
+    
+    df %>% 
+      rename(var = !!varnam) %>% 
+      mutate(above_1 = lag(var), 
+             above_2 = lag(var, n = 2),
+             above_3 = lag(var, n = 3),
+             above_4 = lag(var, n = 4),
+             above_5 = lag(var, n = 5),
+             above_6 = lag(var, n = 6),
+             above_7 = lag(var, n = 7)) %>% 
+      mutate(var = ifelse(is.na(var),
+                          ifelse(is.na(above_1),
+                                 ifelse(is.na(above_2),
+                                        ifelse(is.na(above_3),
+                                               ifelse(is.na(above_4),
+                                                      ifelse(is.na(above_5),
+                                                             ifelse(is.na(above_6),
+                                                                    ifelse(is.na(above_7),
+                                                                           above_7,
+                                                                           above_7),
+                                                                    above_6),
+                                                             above_5),
+                                                      above_4),
+                                               above_3),
+                                        above_2),
+                                 above_1),
+                          var)) %>% 
+      dplyr::select(var, layer) %>% 
+      rename(!!varnam := var)
+  }
+  
+  ## fill missing values with next available value from layer above
+  df <- df %>% 
+    group_by(sitename) %>% 
+    nest() %>% 
+    mutate(data = purrr::map(data, ~fill_layer_from_above(., varnam))) %>% 
+    unnest(data)
+  
+  df_layers <- tibble(layer = 1:8, bottom = c(4.5, 9.1, 16.6, 28.9, 49.3, 82.9, 138.3, 229.6)) %>%
+    mutate(top = lag(bottom)) %>%
+    mutate(top = ifelse(is.na(top), 0, top)) %>%
+    rowwise() %>%
+    mutate(depth = bottom - top) %>%
+    dplyr::select(-top, -bottom)
+  
+  z_tot_use <- df_layers %>%
+    ungroup() %>%
+    dplyr::filter(layer %in% layer) %>%
+    summarise(depth_tot_cm = sum(depth)) %>%
+    pull(depth_tot_cm)
+  
+  ## weighted sum, weighting by layer depth
+  df %>%
+    left_join(df_layers, by = "layer") %>%
+    rename(var = !!varnam) %>%
+    dplyr::filter(layer %in% layer) %>%
+    mutate(var_wgt = var * depth / z_tot_use) %>%
+    group_by(sitename) %>%
+    summarise(var := sum(var_wgt)) %>%
+    rename(!!varnam := var)
+}

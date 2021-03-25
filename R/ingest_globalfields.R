@@ -275,7 +275,7 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
     ## bottom soil layers
     filename <- list.files(dir, pattern = paste0(layer, "2.nc"))
     if (length(filename) > 1) rlang::abort("ingest_globalfields(): Found more than 1 file for source 'gsde'.")
-    if (length(filename) == 0) rlang::abort("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir'.")
+    if (length(filename) == 0) rlang::abort(paste("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir' for layer", layer))
     ddf_bottom <- extract_pointdata_allsites( paste0(dir, "/", filename), df_lonlat, get_time = FALSE ) %>%
       dplyr::select(-lon, -lat) %>%
       tidyr::unnest(data) %>%
