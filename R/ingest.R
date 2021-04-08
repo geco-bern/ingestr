@@ -684,7 +684,7 @@ expand_bysite <- function(sitename, year_start, year_end){
 
 }
 
-aggregate_layers_gsde <- function(df, varnam, layer){
+aggregate_layers_gsde <- function(df, varnam, use_layer){
   
   fill_layer_from_above <- function(df, varnam){
     
@@ -734,7 +734,7 @@ aggregate_layers_gsde <- function(df, varnam, layer){
   
   z_tot_use <- df_layers %>%
     ungroup() %>%
-    dplyr::filter(layer %in% layer) %>%
+    dplyr::filter(layer %in% use_layer) %>%
     summarise(depth_tot_cm = sum(depth)) %>%
     pull(depth_tot_cm)
   
@@ -742,7 +742,7 @@ aggregate_layers_gsde <- function(df, varnam, layer){
   df %>%
     left_join(df_layers, by = "layer") %>%
     rename(var = !!varnam) %>%
-    dplyr::filter(layer %in% layer) %>%
+    dplyr::filter(layer %in% use_layer) %>%
     mutate(var_wgt = var * depth / z_tot_use) %>%
     group_by(sitename) %>%
     summarise(var := sum(var_wgt)) %>%
