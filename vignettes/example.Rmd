@@ -222,6 +222,8 @@ This uses the [MODISTools](https://docs.ropensci.org/MODISTools/) R package maki
 -   `"modis_lai"`: MODIS collection 6, MCD15A3H, band `Lai_500m`
 -   `"modis_evi"`: MODIS collection 6, MOD13Q1, band `250m_16_days_EVI`
 -   `"modis_ndvi"`: MODIS collection 6, MOD13Q1, band `250m_16_days_NDVI`
+-   `"modis_refl_terra"`: MODIS, MOD09A1, Terra surface reflectance, 8-Day L3 Global, 500 m, all bands 
+-   `"modis_refl_aqua"`: MODIS, MYD09A1 Aqua surface reflectance, 8-Day L3 Global, 500 m, and MOD09A1, all bands 
 
 The filtering criteria are hard-coded specifically for each product, using its respective quality control information (see function `gapfill_interpol()` in `R/ingest_modis_bysite.R`). For more information on the settings do `?get_settings_modis`.
 
@@ -262,6 +264,39 @@ Plot this data.
 plot_fapar_ingestr_bysite(
   df_modis_fpar, 
   settings_modis)
+```
+
+For reflectance data, the ingested data is shaped differently (multiple variables, linearly interpolated to daily values).
+
+```{r}
+settings_modis <- get_settings_modis(
+  bundle            = "modis_refl_terra",
+  data_path         = "~/data/modis_subsets/",
+  method_interpol   = "loess",
+  keep              = TRUE,
+  overwrite_raw     = FALSE,
+  overwrite_interpol= TRUE,
+  n_focal           = 0
+  )
+```
+
+
+```{r warning=FALSE}
+df_modis_fpar <- ingest_bysite(
+  sitename  = "CH-Lae",
+  source    = "modis",
+  year_start= 2018,
+  year_end  = 2019,
+  lon       = 8.36439,
+  lat       = 47.47833,
+  settings  = settings_modis,
+  verbose   = FALSE
+  )
+
+df_modis_fpar %>% 
+  pivot_longer(cols = starts_with("sur_refl_"), names_to = "band", values_to = "reflectance") %>% 
+  ggplot(aes(x = date, y = reflectance, color = band)) +
+  geom_line()
 ```
 
 <!-- ```{r} -->
