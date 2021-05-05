@@ -207,7 +207,7 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
                    "sur_refl_b05", 
                    "sur_refl_b06", 
                    "sur_refl_b07"),
-      band_qc  = c("sur_refl_qc_500m"), # "sur_refl_day_of_year", "sur_refl_raz", "sur_refl_state_500m", "sur_refl_szen", "sur_refl_vzen"),
+      band_qc  = c("sur_refl_qc_500m", "sur_refl_state_500m", "sur_refl_day_of_year", "sur_refl_raz", "sur_refl_szen", "sur_refl_vzen"),
       varnam   = "srefl",
       period   = 8,
       prod_suffix = "MOD09A1",

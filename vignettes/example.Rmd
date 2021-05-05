@@ -162,14 +162,14 @@ WATCH-WFDEI data is available for years from 1979. If `year_start` is before tha
 df_watch <- ingest_bysite(
   sitename  = "FR-Pue",
   source    = "watch_wfdei",
-  getvars   = c("vpd"),
+  getvars   = c("temp"),
   dir       = "~/data/watch_wfdei/",
   timescale = "d",
   year_start = 2007,
   year_end  = 2007,
   lon       = 3.5958,
   lat       = 43.7414,
-  verbose   = FALSE,
+  verbose   = TRUE,
   settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
   )
 df_watch

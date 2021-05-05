@@ -27,8 +27,8 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
   if (!dir.exists(dirnam_daily_csv)) system( paste( "mkdir -p ", dirnam_daily_csv ) )
   if (!dir.exists(dirnam_raw_csv)) system( paste( "mkdir -p ", dirnam_raw_csv ) )
 
-  filnam_daily_csv <- paste0( dirnam_daily_csv, "/", settings$productnam, "_daily_", sitename, ".csv" )
-  filnam_raw_csv <- paste0( dirnam_raw_csv, "/", settings$productnam, "_", sitename, ".csv" )
+  filnam_daily_csv <- paste0( dirnam_daily_csv, "/", settings$productnam, "_daily_", sitename, "_", df_siteinfo$year_start, "_", df_siteinfo$year_end, ".csv" )
+  filnam_raw_csv <- paste0( dirnam_raw_csv, "/", settings$productnam, "_", sitename, "_", df_siteinfo$year_start, "_", df_siteinfo$year_end, ".csv" )
 
   do_continue <- TRUE
 
@@ -316,7 +316,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
 
   } else if (prod=="MOD09A1"){
     ##--------------------------------------
-    ## Filter data
+    ## Filter surface reflectance data
     ##--------------------------------------
     ## QC interpreted according to https://modis-land.gsfc.nasa.gov/pdf/MOD09_UserGuide_v1.4.pdf, 
     ## Section 3.2.2, Table 10 500 m, 1 km and Coarse Resolution Surface Reflectance Band Quality Description (32-bit). Bit 0 is LSB.
