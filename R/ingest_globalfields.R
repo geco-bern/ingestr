@@ -214,19 +214,18 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
     ## create a annual data frame
     adf <- ddf %>%
       dplyr::select(sitename, date) %>%
-      dplyr::mutate(year = lubridate::year(date)) %>%
-      dplyr::select(sitename, year) %>%
+      dplyr::filter(lubridate::yday(date)==1) %>% 
       dplyr::distinct()
 
     ## extract the data for NHx
     adf <- ingest_globalfields_ndep_byvar(siteinfo, dir, "nhx") %>%
-      dplyr::select(sitename, year, nhx) %>%
-      dplyr::right_join(adf, by = c("sitename", "year"))
+      dplyr::select(sitename, date, nhx) %>%
+      dplyr::right_join(adf, by = c("sitename", "date"))
 
     ## extract the data for NOy
     adf <- ingest_globalfields_ndep_byvar(siteinfo, dir, "noy") %>%
-      dplyr::select(sitename, year, noy) %>%
-      dplyr::right_join(adf, by = c("sitename", "year"))
+      dplyr::select(sitename, date, noy) %>%
+      dplyr::right_join(adf, by = c("sitename", "date"))
 
 
     if (timescale != "y"){
@@ -276,7 +275,7 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
     ## bottom soil layers
     filename <- list.files(dir, pattern = paste0(layer, "2.nc"))
     if (length(filename) > 1) rlang::abort("ingest_globalfields(): Found more than 1 file for source 'gsde'.")
-    if (length(filename) == 0) rlang::abort("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir'.")
+    if (length(filename) == 0) rlang::abort(paste("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir' for layer", layer))
     ddf_bottom <- extract_pointdata_allsites( paste0(dir, "/", filename), df_lonlat, get_time = FALSE ) %>%
       dplyr::select(-lon, -lat) %>%
       tidyr::unnest(data) %>%
@@ -511,8 +510,9 @@ ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
   ## extract the data
   filename <- list.files( dir, paste0("ndep_", varnam, "_lamarque11cc_historical_halfdeg.nc") )
   df <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = TRUE) %>%
-    dplyr::mutate(data = purrr::map(data, ~setNames(., c(varnam, "year"))))
-
+    dplyr::mutate(data = purrr::map(data, ~setNames(., c(varnam, "year")))) %>% 
+    dplyr::mutate(data = purrr::map(data, ~mutate(., date = lubridate::ymd(paste0(as.character(year), "-01-01")))))
+    
   adf <- df %>%
     tidyr::unnest(data)
 

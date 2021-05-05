@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Data ingest for a single site — ingest_bysite • ingestr</title>
+<title>SoilGrids point ingest — ingest_soilgrids • ingestr</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,9 @@
 
 
 
-<meta property="og:title" content="Data ingest for a single site — ingest_bysite" />
-<meta property="og:description" content="Ingests data for a single site and one specific data type, specified by argument source." />
+<meta property="og:title" content="SoilGrids point ingest — ingest_soilgrids" />
+<meta property="og:description" content="SoilGrids point data ingest
+This follows code outlined here: https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md" />
 
 
 
@@ -126,106 +127,45 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Data ingest for a single site</h1>
-    <small class="dont-index">Source: <a href='https://github.com/stineb/ingestr/blob/master/R/ingest_bysite.R'><code>R/ingest_bysite.R</code></a></small>
-    <div class="hidden name"><code>ingest_bysite.Rd</code></div>
+    <h1>SoilGrids point ingest</h1>
+    <small class="dont-index">Source: <a href='https://github.com/stineb/ingestr/blob/master/R/ingest_soilgrids.R'><code>R/ingest_soilgrids.R</code></a></small>
+    <div class="hidden name"><code>ingest_soilgrids.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Ingests data for a single site and one specific data type, specified by argument <code>source</code>.</p>
+    <p>SoilGrids point data ingest
+This follows code outlined here: <a href='https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md'>https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md</a></p>
     </div>
 
-    <pre class="usage"><span class='fu'>ingest_bysite</span><span class='op'>(</span>
-  <span class='va'>sitename</span>,
-  <span class='va'>source</span>,
-  <span class='va'>getvars</span>,
-  dir <span class='op'>=</span> <span class='cn'>NULL</span>,
-  settings <span class='op'>=</span> <span class='cn'>NULL</span>,
-  timescale <span class='op'>=</span> <span class='st'>"d"</span>,
-  year_start <span class='op'>=</span> <span class='cn'>NA</span>,
-  year_end <span class='op'>=</span> <span class='cn'>NA</span>,
-  lon <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/ifelse.html'>ifelse</a></span><span class='op'>(</span><span class='va'>source</span> <span class='op'>==</span> <span class='st'>"fluxnet"</span>, <span class='cn'>NA</span><span class='op'>)</span>,
-  lat <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/ifelse.html'>ifelse</a></span><span class='op'>(</span><span class='va'>source</span> <span class='op'>==</span> <span class='st'>"fluxnet"</span>, <span class='cn'>NA</span><span class='op'>)</span>,
-  elv <span class='op'>=</span> <span class='cn'>NA</span>,
-  verbose <span class='op'>=</span> <span class='cn'>FALSE</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>ingest_soilgrids</span><span class='op'>(</span><span class='va'>siteinfo</span>, <span class='va'>settings</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>sitename</th>
-      <td><p>A character string used as site identification. When data is extracted from
-global files or remote servers, <code>sitename</code> is simply used as a label and any string can
-be provided. When data is extraced from site-specific files (e.g. <code>source = "fluxnet"</code>),
-then <code>sitename</code> is used to identify the file from which data is read.</p></td>
-    </tr>
-    <tr>
-      <th>source</th>
-      <td><p>A character used as identifiyer for the type of data source
-(e.g., <code>"fluxnet"</code>). See vignette for a full description of available options.</p></td>
-    </tr>
-    <tr>
-      <th>getvars</th>
-      <td><p>A named list of characters specifying the variable names in
-the original source dataset and the variable names in the ingested data frame. Use, e.g.,
-<code>getvars = list("gpp" = "GPP_NT_VUT_REF")</code> to read the variable <code>"GPP_NT_VUT_REF"</code>
-from the original file and convert its name to <code>"gpp"</code> in the ingested data frame.</p></td>
-    </tr>
-    <tr>
-      <th>dir</th>
-      <td><p>A character specifying the directory where the data is located.</p></td>
-    </tr>
-    <tr>
       <th>settings</th>
-      <td><p>A list of additional, source-specific settings used for reading and processing
-original files. Defaults to an empty list which triggers the use of default settings (see
-e.g., <a href='get_settings_fluxnet.html'>get_settings_fluxnet</a>) for <code>source = "fluxnet"</code>.</p></td>
+      <td><p>A list returned by a call to <a href='get_settings_soilgrids.html'>get_settings_soilgrids</a></p></td>
     </tr>
     <tr>
-      <th>timescale</th>
-      <td><p>A character or vector of characters, specifying the time scale of data used from
-the respective source (if multiple time scales are available, otherwise is disregarded). Implemented
-time scales are <code><a href='https://rdrr.io/r/base/c.html'>c("d", "m", "y")</a></code> for daily, monthly, and yearly, respectively. Defaults
-to <code>"d"</code>.</p></td>
-    </tr>
-    <tr>
-      <th>year_start</th>
-      <td><p>An integer specifying the first year for which data is to be ingested.</p></td>
-    </tr>
-    <tr>
-      <th>year_end</th>
-      <td><p>An integer specifying the last year for which data is to be ingested (full years
-are read, i.e. all days, or hours, or months in each year).</p></td>
+      <th>sitename</th>
+      <td><p>A character string specifying the site name (ID)</p></td>
     </tr>
     <tr>
       <th>lon</th>
-      <td><p>A numeric value specifying the longitude for which data is extraced from global files
-or remote data servers. If <code>source = "fluxnet"</code>, this is not required and set ot <code>NA</code>.</p></td>
+      <td><p>Longitude (numeric)</p></td>
     </tr>
     <tr>
       <th>lat</th>
-      <td><p>A numeric value specifying the longitude for which data is extraced from global files
-or remote data servers. If <code>source = "fluxnet"</code>, this is not required and set ot <code>NA</code>.</p></td>
-    </tr>
-    <tr>
-      <th>elv</th>
-      <td><p>A numeric value specifying the elevation of the site in m a.s.l., This is only required
-for <code>source = "watch_wfdei"</code>, where the ingested data for atmospheric pressure (<code>patm</code>) 
-is bias-corrected by elevation using  the adiabatic lapse rate (implemented by <a href='calc_patm.html'>calc_patm</a>).</p></td>
-    </tr>
-    <tr>
-      <th>verbose</th>
-      <td><p>if <code>TRUE</code>, additional messages are printed. Defaults to <code>FALSE</code>.</p></td>
+      <td><p>Latitude (numeric)</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A data frame (tibble) containing the time series of ingested data.</p>
+    <p>A data frame with ingested data, nested in column data.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='va'>inputdata</span> <span class='op'>&lt;-</span> <span class='fu'>ingest_bysite</span><span class='op'>(</span><span class='op'>)</span>
+    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='va'>settings</span> <span class='op'>&lt;-</span> <span class='fu'>ingest_soilgrids</span><span class='op'>(</span><span class='st'>"id1"</span>, lon <span class='op'>=</span> <span class='fl'>100</span>, lat <span class='op'>=</span> <span class='fl'>50</span><span class='op'>)</span>
 
 </div></pre>
   </div>

@@ -192,6 +192,26 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
       period   = 16,
       prod_suffix = "MOD13Q1",
       productnam = "MODIS_NDVI_MOD13Q1"
+    )
+    
+  }  else if (bundle == "modis_refl_terra"){
+    ##--------------------------------------------------------------------
+    ## Surface reflectance by bands
+    ##--------------------------------------------------------------------
+    out <- list(
+      prod     = "MOD09A1",
+      band_var = c("sur_refl_b01", 
+                   "sur_refl_b02", 
+                   "sur_refl_b03", 
+                   "sur_refl_b04", 
+                   "sur_refl_b05", 
+                   "sur_refl_b06", 
+                   "sur_refl_b07"),
+      band_qc  = c("sur_refl_qc_500m", "sur_refl_state_500m", "sur_refl_day_of_year", "sur_refl_raz", "sur_refl_szen", "sur_refl_vzen"),
+      varnam   = "srefl",
+      period   = 8,
+      prod_suffix = "MOD09A1",
+      productnam = "MODIS_srefl_MOD09A1_TERRA"
       )
 
   } else {
