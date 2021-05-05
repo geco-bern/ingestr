@@ -62,18 +62,18 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
           ) %>%
         as_tibble()
 
-      ## xxx check plot
-      df %>% 
-        mutate(calendar_date = lubridate::ymd(calendar_date)) %>% 
-        dplyr::filter(band == "sur_refl_b04") %>% 
-        group_by(calendar_date) %>% 
-        summarise(value = mean(value)) %>% 
-        ggplot(aes(calendar_date, value)) + 
-        geom_line()
-      
+      # ## xxx check plot
+      # df %>%
+      #   mutate(calendar_date = lubridate::ymd(calendar_date)) %>%
+      #   dplyr::filter(band == "sur_refl_b04") %>%
+      #   group_by(calendar_date) %>%
+      #   summarise(value = mean(value)) %>%
+      #   ggplot(aes(calendar_date, value)) +
+      #   geom_line()
+
       ## Raw downloaded data is saved to file
       rlang::inform( paste( "raw data file written:", filnam_raw_csv ) )
-      readr::write_csv(df, file = filnam_raw_csv)
+      readr::write_csv(df, path = filnam_raw_csv)
 
     } else {
 
@@ -99,9 +99,9 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
     scale_factor <- bands %>%
       dplyr::filter(band %in% settings$band_var) %>%
       pull(scale_factor) %>%
-      as.numeric() %>% 
+      as.numeric() %>%
       unique()
-    
+
     if (length(scale_factor)!=1){
       rlang::abort("Multiple scaling factors found for ingested bands")
     } else {
@@ -110,13 +110,13 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
         mutate(across(settings$band_var, scaleme, scale_factor = scale_factor))
         # mutate(value = scale_factor * value)
     }
-    
+
     ## rename to standard variable name unless is sur_refl_b*
     if (settings$varnam != "srefl"){
-      df <- df %>% 
+      df <- df %>%
         rename(value = !!settings$band_var, qc = !!settings$band_qc)
     }
-      
+
     ##--------------------------------------------------------------------
     ## Clean (gapfill and interpolate) full time series data to daily
     ##--------------------------------------------------------------------
@@ -130,12 +130,12 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
       keep            = settings$keep,
       n_focal         = settings$n_focal
     )
-    
+
     ##---------------------------------------------
     ## save cleaned and interpolated data to file
     ##---------------------------------------------
-    readr::write_csv( ddf, file = filnam_daily_csv )
-    
+    readr::write_csv( ddf, path = filnam_daily_csv )
+
 
   }
 
@@ -318,7 +318,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     ##--------------------------------------
     ## Filter surface reflectance data
     ##--------------------------------------
-    ## QC interpreted according to https://modis-land.gsfc.nasa.gov/pdf/MOD09_UserGuide_v1.4.pdf, 
+    ## QC interpreted according to https://modis-land.gsfc.nasa.gov/pdf/MOD09_UserGuide_v1.4.pdf,
     ## Section 3.2.2, Table 10 500 m, 1 km and Coarse Resolution Surface Reflectance Band Quality Description (32-bit). Bit 0 is LSB.
     clean_sur_refl <- function(x, qc_binary){
       ifelse(qc_binary, x, NA)
@@ -329,7 +329,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       ## separate into bits
       rowwise() %>%
       mutate(qc_bitname = intToBits( sur_refl_qc_500m ) %>% as.character() %>% paste(collapse = "")) %>%
-      
+
       ## Bits 0-1: MODLAND QA bits
       ##   00 corrected product produced at ideal quality -- all bands
       ##   01 corrected product produced at less than ideal quality -- some or all bands
@@ -337,8 +337,8 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       ##   11 corrected product not produced for other reasons -- some or all bands, may be fill value (11) [Note that a value of (11) overrides a value of (01)].
       mutate(modland_qc = substr( qc_bitname, start=1, stop=2 )) %>%
       mutate(modland_qc_binary = ifelse(modland_qc %in% c("00"), TRUE, FALSE)) %>%   # false for removing data
-      mutate(across(starts_with("sur_refl_b"), ~clean_sur_refl(., modland_qc_binary))) %>% 
-      
+      mutate(across(starts_with("sur_refl_b"), ~clean_sur_refl(., modland_qc_binary))) %>%
+
       # ## Bits 2-5: band 1 data quality, four bit range
       # ##   0000 highest quality
       # ##   0111 noisy detector
@@ -352,8 +352,8 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       # ##   1111 not processed due to deep ocean or clouds
       # mutate(modland_qc_b01 = substr( qc_bitname, start=3, stop=6 )) %>%
       # mutate(modland_qc_b01_binary = ifelse(modland_qc_b01 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b01 = ifelse(modland_qc_b01_binary, sur_refl_b01, NA)) %>%       
-      # 
+      # mutate(sur_refl_b01 = ifelse(modland_qc_b01_binary, sur_refl_b01, NA)) %>%
+      #
       # ## Bits 6-9: band 2 data quality, four bit range
       # ##   0000 highest quality
       # ##   0111 noisy detector
@@ -367,8 +367,8 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       # ##   1111 not processed due to deep ocean or clouds
       # mutate(modland_qc_b02 = substr( qc_bitname, start=7, stop=10 )) %>%
       # mutate(modland_qc_b02_binary = ifelse(modland_qc_b02 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b02 = ifelse(modland_qc_b02_binary, sur_refl_b02, NA)) %>%       
-      # 
+      # mutate(sur_refl_b02 = ifelse(modland_qc_b02_binary, sur_refl_b02, NA)) %>%
+      #
       # ## Bits 10-13: band 3 data quality, four bit range
       # ##   0000 highest quality
       # ##   0111 noisy detector
@@ -382,8 +382,8 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       # ##   1111 not processed due to deep ocean or clouds
       # mutate(modland_qc_b03 = substr( qc_bitname, start=11, stop=14 )) %>%
       # mutate(modland_qc_b03_binary = ifelse(modland_qc_b03 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b03 = ifelse(modland_qc_b03_binary, sur_refl_b03, NA)) %>%       
-      # 
+      # mutate(sur_refl_b03 = ifelse(modland_qc_b03_binary, sur_refl_b03, NA)) %>%
+      #
       # ## Bits 14-17: band 4 data quality, four bit range
       # ##   0000 highest quality
       # ##   0111 noisy detector
@@ -397,8 +397,8 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       # ##   1111 not processed due to deep ocean or clouds
       # mutate(modland_qc_b04 = substr( qc_bitname, start=15, stop=18 )) %>%
       # mutate(modland_qc_b04_binary = ifelse(modland_qc_b04 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b04 = ifelse(modland_qc_b04_binary, sur_refl_b04, NA)) %>%       
-      # 
+      # mutate(sur_refl_b04 = ifelse(modland_qc_b04_binary, sur_refl_b04, NA)) %>%
+      #
       # ## Bits 18-21: band 5 data quality, four bit range
       # ##   0000 highest quality
       # ##   0111 noisy detector
@@ -412,8 +412,8 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       # ##   1111 not processed due to deep ocean or clouds
       # mutate(modland_qc_b05 = substr( qc_bitname, start=19, stop=22 )) %>%
       # mutate(modland_qc_b05_binary = ifelse(modland_qc_b05 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b05 = ifelse(modland_qc_b05_binary, sur_refl_b05, NA)) %>%       
-      # 
+      # mutate(sur_refl_b05 = ifelse(modland_qc_b05_binary, sur_refl_b05, NA)) %>%
+      #
       # ## Bits 22-25: band 6 data quality, four bit range
       # ##   0000 highest quality
       # ##   0111 noisy detector
@@ -427,8 +427,8 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       # ##   1111 not processed due to deep ocean or clouds
       # mutate(modland_qc_b06 = substr( qc_bitname, start=23, stop=26 )) %>%
       # mutate(modland_qc_b06_binary = ifelse(modland_qc_b06 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b06 = ifelse(modland_qc_b06_binary, sur_refl_b06, NA)) %>%       
-      # 
+      # mutate(sur_refl_b06 = ifelse(modland_qc_b06_binary, sur_refl_b06, NA)) %>%
+      #
       # ## Bits 26-29: band 7 data quality, four bit range
       # ##   0000 highest quality
       # ##   0111 noisy detector
@@ -442,26 +442,26 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       # ##   1111 not processed due to deep ocean or clouds
       # mutate(modland_qc_b07 = substr( qc_bitname, start=27, stop=30 )) %>%
       # mutate(modland_qc_b07_binary = ifelse(modland_qc_b07 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b07 = ifelse(modland_qc_b07_binary, sur_refl_b07, NA)) %>%       
-      
+      # mutate(sur_refl_b07 = ifelse(modland_qc_b07_binary, sur_refl_b07, NA)) %>%
+
       # ## Bit 30: Atmospheric correction performed
       # ##   1 yes
       # ##   0 no
-      # mutate(atm_corr_qc = substr( qc_bitname, start=31, stop=31 )) %>% 
+      # mutate(atm_corr_qc = substr( qc_bitname, start=31, stop=31 )) %>%
       # mutate(atm_corr_qc_binary = ifelse(atm_corr_qc == "1", TRUE, FALSE)) %>%     # false for removing data
-      # mutate(across(starts_with("sur_refl_b"), ~clean_sur_refl(., atm_corr_qc_binary))) %>% 
-      # 
+      # mutate(across(starts_with("sur_refl_b"), ~clean_sur_refl(., atm_corr_qc_binary))) %>%
+      #
       # ## Bit 31: Adjacency correction performed
       # ##   1 yes
       # ##   0 no
-      # mutate(adj_corr_qc = substr( qc_bitname, start=32, stop=32 )) %>% 
+      # mutate(adj_corr_qc = substr( qc_bitname, start=32, stop=32 )) %>%
       # mutate(adj_corr_qc_binary = ifelse(adj_corr_qc == "1", TRUE, FALSE)) %>%     # false for removing data
-      # mutate(across(starts_with("sur_refl_b"), ~clean_sur_refl(., adj_corr_qc_binary))) %>% 
-      
+      # mutate(across(starts_with("sur_refl_b"), ~clean_sur_refl(., adj_corr_qc_binary))) %>%
+
       ## drop it
       dplyr::select(-ends_with("_qc"), -ends_with("_qc_binary"))
-    
-    
+
+
   }
 
   ##--------------------------------------
@@ -523,8 +523,8 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
 
   # ## extrapolate missing values at head and tail
   # ddf$modisvar <- extrapolate_missing_headtail(dplyr::select(ddf, var = modisvar, doy))
-  
-  
+
+
   ##--------------------------------------
   ## Interpolate
   ##--------------------------------------
@@ -534,18 +534,18 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       x <- 1:length(vec)
       approx(x, vec, xout = x)$y
     }
-    
-    ddf <- ddf %>% 
+
+    ddf <- ddf %>%
       mutate(across(settings_modis$band_var, ~myapprox(.)))
-    
+
   } else {
-  
+
     if (method_interpol == "loess" || keep){
       ##--------------------------------------
       ## get LOESS spline model for predicting daily values (used below)
       ##--------------------------------------
       rlang::inform("loess...")
-      
+
       ## determine periodicity
       period <- ddf %>%
         dplyr::filter(!is.na(modisvar_filtered)) %>%
@@ -553,15 +553,15 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
         mutate(period = as.integer(difftime(date, prevdate))) %>%
         pull(period) %>%
         min(na.rm = TRUE)
-      
+
       ## take a three-weeks window for locally weighted regression (loess)
       ## good explanation: https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
       ndays_tot <- lubridate::time_length(diff(range(ddf$date)), unit = "day")
       span <- 100/ndays_tot # (20*period)/ndays_tot  # multiply with larger number to get smoother curve
-      
+
       idxs    <- which(!is.na(ddf$modisvar_filtered))
       myloess <- try( loess( modisvar_filtered ~ year_dec, data = ddf[idxs,], span=span ) )
-      
+
       ## predict LOESS to all dates with missing data
       tmp <- try( predict( myloess, newdata = ddf ) )
       if (class(tmp)!="try-error"){
@@ -570,7 +570,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
         ddf$loess <- rep( NA, nrow(ddf) )
       }
     }
-    
+
     if (method_interpol == "spline" || keep){
       ##--------------------------------------
       ## get SPLINE model for predicting daily values (used below)
@@ -578,7 +578,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       rlang::inform("spline...")
       idxs   <- which(!is.na(ddf$modisvar_filtered))
       spline <- try( with( ddf, smooth.spline( year_dec[idxs], modisvar_filtered[idxs], spar=0.01 ) ) )
-      
+
       ## predict SPLINE
       tmp <- try( with( ddf, predict( spline, year_dec ) )$y)
       if (class(tmp)!="try-error"){
@@ -586,9 +586,9 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       } else {
         ddf$spline <- rep( NA, nrow(ddf) )
       }
-      
+
     }
-    
+
     if (method_interpol == "linear" || keep){
       ##--------------------------------------
       ## LINEAR INTERPOLATION
@@ -601,7 +601,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
         ddf$linear <- tmp$y
       }
     }
-    
+
     # commented out to avoid dependency to 'signal'
     if (method_interpol == "sgfilter" || keep){
       ##--------------------------------------
@@ -614,9 +614,9 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       if (class(tmp)!="try-error"){
         ddf$sgfilter[idxs] <- tmp
       }
-      
+
     }
-    
+
     ##--------------------------------------
     ## Define 'fapar'
     ##--------------------------------------
@@ -629,7 +629,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     } else if (method_interpol == "sgfilter"){
       ddf$modisvar_filled <- ddf$sgfilter
     }
-    
+
     # ## plot daily smoothed line and close plotting device
     # if (do_plot_interpolated) with( ddf, lines( year_dec, fapar, col='red', lwd=2 ) )
     # if (do_plot_interpolated) with( ddf, lines( year_dec, sgfilter, col='springgreen3', lwd=1 ) )
@@ -640,14 +640,14 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     #           col=c("springgreen3", "cyan", "red" ), lty=1, lwd=c(1,1,2), bty="n", inset = c(0,-0.2)
     #   )
     # }
-    
+
     ## limit to within 0 and 1 (loess spline sometimes "explodes")
     ddf <- ddf %>%
       dplyr::mutate( modisvar_filled = replace( modisvar_filled, modisvar_filled<0, 0  ) ) %>%
       dplyr::mutate( modisvar_filled = replace( modisvar_filled, modisvar_filled>1, 1  ) )
-    
+
   }
-  
+
   # ## extrapolate missing values at head and tail again
   # ##--------------------------------------
   # ddf$modisvar_filled <- extrapolate_missing_headtail(dplyr::select(ddf, var = modisvar_filled))
