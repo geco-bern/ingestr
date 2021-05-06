@@ -59,8 +59,9 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
           site_name = df_siteinfo$sitename,                   # the site name we want to give the data
           internal  = TRUE,
           progress  = TRUE
-          ) %>%
-        as_tibble()
+          ) 
+      
+      df <- as_tibble(df)
 
       # ## xxx check plot
       # df %>%
