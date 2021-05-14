@@ -445,6 +445,41 @@ ingest <- function(
 	  #-----------------------------------------------------------
 	  # Get data from the remote server
 	  #-----------------------------------------------------------
+	  # if (settings$batch){
+	  #   
+	  #   siteinfo <- siteinfo %>% 
+	  #     dplyr::rename(
+	  #       "site_name" = "sitename") %>%
+	  #     data.frame()
+	  # 
+	  #   ## get all available dates for batch modis download (should be the same for all lon and lat)
+	  #   dates <- MODISTools::mt_dates(product = settings$prod, lat = siteinfo$lat[1], lon = siteinfo$lon[1]) %>% 
+	  #     pull(calendar_date)
+	  #   
+	  #   df <- MODISTools::mt_batch_subset(
+	  #     df = siteinfo,
+	  #     product = settings$prod,
+	  #     band = c(settings$band_var, settings$band_qc),
+	  #     km_lr = 1.0,
+	  #     km_ab = 1.0,
+	  #     start = min(dates),
+	  #     end = max(dates),
+	  #     internal = TRUE,
+	  #     ncores = 2  # don't use more otherwise trouble
+	  #     )
+	  #   
+	  # } else {
+	  #   
+	  #   ddf <- purrr::map(
+	  #     as.list(seq(nrow(siteinfo))),
+	  #     ~ingest_modis_bysite(
+	  #       slice(siteinfo, .),
+	  #       settings
+	  #     )
+	  #   )
+	  #   
+	  # }
+	  
 		if (parallel){
 
 			if (is.null(ncores)) rlang::abort(paste("Aborting. Please provide number of cores for parallel jobs."))
@@ -464,15 +499,15 @@ ingest <- function(
 		    tidyr::unnest(data)
 
 		} else {
-
+		  
 		  ddf <- purrr::map(
 		    as.list(seq(nrow(siteinfo))),
 		    ~ingest_modis_bysite(
 		      slice(siteinfo, .),
 		      settings
-		      )
-		  	)
-
+		    )
+		  )
+		  
 		}
 
 

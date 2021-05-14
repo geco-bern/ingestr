@@ -237,7 +237,8 @@ settings_modis <- get_settings_modis(
   keep              = TRUE,
   overwrite_raw     = FALSE,
   overwrite_interpol= TRUE,
-  n_focal           = 0
+  n_focal           = 0,
+  network           = "FLUXNET"
   )
 ```
 
@@ -893,8 +894,9 @@ settings_modis <- get_settings_modis(
   data_path         = "~/data/modis_subsets/",
   method_interpol   = "loess",
   keep              = TRUE,
-  overwrite_raw     = FALSE,
-  overwrite_interpol= TRUE
+  overwrite_raw     = TRUE,
+  overwrite_interpol= TRUE,
+  network           = "FLUXNET"
   )
 ```
 
@@ -905,8 +907,7 @@ df_modis_fpar <- ingest(
   siteinfo_fluxnet2015 %>% slice(1:3), 
   source = "modis",
   settings = settings_modis, 
-  parallel = FALSE,
-  ncores = 2
+  parallel = FALSE
   )
 ```
 

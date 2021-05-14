@@ -11,7 +11,9 @@ get_settings_modis(
   keep = FALSE,
   overwrite_raw = FALSE,
   overwrite_interpol = FALSE,
-  n_focal = 0
+  n_focal = 0,
+  filename_with_year = TRUE,
+  network = NA
 )
 }
 \arguments{
@@ -35,10 +37,12 @@ i.e. data is read from exisitng file if available.}
 
 \item{n_focal}{An integer specifying the distance (in number of pixels) around the center pixel to be used for averaging. Defaults
 to zero (using only the center pixel).}
-}
-\value{
-A named list containing information required for download from Google
-Earth Engine.
+
+\item{filename_with_year}{A logical specifying whether the years covered are specified in the file name. Added here for consistency with 
+earlier versions of ingestr where years were not specified.}
+
+\item{network}{A character string specifying the network for which the site names correspond.
+Earth Engine.}
 }
 \description{
 Defines settings for settings for Google Earth Engine download

@@ -26,9 +26,15 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
 
   if (!dir.exists(dirnam_daily_csv)) system( paste( "mkdir -p ", dirnam_daily_csv ) )
   if (!dir.exists(dirnam_raw_csv)) system( paste( "mkdir -p ", dirnam_raw_csv ) )
+  
+  if (settings$filename_with_year){
+    filnam_daily_csv <- paste0( dirnam_daily_csv, "/", settings$productnam, "_daily_", sitename, "_", df_siteinfo$year_start, "_", df_siteinfo$year_end, ".csv" )
+    filnam_raw_csv <- paste0( dirnam_raw_csv, "/", settings$productnam, "_", sitename, "_", df_siteinfo$year_start, "_", df_siteinfo$year_end, ".csv" )
+  } else {
+    filnam_daily_csv <- paste0( dirnam_daily_csv, "/", settings$productnam, "_daily_", sitename, ".csv" )
+    filnam_raw_csv <- paste0( dirnam_raw_csv, "/", settings$productnam, "_", sitename, ".csv" )
+  }
 
-  filnam_daily_csv <- paste0( dirnam_daily_csv, "/", settings$productnam, "_daily_", sitename, "_", df_siteinfo$year_start, "_", df_siteinfo$year_end, ".csv" )
-  filnam_raw_csv <- paste0( dirnam_raw_csv, "/", settings$productnam, "_", sitename, "_", df_siteinfo$year_start, "_", df_siteinfo$year_end, ".csv" )
 
   do_continue <- TRUE
 
@@ -47,22 +53,56 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
       ##---------------------------------------------
       ## Download from MODIS DAAC server
       ##---------------------------------------------
-      df <- MODISTools::mt_subset(
-          product   = settings$prod,                          # the chosen product (e.g., for NDVI "MOD13Q1")
-          lat       = df_siteinfo$lat,                        # latitude
-          lon       = df_siteinfo$lon,                        # longitude
-          band      = c(settings$band_var, settings$band_qc), # chosen bands
-          start     = df_siteinfo$date_start,                 # start date: 1st Jan 2009
-          end       = df_siteinfo$date_end,                   # end date: 19th Dec 2014
-          km_lr     = 1.0,                                    # kilometers left & right of the chosen location (lat/lon above)
-          km_ab     = 1.0,                                    # kilometers above and below the location
-          site_name = df_siteinfo$sitename,                   # the site name we want to give the data
-          internal  = TRUE,
-          progress  = TRUE
-          ) 
+      sites_avl <- MODISTools::mt_sites(network = settings$network) %>% as_tibble() %>% pull(network_siteid)
+      if (!(df_siteinfo$sitename %in% sites_avl)){
+        rlang::abort(paste("Aborting. Site", df_siteinfo$sitename, "not available for network", settings$network))
+      }
       
-      df <- as_tibble(df)
-
+      try_mt_subset <- function(x, df_siteinfo, settings){
+        
+        ## initial try
+        rlang::inform(paste("Initial try for band", x))
+        df <- try(
+          MODISTools::mt_subset(
+            product   = settings$prod,                          # the chosen product (e.g., for NDVI "MOD13Q1")
+            band      = x,
+            start     = df_siteinfo$date_start,                 # start date: 1st Jan 2009
+            end       = df_siteinfo$date_end,                   # end date: 19th Dec 2014
+            site_id   = df_siteinfo$sitename,                   # the site name we want to give the data
+            network   = settings$network,
+            internal  = TRUE,
+            progress  = TRUE
+          )
+        )
+        
+        ## repeat if failed until it works
+        while (class(df) == "try-error"){
+          Sys.sleep(3)                                            # wait for three seconds
+          rlang::warn("re-trying...")
+          df <- try(
+            MODISTools::mt_subset(
+              product   = settings$prod,                          # the chosen product (e.g., for NDVI "MOD13Q1")
+              band      = x,
+              start     = df_siteinfo$date_start,                 # start date: 1st Jan 2009
+              end       = df_siteinfo$date_end,                   # end date: 19th Dec 2014
+              site_id   = df_siteinfo$sitename,                   # the site name we want to give the data
+              network   = settings$network,
+              internal  = TRUE,
+              progress  = TRUE
+            )
+          )
+        }
+        
+        return(df)
+      }
+      
+      ## download for each band as a separate call - safer!
+      df <- purrr::map(
+        as.list(c(settings$band_var, settings$band_qc)),
+        ~try_mt_subset(., df_siteinfo, settings)) %>% 
+        bind_rows() %>% 
+        as_tibble()
+      
       # ## xxx check plot
       # df %>%
       #   mutate(calendar_date = lubridate::ymd(calendar_date)) %>%
@@ -74,7 +114,8 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
 
       ## Raw downloaded data is saved to file
       rlang::inform( paste( "raw data file written:", filnam_raw_csv ) )
-      readr::write_csv(df, path = filnam_raw_csv)
+      data.table::fwrite(df, file = filnam_raw_csv, sep = ",")
+      # readr::write_csv(df, path = filnam_raw_csv)
 
     } else {
 
@@ -477,7 +518,6 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
   ## Average across pixels by date
   ##--------------------------------------
   npixels <- df %>% pull(pixel) %>% unique() %>% length()
-  rlang::inform(paste("Averaging across number of pixels: ", npixels))
   n_side <- sqrt(npixels)
 
   ## determine across which pixels to average
@@ -500,6 +540,9 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
   arr_mask <- arr_pixelnumber
   arr_mask[which(arr_distance > n_focal)] <- NA
   vec_usepixels <- c(arr_mask) %>% na.omit() %>% as.vector()
+  
+  rlang::inform(paste("Number of available pixels: ", npixels))
+  rlang::inform(paste("Averaging across number of pixels: ", length(vec_usepixels)))
 
   ## take mean across selected pixels
   if (prod=="MOD09A1"){

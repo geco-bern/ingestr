@@ -128,14 +128,16 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
 #' i.e. data is read from exisitng file if available.
 #' @param n_focal An integer specifying the distance (in number of pixels) around the center pixel to be used for averaging. Defaults
 #' to zero (using only the center pixel).
-#' @return A named list containing information required for download from Google
+#' @param filename_with_year A logical specifying whether the years covered are specified in the file name. Added here for consistency with 
+#' earlier versions of ingestr where years were not specified.
+#' @param network A character string specifying the network for which the site names correspond.
 #' Earth Engine.
 #' @export
 #'
 #' @examples \dontrun{settings_gee <- get_settings_gee()}
 #'
 get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_interpol = "linear", keep = FALSE,
-                              overwrite_raw = FALSE, overwrite_interpol = FALSE, n_focal = 0 ){
+                              overwrite_raw = FALSE, overwrite_interpol = FALSE, n_focal = 0, filename_with_year = TRUE, network = NA){
 
   if (bundle == "modis_fpar"){
     ##--------------------------------------------------------------------
@@ -217,13 +219,15 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
   } else {
     rlang::abort("get_settings_modis(): Could not identify required argument 'bundle'.")
   }
-
+  
   out$data_path          <- data_path
   out$method_interpol    <- method_interpol
   out$keep               <- keep
   out$overwrite_raw      <- overwrite_raw
   out$overwrite_interpol <- overwrite_interpol
   out$n_focal            <- n_focal
+  out$filename_with_year <- filename_with_year
+  out$network            <- network
 
   return(out)
 
