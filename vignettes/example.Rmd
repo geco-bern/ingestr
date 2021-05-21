@@ -222,8 +222,7 @@ This uses the [MODISTools](https://docs.ropensci.org/MODISTools/) R package maki
 -   `"modis_lai"`: MODIS collection 6, MCD15A3H, band `Lai_500m`
 -   `"modis_evi"`: MODIS collection 6, MOD13Q1, band `250m_16_days_EVI`
 -   `"modis_ndvi"`: MODIS collection 6, MOD13Q1, band `250m_16_days_NDVI`
--   `"modis_refl_terra"`: MODIS, MOD09A1, Terra surface reflectance, 8-Day L3 Global, 500 m, all bands 
--   `"modis_refl_aqua"`: MODIS, MYD09A1 Aqua surface reflectance, 8-Day L3 Global, 500 m, and MOD09A1, all bands 
+-   `"modis_refl"`: MODIS/Terra+Aqua Nadir BRDF-Adjusted Reflectance (NBAR) Daily L3 Global 500 m SIN Grid, all bands
 
 The filtering criteria are hard-coded specifically for each product, using its respective quality control information (see function `gapfill_interpol()` in `R/ingest_modis_bysite.R`). For more information on the settings do `?get_settings_modis`.
 
@@ -894,7 +893,7 @@ settings_modis <- get_settings_modis(
   data_path         = "~/data/modis_subsets/",
   method_interpol   = "loess",
   keep              = TRUE,
-  overwrite_raw     = TRUE,
+  overwrite_raw     = FALSE,
   overwrite_interpol= TRUE,
   network           = "FLUXNET"
   )

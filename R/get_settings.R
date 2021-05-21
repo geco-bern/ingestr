@@ -196,26 +196,32 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
       productnam = "MODIS_NDVI_MOD13Q1"
     )
     
-  }  else if (bundle == "modis_refl_terra"){
+  }  else if (bundle == "modis_refl"){
     ##--------------------------------------------------------------------
     ## Surface reflectance by bands
     ##--------------------------------------------------------------------
     out <- list(
-      prod     = "MOD09A1",
-      band_var = c("sur_refl_b01", 
-                   "sur_refl_b02", 
-                   "sur_refl_b03", 
-                   "sur_refl_b04", 
-                   "sur_refl_b05", 
-                   "sur_refl_b06", 
-                   "sur_refl_b07"),
-      band_qc  = c("sur_refl_qc_500m", "sur_refl_state_500m", "sur_refl_day_of_year", "sur_refl_raz", "sur_refl_szen", "sur_refl_vzen"),
-      varnam   = "srefl",
-      period   = 8,
-      prod_suffix = "MOD09A1",
-      productnam = "MODIS_srefl_MOD09A1_TERRA"
+      prod     = "MCD43A4",
+      band_var = c("Nadir_Reflectance_Band1", 
+                   "Nadir_Reflectance_Band2", 
+                   "Nadir_Reflectance_Band3", 
+                   "Nadir_Reflectance_Band4", 
+                   "Nadir_Reflectance_Band5", 
+                   "Nadir_Reflectance_Band6", 
+                   "Nadir_Reflectance_Band7"),
+      band_qc  = c("BRDF_Albedo_Band_Mandatory_Quality_Band1", 
+                   "BRDF_Albedo_Band_Mandatory_Quality_Band2", 
+                   "BRDF_Albedo_Band_Mandatory_Quality_Band3", 
+                   "BRDF_Albedo_Band_Mandatory_Quality_Band4", 
+                   "BRDF_Albedo_Band_Mandatory_Quality_Band5", 
+                   "BRDF_Albedo_Band_Mandatory_Quality_Band6", 
+                   "BRDF_Albedo_Band_Mandatory_Quality_Band7"),
+      varnam   = "refl",
+      period   = 1,
+      prod_suffix = "MCD43A4",
+      productnam = "MODIS_refl_MCD43A4"
       )
-
+    
   } else {
     rlang::abort("get_settings_modis(): Could not identify required argument 'bundle'.")
   }
