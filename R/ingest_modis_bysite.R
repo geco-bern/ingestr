@@ -26,7 +26,7 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
 
   if (!dir.exists(dirnam_daily_csv)) system( paste( "mkdir -p ", dirnam_daily_csv ) )
   if (!dir.exists(dirnam_raw_csv)) system( paste( "mkdir -p ", dirnam_raw_csv ) )
-  
+
   if (settings$filename_with_year){
     filnam_daily_csv <- paste0( dirnam_daily_csv, "/", settings$productnam, "_daily_", sitename, "_", df_siteinfo$year_start, "_", df_siteinfo$year_end, ".csv" )
     filnam_raw_csv <- paste0( dirnam_raw_csv, "/", settings$productnam, "_", sitename, "_", df_siteinfo$year_start, "_", df_siteinfo$year_end, ".csv" )
@@ -53,16 +53,21 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
       ##---------------------------------------------
       ## Download from MODIS DAAC server
       ##---------------------------------------------
-      sites_avl <- MODISTools::mt_sites(network = settings$network) %>% as_tibble() %>% pull(network_siteid)
-      
+      sites_avl <- MODISTools::mt_sites(network = settings$network) %>% as_tibble() %>% pull(network_siteid) %>% try()
+      while (class(sites_avl) == "try-error"){
+        Sys.sleep(3)                                            # wait for three seconds
+        rlang::warn("re-trying to get available sites...")
+        sites_avl <- MODISTools::mt_sites(network = settings$network) %>% as_tibble() %>% pull(network_siteid) %>% try()
+      }
+
       if (!(df_siteinfo$sitename %in% sites_avl)){
-        
+
         rlang::warn(paste("Aborting. Site", df_siteinfo$sitename, "not available for network", settings$network))
-        
+
       } else {
-       
+
         try_mt_subset <- function(x, df_siteinfo, settings){
-          
+
           ## initial try
           rlang::inform(paste("Initial try for band", x))
           df <- try(
@@ -77,7 +82,7 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
               progress  = TRUE
             )
           )
-          
+
           ## repeat if failed until it works
           while (class(df) == "try-error"){
             Sys.sleep(3)                                            # wait for three seconds
@@ -95,17 +100,17 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
               )
             )
           }
-          
+
           return(df)
         }
-        
+
         ## download for each band as a separate call - safer!
         df <- purrr::map(
           as.list(c(settings$band_var, settings$band_qc)),
-          ~try_mt_subset(., df_siteinfo, settings)) %>% 
-          bind_rows() %>% 
+          ~try_mt_subset(., df_siteinfo, settings)) %>%
+          bind_rows() %>%
           as_tibble()
-        
+
         # ## xxx check plot
         # df %>%
         #   mutate(calendar_date = lubridate::ymd(calendar_date)) %>%
@@ -114,22 +119,22 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
         #   summarise(value = mean(value)) %>%
         #   ggplot(aes(calendar_date, value)) +
         #   geom_line()
-        
+
         ## Raw downloaded data is saved to file
         rlang::inform( paste( "raw data file written:", filnam_raw_csv ) )
         data.table::fwrite(df, file = filnam_raw_csv, sep = ",")
-        # readr::write_csv(df, path = filnam_raw_csv) 
+        # readr::write_csv(df, path = filnam_raw_csv)
       }
 
     } else {
 
       ## read from file, faster with fread()
       # df <- readr::read_csv( filnam_raw_csv )
-      df <- data.table::fread( filnam_raw_csv, sep = "," ) %>% 
-        as_tibble() %>% 
-        mutate(scale = ifelse(scale == "Not Available", NA, scale)) %>% 
+      df <- data.table::fread( filnam_raw_csv, sep = "," ) %>%
+        as_tibble() %>%
+        mutate(scale = ifelse(scale == "Not Available", NA, scale)) %>%
         mutate(scale = as.numeric(scale))
-      
+
     }
 
 
@@ -548,7 +553,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
   arr_mask <- arr_pixelnumber
   arr_mask[which(arr_distance > n_focal)] <- NA
   vec_usepixels <- c(arr_mask) %>% na.omit() %>% as.vector()
-  
+
   rlang::inform(paste("Number of available pixels: ", npixels))
   rlang::inform(paste("Averaging across number of pixels: ", length(vec_usepixels)))
 
