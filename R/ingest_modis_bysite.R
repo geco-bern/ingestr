@@ -53,23 +53,28 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
       ##---------------------------------------------
       ## Download from MODIS DAAC server
       ##---------------------------------------------
-      sites_avl <- MODISTools::mt_sites(network = settings$network) %>% as_tibble() %>% pull(network_siteid) %>% try()
-      while (class(sites_avl) == "try-error"){
-        Sys.sleep(3)                                            # wait for three seconds
-        rlang::warn("re-trying to get available sites...")
+      if (is.na(settings$network)){
+        
+        part_of_network <- FALSE
+        
+      } else {
+        ## check if site is available. see alse here: https://modis.ornl.gov/sites/
         sites_avl <- MODISTools::mt_sites(network = settings$network) %>% as_tibble() %>% pull(network_siteid) %>% try()
+        while (class(sites_avl) == "try-error"){
+          Sys.sleep(3)                                            # wait for three seconds
+          rlang::warn("re-trying to get available sites...")
+          sites_avl <- MODISTools::mt_sites(network = settings$network) %>% as_tibble() %>% pull(network_siteid) %>% try()
+        }
+        part_of_network <- df_siteinfo$sitename %in% sites_avl
       }
 
-      if (!(df_siteinfo$sitename %in% sites_avl)){
-
-        rlang::warn(paste("Aborting. Site", df_siteinfo$sitename, "not available for network", settings$network))
-
-      } else {
+      if (part_of_network){
 
         try_mt_subset <- function(x, df_siteinfo, settings){
-
+          
           ## initial try
           rlang::inform(paste("Initial try for band", x))
+          
           df <- try(
             MODISTools::mt_subset(
               product   = settings$prod,                          # the chosen product (e.g., for NDVI "MOD13Q1")
@@ -82,7 +87,7 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
               progress  = TRUE
             )
           )
-
+          
           ## repeat if failed until it works
           while (class(df) == "try-error"){
             Sys.sleep(3)                                            # wait for three seconds
@@ -100,31 +105,77 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
               )
             )
           }
+          
+          return(df)
+        }
+        
+
+      } else {
+
+        try_mt_subset <- function(x, df_siteinfo, settings){
+
+          ## initial try
+          rlang::inform(paste("Initial try for band", x))
+          
+          df <- try(
+            MODISTools::mt_subset(
+              product   = settings$prod,                          # the chosen product (e.g., for NDVI "MOD13Q1")
+              band      = x,
+              lon       = df_siteinfo$lon,
+              lat       = df_siteinfo$lat,
+              start     = df_siteinfo$date_start,                 # start date: 1st Jan 2009
+              end       = df_siteinfo$date_end,                   # end date: 19th Dec 2014
+              site_name = df_siteinfo$sitename,                   # the site name we want to give the data
+              internal  = TRUE,
+              progress  = TRUE
+            )
+          )
+          
+          ## repeat if failed until it works
+          while (class(df) == "try-error"){
+            Sys.sleep(3)                                            # wait for three seconds
+            rlang::warn("re-trying...")
+            df <- try(
+              MODISTools::mt_subset(
+                product   = settings$prod,                          # the chosen product (e.g., for NDVI "MOD13Q1")
+                band      = x,
+                lon       = df_siteinfo$lon,
+                lat       = df_siteinfo$lat,
+                start     = df_siteinfo$date_start,                 # start date: 1st Jan 2009
+                end       = df_siteinfo$date_end,                   # end date: 19th Dec 2014
+                site_name = df_siteinfo$sitename,                   # the site name we want to give the data
+                internal  = TRUE,
+                progress  = TRUE
+              )
+            )
+          }
 
           return(df)
         }
-
-        ## download for each band as a separate call - safer!
-        df <- purrr::map(
-          as.list(c(settings$band_var, settings$band_qc)),
-          ~try_mt_subset(., df_siteinfo, settings)) %>%
-          bind_rows() %>%
-          as_tibble()
-
-        # ## xxx check plot
-        # df %>%
-        #   mutate(calendar_date = lubridate::ymd(calendar_date)) %>%
-        #   dplyr::filter(band == "sur_refl_b04") %>%
-        #   group_by(calendar_date) %>%
-        #   summarise(value = mean(value)) %>%
-        #   ggplot(aes(calendar_date, value)) +
-        #   geom_line()
-
-        ## Raw downloaded data is saved to file
-        rlang::inform( paste( "raw data file written:", filnam_raw_csv ) )
-        data.table::fwrite(df, file = filnam_raw_csv, sep = ",")
-        # readr::write_csv(df, path = filnam_raw_csv)
+        
       }
+
+      ## download for each band as a separate call - safer!
+      df <- purrr::map(
+        as.list(c(settings$band_var, settings$band_qc)),
+        ~try_mt_subset(., df_siteinfo, settings)) %>%
+        bind_rows() %>%
+        as_tibble()
+      
+      # ## xxx check plot
+      # df %>%
+      #   mutate(calendar_date = lubridate::ymd(calendar_date)) %>%
+      #   dplyr::filter(band == "sur_refl_b04") %>%
+      #   group_by(calendar_date) %>%
+      #   summarise(value = mean(value)) %>%
+      #   ggplot(aes(calendar_date, value)) +
+      #   geom_line()
+      
+      ## Raw downloaded data is saved to file
+      rlang::inform( paste( "raw data file written:", filnam_raw_csv ) )
+      data.table::fwrite(df, file = filnam_raw_csv, sep = ",")
+      # readr::write_csv(df, path = filnam_raw_csv)
+      
 
     } else {
 

@@ -236,8 +236,8 @@ settings_modis <- get_settings_modis(
   keep              = TRUE,
   overwrite_raw     = FALSE,
   overwrite_interpol= TRUE,
-  n_focal           = 0,
-  network           = "FLUXNET"
+  n_focal           = 0
+  # network           = "FLUXNET"
   )
 ```
 

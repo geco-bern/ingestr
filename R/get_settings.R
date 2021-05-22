@@ -150,7 +150,8 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
       varnam   = "fapar",
       period   = 4,
       prod_suffix = "MCD15A3H",
-      productnam = "MODIS_FPAR_MCD15A3H"
+      productnam = "MODIS_FPAR_MCD15A3H",
+      network = network
       )
 
   } else if (bundle == "modis_lai"){
@@ -164,7 +165,8 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
       varnam   = "lai",
       period   = 4,
       prod_suffix = "MCD15A3H",
-      productnam = "MODIS_LAI_MCD15A3H"
+      productnam = "MODIS_LAI_MCD15A3H",
+      network = network
     )
 
   } else if (bundle == "modis_evi"){
@@ -178,7 +180,8 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
       varnam   = "fapar",
       period   = 16,
       prod_suffix = "MOD13Q1",
-      productnam = "MODIS_EVI_MOD13Q1"
+      productnam = "MODIS_EVI_MOD13Q1",
+      network = network
       )
 
   } else if (bundle == "modis_ndvi"){
@@ -193,7 +196,8 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
       varnam   = "ndvi",
       period   = 16,
       prod_suffix = "MOD13Q1",
-      productnam = "MODIS_NDVI_MOD13Q1"
+      productnam = "MODIS_NDVI_MOD13Q1",
+      network = network
     )
     
   }  else if (bundle == "modis_refl"){
@@ -219,7 +223,9 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
       varnam   = "refl",
       period   = 1,
       prod_suffix = "MCD43A4",
-      productnam = "MODIS_refl_MCD43A4"
+      productnam = "MODIS_refl_MCD43A4",
+      out$network = NA
+      
       )
     
   } else {
@@ -233,7 +239,6 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
   out$overwrite_interpol <- overwrite_interpol
   out$n_focal            <- n_focal
   out$filename_with_year <- filename_with_year
-  out$network            <- network
 
   return(out)
 
