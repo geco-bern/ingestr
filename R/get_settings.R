@@ -224,9 +224,7 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
       period   = 1,
       prod_suffix = "MCD43A4",
       productnam = "MODIS_refl_MCD43A4",
-      out$network = NA
-      
-      )
+      network = NA)
     
   } else {
     rlang::abort("get_settings_modis(): Could not identify required argument 'bundle'.")

@@ -177,16 +177,16 @@ df_watch
 
 ## CRU TS
 
-As above, let's extract CRU data for the location corresponding to FLUXNET site 'FR-Pue' (lon = 8.365, lat = 47.4781). The argument `getvars` works the same way as for WATCH-WFDEI: is a vector of ingestr-standard variable names to be read. ingestr automatically reads from the respective files with CRU variable names. Available variables are: `"temp", "prec", "vpd", "ccov", "wetd"`.
+As above, let's extract CRU data for the location corresponding to FLUXNET site 'FR-Pue' (lon = 8.365, lat = 47.4781). The argument `getvars` works the same way as for WATCH-WFDEI: is a vector of ingestr-standard variable names to be read. ingestr automatically reads from the respective files with CRU variable names. Available variables are: `"tmin", "tmax", "temp", "vpd", "ccov", "wetd"`.
 
-Note that we're using `tmx` (the daily maximum temperature). This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.
+Note that we're using `tmx` (the daily maximum temperature). This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a weather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.
 
 ```{r message=FALSE}
 df_cru <- ingest_bysite(
   sitename  = "FR-Pue",
   source    = "cru",
   getvars   = c("tmin", "tmax"),
-  dir       = "~/data/cru/ts_4.01/",
+  dir       = "~/data/cru/ts_4.05/",
   timescale = "d",
   year_start = 2007,
   year_end  = 2007,

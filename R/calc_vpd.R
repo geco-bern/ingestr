@@ -42,10 +42,7 @@ calc_vpd <- function(qair=NA, eact=NA, tc=NA, tmin=NA, tmax=NA, patm=NA, elv=NA)
     ## Calculate VPD as mean of VPD based on Tmin and VPD based on Tmax if they are availble.
     ## Otherwise, use just tc for calculating VPD.
     vpd <- ifelse(!is.na(tmin) && !is.na(tmax),
-                  mean(
-                    calc_vpd_inst( qair=qair, eact=eact, tc=tmin, patm=patm), 
-                    calc_vpd_inst( qair=qair, eact=eact, tc=tmax, patm=patm)
-                  ),
+                  (calc_vpd_inst( qair=qair, eact=eact, tc=tmin, patm=patm) + calc_vpd_inst( qair=qair, eact=eact, tc=tmax, patm=patm))/2,
                   calc_vpd_inst( qair=qair, eact=eact, tc=tc, patm=patm)
     )
   }

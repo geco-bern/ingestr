@@ -1,0 +1,249 @@
+---
+title: "CRU climate forcing ingest"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+library(ingestr)
+library(rbeni)
+```
+
+CRU TS provides monthly climate fields at 0.5 degree resolution from 1901 to today. Frequent updates are made available. CRU TS 4.05 contains data up to 2018. ingestr converts CRU variables to rsofun standard variables and units that can then be used as forcing for rsofun. The following describes what precursor variables are used for each rsofun standard variable (and how). 
+
+| rsofun standard variable   | (Precursor) CRU variable name(s)  | Remark
+|---                         |---                                |---
+| tmin                       | tmn                               |
+| tmax                       | tmx                               |
+| prec                       | prc, wtd                          | Weather generator conserving monthly sums and number of monthly wet days
+| vpd                        | vap, tmin, tmax                   | Using `calc_vpd()` 
+| ccov                       | cld                               | 
+
+
+```{r message=FALSE}
+## get monthly data (no temporal downscaling - original extracted values)
+mdf <- ingest_bysite(
+  sitename  = "CH-Lae",
+  source    = "cru",
+  getvars   = c("temp"),  # "tmin", "prec"
+  dir       = "~/data/cru/ts_4.05/",
+  timescale = "m",
+  year_start = 1901,
+  year_end  = 2018,
+  lon       = 8.365,
+  lat       = 47.4781,
+  verbose   = FALSE
+  )
+
+## get daily data (with temporal downscaling)
+ddf <- ingest_bysite(
+  sitename  = "CH-Lae",
+  source    = "cru",
+  getvars   = c("temp"),  # "tmin", "prec"
+  dir       = "~/data/cru/ts_4.05/",
+  timescale = "d",
+  year_start = 1901,
+  year_end  = 2018,
+  lon       = 8.365,
+  lat       = 47.4781,
+  verbose   = FALSE
+  )
+```
+
+## Check temporal downscaling
+
+The temporal downscaling conserves monthly means. The following shows monthly tmin values aggregated from downscaled daily values versus values directly extracted from the original files.
+```{r}
+mdf_test <- ddf %>% 
+  mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
+  group_by(year, month) %>% 
+  summarise(tmin = mean(tmin)) %>% 
+  rename(tmin_agg = tmin) %>% 
+  ungroup() %>% 
+  left_join(mdf %>% 
+              dplyr::select(year, month, tmin_orig = tmin))
+
+gg <- mdf_test %>% analyse_modobs2("tmin_orig", "tmin_agg")
+gg$gg + labs(x = "Original monthly tmin (deg C)", y = "Aggregated monthly tmin (deg C)")
+```
+
+For precipitation, the temporal downscaling conserves monthly totals and distributes precipitation to the given number of wet days (also provided by CRU as the number of wet days per month).
+```{r}
+mdf_test <- ddf %>% 
+  mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
+  group_by(year, month) %>% 
+  summarise(prec = mean(prec)) %>% 
+  rename(prec_agg = prec) %>% 
+  ungroup() %>% 
+  left_join(mdf %>% 
+              dplyr::select(year, month, prec_orig = prec))
+
+gg <- mdf_test %>% analyse_modobs2("prec_orig", "prec_agg")
+gg$gg + labs(x = "Original monthly prec (mm)", y = "Aggregated monthly prec (mm)")
+```
+
+Monthly means are not conserved for VPD. This is because CRU TS provides vapour pressure (VAP) data and VPD is calculated by ingestr as 
+$$
+VPD = (f(VAP, TMIN) + f(VAP, TMAX))/2
+$$
+
+Where $f$ is a non-linear function (`calc_vpd()`) and VAP, TMIN, and TMAX are either monthly mean values in case of `timescale = "m"` or daily values (conserved monthly means) in case of `timescale = "d"`,
+```{r}
+mdf_test <- ddf %>% 
+  mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
+  group_by(year, month) %>% 
+  summarise(vpd = mean(vpd)) %>% 
+  rename(vpd_agg = vpd) %>% 
+  ungroup() %>% 
+  left_join(mdf %>% 
+              dplyr::select(year, month, vpd_orig = vpd))
+
+gg <- mdf_test %>% analyse_modobs2("vpd_orig", "vpd_agg")
+gg$gg + labs(x = "Original monthly VPD (Pa)", y = "Aggregated monthly VPD (Pa)")
+```
+
+## Bias correction with WorldClim
+
+Bias correction based on high-resolution WorldClim 1970-2000 monthly climatology is available for variables temp, prec, and vpd.
+```{r message=FALSE}
+## get monthly data (no temporal downscaling - original extracted values)
+mdf_corr <- ingest_bysite(
+  sitename  = "CH-Lae",
+  source    = "cru",
+  getvars   = c("temp", "tmin", "tmax", "prec", "vpd", "ccov"),
+  dir       = "~/data/cru/ts_4.05/",
+  timescale = "m",
+  year_start = 1901,
+  year_end  = 2018,
+  lon       = 8.365,
+  lat       = 47.4781,
+  verbose   = FALSE,
+  settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
+  )
+
+## get daily data (with temporal downscaling)
+ddf_corr <- ingest_bysite(
+  sitename  = "CH-Lae",
+  source    = "cru",
+  getvars   = c("temp", "tmin", "tmax", "prec", "vpd", "ccov"),
+  dir       = "~/data/cru/ts_4.05/",
+  timescale = "d",
+  year_start = 1901,
+  year_end  = 2018,
+  lon       = 8.365,
+  lat       = 47.4781,
+  verbose   = FALSE,
+  settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
+  )
+```
+Check conservation of precipitation means after bias correction.
+```{r}
+mdf_test <- ddf_corr %>% 
+  mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
+  group_by(year, month) %>% 
+  summarise(prec = mean(prec)) %>% 
+  rename(prec_agg = prec) %>% 
+  ungroup() %>% 
+  left_join(mdf_corr %>% 
+              dplyr::select(year, month, prec_orig = prec))
+
+gg <- mdf_test %>% analyse_modobs2("prec_orig", "prec_agg")
+gg$gg + labs(x = "Original monthly prec (deg C)", y = "Aggregated monthly prec (deg C)")
+```
+
+Check conservation of VPD means after bias correction.
+```{r}
+mdf_test <- ddf_corr %>% 
+  mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
+  group_by(year, month) %>% 
+  summarise(vpd = mean(vpd)) %>% 
+  rename(vpd_agg = vpd) %>% 
+  ungroup() %>% 
+  left_join(mdf_corr %>% 
+              dplyr::select(year, month, vpd_orig = vpd))
+
+gg <- mdf_test %>% analyse_modobs2("vpd_orig", "vpd_agg")
+gg$gg + labs(x = "Original monthly vpd (deg C)", y = "Aggregated monthly vpd (deg C)")
+```
+
+## Check against station data
+
+Comparison of bias-corrected data to FLUXNET site-level observations. For CH-Lae, this is available for 2004-2014. Visualize for three years (2012-2014). 
+Get FLUXNET data.
+```{r}
+ddf_fluxnet <- ingestr::ingest(
+  siteinfo  = siteinfo_fluxnet2015 %>% dplyr::filter(sitename == "CH-Lae"),
+  source    = "fluxnet",
+  getvars   = list(temp = "TA_F_DAY", prec = "P_F", vpd  = "VPD_F_DAY", ppfd = "SW_IN_F", patm = "PA_F"),
+  dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/",
+  settings  = list(dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", getswc = FALSE),
+  timescale = "d"
+  ) %>% 
+  unnest(data)
+```
+
+Looks fine for temperature.
+```{r}
+ggplot() +
+  geom_line(data = ddf_fluxnet %>% 
+              dplyr::filter(lubridate::year(date) %in% 2012:2014), 
+            aes(date, temp)) +
+  geom_line(data = ddf_corr %>% 
+              dplyr::filter(lubridate::year(date) %in% 2012:2014), 
+            aes(date, temp),
+            color = "red")
+
+out <- ddf_fluxnet %>% 
+  mutate(year = year(date), month = month(date)) %>% 
+  group_by(year, month) %>% 
+  summarise(temp_fluxnet = mean(temp)) %>% 
+  left_join(ddf_corr %>% 
+              mutate(year = year(date), month = month(date)) %>% 
+              group_by(year, month) %>% 
+              summarise(temp_cru_wc = mean(temp)),
+            by = c("year", "month")) %>% 
+  analyse_modobs2("temp_fluxnet", "temp_cru_wc")
+out$gg
+```
+
+Looks fine for precipitation. Compare monthly means - not bad at all!
+```{r}
+out <- ddf_fluxnet %>% 
+  mutate(year = year(date), month = month(date)) %>% 
+  group_by(year, month) %>% 
+  summarise(prec_fluxnet = mean(prec)) %>% 
+  left_join(ddf_corr %>% 
+              mutate(year = year(date), month = month(date)) %>% 
+              group_by(year, month) %>% 
+              summarise(prec_cru_wc = mean(prec)),
+            by = c("year", "month")) %>% 
+  analyse_modobs2("prec_fluxnet", "prec_cru_wc")
+out$gg
+```
+
+Looks fine for VPD
+```{r}
+ggplot() +
+  geom_line(data = ddf_fluxnet %>% 
+              dplyr::filter(lubridate::year(date) %in% 2012:2014), 
+            aes(date, vpd)) +
+  geom_line(data = ddf_corr %>% 
+              dplyr::filter(lubridate::year(date) %in% 2012:2014), 
+            aes(date, vpd),
+            color = "red")
+
+out <- ddf_fluxnet %>% 
+  mutate(year = year(date), month = month(date)) %>% 
+  group_by(year, month) %>% 
+  summarise(vpd_fluxnet = mean(vpd)) %>% 
+  left_join(ddf_corr %>% 
+              mutate(year = year(date), month = month(date)) %>% 
+              group_by(year, month) %>% 
+              summarise(vpd_cru_wc = mean(vpd)),
+            by = c("year", "month")) %>% 
+  analyse_modobs2("vpd_fluxnet", "vpd_cru_wc")
+out$gg
+```

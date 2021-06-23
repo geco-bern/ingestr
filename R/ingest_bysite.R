@@ -53,6 +53,7 @@ ingest_bysite <- function(
   ){
 
   if (!(source %in% c("etopo1", "hwsd", "soilgrids", "wise", "gsde", "worldclim"))){
+    
     ## initialise data frame with all required dates
     df <- init_dates_dataframe(
       year_start,
@@ -121,25 +122,32 @@ ingest_bysite <- function(
     
     if (!identical(NULL, settings$correct_bias)){
       if (settings$correct_bias == "worldclim"){
+        
+        ## save data frame with required dates
+        ddf_dates <- purrr::map(
+          as.list(seq(nrow(siteinfo))),
+          ~init_dates_dataframe(
+            year(siteinfo$date_start[.]),
+            year(siteinfo$date_end[.]),
+            noleap = TRUE,
+            timescale = timescale))
+        names(ddf_dates) <- siteinfo$sitename
+        ddf_dates <- ddf_dates %>%
+          bind_rows(.id = "sitename")
+        
+        year_start_wc <- 1970
+        year_end_wc <- 2000
+        
         if (source == "watch_wfdei"){
           rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
-          
-          ## save data frame with required dates
-          ddf_dates <- purrr::map(
-            as.list(seq(nrow(siteinfo))),
-            ~init_dates_dataframe(
-              year(siteinfo$date_start[.]),
-              year(siteinfo$date_end[.]),
-              noleap = TRUE,
-              timescale = "d"))
-          names(ddf_dates) <- siteinfo$sitename
-          ddf_dates <- ddf_dates %>%
-            bind_rows(.id = "sitename")
-          
+          year_start_wc <- 1979  # no earlier years available
           siteinfo <- siteinfo %>% 
-            mutate(year_start = 1979,
-                   year_end = ifelse(year_end > 2000, year_end, 2000))
-          
+            mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
+                   year_end = ifelse(year_end > year_end_wc, year_end, year_end_wc))
+        } else if (source == "cru"){
+          siteinfo <- siteinfo %>% 
+            mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
+                   year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
         }
       }
     }
@@ -173,10 +181,12 @@ ingest_bysite <- function(
         #-----------------------------------------------------------
         getvars_wc <- c()
         if ("temp" %in% getvars){getvars_wc <- c(getvars_wc, "tavg")}
+        if ("tmin" %in% getvars){getvars_wc <- c(getvars_wc, "tmin")}
+        if ("tmax" %in% getvars){getvars_wc <- c(getvars_wc, "tmax")}
         if ("prec" %in% getvars){getvars_wc <- c(getvars_wc, "prec")}
         if ("ppfd" %in% getvars){getvars_wc <- c(getvars_wc, "srad")}
         if ("wind" %in% getvars){getvars_wc <- c(getvars_wc, "wind")}
-        if ("vpd" %in% getvars){getvars_wc <- c(getvars_wc, "vapr")}
+        if ("vpd" %in% getvars){getvars_wc <- c(getvars_wc, "vapr", "tmin", "tmax")}
         
         df_fine <- ingest_globalfields(siteinfo,
                                        source = "worldclim",
@@ -184,17 +194,17 @@ ingest_bysite <- function(
                                        getvars = NULL,
                                        timescale = NULL,
                                        verbose = FALSE,
-                                       layer = getvars_wc
+                                       layer = unique(getvars_wc)
         )
         
-        ## Bias correction for temperature: substract difference
+        ## Bias correction for temperature: subtract difference
         if ("tavg" %in% getvars_wc){
           df_bias <- df_fine %>% 
             pivot_longer(cols = starts_with("tavg_"), names_to = "month", values_to = "tavg", names_prefix = "tavg_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(temp_fine = tavg) %>% 
             right_join(df_tmp %>% 
-                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
+                         dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>% 
                          mutate(month = lubridate::month(date)) %>% 
                          group_by(month) %>% 
                          summarise(temp = mean(temp, na.rm = TRUE)),
@@ -209,7 +219,52 @@ ingest_bysite <- function(
             mutate(temp = temp - bias) %>% 
             dplyr::select(-bias, -month)
         }
+
+        ## Bias correction for minimum temperature: subtract difference
+        if ("tmin" %in% getvars_wc){
+          df_bias <- df_fine %>% 
+            pivot_longer(cols = starts_with("tmin_"), names_to = "month", values_to = "tmin", names_prefix = "tmin_") %>% 
+            mutate(month = as.integer(month)) %>% 
+            rename(tmin_fine = tmin) %>% 
+            right_join(df_tmp %>% 
+                         dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>% 
+                         mutate(month = lubridate::month(date)) %>% 
+                         group_by(month) %>% 
+                         summarise(tmin = mean(tmin, na.rm = TRUE)),
+                       by = "month") %>% 
+            mutate(bias = tmin - tmin_fine) %>% 
+            dplyr::select(-tmin, -tmin_fine, -sitename)
+          
+          ## correct bias by month
+          df_tmp <- df_tmp %>% 
+            mutate(month = lubridate::month(date)) %>% 
+            left_join(df_bias %>% dplyr::select(month, bias), by = "month") %>% 
+            mutate(tmin = tmin - bias) %>% 
+            dplyr::select(-bias, -month)
+        }
         
+        ## Bias correction for temperature: subtract difference
+        if ("tmax" %in% getvars_wc){
+          df_bias <- df_fine %>% 
+            pivot_longer(cols = starts_with("tmax_"), names_to = "month", values_to = "tmax", names_prefix = "tmax_") %>% 
+            mutate(month = as.integer(month)) %>% 
+            rename(tmax_fine = tmax) %>% 
+            right_join(df_tmp %>% 
+                         dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>% 
+                         mutate(month = lubridate::month(date)) %>% 
+                         group_by(month) %>% 
+                         summarise(tmax = mean(tmax, na.rm = TRUE)),
+                       by = "month") %>% 
+            mutate(bias = tmax - tmax_fine) %>% 
+            dplyr::select(-tmax, -tmax_fine, -sitename)
+          
+          ## correct bias by month
+          df_tmp <- df_tmp %>% 
+            mutate(month = lubridate::month(date)) %>% 
+            left_join(df_bias %>% dplyr::select(month, bias), by = "month") %>% 
+            mutate(tmax = tmax - bias) %>% 
+            dplyr::select(-bias, -month)
+        }
         ## Bias correction for precipitation: scale by ratio (snow and rain equally)
         if ("prec" %in% getvars_wc){
           df_bias <- df_fine %>% 
@@ -219,7 +274,7 @@ ingest_bysite <- function(
             mutate(prec_fine = prec_fine / days_in_month(month)) %>%   # mm/month -> mm/d
             mutate(prec_fine = prec_fine / (60 * 60 * 24)) %>%         # mm/d -> mm/sec
             right_join(df_tmp %>% 
-                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
+                         dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>% 
                          mutate(month = lubridate::month(date)) %>% 
                          group_by(month) %>% 
                          summarise(prec = mean(prec, na.rm = TRUE)),
@@ -228,11 +283,20 @@ ingest_bysite <- function(
             dplyr::select(-prec, -prec_fine, -sitename)
           
           ## correct bias by month
-          df_tmp <- df_tmp %>% 
-            mutate(month = lubridate::month(date)) %>% 
-            left_join(df_bias %>% dplyr::select(month, scale), by = "month") %>% 
-            mutate(prec = prec * scale, rain = rain * scale, snow = snow * scale) %>% 
-            dplyr::select(-scale, -month)
+          if (source == "watch_wfdei"){
+            ## scaling also snow and rain rates
+            df_tmp <- df_tmp %>% 
+              mutate(month = lubridate::month(date)) %>% 
+              left_join(df_bias %>% dplyr::select(month, scale), by = "month") %>% 
+              mutate(prec = prec * scale, rain = rain * scale, snow = snow * scale) %>% 
+              dplyr::select(-scale, -month)
+          } else {
+            df_tmp <- df_tmp %>% 
+              mutate(month = lubridate::month(date)) %>% 
+              left_join(df_bias %>% dplyr::select(month, scale), by = "month") %>% 
+              mutate(prec = prec * scale) %>% 
+              dplyr::select(-scale, -month)
+          }
         }
         
         ## Bias correction for shortwave radiation: scale by ratio
@@ -244,7 +308,7 @@ ingest_bysite <- function(
             rename(srad_fine = srad) %>% 
             mutate(ppfd_fine = 1e3 * srad_fine * kfFEC * 1.0e-6 / (60 * 60 * 24) ) %>%   # kJ m-2 day-1 -> mol m−2 s−1 PAR
             right_join(df_tmp %>% 
-                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
+                         dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>% 
                          mutate(month = lubridate::month(date)) %>% 
                          group_by(month) %>% 
                          summarise(ppfd = mean(ppfd, na.rm = TRUE)),
@@ -267,7 +331,7 @@ ingest_bysite <- function(
             mutate(month = as.integer(month)) %>% 
             rename(wind_fine = wind) %>% 
             right_join(df_tmp %>% 
-                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
+                         dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>% 
                          mutate(month = lubridate::month(date)) %>% 
                          group_by(month) %>% 
                          summarise(wind = mean(wind, na.rm = TRUE)),
@@ -287,10 +351,20 @@ ingest_bysite <- function(
         if ("vapr" %in% getvars_wc){
           
           ## calculate vapour pressure from specific humidity - needed for bias correction with worldclim data
-          df_tmp <- df_tmp %>% 
-            rowwise() %>% 
-            dplyr::mutate(vapr = calc_vp(qair = qair, tc = temp, patm = patm)) %>% 
-            ungroup()
+          if (source == "watch_wfdei"){
+            ## specific humidity (qair, g g-1) is read, convert to vapour pressure (vapr, Pa)
+            df_tmp <- df_tmp %>% 
+              rowwise() %>% 
+              dplyr::mutate(vapr = calc_vp(qair = qair, tc = temp, patm = patm)) %>% 
+              ungroup()
+            
+          } else if (source == "cru"){
+            ## vapour pressure is read from file, convert from hPa to Pa
+            df_tmp <- df_tmp %>% 
+              dplyr::mutate(vapr = 1e2 * vap) %>% 
+              dplyr::select(-vap)
+            
+          }
           
           df_bias <- df_fine %>% 
             pivot_longer(cols = starts_with("vapr_"), names_to = "month", values_to = "vapr", names_prefix = "vapr_") %>% 
@@ -298,7 +372,7 @@ ingest_bysite <- function(
             rename(vapr_fine = vapr) %>% 
             mutate(vapr_fine = vapr_fine * 1e3) %>%   # kPa -> Pa
             right_join(df_tmp %>% 
-                         dplyr::filter(lubridate::year(date) %in% 1979:2000) %>% 
+                         dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>% 
                          mutate(month = lubridate::month(date)) %>% 
                          group_by(month) %>% 
                          summarise(vapr = mean(vapr, na.rm = TRUE)),
@@ -317,10 +391,22 @@ ingest_bysite <- function(
         
         ## Calculate vapour pressure deficit from specific humidity
         if ("vpd" %in% getvars){
-          df_tmp <- df_tmp %>%
-            rowwise() %>%
-            dplyr::mutate(vpd = calc_vpd(eact = vapr, tc = temp, patm = patm)) %>% 
-            ungroup()
+          
+          if (source == "watch_wfdei"){
+            ## use daily mean temperature
+            df_tmp <- df_tmp %>%
+              rowwise() %>%
+              dplyr::mutate(vpd = calc_vpd(eact = vapr, tc = temp)) %>% 
+              ungroup()
+            
+          } else if (source == "cru"){
+            ## use daily minimum and maximum temperatures
+            df_tmp <- df_tmp %>%
+              rowwise() %>%
+              dplyr::mutate(vpd = calc_vpd(eact = vapr, tmin = tmin, tmax = tmax)) %>% 
+              ungroup()
+          }
+          
         }
         
         ## keep only required dates
