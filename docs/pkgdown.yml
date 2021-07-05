@@ -4,5 +4,6 @@ pkgdown_sha: ~
 articles:
   calc_daytime_vpd: calc_daytime_vpd.html
   example: example.html
-last_built: 2021-05-02T09:09Z
+  ingest_cru_rsofun: ingest_cru_rsofun.html
+last_built: 2021-06-23T08:35Z
 

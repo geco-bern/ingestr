@@ -230,7 +230,7 @@ The following example is for downloading MODIS NDVI data.
 
 ```{r}
 settings_modis <- get_settings_modis(
-  bundle            = "modis_refl",
+  bundle            = "modis_fpar",
   data_path         = "~/data/modis_subsets/",
   method_interpol   = "loess",
   keep              = TRUE,

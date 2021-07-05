@@ -265,6 +265,7 @@ ingest_bysite <- function(
             mutate(tmax = tmax - bias) %>% 
             dplyr::select(-bias, -month)
         }
+        
         ## Bias correction for precipitation: scale by ratio (snow and rain equally)
         if ("prec" %in% getvars_wc){
           df_bias <- df_fine %>% 
