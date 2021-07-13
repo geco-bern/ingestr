@@ -416,6 +416,29 @@ ingest_bysite <- function(
         
       }
       
+    } else {
+
+      ## Calculate vapour pressure deficit from specific humidity
+      if ("vpd" %in% getvars){
+        
+        xxx
+
+        if (source == "watch_wfdei"){
+          ## use daily mean temperature
+          df_tmp <- df_tmp %>%
+            rowwise() %>%
+            dplyr::mutate(vpd = calc_vpd(eact = vapr, tc = temp)) %>% 
+            ungroup()
+          
+        } else if (source == "cru"){
+          ## use daily minimum and maximum temperatures
+          df_tmp <- df_tmp %>%
+            rowwise() %>%
+            dplyr::mutate(vpd = calc_vpd(eact = vapr, tmin = tmin, tmax = tmax)) %>% 
+            ungroup()
+        }
+      }
+      xxx
     }
     
   } else if (source == "modis"){

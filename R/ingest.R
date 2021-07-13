@@ -496,6 +496,32 @@ ingest <- function(
 
       }
 
+    } else {
+
+      xxxx
+
+      ## Calculate vapour pressure deficit from specific humidity
+      if ("vpd" %in% getvars){
+
+        if (source == "watch_wfdei"){
+          ## use daily mean temperature
+          ddf <- ddf %>%
+            rowwise() %>%
+            dplyr::mutate(vpd = calc_vpd(eact = vapr, tc = temp)) %>% 
+            ungroup()
+          
+        } else if (source == "cru"){
+          ## use daily minimum and maximum temperatures
+          ddf <- ddf %>%
+            rowwise() %>%
+            dplyr::mutate(vpd = calc_vpd(eact = vapr, tmin = tmin, tmax = tmax)) %>% 
+            ungroup()
+        }
+
+      }   
+
+      xxxx
+
     }
 
 	} else if (source == "gee"){
