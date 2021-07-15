@@ -418,11 +418,12 @@ ingest_bysite <- function(
       
     } else {
 
-      ## Calculate vapour pressure deficit from specific humidity
+      # Calculate vapour pressure deficit from specific humidity
+      # this calculates this variable for cases where there is
+      # no bias correction
+      
       if ("vpd" %in% getvars){
         
-        xxx
-
         if (source == "watch_wfdei"){
           ## use daily mean temperature
           df_tmp <- df_tmp %>%
@@ -438,7 +439,6 @@ ingest_bysite <- function(
             ungroup()
         }
       }
-      xxx
     }
     
   } else if (source == "modis"){
@@ -495,7 +495,6 @@ ingest_bysite <- function(
       if (file.exists(path)){
         df_co2 <- read_csv(path)
       } else {
-        df_co2 <- climate::meteo_noaa_co2() %>%
           dplyr::select(year = yy, month = mm, co2_avg)
         readr::write_csv(df_co2, file = path)        
       }

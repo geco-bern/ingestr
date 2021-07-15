@@ -498,9 +498,10 @@ ingest <- function(
 
     } else {
 
-      xxxx
-
-      ## Calculate vapour pressure deficit from specific humidity
+      # Calculate vapour pressure deficit from specific humidity
+      # this calculates this variable for cases where there is
+      # no bias correction
+      
       if ("vpd" %in% getvars){
 
         if (source == "watch_wfdei"){
@@ -518,9 +519,7 @@ ingest <- function(
             ungroup()
         }
 
-      }   
-
-      xxxx
+      }
 
     }
 
