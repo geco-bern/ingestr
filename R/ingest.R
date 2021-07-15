@@ -509,7 +509,10 @@ ingest <- function(
           ## use daily mean temperature
           ddf <- ddf %>%
             rowwise() %>%
-            dplyr::mutate(vpd = calc_vpd(eact = vapr, tc = temp)) %>% 
+            dplyr::mutate(
+              vapr = calc_vp(qair = qair, tc = temp, patm = patm),
+              vpd = calc_vpd(eact = vapr, tc = temp)
+              ) %>% 
             ungroup()
           
         } else if (source == "cru"){
