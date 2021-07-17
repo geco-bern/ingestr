@@ -172,7 +172,7 @@ ingest <- function(
       dplyr::filter(across(c(-sitename, -date), ~ .x == 0)) %>%
       pull(sitename)
 
-    if (length(sites_missing) > 0){
+    if (length(sites_missing) > 0 & !identical(NULL, settings$correct_bias)){
       ## determine closest cell with non-NA
       if (source == "watch_wfdei"){
         path <- paste0(dir, "/WFDEI-elevation.nc")
@@ -754,7 +754,8 @@ ingest <- function(
 	  #-----------------------------------------------------------
 	  # Get WISE30secs soil data. year_start and year_end not required
 	  #-----------------------------------------------------------
-	  ddf <- purrr::map(as.list(settings$varnam), ~ingest_wise_byvar(., siteinfo, layer = settings$layer, dir = dir)) %>%
+	  ddf <- purrr::map(as.list(settings$varnam),
+	                    ~ingest_wise_byvar(., siteinfo, layer = settings$layer, dir = dir)) %>%
 	    purrr::reduce(left_join, by = c("lon", "lat")) %>%
 	    distinct() %>% 
 	    right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
