@@ -815,7 +815,8 @@ ingest <- function(
   ddf <- ddf %>%
     bind_rows() %>%
     group_by(sitename) %>%
-    nest()
+    nest() %>%
+    select(-contains("myvar"))
 
   return(ddf)
 
