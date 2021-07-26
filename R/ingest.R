@@ -277,66 +277,57 @@ ingest <- function(
 
         ## Bias correction for temperature: substract difference
         if ("tmin" %in% getvars_wc){
-          
-          message("debugging:")
-          print(head(df_fine))
-          
-          df_bias <- df_fine %>%
-            dplyr::select(sitename, starts_with("tmin_")) %>%
-            pivot_longer(cols = starts_with("tmin_"), names_to = "month", values_to = "tmin", names_prefix = "tmin_") %>%
-            mutate(month = as.integer(month)) %>%
-            rename(tmin_fine = tmin)
-          
-          print(head(ddf))
-          
-          tmp <- ddf %>%
-            dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) 
-          
-          print(head(tmp))
-          tmp <- tmp %>%
-            mutate(month = lubridate::month(date)) %>%
-            group_by(sitename, month) %>%
-            summarise(tmin = mean(tmin, na.rm = TRUE))
-          
-          df_bias <- df_bias %>%
-            right_join(tmp,
-                       by = c("sitename", "month")) %>%
-            mutate(bias = tmin - tmin_fine) %>%
-            dplyr::select(-tmin, -tmin_fine)
-
-          ## correct bias by month
-          ddf <- ddf %>%
-            mutate(month = lubridate::month(date)) %>%
-            left_join(df_bias %>% dplyr::select(sitename, month, bias), by = c("sitename", "month")) %>%
-            arrange(sitename, date) %>%
-            mutate(tmin = ifelse(is.na(bias), tmin, tmin - bias)) %>%
-            dplyr::select(-bias, -month)
+          if (source == "cru"){ # no tmin or tmax in wwfd
+            df_bias <- df_fine %>%
+              dplyr::select(sitename, starts_with("tmin_")) %>%
+              pivot_longer(cols = starts_with("tmin_"), names_to = "month", values_to = "tmin", names_prefix = "tmin_") %>%
+              mutate(month = as.integer(month)) %>%
+              rename(tmin_fine = tmin) %>%
+              right_join(ddf %>%
+                           dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>%
+                           mutate(month = lubridate::month(date)) %>%
+                           group_by(sitename, month) %>%
+                           summarise(tmin = mean(tmin, na.rm = TRUE)),
+                         by = c("sitename", "month")) %>%
+              mutate(bias = tmin - tmin_fine) %>%
+              dplyr::select(-tmin, -tmin_fine)
+  
+            ## correct bias by month
+            ddf <- ddf %>%
+              mutate(month = lubridate::month(date)) %>%
+              left_join(df_bias %>% dplyr::select(sitename, month, bias), by = c("sitename", "month")) %>%
+              arrange(sitename, date) %>%
+              mutate(tmin = ifelse(is.na(bias), tmin, tmin - bias)) %>%
+              dplyr::select(-bias, -month)
+          }
         }    
 
 
         ## Bias correction for temperature: substract difference
         if ("tmax" %in% getvars_wc){
-          df_bias <- df_fine %>%
-            dplyr::select(sitename, starts_with("tmax_")) %>%
-            pivot_longer(cols = starts_with("tmax_"), names_to = "month", values_to = "tmax", names_prefix = "tmax_") %>%
-            mutate(month = as.integer(month)) %>%
-            rename(tmax_fine = tmax) %>%
-            right_join(ddf %>%
-                         dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>%
-                         mutate(month = lubridate::month(date)) %>%
-                         group_by(sitename, month) %>%
-                         summarise(tmax = mean(tmax, na.rm = TRUE)),
-                       by = c("sitename", "month")) %>%
-            mutate(bias = tmax - tmax_fine) %>%
-            dplyr::select(-tmax, -tmax_fine)
-
-          ## correct bias by month
-          ddf <- ddf %>%
-            mutate(month = lubridate::month(date)) %>%
-            left_join(df_bias %>% dplyr::select(sitename, month, bias), by = c("sitename", "month")) %>%
-            arrange(sitename, date) %>%
-            mutate(tmax = ifelse(is.na(bias), tmax, tmax - bias)) %>%
-            dplyr::select(-bias, -month)
+          if (source == "cru"){ # no tmin or tmax in wwfd
+            df_bias <- df_fine %>%
+              dplyr::select(sitename, starts_with("tmax_")) %>%
+              pivot_longer(cols = starts_with("tmax_"), names_to = "month", values_to = "tmax", names_prefix = "tmax_") %>%
+              mutate(month = as.integer(month)) %>%
+              rename(tmax_fine = tmax) %>%
+              right_join(ddf %>%
+                           dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>%
+                           mutate(month = lubridate::month(date)) %>%
+                           group_by(sitename, month) %>%
+                           summarise(tmax = mean(tmax, na.rm = TRUE)),
+                         by = c("sitename", "month")) %>%
+              mutate(bias = tmax - tmax_fine) %>%
+              dplyr::select(-tmax, -tmax_fine)
+  
+            ## correct bias by month
+            ddf <- ddf %>%
+              mutate(month = lubridate::month(date)) %>%
+              left_join(df_bias %>% dplyr::select(sitename, month, bias), by = c("sitename", "month")) %>%
+              arrange(sitename, date) %>%
+              mutate(tmax = ifelse(is.na(bias), tmax, tmax - bias)) %>%
+              dplyr::select(-bias, -month)
+          }
         }            
 
         ## Bias correction for precipitation: scale by ratio (snow and rain equally)
