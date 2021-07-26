@@ -277,6 +277,10 @@ ingest <- function(
 
         ## Bias correction for temperature: substract difference
         if ("tmin" %in% getvars_wc){
+	  message("bias correct tmin")
+	  print(getvars)
+	  print(getvars_wc)
+		
           df_bias <- df_fine %>%
             dplyr::select(sitename, starts_with("tmin_")) %>%
             pivot_longer(cols = starts_with("tmin_"), names_to = "month", values_to = "tmin", names_prefix = "tmin_") %>%
