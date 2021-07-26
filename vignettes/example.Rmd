@@ -51,7 +51,7 @@ The following *sources* can be handled currently:
 +-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | [Mauna Loa CO2](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html)                                      | time series            | site     | `co2_mlo`     | remote server | using the [climate](https://github.com/bczernecki/climate) R package                       |
 +-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
-| HWSD                                                                                                      | shapefile map          | global   | `hwsd`        | local files   | using an adaption of David Le Bauer's [rhwsd](https://github.com/dlebauer/rhwsd) R package |
+| [HWSD](https://webarchive.iiasa.ac.at/Research/LUC/External-World-soil-database/HTML/)                                                                                                      | raster map, database | global   | `hwsd`        | local files   | using an adaption of David Le Bauer's [rhwsd](https://github.com/dlebauer/rhwsd) R package |
 +-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
 | [WWF Ecoregions](https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c)                         | shapefile map          | global   | `wwf`         | local files   | Olsen et al. (2001)                                                                        |
 +-----------------------------------------------------------------------------------------------------------+------------------------+----------+---------------+---------------+--------------------------------------------------------------------------------------------+
@@ -466,7 +466,7 @@ df_co2 <- ingest_bysite(
 
 ## HWSD
 
-Four steps are required before you can use `ingest_bysite()` to get HWSD data:
+Four steps are required before you can use `ingest_bysite()` to get [HWSD](https://webarchive.iiasa.ac.at/Research/LUC/External-World-soil-database/HTML/) data:
 
 1.  The the modified version of David LeBauer's [rhwsd](https://github.com/dlebauer/rhwsd) R package. The modified version can be installed by:
 
