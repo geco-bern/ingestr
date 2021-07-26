@@ -277,20 +277,29 @@ ingest <- function(
 
         ## Bias correction for temperature: substract difference
         if ("tmin" %in% getvars_wc){
-	  message("bias correct tmin")
-	  print(getvars)
-	  print(getvars_wc)
-		
+          
+          message("debugging:")
+          print(head(df_fine))
+          
           df_bias <- df_fine %>%
             dplyr::select(sitename, starts_with("tmin_")) %>%
             pivot_longer(cols = starts_with("tmin_"), names_to = "month", values_to = "tmin", names_prefix = "tmin_") %>%
             mutate(month = as.integer(month)) %>%
-            rename(tmin_fine = tmin) %>%
-            right_join(ddf %>%
-                         dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>%
-                         mutate(month = lubridate::month(date)) %>%
-                         group_by(sitename, month) %>%
-                         summarise(tmin = mean(tmin, na.rm = TRUE)),
+            rename(tmin_fine = tmin)
+          
+          print(head(ddf))
+          
+          tmp <- ddf %>%
+            dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) 
+          
+          print(head(tmp))
+          tmp <- tmp %>%
+            mutate(month = lubridate::month(date)) %>%
+            group_by(sitename, month) %>%
+            summarise(tmin = mean(tmin, na.rm = TRUE))
+          
+          df_bias <- df_bias %>%
+            right_join(tmp,
                        by = c("sitename", "month")) %>%
             mutate(bias = tmin - tmin_fine) %>%
             dplyr::select(-tmin, -tmin_fine)
