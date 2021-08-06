@@ -59,11 +59,26 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
         
       } else {
         ## check if site is available. see alse here: https://modis.ornl.gov/sites/
-        sites_avl <- MODISTools::mt_sites(network = settings$network) %>% as_tibble() %>% pull(network_siteid) %>% try()
+        sites_avl <- try(
+          do.call("rbind",
+                  lapply(settings_modis$network,
+                         function(network){MODISTools::mt_sites(network = network)
+                           }
+                         )
+                  )
+          )
+        
         while (class(sites_avl) == "try-error"){
           Sys.sleep(3)                                            # wait for three seconds
           rlang::warn("re-trying to get available sites...")
-          sites_avl <- MODISTools::mt_sites(network = settings$network) %>% as_tibble() %>% pull(network_siteid) %>% try()
+          sites_avl <- try(
+            do.call("rbind",
+                    lapply(settings_modis$network,
+                           function(network){MODISTools::mt_sites(network = network)
+                           }
+                    )
+            )
+          )
         }
         part_of_network <- df_siteinfo$sitename %in% sites_avl
       }
