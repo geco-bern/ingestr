@@ -79,16 +79,29 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
                     )
             )
           )
+          
+          
         }
-        part_of_network <- df_siteinfo$sitename %in% sites_avl
+        
+        part_of_network <- df_siteinfo$sitename %in% sites_avl$network_siteid
       }
 
       if (part_of_network){
 
         try_mt_subset <- function(x, df_siteinfo, settings){
           
-          ## initial try
+          # grab required info
+          site <- sites_avl$network_siteid[
+            which(sites_avl$network_siteid %in% df_siteinfo$sitename)[1]
+            ]
+          network <- tolower(sites_avl$network[
+            which(sites_avl$network_siteid %in% df_siteinfo$sitename)[1]
+            ])
+          
+          # initial try
           rlang::inform(paste("Initial try for band", x))
+          rlang::inform(paste("of site", site))
+          rlang::inform(paste("and network", network))
           
           df <- try(
             MODISTools::mt_subset(
@@ -96,8 +109,8 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
               band      = x,
               start     = df_siteinfo$date_start,                 # start date: 1st Jan 2009
               end       = df_siteinfo$date_end,                   # end date: 19th Dec 2014
-              site_id   = df_siteinfo$sitename,                   # the site name we want to give the data
-              network   = settings$network,
+              site_id   = site,                   # the site name we want to give the data
+              network   = network,
               internal  = TRUE,
               progress  = TRUE
             )
@@ -113,8 +126,8 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
                 band      = x,
                 start     = df_siteinfo$date_start,                 # start date: 1st Jan 2009
                 end       = df_siteinfo$date_end,                   # end date: 19th Dec 2014
-                site_id   = df_siteinfo$sitename,                   # the site name we want to give the data
-                network   = settings$network,
+                site_id   = site,                   # the site name we want to give the data
+                network   = network,
                 internal  = TRUE,
                 progress  = TRUE
               )
