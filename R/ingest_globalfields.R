@@ -113,6 +113,10 @@ ingest_globalfields <- function(
         dplyr::right_join(df_out, by = c("sitename", "date"))
     }
 
+    ## remove spurious myvar columns
+    df_out <- df_out %>%
+      select(-starts_with("myvar"))
+    
     if (timescale=="m"){
       rlang::abort("ingest_globalfields(): aggregating WATCH-WFDEI to monthly not implemented yet.")
     }
