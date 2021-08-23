@@ -276,8 +276,6 @@ ingest_globalfields <- function(
           mutate(prec = prec / days_in_month(moy)) %>%   # mm/month -> mm/d
           mutate(prec = prec / (60 * 60 * 24))  # mm/d -> mm/sec
       }
-      
-      
     }
 
   } else if (source == "ndep"){
