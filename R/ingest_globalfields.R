@@ -26,7 +26,16 @@
 #'
 #' @examples \dontrun{inputdata <- ingest_bysite()}
 #'
-ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, standardise_units = TRUE, layer = NULL, verbose = FALSE ){
+ingest_globalfields <- function(
+  siteinfo,
+  source,
+  getvars,
+  dir,
+  timescale,
+  standardise_units = TRUE,
+  layer = NULL,
+  verbose = FALSE
+  ){
 
   if (!(source %in% c("etopo1", "wwf", "gsde", "worldclim"))){
     

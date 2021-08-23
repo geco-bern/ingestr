@@ -820,7 +820,7 @@ ingest <- function(
     bind_rows() %>%
     group_by(sitename) %>%
     nest() %>%
-    select(-"myvar")
+    select(-starts_with("myvar"))
 
   return(ddf)
 
