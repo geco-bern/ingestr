@@ -26,7 +26,16 @@
 #'
 #' @examples \dontrun{inputdata <- ingest_bysite()}
 #'
-ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, standardise_units = TRUE, layer = NULL, verbose = FALSE ){
+ingest_globalfields <- function(
+  siteinfo,
+  source,
+  getvars,
+  dir,
+  timescale,
+  standardise_units = TRUE,
+  layer = NULL,
+  verbose = FALSE
+  ){
 
   if (!(source %in% c("etopo1", "wwf", "gsde", "worldclim"))){
     
@@ -104,6 +113,10 @@ ingest_globalfields <- function( siteinfo, source, getvars, dir, timescale, stan
         dplyr::right_join(df_out, by = c("sitename", "date"))
     }
 
+    ## remove spurious myvar columns
+    df_out <- df_out %>%
+      select(-starts_with("myvar"))
+    
     if (timescale=="m"){
       rlang::abort("ingest_globalfields(): aggregating WATCH-WFDEI to monthly not implemented yet.")
     }
