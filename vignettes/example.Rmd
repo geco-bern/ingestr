@@ -266,38 +266,38 @@ plot_fapar_ingestr_bysite(
   settings_modis)
 ```
 
-For reflectance data, the ingested data is shaped differently (multiple variables, linearly interpolated to daily values).
+<!-- For reflectance data, the ingested data is shaped differently (multiple variables, linearly interpolated to daily values). -->
 
-```{r}
-settings_modis <- get_settings_modis(
-  bundle            = "modis_refl_terra",
-  data_path         = "~/data/modis_subsets/",
-  method_interpol   = "loess",
-  keep              = TRUE,
-  overwrite_raw     = FALSE,
-  overwrite_interpol= TRUE,
-  n_focal           = 0
-  )
-```
+<!-- ```{r} -->
+<!-- settings_modis <- get_settings_modis( -->
+<!--   bundle            = "modis_refl_terra", -->
+<!--   data_path         = "~/data/modis_subsets/", -->
+<!--   method_interpol   = "loess", -->
+<!--   keep              = TRUE, -->
+<!--   overwrite_raw     = FALSE, -->
+<!--   overwrite_interpol= TRUE, -->
+<!--   n_focal           = 0 -->
+<!--   ) -->
+<!-- ``` -->
 
 
-```{r warning=FALSE}
-df_modis_fpar <- ingest_bysite(
-  sitename  = "CH-Lae",
-  source    = "modis",
-  year_start= 2018,
-  year_end  = 2019,
-  lon       = 8.36439,
-  lat       = 47.47833,
-  settings  = settings_modis,
-  verbose   = FALSE
-  )
+<!-- ```{r warning=FALSE} -->
+<!-- df_modis_fpar <- ingest_bysite( -->
+<!--   sitename  = "CH-Lae", -->
+<!--   source    = "modis", -->
+<!--   year_start= 2018, -->
+<!--   year_end  = 2019, -->
+<!--   lon       = 8.36439, -->
+<!--   lat       = 47.47833, -->
+<!--   settings  = settings_modis, -->
+<!--   verbose   = FALSE -->
+<!--   ) -->
 
-df_modis_fpar %>% 
-  pivot_longer(cols = starts_with("sur_refl_"), names_to = "band", values_to = "reflectance") %>% 
-  ggplot(aes(x = date, y = reflectance, color = band)) +
-  geom_line()
-```
+<!-- df_modis_fpar %>%  -->
+<!--   pivot_longer(cols = starts_with("sur_refl_"), names_to = "band", values_to = "reflectance") %>%  -->
+<!--   ggplot(aes(x = date, y = reflectance, color = band)) + -->
+<!--   geom_line() -->
+<!-- ``` -->
 
 <!-- ```{r} -->
 
