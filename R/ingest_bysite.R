@@ -424,6 +424,25 @@ ingest_bysite <- function(
       
       if ("vpd" %in% getvars){
         
+        # xxxxxxx
+        if (!("vapr" %in% names(df_tmp))){
+          ## calculate vapour pressure from specific humidity - needed for bias correction with worldclim data
+          if (source == "watch_wfdei"){
+            ## specific humidity (qair, g g-1) is read, convert to vapour pressure (vapr, Pa)
+            df_tmp <- df_tmp %>% 
+              rowwise() %>% 
+              dplyr::mutate(vapr = calc_vp(qair = qair, tc = temp, patm = patm)) %>% 
+              ungroup()
+            
+          } else if (source == "cru"){
+            ## vapour pressure is read from file, convert from hPa to Pa
+            df_tmp <- df_tmp %>% 
+              dplyr::mutate(vapr = 1e2 * vap) %>% 
+              dplyr::select(-vap)
+            
+          }
+        }
+
         if (source == "watch_wfdei"){
           ## use daily mean temperature
           df_tmp <- df_tmp %>%
