@@ -226,7 +226,7 @@ This uses the [MODISTools](https://docs.ropensci.org/MODISTools/) R package maki
 
 The filtering criteria are hard-coded specifically for each product, using its respective quality control information (see function `gapfill_interpol()` in `R/ingest_modis_bysite.R`). For more information on the settings do `?get_settings_modis`.
 
-The following example is for downloading MODIS NDVI data.
+The following example is for downloading MODIS FPAR MCD15A3H data. Note the specification of the argument `network = "FLUXNET"`. This triggers the download of prepared subsets aligning with site locations for different networks (see [here](https://modis.ornl.gov/sites/)) which is much faster than the download of data for arbitrary locations. This also makes the specification of longitude and latitude values in the call to `ingest_bysite()` obsolete and downloads a scene of 17 x 17 pixels. Using `n_focal` in `get_settings_modis()` subsets the scene to central pixels where the value provided for `n_focal` is the distance in number of pixels away from the center pixel to be taken for averaging. This is done the same way for the network and non-network ingest options.
 
 ```{r}
 settings_modis <- get_settings_modis(
@@ -236,8 +236,8 @@ settings_modis <- get_settings_modis(
   keep              = TRUE,
   overwrite_raw     = FALSE,
   overwrite_interpol= TRUE,
-  n_focal           = 0
-  # network           = "FLUXNET"
+  n_focal           = 0,
+  network           = "FLUXNET"
   )
 ```
 
@@ -251,8 +251,8 @@ df_modis_fpar <- ingest_bysite(
   source    = "modis",
   year_start= 2018,
   year_end  = 2019,
-  lon       = 8.36439,
-  lat       = 47.47833,
+  # lon       = 8.36439,   # not needed when network = "FLUXNET"
+  # lat       = 47.47833,  # not needed when network = "FLUXNET"
   settings  = settings_modis,
   verbose   = FALSE
   )
