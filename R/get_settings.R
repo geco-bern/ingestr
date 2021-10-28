@@ -25,11 +25,18 @@
 #'
 #' @examples \dontrun{settings_gee <- get_settings_gee()}
 #'
-get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which python", intern = TRUE),
-                              gee_path = ".", data_path = ".", method_interpol = "linear", keep = FALSE,
-                              overwrite_raw = FALSE, overwrite_interpol = FALSE ){
-
-  if (bundle == "modis_fpar"){
+get_settings_gee <- function(
+  bundle = "modis_fpar",
+  python_path = system("which python", intern = TRUE),
+  gee_path = ".",
+  data_path = ".",
+  method_interpol = "linear",
+  keep = FALSE,
+  overwrite_raw = FALSE,
+  overwrite_interpol = FALSE
+  ) {
+  
+  if (bundle == "modis_fpar") {
     ##--------------------------------------------------------------------
     ## MODIS FPAR, 500 m, 4-daily
     ## Info see here: https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H
@@ -46,7 +53,7 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
       asfaparinput = TRUE
       )
 
-  } else if (bundle == "modis_evi"){
+  } else if (bundle == "modis_evi") {
     ##--------------------------------------------------------------------
     ## EVI
     ## See info here: https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMOD13Q1
@@ -63,7 +70,7 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
       asfaparinput = TRUE
       )
 
-  } else if (bundle == "modis_lai"){
+  } else if (bundle == "modis_lai") {
     ##--------------------------------------------------------------------
     ## LAI
     ##--------------------------------------------------------------------
@@ -75,7 +82,7 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
       productnam = "lai"
       )
 
-  } else if (bundle == "modis_gpp"){
+  } else if (bundle == "modis_gpp") {
     ##--------------------------------------------------------------------
     ## GPP (kg C m-2), 500 m, 8-daily
     ##--------------------------------------------------------------------
@@ -110,39 +117,51 @@ get_settings_gee <- function( bundle = "modis_fpar", python_path = system("which
 
 #' Defines settings for settings for MODIS download using MODISTools
 #'
-#' Defines settings for settings for Google Earth Engine download
+#' Defines settings for settings for MODISTools download
 #' for a pre-defined set of "bundles" (\code{c("modis_fpar",
 #' "modis_evi", "modis_lai", "modis_gpp")}).
 #'
 #' @param bundle A character string specifying which dataset (bundle) to download.
-#' Defaults to \code{"modis_fpar"}. Available are: \code{c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")}.
-#' @param data_path A character string specifying the path of where the data should be downloaded to.
-#' Defaults to \code{"."} (present working directory).
-#' @param method_interpol A character string specifying which interpolation method to use. Defaults to linear interpolation (\code{"linear"}).
-#' Alternatives are
-#' @param keep A logical specifying whether to keep all intermediate data (before filtering, and before imputing mean seasonal cycle),
+#' Defaults to \code{"modis_fpar"}. Available are: \code{c("modis_fpar",
+#'  "modis_evi", "modis_lai", "modis_gpp")}.
+#' @param data_path A character string specifying the path of where the data
+#' should be downloaded to. Defaults to \code{"."} (present working directory).
+#' @param method_interpol A character string specifying which interpolation
+#' method to use. Defaults to linear interpolation (\code{"linear"}).
+#' @param keep A logical specifying whether to keep all intermediate data
+#'  (before filtering, and before imputing mean seasonal cycle),
 #' and all alternative interpolation results. Defaults to \code{FALSE}.
-#' @param overwrite_raw A logical specifying whether raw data as downloaded from GEE is to be overwritten. Defaults to \code{FALSE},
+#' @param overwrite_raw A logical specifying whether raw data as downloaded 
+#' from MODISTools is to be overwritten. Defaults to \code{FALSE},
 #' i.e. data is read from exisitng file if available.
-#' @param overwrite_interpol A logical specifying whether processed (interpolated) data, is to be overwritten. Defaults to \code{FALSE},
+#' @param overwrite_interpol A logical specifying whether processed 
+#' (interpolated) data, is to be overwritten. Defaults to \code{FALSE},
 #' i.e. data is read from exisitng file if available.
-#' @param n_focal An integer specifying the distance (in number of pixels) around the center pixel to be used for averaging. Defaults
+#' @param n_focal An integer specifying the distance (in number of pixels)
+#'  around the center pixel to be used for averaging. Defaults
 #' to zero (using only the center pixel).
-#' @param filename_with_year A logical specifying whether the years covered are specified in the file name. Added here for consistency with 
-#' earlier versions of ingestr where years were not specified.
-#' @param network A character string specifying the network for which the site names correspond.
-#' Earth Engine.
+#' @param filename_with_year A logical specifying whether the years covered are
+#'  specified in the file name. Added here for consistency with 
+#'  earlier versions of ingestr where years were not specified.
+#' @param network A character string specifying the network for which 
+#' the site names correspond.
 #' @export
 #'
-#' @examples \dontrun{settings_gee <- get_settings_gee()}
+#' @examples \dontrun{settings_modis <- get_settings_modis()}
 #'
-get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_interpol = "linear", keep = FALSE,
-                              overwrite_raw = FALSE, overwrite_interpol = FALSE, n_focal = 0, filename_with_year = TRUE, network = NA){
+get_settings_modis <- function(
+  bundle = "modis_fpar",
+  data_path = ".",
+  method_interpol = "linear",
+  keep = FALSE,
+  overwrite_raw = FALSE,
+  overwrite_interpol = FALSE,
+  n_focal = 0,
+  filename_with_year = TRUE,
+  network = NA
+  ) {
 
-  if (bundle == "modis_fpar"){
-    ##--------------------------------------------------------------------
-    ## MODIS FPAR, 500 m, 4-daily
-    ##--------------------------------------------------------------------
+  if (bundle == "modis_fpar") {
     out <- list(
       prod     = "MCD15A3H",
       band_var = "Fpar_500m",
@@ -154,10 +173,19 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
       network = network
       )
 
-  } else if (bundle == "modis_lai"){
-    ##--------------------------------------------------------------------
-    ## MODIS LAI, 500 m, 4-daily
-    ##--------------------------------------------------------------------
+  } else if (bundle == "modis_lst") {
+    out <- list(
+      prod     = "MYD21A2",
+      band_var = "LST_Day_1KM",
+      band_qc  = "QC_Day",
+      varnam   = "lst",
+      period   = 4,
+      prod_suffix = "MYD21A2",
+      productnam = "MODIS_LST_MYD21A2",
+      network = network
+    )
+    
+  } else if (bundle == "modis_lai") {
     out <- list(
       prod     = "MCD15A3H",
       band_var = "Lai_500m",
@@ -169,10 +197,7 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
       network = network
     )
 
-  } else if (bundle == "modis_evi"){
-    ##--------------------------------------------------------------------
-    ## EVI
-    ##--------------------------------------------------------------------
+  } else if (bundle == "modis_evi") {
     out <- list(
       prod     = "MOD13Q1",
       band_var = "250m_16_days_EVI",
@@ -184,11 +209,7 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
       network = network
       )
 
-  } else if (bundle == "modis_ndvi"){
-    ##--------------------------------------------------------------------
-    ## EVI
-    ## See info here: https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMOD13Q1
-    ##--------------------------------------------------------------------
+  } else if (bundle == "modis_ndvi") {
     out <- list(
       prod     = "MOD13Q1",
       band_var = "250m_16_days_NDVI",
@@ -201,9 +222,6 @@ get_settings_modis <- function( bundle = "modis_fpar", data_path = ".", method_i
     )
     
   }  else if (bundle == "modis_refl"){
-    ##--------------------------------------------------------------------
-    ## Surface reflectance by bands
-    ##--------------------------------------------------------------------
     out <- list(
       prod     = "MCD43A4",
       band_var = c("Nadir_Reflectance_Band1", 
