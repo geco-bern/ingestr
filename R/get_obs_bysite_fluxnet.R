@@ -96,10 +96,11 @@
 #' monthly, and annual data and 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
 #' meaning no data is excluded.
-#' @param filter_ntdt A logical specifying whether agreement of daytime and nighttime-
-#' based GPP estimates is to be used as a filter. Data points are removed
-#' where their difference is below the the 97.5% and above the 2.5% quantile of all
-#' difference values per site. Defaults to \code{FALSE}.
+#' @param filter_ntdt A logical specifying whether agreement of daytime 
+#' and nighttime-based GPP estimates is to be used as a filter. 
+#' Data points are removed where their difference is below the the 97.5% and
+#' above the 2.5% quantile of all difference values per site.
+#' Defaults to \code{FALSE}.
 #' @param return_qc A logical specifying whether quality control variables
 #' should be returned.
 #' @param remove_neg A logical specifying whether negative GPP values are to
@@ -111,13 +112,28 @@
 #'
 #' @examples \dontrun{df <- get_obs_bysite_fluxnet}
 #'
-get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
-                                    dir_hr = NULL, timescale, getvars, getswc=TRUE,
-                                    threshold_GPP=0.0, threshold_LE=0.0, threshold_H=0.0, threshold_SWC=0.0,
-                                    threshold_WS=0.0, threshold_USTAR=0.0, threshold_T=0.0, threshold_NETRAD=0.0,
-                                    filter_ntdt = FALSE, return_qc=FALSE,
-                                    remove_neg = FALSE, verbose=TRUE ){
-
+get_obs_bysite_fluxnet <- function(
+  sitename,
+  dir,
+  dir_hh=NULL,
+  dir_hr = NULL,
+  timescale,
+  getvars,
+  getswc=TRUE,
+  threshold_GPP=0.0,
+  threshold_LE=0.0,
+  threshold_H=0.0,
+  threshold_SWC=0.0,
+  threshold_WS=0.0,
+  threshold_USTAR=0.0,
+  threshold_T=0.0,
+  threshold_NETRAD=0.0,
+  filter_ntdt = FALSE,
+  return_qc=FALSE,
+  remove_neg = FALSE,
+  verbose=TRUE 
+  ){
+  
   if (verbose) print(paste("Getting FLUXNET data for", sitename, "..."))
 
   ##-----------------------------------------------------------------
@@ -144,14 +160,14 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
       added <- c(added, toadd)
     }
   }
-  if (any(grepl("GPP_", getvars))){
-    if ("GPP_NT_VUT_REF" %in% getvars){
+  if (any(grepl("GPP_", getvars))) {
+    if ("GPP_NT_VUT_REF" %in% getvars) {
       toadd <- "NEE_VUT_REF_NIGHT_QC"
       getvars <- c(getvars, toadd) %>%
         unique()
       added <- c(added, toadd)
     }
-    if ("GPP_DT_VUT_REF" %in% getvars){
+    if ("GPP_DT_VUT_REF" %in% getvars) {
       toadd <- "NEE_VUT_REF_DAY_QC"
       getvars <- c(getvars, toadd) %>%
         unique()
@@ -160,31 +176,31 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
   }
 
   ## Take only file for this site
-  if (timescale=="d"){
+  if (timescale == "d") {
     ## Daily
-    filn <- list.files( dir,
-      pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_DD.*.csv" ),
+    filn <- list.files(dir,
+      pattern = paste0("FLX_", sitename, ".*_FLUXNET2015_FULLSET_DD.*.csv"),
       recursive = TRUE
       )
-  } else  if (timescale=="w"){
+  } else  if (timescale == "w") {
     ## Weekly
-    filn <- list.files( dir,
-      pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_WW.*.csv" ),
+    filn <- list.files(dir,
+      pattern = paste0("FLX_", sitename, ".*_FLUXNET2015_FULLSET_WW.*.csv"),
       recursive = TRUE
       )
-  } else  if (timescale=="m"){
+  } else  if (timescale == "m") {
     ## Monthly
-    filn <- list.files( dir,
+    filn <- list.files(dir,
       pattern = paste0("FLX_", sitename, ".*_FLUXNET2015_FULLSET_MM.*.csv"),
       recursive = TRUE
       )
-  } else  if (timescale=="y" || timescale=="a"){
+  } else  if (timescale=="y" || timescale == "a") {
     ## Annual
-    filn <- list.files( dir,
-      pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_YY.*.csv" ),
+    filn <- list.files(dir,
+      pattern = paste0("FLX_", sitename, ".*_FLUXNET2015_FULLSET_YY.*.csv"),
       recursive = TRUE
       )
-  } else  if (timescale=="hh"){
+  } else  if (timescale == "hh") {
     ## half-hourly
     filn <- list.files( dir,
       pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
@@ -201,7 +217,14 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
   #   dplyr::pull(getvars)
   # getvars <- c(obsvars, paste0(obsvars, "_QC"), uncvars)
 
-  if (length(filn)==0) rlang::abort(paste0("No files found for timescale ", timescale, " in sub-directories of ", dir ) )
+  if (length(filn)==0) {
+    rlang::abort(
+      paste0("No files found for timescale ",
+        timescale,
+        " in sub-directories of ",
+        dir))
+  }
+
   if (length(filn)>1){
     file.info_getsize <- function(filn){
       file.info(filn)$size
@@ -215,20 +238,21 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
 
   # if (length(filn)>1){
   #   filn <- filn[which(grepl("3.csv", filn))]
-  #   # rlang::warn(paste0("Multiple files found for timsescale ", timescale, " in sub-directories of ", dir, ". Taking only ", filn ) )
+  #    rlang::warn(paste0("Multiple files found for timsescale ",
+  #  timescale, " in sub-directories of ", dir, ". Taking only ", filn ) )
   # }
 
   ##-----------------------------------------------------------------
   ## Actually read data
   ##-----------------------------------------------------------------
   ## This returns a data frame with columns (date, temp, prec, nrad, ppfd, vpd, ccov)
-  df <- get_obs_fluxnet2015_raw( sitename,
+  df <- get_obs_fluxnet2015_raw(sitename,
     path = paste0(dir, filn),
     freq = timescale
     )
 
   ## For some sites, the NETRAD column is missing.
-  if ("NETRAD" %in% getvars && !("NETRAD" %in% names(df))){
+  if ("NETRAD" %in% getvars && !("NETRAD" %in% names(df))) {
     df <- df %>% mutate(NETRAD = NA, NETRAD_QC = 0.0)
   }
 
@@ -236,14 +260,16 @@ get_obs_bysite_fluxnet <- function( sitename, dir, dir_hh=NULL,
   ## Get daytime VPD
   ##-----------------------------------------------------------------
   merge_df_vpd_day_dd <- FALSE
-  if ("VPD_F_DAY" %in% getvars && !(timescale == "hh")){
+  if ("VPD_F_DAY" %in% getvars && !(timescale == "hh")) {
 
     ## 1. Check whether daily file for daytime VPD is already available
     ##-----------------------------------------------------------------
     ## get file name(s) of file containing daily daytime VPD derived from half-hourly data
-    filename_dd_vpd <- list.files( dir,
-                                   pattern = paste0("FLX_", sitename, ".*_VPD_DAY.csv"),
-                                   recursive = FALSE)
+    filename_dd_vpd <- list.files(
+      dir,
+      pattern = paste0("FLX_", sitename, ".*_VPD_DAY.csv"),
+      recursive = FALSE
+      )
 
     # filename_dd_vpd <- filn_hh %>%
     #   stringr::str_replace("HH", "DD") %>%
