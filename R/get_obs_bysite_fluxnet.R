@@ -669,8 +669,10 @@ get_obs_fluxnet2015_raw <- function( sitename, path, freq="d" ){
   ## Returns data in units given in the fluxnet dataset
   ##--------------------------------------------------------------------
   ## get data
-  df <-  readr::read_csv( path, na="-9999" ) #, col_types = cols()
-
+  # df <-  readr::read_csv( path, na="-9999" ) #, col_types = cols()
+  df <-  data.table::fread( path ) %>% 
+    na_if("-9999") #, col_types = cols()
+  
   ## get dates, their format differs slightly between temporal resolution
   if ( freq=="y" ){
 

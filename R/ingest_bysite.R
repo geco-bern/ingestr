@@ -442,6 +442,11 @@ ingest_bysite <- function(
     }
     
   } else if (source == "modis"){
+    
+    if (!is.na(settings$network)){
+      lon = NA
+      lat = NA
+    }
 
     siteinfo <- tibble(
       sitename = sitename,
