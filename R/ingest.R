@@ -130,8 +130,8 @@ ingest <- function(
         ddf_dates <- purrr::map(
           as.list(seq(nrow(siteinfo))),
           ~ingestr::init_dates_dataframe(
-            year(siteinfo$date_start[.]),
-            year(siteinfo$date_end[.]),
+            lubridate::year(siteinfo$date_start[.]),
+            lubridate::year(siteinfo$date_end[.]),
             noleap = TRUE,
             timescale = "d"))
         names(ddf_dates) <- siteinfo$sitename

@@ -127,8 +127,8 @@ ingest_bysite <- function(
         ddf_dates <- purrr::map(
           as.list(seq(nrow(siteinfo))),
           ~init_dates_dataframe(
-            year(siteinfo$date_start[.]),
-            year(siteinfo$date_end[.]),
+            lubridate::year(siteinfo$date_start[.]),
+            lubridate::year(siteinfo$date_end[.]),
             noleap = TRUE,
             timescale = timescale))
         names(ddf_dates) <- siteinfo$sitename
@@ -528,7 +528,7 @@ ingest_bysite <- function(
     }
     
     df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
-      dplyr::mutate(month = month(date), year = year(date)) %>%
+      dplyr::mutate(month = month(date), year = lubridate::year(date)) %>%
       dplyr::left_join(
         df_co2,
         by = c("year", "month")
@@ -550,7 +550,7 @@ ingest_bysite <- function(
     }
     
     df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
-      dplyr::mutate(month = month(date), year = year(date)) %>%
+      dplyr::mutate(month = month(date), year = lubridate::year(date)) %>%
       dplyr::left_join(
         df_co2,
         by = c("year")

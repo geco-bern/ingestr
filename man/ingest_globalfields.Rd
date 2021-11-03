@@ -16,33 +16,38 @@ ingest_globalfields(
 )
 }
 \arguments{
-\item{siteinfo}{A data frame with rows for each site and columns `lon` for longitude, `lat` for latitude,
-`date_start` and `date_end` specifying required dates.}
+\item{siteinfo}{A data frame with rows for each site and columns `lon` 
+for longitude, `lat` for latitude, `date_start` and `date_end` 
+specifying required dates.}
 
 \item{source}{A character used as identifiyer for the type of data source
 (\code{"watch_wfdei"}, or \code{"cru"}).}
 
 \item{getvars}{A named list of characters specifying the variable names in
-the source dataset corresponding to standard names \code{"temp"} for temperature,}
+the source dataset corresponding to standard names \code{"temp"} for
+temperature.}
 
 \item{dir}{A character specifying the directory where data is located.
 \code{"prec"} for precipitation, \code{"patm"} for atmospheric pressure,
 \code{"vpd"} for vapour pressure deficit, \code{"netrad"} for net radiation,
 \code{"swin"} for shortwave incoming radiation.}
 
-\item{timescale}{A character or vector of characters, specifying the time scale of data used from
-the respective source (if multiple time scales are available, otherwise is disregarded).}
+\item{timescale}{A character or vector of characters, specifying the time
+scale of data used from the respective source (if multiple time scales are
+available, otherwise is disregarded).}
 
-\item{standardise_units}{A logical specifying whether units in ingested data are to be standardised
-following ingestr-standard units.}
+\item{standardise_units}{A logical specifying whether units in ingested data
+are to be standardised following ingestr-standard units.}
 
-\item{layer}{(Optional) A character string specifying the layer from a shapefile or a raster brick to be read 
-or to be used to identify file name for gsde.}
+\item{layer}{(Optional) A character string specifying the layer from a 
+shapefile or a raster brick to be read or to be used to identify file
+name for gsde.}
 
 \item{verbose}{if \code{TRUE}, additional messages are printed.}
 }
 \value{
-A data frame (tibble) containing the time series of ingested data, nested for each site.
+A data frame (tibble) containing the time series of ingested data,
+ nested for each site.
 }
 \description{
 Read climate data from files as global fields

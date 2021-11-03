@@ -59,7 +59,7 @@ init_dates_dataframe <- function( yrstart, yrend, startmoy=1, startdoy=1, timesc
     # mutate( year_dec = lubridate::year(date) + (lubridate::yday(date) - 1) / ndayyear ) %>%
     # dplyr::select( -ndayyear )
     
-    if (noleap) ddf <- ddf %>% dplyr::filter( !( month(date)==2 & mday(date)==29 ) )
+    if (noleap) ddf <- ddf %>% dplyr::filter( !( lubridate::month(date)==2 & lubridate::mday(date)==29 ) )
     
   }
 

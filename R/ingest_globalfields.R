@@ -49,8 +49,8 @@ ingest_globalfields <- function(
     df_out <- purrr::map(
       as.list(seq(nrow(siteinfo))),
       ~ingestr::init_dates_dataframe(
-        year(siteinfo$date_start[.]),
-        year(siteinfo$date_end[.]),
+        lubridate::year(siteinfo$date_start[.]),
+        lubridate::year(siteinfo$date_end[.]),
         noleap = TRUE,
         timescale = timescale))
     names(df_out) <- siteinfo$sitename
@@ -529,8 +529,8 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
     ddf_tmp <- purrr::map(
       as.list(seq(nrow(siteinfo))),
       ~ingestr::init_dates_dataframe(
-        year(siteinfo$date_start[.]),
-        min(1978, year(siteinfo$date_end[.])),
+        lubridate::year(siteinfo$date_start[.]),
+        min(1978, lubridate::year(siteinfo$date_end[.])),
         noleap = TRUE,
         timescale = "d"))
     names(ddf_tmp) <- siteinfo$sitename
