@@ -461,12 +461,12 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     ##----------------------------------------
     ## Filter available landsurface data for 8-day-means
     ##----------------------------------------
-    ## QC interpreted according to 
+    ## QC interpreted according to https://lpdaac.usgs.gov/documents/108/MOD21_User_Guide_V6.pdf
     } else if (prod==""){  
     ##----------------------------------------
     ## Filter available landsurface data for daily-means
     ##----------------------------------------
-    ## QC interpreted according to 
+    ## QC interpreted according to https://lpdaac.usgs.gov/documents/108/MOD21_User_Guide_V6.pdf
     }
    
     
