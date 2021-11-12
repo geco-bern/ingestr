@@ -457,7 +457,19 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     clean_sur_refl <- function(x, qc_binary){
       ifelse(qc_binary, x, NA)
     }
-
+   } else if (prod=="MYD21A2"){    
+    ##----------------------------------------
+    ## Filter available landsurface data for 8-day-means
+    ##----------------------------------------
+    ## QC interpreted according to 
+    } else if (prod==""){  
+    ##----------------------------------------
+    ## Filter available landsurface data for daily-means
+    ##----------------------------------------
+    ## QC interpreted according to 
+    }
+   
+    
     df <- df %>%
 
       ## separate into bits
