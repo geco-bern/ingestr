@@ -185,6 +185,18 @@ get_settings_modis <- function(
       network = network
     )
     
+     } else if (bundle == "modis_lst_daily") {
+    out <- list(
+      prod     = "MOD21A1N",
+      band_var = "LST_Day_1KM",
+      band_qc  = "QC_Day",
+      varnam   = "lst",
+      period   = 4,
+      prod_suffix = "MOD21A1N",
+      productnam = "MODIS_LST_MOD21A1N",
+      network = network
+    )
+    
   } else if (bundle == "modis_lai") {
     out <- list(
       prod     = "MCD15A3H",
