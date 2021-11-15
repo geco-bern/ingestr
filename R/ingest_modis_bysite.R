@@ -456,17 +456,108 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     ## Section 3.2.2, Table 10 500 m, 1 km and Coarse Resolution Surface Reflectance Band Quality Description (32-bit). Bit 0 is LSB.
     clean_sur_refl <- function(x, qc_binary){
       ifelse(qc_binary, x, NA)
+      
     }
-   } else if (prod=="MYD21A2"){    
+   } else if (prod=="MOD21A1N"){  
+    ##----------------------------------------
+    ## Filter available landsurface temperature data for daily-means
+    ##----------------------------------------
+    ## QC interpreted according to https://lpdaac.usgs.gov/documents/108/MOD21_User_Guide_V6.pdf
+    ## QC interpreted according to https://vip.arizona.edu/documents/MODIS/MODIS_VI_UsersGuide_June_2015_C6.pdf 
+     df <- df %>%
+      dplyr::rename(modisvar = value) %>%
+      dplyr::mutate(modisvar_filtered = modisvar) %>%
+
+      ## separate into bits
+      rowwise() %>%
+      mutate(qc_bitname = intToBits( qc ) %>% as.character() %>% paste(collapse = "")) %>%
+    
+      ## Bits 0-1: Pixel Quality
+      ##   00 Pixel produced with good quality
+      ##   01 Pixel produced, but check other QA
+      mutate(pixel_quality = substr( qc_bitname, start=1, stop=2 )) ## %>%  
+      if (pixel_quality == "00"){
+        mutate(pixel_quality) %>%
+        ##dplyr::mutate(modisvar_filtered = ifelse(pixel_quality %in% c("00", "01"), modisvar, NA)) %>%
+        }
+      else if ((pixel_quality == "01"){
+      ## Bits 2-3: Data Quality
+      ##   00 = Good data quality of L1B bands 29, 31, 32
+      ##   01 = Missing pixel
+      ##   10 = Fairly calibrated
+      mutate(data_quality = substr( qc_bitname, start=3, stop=4 )) %>%
+      dplyr::mutate(modisvar_filtered = ifelse(data_quality %in% c("00", "01", "10"), modisvar, NA)) %>%
+    
+      ## Bits 4-5: Cloud Flag
+      ##   00 = Good free
+      ##   01 = MThin cirrus
+      ##   10 = Pixel within 2 pixels of nearest cloud
+      ##   1+ = Cloudy pixel
+      mutate(cloud = substr( qc_bitname, start=4, stop=5 )) %>%
+      dplyr::mutate(modisvar_filtered = ifelse(cloud %in% c("00", "01"), modisvar, NA)) %>%
+      
+      ## Bits 6-7: Iterations
+      ##   00 = Slow convergence
+      ##   01 = Nominal
+      ##   10 = Nominal
+      ##   11 = Fast
+      mutate(iterations = substr( qc_bitname, start=6, stop=7 )) %>%
+      dplyr::mutate(modisvar_filtered = ifelse(interations %in% c("01", "10", "11"), modisvar, NA)) %>%
+    
+      ## Bits 8-9: Atmospheric Opacity
+      ##    00 = >=3 (Warm, humid air; or cold land)
+      ##    01 = 0.2 - 0.3 (Nominal value)
+      ##    10 = 0.1 - 0.2 (Nominal value)
+      ##    11 = <0.1 (Dry, or high altitude pixel)
+      mutate(opacity = substr( qc_bitname, start=8, stop=9 )) %>%
+      dplyr::mutate(modisvar_filtered = ifelse(opacity %in% c("01", "10", "11"), modisvar, NA)) %>%
+    
+      ## Bit 10-11: MMD
+      ##    00 = > 0.15 (Most silicate rocks)
+      ##    01 = 0.1 - 0.15 (Rocks, sand, some soils)
+      ##    10 = 0.03 - 0.1 (Mostly soils, mixed pixel)
+      ##    11 = <0.03 (Vegetation, snow, water, ice)    
+    
+      ## Bit 12-13: Emissivity accuracy
+      ##    00 = >0.02 (Poor performance)
+      ##    01 = 0.015 - 0.02 (Marginal performance)
+      ##    10 = 0.01 - 0.015 (Good performance)
+      ##    11 = <0.01 (Excellent performance)
+      mutate(emissivity = substr( qc_bitname, start=12, stop=13 )) %>%
+      dplyr::mutate(modisvar_filtered = emissivity(vi_useful %in% c("01", "10", "11"), modisvar, NA)) %>%
+    
+      ## Bit 14-15: LST accuracy
+      ##    00 = >2 K (Poor performance)
+      ##    01 = 1.5 - 2 K (Marginal performance)
+      ##    10 = 1 - 1.5 K (Good performance)
+      ##    11 = <1 K (Excellent performance)
+      mutate(accuracy = substr( qc_bitname, start=14, stop=15 )) %>%
+      dplyr::mutate(modisvar_filtered = ifelse(accuracy %in% c("01", "10", "11"), modisvar, NA)) %>%
+    
+    
+      ## drop it
+      dplyr::select(-qc_bitname)
+    
+    else if (prod=="MYD21A2"){    
     ##----------------------------------------
     ## Filter available landsurface data for 8-day-means
     ##----------------------------------------
     ## QC interpreted according to https://lpdaac.usgs.gov/documents/108/MOD21_User_Guide_V6.pdf
-    } else if (prod==""){  
-    ##----------------------------------------
-    ## Filter available landsurface data for daily-means
-    ##----------------------------------------
-    ## QC interpreted according to https://lpdaac.usgs.gov/documents/108/MOD21_User_Guide_V6.pdf
+    ## QC interpreted according to https://vip.arizona.edu/documents/MODIS/MODIS_VI_UsersGuide_June_2015_C6.pdf
+   
+    df <- df %>%
+      dplyr::rename(modisvar = value) %>%
+      dplyr::mutate(modisvar_filtered = modisvar) %>%
+
+      ## separate into bits
+      rowwise() %>%
+      mutate(qc_bitname = intToBits( qc ) %>% as.character() %>% paste(collapse = "")) %>%
+    
+      ## Bits 0-1: VI Quality
+      ##   00 VI produced with good quality
+      ##   01 VI produced, but check other QA
+      mutate(vi_quality = substr( qc_bitname, start=1, stop=2 )) %>%
+
     }
    
     
