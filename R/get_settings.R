@@ -173,7 +173,7 @@ get_settings_modis <- function(
       network = network
       )
 
-  } else if (bundle == "modis_lst") {
+  } else if (bundle == "modis_lst") { ## 8 day average
     out <- list(
       prod     = "MYD21A2",
       band_var = "LST_Day_1KM",
@@ -185,7 +185,7 @@ get_settings_modis <- function(
       network = network
     )
     
-     } else if (bundle == "modis_lst_daily") {
+     } else if (bundle == "modis_lst_daily") { ## daily average
     out <- list(
       prod     = "MOD21A1N",
       band_var = "LST_Day_1KM",
