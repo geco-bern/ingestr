@@ -1,10 +1,12 @@
-#' Defines settings for settings for Google Earth Engine download
+#' Download data by site
+#'
+#' Requires a list of sites, and a settings file.
 #'
 #' Returns a list of two data frames, one with data at original
 #' modis dates (df), and one interpolated to all days (ddf).
 #'
-#' @param df_siteinfo xxx
-#' @param settings xxx
+#' @param df_siteinfo site info data frame
+#' @param settings download settings
 #'
 #' @return A named list containing information required for download from Google
 #' Earth Engine.
@@ -12,7 +14,10 @@
 #'
 #' @examples settings_gee <- get_settings_gee( bundle = "modis_fpar" )
 #'
-ingest_modis_bysite <- function( df_siteinfo, settings ){
+ingest_modis_bysite <- function(
+  df_siteinfo,
+  settings
+  ){
 
   ##---------------------------------------------
   ## Define names
@@ -24,17 +29,50 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
   dirnam_daily_csv <- paste0(settings$data_path, settings$productnam)
   dirnam_raw_csv <- paste0(settings$data_path, settings$productnam, "/raw/")
 
-  if (!dir.exists(dirnam_daily_csv)) system( paste( "mkdir -p ", dirnam_daily_csv ) )
-  if (!dir.exists(dirnam_raw_csv)) system( paste( "mkdir -p ", dirnam_raw_csv ) )
-
-  if (settings$filename_with_year){
-    filnam_daily_csv <- paste0( dirnam_daily_csv, "/", settings$productnam, "_daily_", sitename, "_", df_siteinfo$year_start, "_", df_siteinfo$year_end, ".csv" )
-    filnam_raw_csv <- paste0( dirnam_raw_csv, "/", settings$productnam, "_", sitename, "_", df_siteinfo$year_start, "_", df_siteinfo$year_end, ".csv" )
-  } else {
-    filnam_daily_csv <- paste0( dirnam_daily_csv, "/", settings$productnam, "_daily_", sitename, ".csv" )
-    filnam_raw_csv <- paste0( dirnam_raw_csv, "/", settings$productnam, "_", sitename, ".csv" )
+  if (!dir.exists(dirnam_daily_csv)){
+    dir.create(
+      dirnam_daily_csv,
+      recursive = TRUE
+    )
+  }
+  
+  if (!dir.exists(dirnam_raw_csv)){
+    dir.create(
+      dirnam_raw_csv,
+      recursive = TRUE
+    )
   }
 
+  if (settings$filename_with_year){
+    filnam_daily_csv <- paste0(
+      dirnam_daily_csv, "/",
+      settings$productnam, "_daily_",
+      sitename, "_",
+      df_siteinfo$year_start, "_",
+      df_siteinfo$year_end, ".csv"
+      )
+    
+    filnam_raw_csv <- paste0(
+      dirnam_raw_csv, "/",
+      settings$productnam, "_",
+      sitename, "_",
+      df_siteinfo$year_start, "_",
+      df_siteinfo$year_end, ".csv"
+      )
+    
+  } else {
+    filnam_daily_csv <- paste0(
+      dirnam_daily_csv, "/",
+      settings$productnam, "_daily_",
+      sitename, ".csv"
+      )
+    
+    filnam_raw_csv <- paste0(
+      dirnam_raw_csv, "/",
+      settings$productnam, "_",
+      sitename, ".csv"
+      )
+  }
 
   do_continue <- TRUE
 
@@ -58,24 +96,25 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
         part_of_network <- FALSE
         
       } else {
-        ## check if site is available. see alse here: https://modis.ornl.gov/sites/
+        ## check if site is available. 
+        ## see alse here: https://modis.ornl.gov/sites/
         sites_avl <- try(
           do.call("rbind",
-                  lapply(settings_modis$network,
-                         function(network){MODISTools::mt_sites(network = network)
-                           }
+                  lapply(
+                    settings_modis$network,
+                    function(network){MODISTools::mt_sites(network = network)}
                          )
                   )
           )
         
         while (class(sites_avl) == "try-error"){
-          Sys.sleep(3)                                            # wait for three seconds
+          Sys.sleep(3)
           rlang::warn("re-trying to get available sites...")
           sites_avl <- try(
             do.call("rbind",
-                    lapply(settings_modis$network,
-                           function(network){MODISTools::mt_sites(network = network)
-                           }
+                    lapply(
+                      settings_modis$network,
+                      function(network){MODISTools::mt_sites(network = network)}
                     )
             )
           )
@@ -105,11 +144,11 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
           
           df <- try(
             MODISTools::mt_subset(
-              product   = settings$prod,                          # the chosen product (e.g., for NDVI "MOD13Q1")
+              product   = settings$prod,          
               band      = x,
-              start     = df_siteinfo$date_start,                 # start date: 1st Jan 2009
-              end       = df_siteinfo$date_end,                   # end date: 19th Dec 2014
-              site_id   = site,                   # the site name we want to give the data
+              start     = df_siteinfo$date_start, 
+              end       = df_siteinfo$date_end,   
+              site_id   = site,                   
               network   = network,
               internal  = TRUE,
               progress  = TRUE
@@ -118,15 +157,15 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
           
           ## repeat if failed until it works
           while (class(df) == "try-error"){
-            Sys.sleep(3)                                            # wait for three seconds
+            Sys.sleep(3)                    
             rlang::warn("re-trying...")
             df <- try(
               MODISTools::mt_subset(
-                product   = settings$prod,                          # the chosen product (e.g., for NDVI "MOD13Q1")
+                product   = settings$prod,  
                 band      = x,
-                start     = df_siteinfo$date_start,                 # start date: 1st Jan 2009
-                end       = df_siteinfo$date_end,                   # end date: 19th Dec 2014
-                site_id   = site,                   # the site name we want to give the data
+                start     = df_siteinfo$date_start,
+                end       = df_siteinfo$date_end,  
+                site_id   = site,                  
                 network   = network,
                 internal  = TRUE,
                 progress  = TRUE
@@ -147,13 +186,13 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
           
           df <- try(
             MODISTools::mt_subset(
-              product   = settings$prod,                          # the chosen product (e.g., for NDVI "MOD13Q1")
+              product   = settings$prod,        
               band      = x,
               lon       = df_siteinfo$lon,
               lat       = df_siteinfo$lat,
-              start     = df_siteinfo$date_start,                 # start date: 1st Jan 2009
-              end       = df_siteinfo$date_end,                   # end date: 19th Dec 2014
-              site_name = df_siteinfo$sitename,                   # the site name we want to give the data
+              start     = df_siteinfo$date_start, 
+              end       = df_siteinfo$date_end,
+              site_name = df_siteinfo$sitename,
               internal  = TRUE,
               progress  = TRUE
             )
@@ -161,17 +200,17 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
           
           ## repeat if failed until it works
           while (class(df) == "try-error"){
-            Sys.sleep(3)                                            # wait for three seconds
+            Sys.sleep(3)                       
             rlang::warn("re-trying...")
             df <- try(
               MODISTools::mt_subset(
-                product   = settings$prod,                          # the chosen product (e.g., for NDVI "MOD13Q1")
+                product   = settings$prod,     
                 band      = x,
                 lon       = df_siteinfo$lon,
                 lat       = df_siteinfo$lat,
-                start     = df_siteinfo$date_start,                 # start date: 1st Jan 2009
-                end       = df_siteinfo$date_end,                   # end date: 19th Dec 2014
-                site_name = df_siteinfo$sitename,                   # the site name we want to give the data
+                start     = df_siteinfo$date_start,
+                end       = df_siteinfo$date_end,         
+                site_name = df_siteinfo$sitename,         
                 internal  = TRUE,
                 progress  = TRUE
               )
@@ -280,8 +319,31 @@ ingest_modis_bysite <- function( df_siteinfo, settings ){
   return(ddf)
 }
 
+#' Gap fills a modis time series
+#'
+#' @param df data frame with time series data
+#' @param sitename a site name
+#' @param year_start a start year
+#' @param year_end an end year
+#' @param prod a MODIS product
+#' @param method_interpol the interpolation method
+#' @param keep keep original data
+#' @param n_focal average across multiple pixels (if available)
+#'
+#' @return gap filled time series
+#' @export
 
-gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_interpol, keep, n_focal ){
+gapfill_interpol <- function(
+  df,
+  sitename,
+  year_start,
+  year_end,
+  prod,
+  method_interpol,
+  keep,
+  n_focal
+  ){
+  
   ##--------------------------------------
   ## Returns data frame containing data
   ## (and year, moy, doy) for all available
@@ -296,16 +358,22 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
   ##--------------------------------------
   if (prod=="MOD13Q1"){
     ##--------------------------------------
-    ## This is for MOD13Q1 Vegetation indeces (NDVI, EVI) data downloaded from MODIS LP DAAC
+    ## This is for MOD13Q1 Vegetation indeces (NDVI, EVI) 
+    ## data downloaded from MODIS LP DAAC
     ##--------------------------------------
-    ## QC interpreted according to https://vip.arizona.edu/documents/MODIS/MODIS_VI_UsersGuide_June_2015_C6.pdf
+    ## QC interpreted according to 
+    ## https://vip.arizona.edu/documents/MODIS/MODIS_VI_UsersGuide_June_2015_C6.pdf
     df <- df %>%
       dplyr::rename(modisvar = value) %>%
       dplyr::mutate(modisvar_filtered = modisvar) %>%
 
       ## separate into bits
       rowwise() %>%
-      mutate(qc_bitname = intToBits( qc ) %>% as.character() %>% paste(collapse = "")) %>%
+      mutate(
+        qc_bitname = intToBits( qc ) %>%
+          as.character() %>%
+          paste(collapse = "")
+        ) %>%
 
       ## Bits 0-1: VI Quality
       ##   00 VI produced with good quality
@@ -325,7 +393,11 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       ##   1110 L1B data faulty
       ##   1111 Not useful for any other reason/not processed
       mutate(vi_useful = substr( qc_bitname, start=3, stop=6 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(vi_useful %in% c("0000", "0001", "0010", "0100", "1000", "1001", "1010", "1100"), modisvar, NA)) %>%
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          vi_useful %in% c("0000", "0001", "0010", "0100",
+                           "1000", "1001", "1010", "1100"),
+          modisvar, NA)) %>%
 
       ## Bits 6-7: Aerosol Quantity
       ##  00 Climatology
@@ -333,25 +405,33 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       ##  10 Intermediate
       ##  11 High
       mutate(aerosol = substr( qc_bitname, start=7, stop=8 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(aerosol %in% c("00", "01", "10"), modisvar, NA)) %>%
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          aerosol %in% c("00", "01", "10"), modisvar, NA)) %>%
 
       ## Bit 8: Adjacent cloud detected
       ##  0 No
       ##  1 Yes
       mutate(adjcloud = substr( qc_bitname, start=9, stop=9 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(adjcloud %in% c("0"), modisvar, NA)) %>%
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          adjcloud %in% c("0"), modisvar, NA)) %>%
 
       ## Bits 9: Atmosphere BRDF Correction
       ##   0 No
       ##   1 Yes
       mutate(brdf_corr = substr( qc_bitname, start=10, stop=10 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(brdf_corr %in% c("1"), modisvar, NA)) %>%
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          brdf_corr %in% c("1"), modisvar, NA)) %>%
 
       ## Bits 10: Mixed Clouds
       ##   0 No
       ##   1 Yes
       mutate(mixcloud = substr( qc_bitname, start=11, stop=11 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(mixcloud %in% c("0"), modisvar, NA)) %>%
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          mixcloud %in% c("0"), modisvar, NA)) %>%
 
       ## Bits 11-13: Land/Water Mask
       ##  000 Shallow ocean
@@ -368,13 +448,16 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       ##  0 No
       ##  1 Yes
       mutate(snowice = substr( qc_bitname, start=15, stop=15 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(snowice %in% c("0"), modisvar, NA)) %>%
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          snowice %in% c("0"), modisvar, NA)) %>%
 
       ## Bits 15: Possible shadow
       ##  0 No
       ##  1 Yes
       mutate(shadow = substr( qc_bitname, start=16, stop=16 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(shadow %in% c("0"), modisvar, NA)) %>%
+      dplyr::mutate(
+        modisvar_filtered = ifelse(shadow %in% c("0"), modisvar, NA)) %>%
 
       ## drop it
       dplyr::select(-qc_bitname)
@@ -382,9 +465,11 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
 
   } else if (prod=="MCD15A3H"){
 
-    ## QC interpreted according to https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H:
+    ## QC interpreted according to
+    ##  https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H:
 
-    ## This is interpreted according to https://lpdaac.usgs.gov/documents/2/mod15_user_guide.pdf, p.9
+    ## This is interpreted according to 
+    ## https://lpdaac.usgs.gov/documents/2/mod15_user_guide.pdf, p.9
     df <- df %>%
 
       dplyr::rename(modisvar = value) %>%
@@ -392,7 +477,12 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
 
       ## separate into bits
       rowwise() %>%
-      mutate(qc_bitname = intToBits( qc )[1:8] %>% rev() %>% as.character() %>% paste(collapse = "")) %>%
+      mutate(
+        qc_bitname = intToBits( qc )[1:8] %>%
+               rev() %>%
+               as.character() %>%
+               paste(collapse = "")
+        ) %>%
 
       ## MODLAND_QC bits
       ## 0: Good  quality (main algorithm with or without saturation)
@@ -418,29 +508,43 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       ## 10 2  Mixed cloud present in  pixel
       ## 11 3  Cloud state not defined,  assumed clear
       mutate(qc_bit3 = substr( qc_bitname, start=4, stop=5 )) %>%
-      mutate(CloudState = ifelse( qc_bit3=="00", 0, ifelse( qc_bit3=="01", 1, ifelse( qc_bit3=="10", 2, 3 ) ) )) %>%
+      mutate(CloudState = ifelse(
+        qc_bit3=="00", 0,
+        ifelse( qc_bit3=="01", 1,
+                ifelse( qc_bit3=="10", 2, 3 ) ) )
+        ) %>%
 
       ## SCF_QC (five level confidence score)
       ## 000 0 Main (RT) method used, best result possible (no saturation)
       ## 001 1 Main (RT) method used with saturation. Good, very usable
       ## 010 2 Main (RT) method failed due to bad geometry, empirical algorithm used
       ## 011 3 Main (RT) method failed due to problems other than geometry, empirical algorithm used
-      ## 100 4 Pixel not produced at all, value couldn???t be retrieved (possible reasons: bad L1B data, unusable MOD09GA data)
+      ## 100 4 Pixel not produced at all, value couldn???t be retrieved 
+      ## (possible reasons: bad L1B data, unusable MOD09GA data)
       mutate(qc_bit4 = substr( qc_bitname, start=1, stop=3 )) %>%
-      mutate(SCF_QC = ifelse( qc_bit4=="000", 0, ifelse( qc_bit4=="001", 1, ifelse( qc_bit4=="010", 2, ifelse( qc_bit4=="011", 3, 4 ) ) ) )) %>%
+      mutate(SCF_QC = ifelse(
+        qc_bit4=="000", 0,
+          ifelse( qc_bit4=="001", 1,
+                  ifelse( qc_bit4=="010", 2,
+                          ifelse( qc_bit4=="011", 3, 4 ) ) ) )
+        ) %>%
 
       ## Actually do the filtering
-      mutate(modisvar_filtered = ifelse( CloudState %in% c(0), modisvar_filtered, NA )) %>%
-      mutate(modisvar_filtered = ifelse( good_quality, modisvar_filtered, NA )) %>%
+      mutate(modisvar_filtered = ifelse(
+        CloudState %in% c(0), modisvar_filtered, NA )) %>%
+      mutate(modisvar_filtered = ifelse(
+        good_quality, modisvar_filtered, NA )) %>%
 
       ## new addition 5.1.2021
       # mutate(modisvar_filtered = ifelse( !dead_detector, modisvar_filtered, NA )) %>%
-      mutate(modisvar_filtered = ifelse( SCF_QC %in% c(0,1), modisvar_filtered, NA ))
+      mutate(modisvar_filtered = ifelse(
+        SCF_QC %in% c(0,1), modisvar_filtered, NA ))
 
 
   } else if (prod=="MOD17A2H"){
     ## Contains MODIS GPP
-    ## quality bitmap interpreted based on https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod17a2
+    ## quality bitmap interpreted based on 
+    ## https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod17a2
 
     ## No filtering here!
     df <- df %>%
@@ -452,8 +556,10 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     ##--------------------------------------
     ## Filter surface reflectance data
     ##--------------------------------------
-    ## QC interpreted according to https://modis-land.gsfc.nasa.gov/pdf/MOD09_UserGuide_v1.4.pdf,
-    ## Section 3.2.2, Table 10 500 m, 1 km and Coarse Resolution Surface Reflectance Band Quality Description (32-bit). Bit 0 is LSB.
+    ## QC interpreted according to 
+    ## https://modis-land.gsfc.nasa.gov/pdf/MOD09_UserGuide_v1.4.pdf,
+    ## Section 3.2.2, Table 10 500 m, 1 km and Coarse Resolution Surface 
+    ## Reflectance Band Quality Description (32-bit). Bit 0 is LSB.
     clean_sur_refl <- function(x, qc_binary){
       ifelse(qc_binary, x, NA)
     }
@@ -462,7 +568,10 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
 
       ## separate into bits
       rowwise() %>%
-      mutate(qc_bitname = intToBits( sur_refl_qc_500m ) %>% as.character() %>% paste(collapse = "")) %>%
+      mutate(qc_bitname = intToBits( sur_refl_qc_500m ) %>%
+               as.character() %>%
+               paste(collapse = "")
+             ) %>%
 
       ## Bits 0-1: MODLAND QA bits
       ##   00 corrected product produced at ideal quality -- all bands
@@ -470,8 +579,11 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       ##   10 corrected product not produced due to cloud effects -- all bands
       ##   11 corrected product not produced for other reasons -- some or all bands, may be fill value (11) [Note that a value of (11) overrides a value of (01)].
       mutate(modland_qc = substr( qc_bitname, start=1, stop=2 )) %>%
-      mutate(modland_qc_binary = ifelse(modland_qc %in% c("00"), TRUE, FALSE)) %>%   # false for removing data
-      mutate(across(starts_with("sur_refl_b"), ~clean_sur_refl(., modland_qc_binary))) %>%
+      mutate(
+        modland_qc_binary = ifelse(modland_qc %in% c("00"), TRUE, FALSE)
+        ) %>%   # false for removing data
+      mutate(across(starts_with("sur_refl_b"),
+                    ~clean_sur_refl(., modland_qc_binary))) %>%
 
       # ## Bits 2-5: band 1 data quality, four bit range
       # ##   0000 highest quality
@@ -619,7 +731,11 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
   i_focal <- ceiling(n_side/2)
   j_focal <- ceiling(n_side/2)
   if (i_focal != j_focal){ rlang::abort("Aborting. Non-quadratic subset.") }
-  if ((n_focal + 1) > i_focal){ rlang::abort(paste("Aborting. Not enough pixels available for your choice of n_focal:", n_focal)) }
+  if ((n_focal + 1) > i_focal){
+    rlang::abort(
+      paste("Aborting.
+             Not enough pixels available for your choice of n_focal:",
+            n_focal)) }
 
   arr_distance <- matrix(rep(NA, npixels), n_side, n_side, byrow = TRUE)
   for (i in seq(n_side)){
@@ -634,7 +750,8 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
   vec_usepixels <- c(arr_mask) %>% na.omit() %>% as.vector()
 
   rlang::inform(paste("Number of available pixels: ", npixels))
-  rlang::inform(paste("Averaging across number of pixels: ", length(vec_usepixels)))
+  rlang::inform(paste("Averaging across number of pixels: ",
+                      length(vec_usepixels)))
 
   ## take mean across selected pixels
   if (prod=="MOD09A1"){
@@ -642,24 +759,26 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
   } else {
     varnams <- c("modisvar", "modisvar_filtered")
   }
+  
+  # to control which pixel's information to be used.
   df <- df %>%
     group_by(date) %>%
-    dplyr::filter(pixel %in% vec_usepixels) %>%    # to control which pixel's information to be used.
+    dplyr::filter(pixel %in% vec_usepixels) %>%    
     summarise(across(varnams, ~mean(., na.rm = TRUE)))
 
-    # summarise(modisvar_filtered = mean(modisvar_filtered, na.rm = TRUE),
-    #           modisvar = mean(modisvar, na.rm = TRUE))
+  # summarise(modisvar_filtered = mean(modisvar_filtered, na.rm = TRUE),
+  #           modisvar = mean(modisvar, na.rm = TRUE))
 
   ##--------------------------------------
   ## merge N-day dataframe into daily one.
-  ## Warning: here, 'date' must be centered within 4-day period - thus not equal to start date but (start date + 2)
+  ## Warning: here, 'date' must be centered within 4-day period - 
+  ## thus not equal to start date but (start date + 2)
   ##--------------------------------------
   ddf <- ddf %>%
     left_join( df, by="date" )
 
   # ## extrapolate missing values at head and tail
   # ddf$modisvar <- extrapolate_missing_headtail(dplyr::select(ddf, var = modisvar, doy))
-
 
   ##--------------------------------------
   ## Interpolate
@@ -691,12 +810,14 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
         min(na.rm = TRUE)
 
       ## take a three-weeks window for locally weighted regression (loess)
-      ## good explanation: https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
+      ## good explanation: 
+      ## https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
       ndays_tot <- lubridate::time_length(diff(range(ddf$date)), unit = "day")
       span <- 100/ndays_tot # (20*period)/ndays_tot  # multiply with larger number to get smoother curve
 
       idxs    <- which(!is.na(ddf$modisvar_filtered))
-      myloess <- try( loess( modisvar_filtered ~ year_dec, data = ddf[idxs,], span=span ) )
+      myloess <- try( loess( modisvar_filtered ~ year_dec,
+                             data = ddf[idxs,], span=span ) )
 
       ## predict LOESS to all dates with missing data
       tmp <- try( predict( myloess, newdata = ddf ) )
@@ -713,7 +834,9 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       ##--------------------------------------
       rlang::inform("spline...")
       idxs   <- which(!is.na(ddf$modisvar_filtered))
-      spline <- try( with( ddf, smooth.spline( year_dec[idxs], modisvar_filtered[idxs], spar=0.01 ) ) )
+      spline <- try(
+        with(ddf,
+             smooth.spline(year_dec[idxs], modisvar_filtered[idxs], spar=0.01)))
 
       ## predict SPLINE
       tmp <- try( with( ddf, predict( spline, year_dec ) )$y)
@@ -730,7 +853,7 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
       ## LINEAR INTERPOLATION
       ##--------------------------------------
       rlang::inform("linear ...")
-      tmp <- try(approx( ddf$year_dec, ddf$modisvar_filtered, xout=ddf$year_dec ))
+      tmp <- try(approx(ddf$year_dec, ddf$modisvar_filtered, xout=ddf$year_dec))
       if (class(tmp) == "try-error"){
         ddf <- ddf %>% mutate(linear = NA)
       } else {
@@ -767,43 +890,58 @@ gapfill_interpol <- function( df, sitename, year_start, year_end, prod, method_i
     }
 
     # ## plot daily smoothed line and close plotting device
-    # if (do_plot_interpolated) with( ddf, lines( year_dec, fapar, col='red', lwd=2 ) )
-    # if (do_plot_interpolated) with( ddf, lines( year_dec, sgfilter, col='springgreen3', lwd=1 ) )
-    # if (do_plot_interpolated) with( ddf, lines( year_dec, spline, col='cyan', lwd=1 ) )
+    # if (do_plot_interpolated){
+    # with( ddf, lines( year_dec, fapar, col='red', lwd=2 ) )}
+    # if (do_plot_interpolated){
+    # with( ddf, lines( year_dec, sgfilter, col='springgreen3', lwd=1 ) )}
+    # if (do_plot_interpolated){
+    # with( ddf, lines( year_dec, spline, col='cyan', lwd=1 ) )
     # if (do_plot_interpolated){
     #   legend( "topright",
-    #           c("Savitzky-Golay filter", "Spline", "Linear interpolation (standard)"),
-    #           col=c("springgreen3", "cyan", "red" ), lty=1, lwd=c(1,1,2), bty="n", inset = c(0,-0.2)
+    # c("Savitzky-Golay filter", "Spline", "Linear interpolation (standard)"),
+    # col=c("springgreen3", "cyan", "red" ),
+    #  lty=1, lwd=c(1,1,2), bty="n", inset = c(0,-0.2)
     #   )
     # }
 
     ## limit to within 0 and 1 (loess spline sometimes "explodes")
     ddf <- ddf %>%
-      dplyr::mutate( modisvar_filled = replace( modisvar_filled, modisvar_filled<0, 0  ) ) %>%
-      dplyr::mutate( modisvar_filled = replace( modisvar_filled, modisvar_filled>1, 1  ) )
-
+      dplyr::mutate(
+        modisvar_filled = replace(modisvar_filled, modisvar_filled<0, 0)) %>%
+      dplyr::mutate(
+        modisvar_filled = replace(modisvar_filled, modisvar_filled>1, 1))
   }
 
   # ## extrapolate missing values at head and tail again
   # ##--------------------------------------
-  # ddf$modisvar_filled <- extrapolate_missing_headtail(dplyr::select(ddf, var = modisvar_filled))
+  # ddf$modisvar_filled <- extrapolate_missing_headtail(dplyr::select(ddf,
+  #  var = modisvar_filled))
 
   return( ddf )
 
 }
 
-extrapolate_missing_headtail <- function(ddf){
+
+
+extrapolate_missing_headtail <- function(
+  ddf
+  ){
+  
   ## extrapolate to missing values at head and tail using mean seasonal cycle
   ##--------------------------------------
 
   ## new: fill gaps at head
   idxs <- findna_head( ddf$var )
-  if (length(idxs)>0) rlang::warn("Filling values with last available data point at head")
+  if (length(idxs)>0){
+    rlang::warn("Filling values with last available data point at head")
+  }
   ddf$var[idxs] <- ddf$var[max(idxs)+1]
 
   ## new: fill gaps at tail
   idxs <- findna_tail( ddf$var )
-  if (length(idxs)>0) rlang::warn("Filling values with last available data point at tail.")
+  if (length(idxs)>0){
+    rlang::warn("Filling values with last available data point at tail.")
+  }
   ddf$var[idxs] <- ddf$var[min(idxs)-1]
 
   # ## get mean seasonal cycle
@@ -824,8 +962,7 @@ extrapolate_missing_headtail <- function(ddf){
   return(vec)
 }
 
-
-findna_headtail <- function( vec ){
+findna_headtail <- function(vec) {
 
   ## Remove (cut) NAs from the head and tail of a vector.
   ## Returns the indexes to be dropped from a vector
@@ -836,7 +973,7 @@ findna_headtail <- function( vec ){
 
 }
 
-findna_head <- function( vec ){
+findna_head <- function(vec) {
 
   ## Remove (cut) NAs from the head and tail of a vector.
   ## Returns the indexes to be dropped from a vector
@@ -858,9 +995,8 @@ findna_head <- function( vec ){
   } else {
     idxs_head <- c()
   }
-
+  
   return(idxs_head)
-
 }
 
 findna_tail <- function( vec ){
@@ -891,100 +1027,3 @@ findna_tail <- function( vec ){
 }
 
 na.omit.list <- function(y) { return(y[!sapply(y, function(x) all(is.na(x)))]) }
-
-## some old code:
-
-##--------------------------------------
-## This is for data downloaded using RModisTools
-##--------------------------------------
-
-# ##--------------------------------------
-# ## data cleaning
-# ##--------------------------------------
-# ## Replace data points with quality flag = 2 (snow covered) by 0
-# # df_gapfld$centre[ which(df_gapfld$centre_qc==2) ] <- max( min( df_gapfld$centre ), 0.0 )
-# df_gapfld$raw <- df_gapfld$centre
-# df_gapfld$centre[ which(df_gapfld$centre<0) ] <- NA
-
-# if (!is.null(df_gapfld$centre_qc)){
-#   ## Drop all data with quality flag 3, 1 or -1
-#   df_gapfld$centre[ which(df_gapfld$centre_qc==3) ]  <- NA  # Target not visible, covered with cloud
-#   df_gapfld$centre[ which(df_gapfld$centre_qc==1) ]  <- NA  # Useful, but look at other QA information
-#   df_gapfld$centre[ which(df_gapfld$centre_qc==-1) ] <- NA  # Not Processed
-# }
-
-# ## open plot for illustrating gap-filling
-# if (do_plot_interpolated) pdf( paste("fig/evi_fill_", sitename, ".pdf", sep="" ), width=10, height=6 )
-# if (do_plot_interpolated) plot( df_gapfld$year_dec, df_gapfld$raw, pch=16, col='black', main=sitename, ylim=c(0,1), xlab="year", ylab="MODIS EVI 250 m", las=1 )
-# left <- seq(2000, 2016, 2)
-# right <- seq(2001, 2017, 2)
-# if (do_plot_interpolated) rect( left, -99, right, 99, border=NA, col=rgb(0,0,0,0.2) )
-# if (do_plot_interpolated) points( df_gapfld$year_dec, df_gapfld$centre, pch=16, col='red' )
-
-# # ## Drop all data identified as outliers = lie outside 5*IQR
-# # df_gapfld$centre <- remove_outliers( df_gapfld$centre, coef=5 ) ## maybe too dangerous - removes peaks
-
-# ## add points to plot opened before
-# if (do_plot_interpolated) points( df_gapfld$year_dec, df_gapfld$centre, pch=16, col='blue' )
-
-# ##--------------------------------------
-# ## get LOESS spline model for predicting daily values (below)
-# ##--------------------------------------
-# idxs    <- which(!is.na(df_gapfld$centre))
-# myloess <- try( with( df_gapfld, loess( centre[idxs] ~ year_dec[idxs], span=0.01 ) ))
-# i <- 0
-# while (class(myloess)=="try-error" && i<50){
-#   i <- i + 1
-#   print(paste("i=",i))
-#   myloess <- try( with( df_gapfld, loess( centre[idxs] ~ year_dec[idxs], span=(0.01+0.002*(i-1)) ) ))
-# }
-# print("ok now...")
-
-# ##--------------------------------------
-# ## get spline model for predicting daily values (below)
-# ##--------------------------------------
-# spline <- try( with( df_gapfld, smooth.spline( year_dec[idxs], centre[idxs], spar=0.001 ) ) )
-
-# ## aggregate by DOY
-# agg <- aggregate( centre ~ doy, data=df_gapfld, FUN=mean, na.rm=TRUE )
-# if (is.element("centre_meansurr", names(df_gapfld))){
-#   agg_meansurr <- aggregate( centre_meansurr ~ doy, data=df_gapfld, FUN=mean, na.rm=TRUE )
-#   agg <- agg %>% left_join( agg_meansurr ) %>% dplyr::rename( centre_meandoy=centre, centre_meansurr_meandoy=centre_meansurr )
-# } else {
-#   agg <- agg %>% dplyr::rename( centre_meandoy=centre )
-# }
-# df_gapfld <- df_gapfld %>% left_join( agg )
-
-# ##--------------------------------------
-# ## gap-fill with information from surrounding pixels - XXX CHANGED THIS FOR AMERIWUE: NO INFO FROM MEAN OF SURROUNDINGS USED XXX
-# ##--------------------------------------
-# idxs <- which( is.na(df_gapfld$centre) )
-# if (is.element("centre_meansurr", names(df_gapfld))){
-#   ## get current anomaly of mean across surrounding pixels w.r.t. its mean annual cycle
-#   df_gapfld$anom_surr    <- df_gapfld$centre_meansurr / df_gapfld$centre_meansurr_meandoy
-#   # df_gapfld$centre[idxs] <- df_gapfld$centre_meandoy[idxs] * df_gapfld$anom_surr[idxs]
-# } else {
-#   # df_gapfld$centre[idxs] <- df_gapfld$centre_meandoy[idxs]
-# }
-# if (do_plot_interpolated) with( df_gapfld, points( year_dec[idxs], centre[idxs], pch=16, col='green' ) )
-# if (do_plot_interpolated) legend("topright", c("modis", "outliers", "after bad values dropped and outliers removed", "added from mean of surrounding" ), col=c("black", "red", "blue", "green" ), pch=16, bty="n" )
-# # legend("topleft", c("R LOESS smoothing with span=0.01", "R smooth.spline"), col=c("red", "dodgerblue"), lty=1, bty="n" )
-
-
-# # points( df_gapfld$yr_dec_read[idxs],  df_gapfld$centre[idxs],  pch=16 )
-# # points( df_gapfld$yr_dec_read[-idxs], df_gapfld$centre[-idxs], pch=16, col='blue' )
-
-# # ## Gap-fill remaining again by mean-by-DOY
-# # idxs <- which( is.na(df_gapfld$centre) )
-# # df_gapfld$centre[idxs] <- df_gapfld$centre_meandoy[idxs]
-# # # points( df_gapfld$yr_dec_read[idxs], df_gapfld$centre[idxs], pch=16, col='red' )
-
-# # ## Gap-fill still remaining by linear approximation
-# # idxs <- which( is.na(df_gapfld$centre) )
-# # if (length(idxs)>1){
-# #   df_gapfld$centre <- approx( df_gapfld$year_dec[-idxs], df_gapfld$centre[-idxs], xout=df_gapfld$year_dec )$y
-# # }
-
-# # points( df_gapfld$yr_dec_read[idxs], df_gapfld$centre[idxs], pch=16, col='green' )
-# # lines( df_gapfld$yr_dec_read, df_gapfld$centre )
-# # dev.off()
