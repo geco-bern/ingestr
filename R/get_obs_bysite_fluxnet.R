@@ -9,8 +9,9 @@
 #' @param dir A character string specifying the local path of
 #' FLUXNET data.
 #' @param dir_hh A character string specifying the local path of
-#' half-hourly FLUXNET data, required to get daytime VPD. Defaults to
-#' \code{NULL} (no daytime VPD is calculated).
+#' half-hourly FLUXNET data, required to get daytime VPD and daily minimum 
+#' temperature. Defaults to \code{NULL} (no daytime VPD or daily minimum
+#' temperature is calculated).
 #' @param dir_hr A character string specifying the local path of
 #' hourly FLUXNET data, required to get daytime VPD. Defaults to
 #' \code{NULL} (no daytime VPD is calculated).
@@ -411,6 +412,158 @@ get_obs_bysite_fluxnet <- function(
 
   }
 
+  ##-----------------------------------------------------------------
+  ## Get minimum temperature
+  ##-----------------------------------------------------------------
+  merge_df_tmin_dd <- FALSE
+  if ("TMIN_F" %in% getvars && !(timescale == "hh")) {
+    
+    ## 1. Check whether daily file for daily mimimum temperature is already available
+    ##-----------------------------------------------------------------
+    ## get file name(s) of file containing daily daytime VPD derived from half-hourly data
+    filename_dd_tmin <- list.files(
+      dir,
+      pattern = paste0("FLX_", sitename, ".*_TMIN.csv"),
+      recursive = FALSE
+    )
+    
+    if (length(filename_dd_tmin)>0){
+      ## Read available file
+      ##-----------------------------------------------------------------
+      if (length(filename_dd_tmin)>1){
+        file.info_getsize <- function(filn){
+          file.info(filn)$size
+        }
+        rlang::warn("Reading only largest TMIN file available")
+        path_dd_tmin <- paste0(dir_hh, filename_dd_tmin)
+        size_vec <- purrr::map_dbl(as.list(path_dd_tmin), ~file.info_getsize(.))
+        path_dd_tmin <- path_dd_tmin[which.max(size_vec)]
+        filename_dd_tmin <- basename(path_dd_tmin)
+      }
+      
+      ## read directly
+      if (verbose) print(paste("Reading daytime tmin directly from:", paste0(dir_hh, filename_dd_tmin)))
+      df_tmin_dd <- readr::read_csv(paste0(dir, filename_dd_tmin))
+      merge_df_tmin_dd <- TRUE
+      
+    } else {
+      ## Create new daily tmin file from half-hourly data
+      ##-----------------------------------------------------------------
+      if (is.null(dir_hh)){
+        
+        rlang::warn("Argument dir_hh is not provided. Daytime tmin could not be calculated.")
+        
+      } else {
+        
+        ## get half-hourly file name(s)
+        filn_hh <- list.files( dir_hh,
+                               pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
+                               recursive = TRUE
+        )
+        
+        if (length(filn_hh)>0){
+          
+          path_hh <- paste0(dir_hh, filn_hh)
+          
+          if (length(filn_hh)>1){
+            file.info_getsize <- function(filn){
+              file.info(filn)$size
+            }
+            rlang::warn("Reading only largest half-hourly file available")
+            size_vec <- purrr::map_dbl(as.list(path_hh), ~file.info_getsize(.))
+            path_hh <- path_hh[which.max(size_vec)]
+          }
+          
+          rlang::inform("Reading half-hourly data to calculate daytime tmin ...")
+          df_tmin_dd <- get_tmin_fluxnet2015_byfile(path_hh, write = TRUE)
+          merge_df_tmin_dd <- TRUE
+          
+        } else {
+          
+          rlang::warn(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
+          
+          ## get hourly file name(s)
+          filn_hr <- list.files( dir_hr,
+                                 pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HR.*.csv" ),
+                                 recursive = TRUE
+          )
+          if (length(filn_hr)>0){
+            
+            path_hr <- paste0(dir_hr, filn_hr)
+            
+            if (length(filn_hr)>1){
+              file.info_getsize <- function(filn){
+                file.info(filn)$size
+              }
+              rlang::warn("Reading only largest hourly file available")
+              size_vec <- purrr::map_dbl(as.list(path_hr), ~file.info_getsize(.))
+              path_hr <- path_hr[which.max(size_vec)]
+            }
+            
+            rlang::inform("Reading hourly data to calculate tmin ...")
+            df_tmin_dd <- get_tmin_fluxnet2015_byfile(path_hr, write = TRUE)
+            merge_df_tmin_dd <- TRUE
+            
+          }
+        }
+      }
+    }
+    
+    if (merge_df_tmin_dd){
+      
+      if (timescale=="d"){
+        
+        # daily
+        df <- df %>% dplyr::left_join(df_tmin_dd, by="date")
+        
+      } else if (timescale=="w"){
+        
+        # weekly
+        df <- df_tmin_dd %>%
+          dplyr::mutate(year = lubridate::year(date),
+                        week = lubridate::week(date)) %>%
+          dplyr::group_by(sitename, year, week) %>%
+          dplyr::summarise(TMIN_F = min(TA_F, na.rm=TRUE),
+                           TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+                           TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
+                           TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+                           TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::right_join(df, by="date")
+        
+      } else if (timescale=="m"){
+        
+        # monthly
+        df <- df_tmin_dd %>%
+          dplyr::mutate(year = lubridate::year(date),
+                        moy = lubridate::month(date)) %>%
+          dplyr::group_by(sitename, year, moy) %>%
+          dplyr::summarise(TMIN_F = min(TA_F, na.rm=TRUE),
+                           TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+                           TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
+                           TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+                           TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::right_join(df, by="date")
+        
+      } else if (timescale=="y"){
+        
+        # annual
+        df <- df_tmin_dd %>%
+          dplyr::mutate(year = lubridate::year(date)) %>%
+          dplyr::group_by(sitename, year) %>%
+          dplyr::summarise(TMIN_F = min(TA_F, na.rm=TRUE),
+                           TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+                           TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
+                           TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+                           TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::right_join(df, by="date")
+        
+      }
+      
+    }
+    
+  }
+
+    
   ##----------------------------------------------------------
   ## Reduce data to getvars
   ##----------------------------------------------------------
@@ -726,7 +879,7 @@ get_obs_fluxnet2015_raw <- function( sitename, path, freq="d" ){
 
   }
 
-  return( df )
+  return( as_tibble(df) )
 
 }
 
