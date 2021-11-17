@@ -88,7 +88,7 @@ get_vpd_day_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
     ## write to csv file  
     if (write){
       rlang::inform(paste("Writing file with daytime VPD as:", filename_dd_vpd))
-      readr::write_csv(df, file = filename_dd_vpd)
+      readr::write_csv(df, path = filename_dd_vpd)
     }
     
   }
