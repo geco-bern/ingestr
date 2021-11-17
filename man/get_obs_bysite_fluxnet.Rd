@@ -35,8 +35,9 @@ of the respective file name). Defaults to NA.}
 FLUXNET data.}
 
 \item{dir_hh}{A character string specifying the local path of
-half-hourly FLUXNET data, required to get daytime VPD. Defaults to
-\code{NULL} (no daytime VPD is calculated).}
+half-hourly FLUXNET data, required to get daytime VPD and daily minimum 
+temperature. Defaults to \code{NULL} (no daytime VPD or daily minimum
+temperature is calculated).}
 
 \item{dir_hr}{A character string specifying the local path of
 hourly FLUXNET data, required to get daytime VPD. Defaults to

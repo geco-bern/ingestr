@@ -2,20 +2,23 @@
 % Please edit documentation in R/ingest_modis_bysite.R
 \name{ingest_modis_bysite}
 \alias{ingest_modis_bysite}
-\title{Defines settings for settings for Google Earth Engine download}
+\title{Download data by site}
 \usage{
 ingest_modis_bysite(df_siteinfo, settings)
 }
 \arguments{
-\item{df_siteinfo}{xxx}
+\item{df_siteinfo}{site info data frame}
 
-\item{settings}{xxx}
+\item{settings}{download settings}
 }
 \value{
 A named list containing information required for download from Google
 Earth Engine.
 }
 \description{
+Requires a list of sites, and a settings file.
+}
+\details{
 Returns a list of two data frames, one with data at original
 modis dates (df), and one interpolated to all days (ddf).
 }
