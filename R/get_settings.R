@@ -185,15 +185,27 @@ get_settings_modis <- function(
       network = network
     )
     
-     } else if (bundle == "modis_lst_daily") { ## daily average
+     } else if (bundle == "modis_lst_daily_noModisTool") { ## daily average - no modisTool
     out <- list(
-      prod     = "MOD21A1N",
+      prod     = "MOD21A1D",
       band_var = "LST_Day_1KM",
       band_qc  = "QC_Day",
       varnam   = "lst",
       period   = 4,
-      prod_suffix = "MOD21A1N",
-      productnam = "MODIS_LST_MOD21A1N",
+      prod_suffix = "MOD21A1D",
+      productnam = "MODIS_LST_MOD21A1D",
+      network = network
+    )
+    
+    } else if (bundle == "modis_lst_daily") { ## daily average
+    out <- list(
+      prod     = "MOD11A1",
+      band_var = "LST_Day_1KM",
+      band_qc  = "QC_Day",
+      varnam   = "lst",
+      period   = 4,
+      prod_suffix = "MOD11A1",
+      productnam = "MODIS_LST_MOD11A1",
       network = network
     )
     
