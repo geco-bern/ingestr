@@ -21,8 +21,6 @@ Description: Ingest site-scale time series of environmental data from large
  files and remote repositories.
 License: GPL-3
 Encoding: UTF-8
-Depends:
-    R (>= 4.0)
 Imports: 
   dplyr,
   purrr,
