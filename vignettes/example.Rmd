@@ -798,7 +798,13 @@ This ingests meteorological data from the FLUXNET files for variables temperatur
 ddf_fluxnet <- ingest(
   siteinfo  = siteinfo %>% slice(1:3),
   source    = "fluxnet",
-  getvars   = list(temp = "TA_F", prec = "P_F", vpd  = "VPD_F", ppfd =  "SW_IN_F", netrad = "NETRAD", patm = "PA_F"),
+  getvars   = list(temp = "TA_F", 
+                   prec = "P_F", 
+                   vpd  = "VPD_F", 
+                   ppfd =  "SW_IN_F", 
+                   netrad = "NETRAD", 
+                   patm = "PA_F"
+                   ),
   dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/",  # adjust this with your local path
   settings  = list(
     dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", # adjust this with your local path
