@@ -570,8 +570,7 @@ gapfill_interpol <- function(
     ##----------------------------------------
     ## Filter available landsurface temperature data for daily-means
     ##----------------------------------------
-    ## QC interpreted according to https://lpdaac.usgs.gov/documents/108/MOD21_User_Guide_V6.pdf
-    ## QC interpreted according to https://vip.arizona.edu/documents/MODIS/MODIS_VI_UsersGuide_June_2015_C6.pdf 
+    ## QC interpreted according to https://lpdaac.usgs.gov/documents/118/MOD11_User_Guide_V6.pdf
      df <- df %>%
       dplyr::rename(modisvar = value) %>%
       dplyr::mutate(modisvar_filtered = modisvar) %>%
@@ -619,7 +618,6 @@ gapfill_interpol <- function(
     ## Filter available landsurface temperature data for daily-means
     ##----------------------------------------
     ## QC interpreted according to https://lpdaac.usgs.gov/documents/108/MOD21_User_Guide_V6.pdf
-    ## QC interpreted according to https://vip.arizona.edu/documents/MODIS/MODIS_VI_UsersGuide_June_2015_C6.pdf 
      df <- df %>%
       dplyr::rename(modisvar = value) %>%
       dplyr::mutate(modisvar_filtered = modisvar) %>%
@@ -694,12 +692,11 @@ gapfill_interpol <- function(
       ## drop it
       dplyr::select(-qc_bitname)
     
-    else if (prod=="MYD21A2"){    
+    } else if (prod=="MYD21A2"){    
     ##----------------------------------------
     ## Filter available landsurface data for 8-day-means
     ##----------------------------------------
     ## QC interpreted according to https://lpdaac.usgs.gov/documents/108/MOD21_User_Guide_V6.pdf
-    ## QC interpreted according to https://vip.arizona.edu/documents/MODIS/MODIS_VI_UsersGuide_June_2015_C6.pdf
    
     df <- df %>%
       dplyr::rename(modisvar = value) %>%
