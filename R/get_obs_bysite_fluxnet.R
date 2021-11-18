@@ -563,6 +563,157 @@ get_obs_bysite_fluxnet <- function(
     
   }
 
+  ##-----------------------------------------------------------------
+  ## Get maximum temperature
+  ##-----------------------------------------------------------------
+  merge_df_tmax_dd <- FALSE
+  if ("TMAX_F" %in% getvars && !(timescale == "hh")) {
+    
+    ## 1. Check whether daily file for daily mimimum temperature is already available
+    ##-----------------------------------------------------------------
+    ## get file name(s) of file containing daily daytime VPD derived from half-hourly data
+    filename_dd_tmax <- list.files(
+      dir,
+      pattern = paste0("FLX_", sitename, ".*_TMAX.csv"),
+      recursive = FALSE
+    )
+    
+    if (length(filename_dd_tmax)>0){
+      ## Read available file
+      ##-----------------------------------------------------------------
+      if (length(filename_dd_tmax)>1){
+        file.info_getsize <- function(filn){
+          file.info(filn)$size
+        }
+        rlang::warn("Reading only largest tmax file available")
+        path_dd_tmax <- paste0(dir_hh, filename_dd_tmax)
+        size_vec <- purrr::map_dbl(as.list(path_dd_tmax), ~file.info_getsize(.))
+        path_dd_tmax <- path_dd_tmax[which.max(size_vec)]
+        filename_dd_tmax <- basename(path_dd_tmax)
+      }
+      
+      ## read directly
+      if (verbose) print(paste("Reading daytime tmax directly from:", paste0(dir_hh, filename_dd_tmax)))
+      df_tmax_dd <- readr::read_csv(paste0(dir, filename_dd_tmax))
+      merge_df_tmax_dd <- TRUE
+      
+    } else {
+      ## Create new daily tmax file from half-hourly data
+      ##-----------------------------------------------------------------
+      if (is.null(dir_hh)){
+        
+        rlang::warn("Argument dir_hh is not provided. Daytime tmax could not be calculated.")
+        
+      } else {
+        
+        ## get half-hourly file name(s)
+        filn_hh <- list.files( dir_hh,
+                               pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
+                               recursive = TRUE
+        )
+        
+        if (length(filn_hh)>0){
+          
+          path_hh <- paste0(dir_hh, filn_hh)
+          
+          if (length(filn_hh)>1){
+            file.info_getsize <- function(filn){
+              file.info(filn)$size
+            }
+            rlang::warn("Reading only largest half-hourly file available")
+            size_vec <- purrr::map_dbl(as.list(path_hh), ~file.info_getsize(.))
+            path_hh <- path_hh[which.max(size_vec)]
+          }
+          
+          rlang::inform("Reading half-hourly data to calculate daytime tmax ...")
+          df_tmax_dd <- get_tmax_fluxnet2015_byfile(path_hh, write = TRUE)
+          merge_df_tmax_dd <- TRUE
+          
+        } else {
+          
+          rlang::warn(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
+          
+          ## get hourly file name(s)
+          filn_hr <- list.files( dir_hr,
+                                 pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HR.*.csv" ),
+                                 recursive = TRUE
+          )
+          if (length(filn_hr)>0){
+            
+            path_hr <- paste0(dir_hr, filn_hr)
+            
+            if (length(filn_hr)>1){
+              file.info_getsize <- function(filn){
+                file.info(filn)$size
+              }
+              rlang::warn("Reading only largest hourly file available")
+              size_vec <- purrr::map_dbl(as.list(path_hr), ~file.info_getsize(.))
+              path_hr <- path_hr[which.max(size_vec)]
+            }
+            
+            rlang::inform("Reading hourly data to calculate tmax ...")
+            df_tmax_dd <- get_tmax_fluxnet2015_byfile(path_hr, write = TRUE)
+            merge_df_tmax_dd <- TRUE
+            
+          }
+        }
+      }
+    }
+    
+    if (merge_df_tmax_dd){
+      
+      if (timescale=="d"){
+        
+        # daily
+        df <- df %>% dplyr::left_join(df_tmax_dd, by="date")
+        
+      } else if (timescale=="w"){
+        
+        # weekly
+        df <- df_tmax_dd %>%
+          dplyr::mutate(year = lubridate::year(date),
+                        week = lubridate::week(date)) %>%
+          dplyr::group_by(sitename, year, week) %>%
+          dplyr::summarise(TMAX_F = max(TA_F, na.rm=TRUE),
+                           TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+                           TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
+                           TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+                           TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::right_join(df, by="date")
+        
+      } else if (timescale=="m"){
+        
+        # monthly
+        df <- df_tmax_dd %>%
+          dplyr::mutate(year = lubridate::year(date),
+                        moy = lubridate::month(date)) %>%
+          dplyr::group_by(sitename, year, moy) %>%
+          dplyr::summarise(TMAX_F = max(TA_F, na.rm=TRUE),
+                           TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+                           TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
+                           TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+                           TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::right_join(df, by="date")
+        
+      } else if (timescale=="y"){
+        
+        # annual
+        df <- df_tmax_dd %>%
+          dplyr::mutate(year = lubridate::year(date)) %>%
+          dplyr::group_by(sitename, year) %>%
+          dplyr::summarise(TMAX_F = max(TA_F, na.rm=TRUE),
+                           TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+                           TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
+                           TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+                           TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::right_join(df, by="date")
+        
+      }
+      
+    }
+    
+  }
+
     
   ##----------------------------------------------------------
   ## Reduce data to getvars

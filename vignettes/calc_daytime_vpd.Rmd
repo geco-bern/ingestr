@@ -8,6 +8,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+library(tidyverse)
 library(ingestr)
 ```
 
@@ -41,6 +42,26 @@ df_fluxnet <- ingest_bysite(
   sitename = "FR-Pue",
   source = "fluxnet",
   getvars = list(tmin  = "TMIN_F"),
+  dir = paste0(path.package("ingestr"), "/extdata/"),
+  settings = settings_fluxnet,
+  timescale = "d",
+  year_start = 2007,
+  year_end = 2007,
+  verbose = FALSE
+  )
+df_fluxnet
+```
+
+## Daily maximum temperature
+
+Daily maximum temperature is not provided in the daily FLUXNET2015 data files. Instead, we can derive it based on the half-hourly data. To do this, we can set the `getvars` argument to `list(tmin  = "TMIN_F")` and additionally provide the directory where half-hourly files are located locally through the argument `settings`. We do this just for one year here (only year 2000 data is provided as external data in this package).
+```{r message=FALSE}
+settings_fluxnet <- list(dir_hh = paste0(path.package("ingestr"), "/extdata/"), getswc = FALSE)
+
+df_fluxnet <- ingest_bysite(
+  sitename = "FR-Pue",
+  source = "fluxnet",
+  getvars = list(tmax  = "TMAX_F"),
   dir = paste0(path.package("ingestr"), "/extdata/"),
   settings = settings_fluxnet,
   timescale = "d",

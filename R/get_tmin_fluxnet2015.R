@@ -1,17 +1,15 @@
-#' Get daytime VPD for all files in a directory.
+#' Get daily minimum temperature for all files in a directory.
 #'
-#' Wrapper function to derive daily daytime VPD from half-hourly data 
+#' Wrapper function to derive daily daily minimum temperature from half-hourly data 
 #' for all site-scale data files in a given directory (argument \code{dir}).
-#' filtering hours where the shortwave incoming radiation (SW_IN_F) is
-#' zero and aggregating taking the mean across remaining hours per day.
 #'
 #' @param dir A character string specifying the directory in which to look
 #' for site-specific half-hourly data files.
 #'
-#' @return A list of outputs of the function \link{get_vpd_day_fluxnet2015_byfile}.
+#' @return A list of outputs of the function \link{get_tmin_fluxnet2015}.
 #' @export
 #'
-#' @examples df <- get_vpd_day_fluxnet2015("./")
+#' @examples df <- get_tmin_fluxnet2015("./")
 #' 
 get_tmin_fluxnet2015 <- function(dir){
   
@@ -22,19 +20,17 @@ get_tmin_fluxnet2015 <- function(dir){
   return(out)
 }
 
-#' Get daytime VPD
+#' Get daily minimum temperature
 #'
-#' Derive daily daytime VPD (vapour pressure deficit) from half-hourly 
-#' data filtering hours where the shortwave incoming radiation (SW_IN_F) 
-#' is greater than zero and aggregating taking the mean across remaining 
-#' hours per day.
+#' Derive daily minimum temperature from half-hourly 
+#' data.
 #'
 #' @param filename_hh A character string specifying the file name containing
-#' site-specific half-hourly data.
-#' @param write A logical specifying whether daiily daytime VPD should be 
+#' site-specific half-hourly (or hourly) data.
+#' @param write A logical specifying whether daiily daytime tmin should be 
 #' written to a file.
 #'
-#' @return A data frame (tibble) containing daily daytime VPD.
+#' @return A data frame (tibble) containing daily daytime tmin.
 #' @export
 #'
 #' @examples df <- get_tmin_fluxnet2015_byfile("./FLX_BE-Vie_FLUXNET2015_FULLSET_HH_1996-2014_1-3.csv")
@@ -46,13 +42,13 @@ get_tmin_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
     stringr::str_replace(".csv", "_TMIN.csv")
   
   if (file.exists(filename_dd_tmin)){
-    ## Daytime VPD file is already available, reading from file
-    # print(paste("Reading daytime VPD from:", filename_dd_tmin))
+    ## Daytime tmin file is already available, reading from file
+    # print(paste("Reading daytime tmin from:", filename_dd_tmin))
     rlang::inform(paste("Reading file with calculated daily TMIN:", filename_dd_tmin))
     df <- readr::read_csv(filename_dd_tmin)
     
   } else {
-    ## Get daytime VPD from half-hourly data
+    ## Get daytime tmin from half-hourly data
     ## read half-hourly data
     if (!file.exists(filename_hh)){
       rlang::abort(paste("Half-hourly file does not exist:", filename_hh))
