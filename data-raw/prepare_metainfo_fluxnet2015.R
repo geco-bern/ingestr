@@ -47,10 +47,10 @@ siteinfo <- siteinfo %>%
 
 message("grabbing info from fluxnet filenames")
 
-fluxnet2015 <- "/data/Dropbox/DATA/fluxnet2015/"
+fluxnet2015 <- "~/data/flux_data_kit/fluxnet2015/"
 flux_files <- data.frame(filename = list.files(
   fluxnet2015,
-  pattern="_DD_",
+  pattern = "FULLSET_HH_",
   recursive = TRUE,
   full.names = FALSE
 )) %>%
@@ -154,6 +154,10 @@ siteinfo <- siteinfo %>%
     ) %>%
   dplyr::select(-koeppen_code_extr)
 
+print(siteinfo)
+
+#---- sort stuff -----
+
 siteinfo <- siteinfo %>% 
   dplyr::select(
     sitename,
@@ -171,4 +175,4 @@ siteinfo <- siteinfo %>%
     )
 
 #----- save the data as rda file -----
-save(siteinfo, file = "data/siteinfo_fluxnet2015.rda")
+#save(siteinfo, file = "data/siteinfo_fluxnet2015.rda")
