@@ -709,7 +709,7 @@ ingest_bysite <- function(
     
   }  else {
     rlang::warn(paste("you selected source =", source))
-    rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
+    rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'wfde5', 'co2_mlo', 'etopo1', or 'gee'.")
   }
 
   ## add data frame to nice data frame containing all required time steps
