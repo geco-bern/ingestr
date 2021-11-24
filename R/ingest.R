@@ -146,7 +146,12 @@ ingest <- function(
           year_start_wc <- 1979  # no earlier years available
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
-                   year_end = ifelse(year_end > year_end_wc, year_end, year_end_wc))
+                   year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
+        } else if (source == "wfde5"){
+          rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WRFDE5 data is ingested for 1979-(at least) 2000.")
+          siteinfo <- siteinfo %>% 
+            mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
+                   year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
         } else if (source == "cru"){
           rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore CRU data is ingested for 1970-(at least) 2000.")
           siteinfo <- siteinfo %>% 
@@ -250,7 +255,7 @@ ingest <- function(
                                        verbose = FALSE,
                                        layer = unique(getvars_wc))
 
-        ## Bias correction for temperature: substract difference
+        ## Bias correction for temperature: subtract difference
         if ("tavg" %in% getvars_wc){
           df_bias <- df_fine %>%
             dplyr::select(sitename, starts_with("tavg_")) %>%
@@ -275,7 +280,7 @@ ingest <- function(
             dplyr::select(-bias, -month)
         }
 
-        ## Bias correction for temperature: substract difference
+        ## Bias correction for temperature: subtract difference
         if ("tmin" %in% getvars_wc){
           if (source == "cru"){ # no tmin or tmax in wwfd
             df_bias <- df_fine %>%
@@ -303,7 +308,7 @@ ingest <- function(
         }    
 
 
-        ## Bias correction for temperature: substract difference
+        ## Bias correction for temperature: subtract difference
         if ("tmax" %in% getvars_wc){
           if (source == "cru"){ # no tmin or tmax in wwfd
             df_bias <- df_fine %>%
