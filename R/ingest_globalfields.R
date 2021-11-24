@@ -674,7 +674,7 @@ ingest_globalfields_wfde5_byvar <- function( ddf, siteinfo, dir, varnam ){
   )
   
   if (varnam %in% c("Rainf", "Snowf")){
-    addstring <- "_WFDEI_CRU+GPCC_"
+    addstring <- "_WFDE5_CRU+GPCC_"
   } else {
     addstring <- "_WFDE5_CRU_"
   }
