@@ -526,8 +526,8 @@ ingest_bysite <- function(
         dplyr::select(year = yy, month = mm, co2_avg)
     }
     
-    df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
-      dplyr::mutate(month = month(date), year = lubridate::year(date)) %>%
+    df_tmp <- init_dates_dataframe( year_start, year_end, timescale = timescale ) %>%
+      dplyr::mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%
       dplyr::left_join(
         df_co2,
         by = c("year", "month")
@@ -548,8 +548,8 @@ ingest_bysite <- function(
       rlang::abort("File cCO2_rcp85_const850-1765.csv must be available in directory specified by 'dir'.")     
     }
     
-    df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
-      dplyr::mutate(month = month(date), year = lubridate::year(date)) %>%
+    df_tmp <- init_dates_dataframe( year_start, year_end, timescale = timescale ) %>%
+      dplyr::mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%
       dplyr::left_join(
         df_co2,
         by = c("year")
@@ -562,7 +562,7 @@ ingest_bysite <- function(
     #-----------------------------------------------------------
     # Assume fapar = 1 for all dates
     #-----------------------------------------------------------
-    df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
+    df_tmp <- init_dates_dataframe( year_start, year_end, timescale = timescale ) %>%
       dplyr::mutate(sitename = sitename, fapar = 1.0)
 
   } else if (source == "etopo1"){

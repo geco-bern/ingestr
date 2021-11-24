@@ -675,7 +675,8 @@ ingest <- function(
 	      df_co2,
 	      sitename = siteinfo$sitename[.],
 	      year_start = lubridate::year(siteinfo$date_start[.]),
-	      year_end   = lubridate::year(siteinfo$date_end[.])
+	      year_end   = lubridate::year(siteinfo$date_end[.]),
+	      timescale  = timescale
 	      )
 	    )
 
@@ -699,7 +700,8 @@ ingest <- function(
 	      df_co2,
 	      sitename = siteinfo$sitename[.],
 	      year_start = lubridate::year(siteinfo$date_start[.]),
-	      year_end   = lubridate::year(siteinfo$date_end[.])
+	      year_end   = lubridate::year(siteinfo$date_end[.]),
+	      timescale = timescale
 	    )
 	  )
 
@@ -710,9 +712,10 @@ ingest <- function(
 	  ddf <- purrr::map(
 	    as.list(seq(nrow(siteinfo))),
 	    ~expand_bysite(
-	      sitename = siteinfo$sitename[.],
+	      sitename   = siteinfo$sitename[.],
 	      year_start = lubridate::year(siteinfo$date_start[.]),
-	      year_end   = lubridate::year(siteinfo$date_end[.])
+	      year_end   = lubridate::year(siteinfo$date_end[.]),
+	      timescale  = timescale
 	      ) %>%
 	      mutate(fapar = 1.0)
 	  )
@@ -831,9 +834,9 @@ ingest <- function(
 }
 
 ## give each site and day within year the same co2 value
-expand_co2_bysite <- function(df, sitename, year_start, year_end){
+expand_co2_bysite <- function(df, sitename, year_start, year_end, timescale){
 
-  ddf <- init_dates_dataframe( year_start, year_end ) %>%
+  ddf <- init_dates_dataframe( year_start, year_end, timescale = timescale) %>%
     dplyr::mutate(year = lubridate::year(date)) %>%
     dplyr::left_join(
       df,
@@ -844,9 +847,9 @@ expand_co2_bysite <- function(df, sitename, year_start, year_end){
   return(ddf)
 }
 
-expand_bysite <- function(sitename, year_start, year_end){
+expand_bysite <- function(sitename, year_start, year_end, timescale ){
 
-  ddf <- init_dates_dataframe( year_start, year_end ) %>%
+  ddf <- init_dates_dataframe( year_start, year_end, timescale = timescale) %>%
     dplyr::mutate(sitename = sitename)
 
   return(ddf)
