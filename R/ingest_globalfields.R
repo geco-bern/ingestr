@@ -690,13 +690,10 @@ ingest_globalfields_wfde5_byvar <- function( ddf, siteinfo, dir, varnam ){
   allmonths <- 1:12
   allyears <- year_start_read:year_end_read
   df <- 
-    # expand.grid(alldays, allmonths, allyears) %>%
     expand.grid(allmonths, allyears) %>%
     dplyr::as_tibble() %>%
-    # setNames(c("dom", "mo", "yr")) %>%
     setNames(c("mo", "yr")) %>%
     rowwise() %>%
-    # dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), endstring, ".nc" )) %>%
     dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), endstring, ".nc" )) %>%
     ungroup() %>%
     dplyr::mutate(data = purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat, get_time = FALSE ) ))
@@ -705,17 +702,20 @@ ingest_globalfields_wfde5_byvar <- function( ddf, siteinfo, dir, varnam ){
   complement_df <- function(df){
     df <- df %>%
       setNames(., c("myvar")) %>%
-      mutate( hom = 1:nrow(.))
+      mutate( row = 1:nrow(.),
+              hod = rep(0:23, nrow(.)/24),
+              dom = ceiling(row/24))
     return(df)
   }
   
+  ## New Try:
   ddf <- df %>%
     tidyr::unnest(data) %>%
     dplyr::mutate(data = purrr::map(data, ~complement_df(.))) %>%
     tidyr::unnest(data) %>%
-    cbind(ddf %>% dplyr::select(-sitename)) %>% 
-    dplyr::select(sitename, myvar, date) %>% 
-    dplyr::as_tibble()
+    dplyr::select(sitename, mo, yr, dom, hod, myvar) %>%
+    dplyr::mutate(date = lubridate::ymd_h(paste0(as.character(yr), "-", sprintf( "%02d", mo), "-", sprintf( "%02d", dom), " ", sprintf( "%02d", hod))) ) %>%
+    dplyr::select(-mo, -yr, -dom, -hod)
   
   ## create data frame containing all dates, using mean annual cycle (of 1979-1988) for all years before 1979
   if (pre_data){
