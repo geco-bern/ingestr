@@ -127,6 +127,77 @@ ingest_globalfields <- function(
       rlang::abort("ingest_globalfields(): aggregating WATCH-WFDEI to monthly not implemented yet.")
     }
     
+  } else if (source=="wfde5"){
+    ##----------------------------------------------------------------------
+    ## Read WFDE5 data (extracting from NetCDF files for this site)
+    ##----------------------------------------------------------------------
+    ## Development Checks
+    if (timescale != "h"){
+      rlang::abort("ingest_globalfields(): WFDE5 currently only holds implementation of houry ingestion.")
+    }
+    
+    ## vpd based on relative humidity, air temperature, and atmospheric pressure
+    if ("vpd" %in% getvars){
+      df_out <- ingest_globalfields_wfde5_byvar( df_out, siteinfo, dir, "Qair" ) %>%
+        dplyr::rename(qair = myvar) %>%
+        dplyr::right_join(df_out, by = c("sitename", "date")) %>%
+        left_join(
+          ingest_globalfields_wfde5_byvar( df_out, siteinfo, dir, "Tair" ) %>%
+            dplyr::rename(temp = myvar) %>%
+            dplyr::mutate(temp = temp - 273.15),
+          by = c("sitename", "date")
+        ) %>%
+        left_join(
+          ingest_globalfields_wfde5_byvar( df_out, siteinfo, dir, "PSurf" ) %>%
+            dplyr::rename(patm = myvar),
+          by = c("sitename", "date")
+        )
+    }
+    
+    ## precipitation
+    if ("prec" %in% getvars){
+      df_out <- ingest_globalfields_wfde5_byvar( df_out, siteinfo, dir, "Rainf" ) %>%
+        dplyr::rename( rain = myvar ) %>%
+        left_join(
+          ingest_globalfields_wfde5_byvar( df_out, siteinfo, dir, "Snowf" ) %>%
+            dplyr::rename( snow = myvar ),
+          by = c("sitename", "date")
+        ) %>%
+        dplyr::mutate(prec = (rain + snow) ) %>%  # kg/m2/s
+        dplyr::right_join(df_out, by = c("sitename", "date"))
+    }
+    
+    ## temperature
+    if ("temp" %in% getvars && !("temp" %in% names(df_out))){
+      df_out <- ingest_globalfields_wfde5_byvar( df_out, siteinfo, dir, "Tair" ) %>%
+        dplyr::rename(temp = myvar) %>%
+        dplyr::mutate(temp = temp - 273.15) %>%
+        dplyr::right_join(df_out, by = c("sitename", "date"))
+    }
+    
+    ## atmospheric pressure
+    if ("patm" %in% getvars && !("patm" %in% names(df_out))){
+      df_out <- ingest_globalfields_wfde5_byvar( df_out, siteinfo, dir, "PSurf" ) %>%
+        dplyr::rename(patm = myvar) %>%
+        dplyr::right_join(df_out, by = c("sitename", "date"))
+    }
+    
+    ## PPFD
+    if ("ppfd" %in% getvars){
+      kfFEC <- 2.04
+      df_out <- ingest_globalfields_wfde5_byvar( df_out, siteinfo, dir, "SWdown" ) %>%
+        dplyr::mutate(ppfd = myvar * kfFEC * 1.0e-6 ) %>%  # W m-2 -> mol m-2 s-1
+        dplyr::right_join(df_out, by = c("sitename", "date"))
+    }
+    
+    ## remove spurious myvar columns
+    df_out <- df_out %>%
+      select(-starts_with("myvar"))
+    
+    if (timescale=="m"){
+      rlang::abort("ingest_globalfields(): aggregating WATCH-WFDEI to monthly not implemented yet.")
+    }
+    
   } else if (source=="cru"){
     ##----------------------------------------------------------------------
     ## Read CRU monthly data (extracting from NetCDF files for this site)
@@ -568,6 +639,137 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
   return( ddf )
 }
 
+ingest_globalfields_wfde5_byvar <- function( ddf, siteinfo, dir, varnam ){
+  
+  dirn <- paste0( dir, "/", varnam, "/" )
+  
+  ## loop over all year and months that are required
+  year_start <- ddf %>%
+    dplyr::pull(date) %>%
+    min() %>%
+    lubridate::year()
+  
+  year_end <- ddf %>%
+    dplyr::pull(date) %>%
+    max() %>%
+    lubridate::year()
+  
+  ## check if data is required for years before 1979 (when watch wfdei is available)
+  pre_data <- year_start < 1979
+  
+  ## if pre-1979 data are required, read at least 10 first years to get mean climatology
+  if (pre_data){
+    year_start_read <- 1979
+    year_end_read <- max(1988, year_end)
+  } else {
+    year_start_read <- year_start
+    year_end_read <- year_end
+  }
+  
+  ## construct data frame holding longitude and latitude info
+  df_lonlat <- tibble(
+    sitename = siteinfo$sitename,
+    lon      = siteinfo$lon,
+    lat      = siteinfo$lat
+  )
+  
+  if (varnam %in% c("Rainf", "Snowf")){
+    addstring <- "_WFDEI_CRU+GPCC_"
+  } else {
+    addstring <- "_WFDE5_CRU_"
+  }
+  
+  if (varnam %in% c("Tair", "Qair")) {
+    endstring <- "_v1.0"
+  } else {
+    endstring <- "_v1.1"
+  }
+  
+  ## extract all the data for all the dates (cutting to required dates by site is done in ingest())
+  alldays   <- 1:31
+  allmonths <- 1:12
+  allyears <- year_start_read:year_end_read
+  df <- 
+    # expand.grid(alldays, allmonths, allyears) %>%
+    expand.grid(allmonths, allyears) %>%
+    dplyr::as_tibble() %>%
+    # setNames(c("dom", "mo", "yr")) %>%
+    setNames(c("mo", "yr")) %>%
+    rowwise() %>%
+    # dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), endstring, ".nc" )) %>%
+    dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), endstring, ".nc" )) %>%
+    ungroup() %>%
+    dplyr::mutate(data = purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat, get_time = FALSE ) ))
+  
+  ## rearrange to a daily data frame
+  complement_df <- function(df){
+    df <- df %>%
+      setNames(., c("myvar")) %>%
+      mutate( hom = 1:nrow(.))
+    return(df)
+  }
+  
+  ddf <- df %>%
+    tidyr::unnest(data) %>%
+    dplyr::mutate(data = purrr::map(data, ~complement_df(.))) %>%
+    tidyr::unnest(data) %>%
+    cbind(ddf %>% dplyr::select(-sitename)) %>% 
+    dplyr::select(sitename, myvar, date) %>% 
+    dplyr::as_tibble()
+  
+  ## create data frame containing all dates, using mean annual cycle (of 1979-1988) for all years before 1979
+  if (pre_data){
+    rlang::inform("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1988) for all years before 1979.")
+    
+    ## get mean seasonal cycle, averaged over 1979:1988
+    ddf_meandoy <- ddf %>% 
+      dplyr::filter(lubridate::year(date) %in% 1979:1988) %>% 
+      mutate(doy = lubridate::yday(date)) %>% 
+      group_by(sitename, doy) %>% 
+      summarise(myvar = mean(myvar))
+    
+    ## get a data frame with all dates for all sites
+    ddf_tmp <- purrr::map(
+      as.list(seq(nrow(siteinfo))),
+      ~ingestr::init_dates_dataframe(
+        lubridate::year(siteinfo$date_start[.]),
+        min(1978, lubridate::year(siteinfo$date_end[.])),
+        noleap = TRUE,
+        timescale = "d"))
+    names(ddf_tmp) <- siteinfo$sitename
+    ddf_pre <- ddf_tmp %>%
+      bind_rows(.id = "sitename") %>%
+      drop_na() %>% 
+      mutate(doy = lubridate::yday(date)) %>%
+      left_join(ddf_meandoy, by = c("sitename", "doy")) %>%
+      dplyr::select(-doy)
+    
+    # ddf_pre <- init_dates_dataframe(year_start, min(1978, year_end)) %>% 
+    #   mutate(doy = lubridate::yday(date)) %>% 
+    #   left_join(ddf_pre, by = "doy") %>% 
+    #   dplyr::select(-doy)
+    
+    ## combine the two along rows
+    ddf <- left_join(
+      ddf %>% 
+        ungroup() %>% 
+        group_by(sitename) %>% 
+        nest(),
+      ddf_pre %>% 
+        ungroup() %>% 
+        group_by(sitename) %>% 
+        nest() %>% 
+        rename(data_pre = data),
+      by = "sitename") %>% 
+      mutate(data = purrr::map2(data_pre, data, ~bind_rows(.x, .y))) %>% 
+      dplyr::select(-data_pre) %>% 
+      unnest(data) %>% 
+      arrange(date) %>%   # to make sure
+      distinct() # out of desperation
+  }
+  
+  return( ddf )
+}
 
 ##--------------------------------------------------------------------
 ## Extract N deposition time series for a set of sites at once (opening

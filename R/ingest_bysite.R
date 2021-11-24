@@ -109,7 +109,7 @@ ingest_bysite <- function(
                                     ) %>%
       mutate(sitename = sitename)
 
-  } else if (source == "cru" || source == "watch_wfdei" || source == "ndep"){
+  } else if (source == "cru" || source == "watch_wfdei" || source == "ndep" || source == "wfde5"){
     #-----------------------------------------------------------
     # Get data from global fields and one single site
     #-----------------------------------------------------------
@@ -216,7 +216,7 @@ ingest_bysite <- function(
           df_tmp <- df_tmp %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(month, bias), by = "month") %>% 
-            mutate(temp = temp - bias) %>% 
+            mutate(temp = ifelse(!(is.na(bias)), temp - bias, temp)) %>% 
             dplyr::select(-bias, -month)
         }
 
@@ -245,7 +245,6 @@ ingest_bysite <- function(
         
         ## Bias correction for temperature: subtract difference
         if ("tmax" %in% getvars_wc){
-          df_bias <- df_fine %>% 
             pivot_longer(cols = starts_with("tmax_"), names_to = "month", values_to = "tmax", names_prefix = "tmax_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(tmax_fine = tmax) %>% 
