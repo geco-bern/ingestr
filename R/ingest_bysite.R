@@ -73,7 +73,7 @@ ingest_bysite <- function(
   }
 
   ##-----------------------------------------------------------
-  ## FLUXNET 2015 readin
+  ## FLUXNET 2015 reading
   ##-----------------------------------------------------------
   if (source == "fluxnet"){
 
@@ -153,13 +153,13 @@ ingest_bysite <- function(
     }
 
     ## this returns a flat data frame with data from all sites
-    df_tmp <- ingest_globalfields(siteinfo,
-                               source = source,
-                               getvars = getvars,
-                               dir = dir,
-                               timescale = timescale,
-                               verbose = FALSE
-                              )
+    df_tmp <- ingest_globalfields(siteinfo  = siteinfo,
+                                  source    = source,
+                                  getvars   = getvars,
+                                  dir       = dir,
+                                  timescale = timescale,
+                                  verbose   = FALSE
+                                  )
     
     ## bias-correct atmospheric pressure - per default
     if ("patm" %in% getvars){
