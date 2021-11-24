@@ -76,20 +76,25 @@ siteinfo <- left_join(siteinfo, flux_files) %>%
 
 message("fixing elevation data with etopo1 data")
 
-siteinfo <- siteinfo %>% 
-  left_join(
-    ingestr::ingest(
+topo <- ingestr::ingest(
       siteinfo,
       source = "etopo1",
       dir = "~/data/etopo/"
     ) %>% 
-      tidyr::unnest(data) %>% 
-      rename(elv_etopo = elv),
+    tidyr::unnest(data) %>%
+    rename(
+	elv_etopo = elv
+	)
+
+print(topo)
+
+siteinfo <- siteinfo %>%
+  left_join(topo,
     by = "sitename")
 
 siteinfo <- siteinfo %>% 
   dplyr::mutate(elv = ifelse(is.na(elv), elv_etopo, elv)) %>%
-  dplyr::select(-elv_topo)
+  dplyr::select(-elv_etopo)
 
 #----- assign C4 sites (limited number hence manual) -----
 
