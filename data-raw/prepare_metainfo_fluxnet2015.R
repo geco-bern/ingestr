@@ -115,8 +115,8 @@ message("assigning water holding capacity - from file")
 siteinfo <- read_csv(
   "data-raw/fluxnet2015_metadata/siteinfo_fluxnet2015_sofun+whc.csv") %>%
 			rename(sitename = mysitename) %>%
-            dplyr::select( sitename, whc ) %>%
-            left_join(siteinfo, by = "sitename")
+      dplyr::select( sitename, whc ) %>%
+      left_join(siteinfo, by = "sitename")
 
 #---- add fluxnet id ----
 siteinfo_falge <- read_csv(
