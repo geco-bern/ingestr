@@ -52,6 +52,15 @@ ingest_bysite <- function(
   verbose = FALSE
   ){
 
+  # CRAN compliance, declaring unstated variables
+  sitename <- lon <- lat <- date_start <- date_end <- problem <-
+    year_start_tmp <- x <- y <- lat_orig <- success <- elv <- patm <-
+    patm_base <-patm_mean <- month <- tavg <-temp <- temp_fine <-
+    tmax <- tmax_fine <- tmin <- tmin_fine <- prec <- prec_fine <-
+    days_in_month <- rain <- snow <- srad <- srad_fine <- ppfd <-
+    ppfd_fine <- wind <- wind_fine <- qair <- vap <- vapr <- vapr_fine <-
+    ilon <- data <- yy <- mm <- co2_avg <- year <- . <- bias <- NULL
+  
   if (!(source %in% c("etopo1", "hwsd", "soilgrids", "wise", "gsde", "worldclim"))){
     
     ## initialise data frame with all required dates
@@ -646,7 +655,10 @@ ingest_bysite <- function(
     
     aggregate_layers <- function(df, varnam, layer){
       
-      df_layers <- tibble(layer = 1:8, bottom = c(4.5, 9.1, 16.6, 28.9, 49.3, 82.9, 138.3, 229.6)) %>% 
+      df_layers <- tibble(
+        layer = 1:8,
+        bottom = c(4.5, 9.1, 16.6, 28.9, 49.3, 82.9, 138.3, 229.6)
+        ) %>% 
         mutate(top = lag(bottom)) %>% 
         mutate(top = ifelse(is.na(top), 0, top)) %>% 
         rowwise() %>% 
@@ -669,7 +681,6 @@ ingest_bysite <- function(
         summarise(var := sum(var_wgt)) %>% 
         rename(!!varnam := var)
     }
-    
     
     df <- purrr::map(
       as.list(settings$varnam),

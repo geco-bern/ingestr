@@ -1,10 +1,22 @@
 long_to_wide_fluxnet2015 <- function( sitename, long ){
-
+  
+  # define variables
+  SITE_ID <- VARIABLE_GROUP <- VARIABLE <- GROUP_ID <- 
+    DATAVALUE <- NULL
+  
   sub <- long %>% dplyr::filter( SITE_ID==sitename )
-    
+  
   ## remove variable groups that have lots of duplicates w.r.t. variable
   sub <- sub %>% 
-    dplyr::filter( VARIABLE_GROUP!="GRP_TEAM_MEMBER", VARIABLE!="NETWORK", VARIABLE_GROUP!="GRP_DM_FERT_M", VARIABLE_GROUP!="GRP_DM_AGRICULTURE", VARIABLE_GROUP!="GRP_DM_PESTICIDE", VARIABLE_GROUP!="GRP_DM_PLANTING", VARIABLE_GROUP!="GRP_DM_TILL"  )
+    dplyr::filter(
+      VARIABLE_GROUP!="GRP_TEAM_MEMBER",
+      VARIABLE!="NETWORK",
+      VARIABLE_GROUP!="GRP_DM_FERT_M",
+      VARIABLE_GROUP!="GRP_DM_AGRICULTURE",
+      VARIABLE_GROUP!="GRP_DM_PESTICIDE",
+      VARIABLE_GROUP!="GRP_DM_PLANTING",
+      VARIABLE_GROUP!="GRP_DM_TILL"
+    )
   
   ## determine duplicates
   df_nduplicates <- sub %>% 
@@ -20,7 +32,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
       groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
       sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
     }
-
+    
     ## Use only first entry for 'reference usage'
     df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
     if (nrow(df_nduplicates)>0){
@@ -29,7 +41,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
         groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
         sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
       }
-    
+      
       ## Use only first entry for 'reference usage'
       df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
       if (nrow(df_nduplicates)>0){
@@ -38,7 +50,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
           groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
           sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
         }
-
+        
         ## Use only first entry for 'reference usage'
         df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
         if (nrow(df_nduplicates)>0){
@@ -47,7 +59,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
             groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
             sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
           }          
-
+          
           ## Use only first entry for 'DOM_DIST_MGMT'
           df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
           if (nrow(df_nduplicates)>0){
@@ -56,7 +68,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
               groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
               sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
             }
-
+            
             ## Use only first entry for 'DM_COMMENT'
             df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
             if (nrow(df_nduplicates)>0){
@@ -65,7 +77,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                 groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
                 sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
               }
-
+              
               ## Use only first entry for 'DM_DATE'
               df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
               if (nrow(df_nduplicates)>0){
@@ -74,7 +86,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                   groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
                   sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
                 }
-
+                
                 ## Use only first entry for 'DM_DATE_UNC'
                 df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                 if (nrow(df_nduplicates)>0){
@@ -83,7 +95,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                     groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
                     sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
                   }
-
+                  
                   ## Use only first entry for 'DM_SURF'
                   df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                   if (nrow(df_nduplicates)>0){
@@ -92,7 +104,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                       groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
                       sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
                     }
-
+                    
                     ## Use only first entry for 'DM_SURF_MEAS_UNC'
                     df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                     if (nrow(df_nduplicates)>0){
@@ -101,7 +113,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                         groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
                         sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
                       }
-
+                      
                       ## Use only first entry for 'DM_DATE_START'
                       df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                       if (nrow(df_nduplicates)>0){
@@ -111,7 +123,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                           sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
                         } 
                         
-
+                        
                         ## Use only first entry for 'DM_DATE_END'
                         df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                         if (nrow(df_nduplicates)>0){
@@ -120,7 +132,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                             groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
                             sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
                           }
-
+                          
                           ## Use only first entry for 'DM_DATE_END'
                           df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                           if (nrow(df_nduplicates)>0){
@@ -134,7 +146,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                             df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                             
                             if (nrow(df_nduplicates)>0){
-
+                              
                               if ("LOCATION_COMMENT" %in% df_nduplicates$VARIABLE){
                                 
                                 groupid <- sub %>% filter( VARIABLE=="LOCATION_COMMENT") %>% filter( DATAVALUE!="Reinstallation after management activities" ) %>% dplyr::select( GROUP_ID )
@@ -163,7 +175,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                                   #   select(-GROUP_ID) %>% 
                                   #   filter(VARIABLE != "ACKNOWLEDGEMENT") %>% 
                                   #   distinct()    
-
+                                  
                                   ## determine remaining duplicates
                                   df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                                   
@@ -172,7 +184,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                                 }
                                 
                               } 
-
+                              
                               df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                               
                               if (nrow(df_nduplicates)>0){
@@ -196,7 +208,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                                       ## apparently, both are Eddy Covariance. Use only first.
                                       groupid <- groupid[1,]
                                     }
-                                                                      
+                                    
                                   }
                                   
                                 }
@@ -219,12 +231,12 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                                   df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                                   
                                   if (nrow(df_nduplicates)>0){
-                                  
+                                    
                                     ## Take only GROUP_ID corresponding to CO2 measurements
                                     use_group_id <- sub %>% 
                                       filter(VARIABLE == "FLUX_MEASUREMENTS_VARIABLE" & DATAVALUE == "CO2") %>% 
                                       pull(GROUP_ID)
-                                  
+                                    
                                     ## treat remaining duplicated variables
                                     ## all rows that have a duplicate w.r.t. VARIABLE
                                     tmp <- sub %>% dplyr::select( -VARIABLE_GROUP )
@@ -272,12 +284,6 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                                   ## determine remaining duplicates
                                   df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                                   
-                                  # ## a bit more bold: consider only distinct entries after removing GROUP_ID
-                                  # sub <- sub %>% 
-                                  #   select(-GROUP_ID) %>% 
-                                  #   filter(VARIABLE != "ACKNOWLEDGEMENT") %>% 
-                                  #   distinct()    
-                                  
                                   ## determine remaining duplicates
                                   df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                                   
@@ -299,7 +305,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
       }
     }
   }
-    
+  
   df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
   if (nrow(df_nduplicates)==0 && nrow(sub)>0){
     wide <- sub %>% dplyr::select( -VARIABLE_GROUP, -GROUP_ID ) %>% tidyr::spread( VARIABLE, DATAVALUE )
@@ -308,7 +314,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
     warning(paste("remaining duplicates for site", sitename))
     wide <- NULL
   }
-
+  
   return(wide)
-
+  
 }

@@ -365,9 +365,9 @@ ingest_globalfields <- function(
     ## combine for layers read from each file
     df_out <- bind_rows(df_out_top, df_out_bottom) %>% 
       group_by(sitename) %>% 
-      nest() %>% 
+      tidyr::nest() %>% 
       mutate(data = purrr::map(data, ~mutate(., layer = 1:8))) %>% 
-      unnest(data)
+      tidyr::unnest(data)
     
     ## apply conversion factor
     df_conv <- tibble(varnam := c("TC", "OC", "TN", "PHH2O", "PHK", "PHCA", "EXA", "PBR", "POL", "PNZ", "PHO", "PMEH", "TP", "TK"),    
@@ -427,12 +427,17 @@ ingest_globalfields <- function(
       
       vec_filn <- list.files(dir, pattern = paste0(varnam, ".*.tif"))
       
-      df_out <- purrr::map2(as.list(vec_filn), as.list(str_remove(vec_filn, paste0("wc2.1_30s_", varnam, "_")) %>% str_remove(".tif")),
-                            ~{extract_pointdata_allsites( paste0(dir, "/", .x), df_lonlat, get_time = FALSE ) %>%
-                                dplyr::select(-lon, -lat) %>%
-                                tidyr::unnest(data) %>%
-                                dplyr::rename(!!paste0(varnam, "_", .y) := V1) %>%
-                                dplyr::select(sitename, !!paste0(varnam, "_", .y))}) %>% 
+      df_out <- purrr::map2(
+        as.list(vec_filn),
+        as.list(stringr::str_remove(vec_filn,
+                                    paste0("wc2.1_30s_", varnam, "_")) %>%
+          stringr::str_remove(".tif")),
+          ~{extract_pointdata_allsites( paste0(dir, "/", .x),
+                                        df_lonlat, get_time = FALSE ) %>%
+                  dplyr::select(-lon, -lat) %>%
+                  tidyr::unnest(data) %>%
+                  dplyr::rename(!!paste0(varnam, "_", .y) := V1) %>%
+                  dplyr::select(sitename, !!paste0(varnam, "_", .y))}) %>% 
         purrr::reduce(left_join, by = "sitename")
       
       return(df_out)
@@ -556,11 +561,11 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
       ddf %>% 
         ungroup() %>% 
         group_by(sitename) %>% 
-        nest(),
+        tidyr::nest(),
       ddf_pre %>% 
         ungroup() %>% 
         group_by(sitename) %>% 
-        nest() %>% 
+        tidyr::nest() %>% 
         rename(data_pre = data),
       by = "sitename") %>% 
       mutate(data = purrr::map2(data_pre, data, ~bind_rows(.x, .y))) %>% 

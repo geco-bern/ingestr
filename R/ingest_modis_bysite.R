@@ -830,11 +830,11 @@ gapfill_interpol <- function(
       span <- 100/ndays_tot # (20*period)/ndays_tot  # multiply with larger number to get smoother curve
 
       idxs    <- which(!is.na(ddf$modisvar_filtered))
-      myloess <- try( loess( modisvar_filtered ~ year_dec,
+      myloess <- try(stats::loess( modisvar_filtered ~ year_dec,
                              data = ddf[idxs,], span=span ) )
 
       ## predict LOESS to all dates with missing data
-      tmp <- try( predict( myloess, newdata = ddf ) )
+      tmp <- try( stats::predict( myloess, newdata = ddf ) )
       if (class(tmp)!="try-error"){
         ddf$loess <- tmp
       } else {
@@ -850,10 +850,10 @@ gapfill_interpol <- function(
       idxs   <- which(!is.na(ddf$modisvar_filtered))
       spline <- try(
         with(ddf,
-             smooth.spline(year_dec[idxs], modisvar_filtered[idxs], spar=0.01)))
+             stats::smooth.spline(year_dec[idxs], modisvar_filtered[idxs], spar=0.01)))
 
       ## predict SPLINE
-      tmp <- try( with( ddf, predict( spline, year_dec ) )$y)
+      tmp <- try( with( ddf, stats::predict( spline, year_dec ) )$y)
       if (class(tmp)!="try-error"){
         ddf$spline <- tmp
       } else {
@@ -903,21 +903,6 @@ gapfill_interpol <- function(
       ddf$modisvar_filled <- ddf$sgfilter
     }
 
-    # ## plot daily smoothed line and close plotting device
-    # if (do_plot_interpolated){
-    # with( ddf, lines( year_dec, fapar, col='red', lwd=2 ) )}
-    # if (do_plot_interpolated){
-    # with( ddf, lines( year_dec, sgfilter, col='springgreen3', lwd=1 ) )}
-    # if (do_plot_interpolated){
-    # with( ddf, lines( year_dec, spline, col='cyan', lwd=1 ) )
-    # if (do_plot_interpolated){
-    #   legend( "topright",
-    # c("Savitzky-Golay filter", "Spline", "Linear interpolation (standard)"),
-    # col=c("springgreen3", "cyan", "red" ),
-    #  lty=1, lwd=c(1,1,2), bty="n", inset = c(0,-0.2)
-    #   )
-    # }
-
     ## limit to within 0 and 1 (loess spline sometimes "explodes")
     ddf <- ddf %>%
       dplyr::mutate(
@@ -925,11 +910,6 @@ gapfill_interpol <- function(
       dplyr::mutate(
         modisvar_filled = replace(modisvar_filled, modisvar_filled>1, 1))
   }
-
-  # ## extrapolate missing values at head and tail again
-  # ##--------------------------------------
-  # ddf$modisvar_filled <- extrapolate_missing_headtail(dplyr::select(ddf,
-  #  var = modisvar_filled))
 
   return( ddf )
 
@@ -957,18 +937,6 @@ extrapolate_missing_headtail <- function(
     warning("Filling values with last available data point at tail.")
   }
   ddf$var[idxs] <- ddf$var[min(idxs)-1]
-
-  # ## get mean seasonal cycle
-  # ddf_meandoy <- ddf %>%
-  #   dplyr::group_by( doy ) %>%
-  #   dplyr::summarise( meandoy = mean( var , na.rm=TRUE ) )
-  #
-  # ## attach mean seasonal cycle as column 'meandoy' to daily dataframe
-  # ddf <- ddf %>%
-  #   dplyr::left_join( ddf_meandoy, by="doy" )
-  #
-  # ## fill gaps at head and tail
-  # ddf$var[ idxs ] <- ddf$meandoy[ idxs ]
 
   vec <- ddf %>%
     dplyr::pull(var)

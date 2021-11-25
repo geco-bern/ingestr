@@ -25,6 +25,9 @@ Depends:
     R (>= 3.6)
 Imports: 
     dplyr,
+    rlang,
+    stats,
+    utils,
     purrr,
     lubridate,
     tidyr,
@@ -43,7 +46,8 @@ Imports:
     sf,
     gdalUtils,
     MODISTools,
-    data.table
+    data.table,
+    ggplot2
 LazyData: true
 ByteCompile: true
 RoxygenNote: 7.1.1
@@ -51,8 +55,7 @@ Suggests:
     rmarkdown,
     covr,
     testthat,
-    knitr,
-    ggplot2
+    knitr
 VignetteBuilder: knitr
 URL: https://github.com/computationales/ingestr
 BugReports: https://github.com/computationales/ingestr/issues

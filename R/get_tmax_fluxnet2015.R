@@ -16,6 +16,10 @@
 #' 
 get_tmax_fluxnet2015 <- function(dir){
   
+  # CRAN compliance, define variables
+  TIMESTAMP_START <- TIMESTAMP_END <- date_start <- date_day <- TA_F <-
+    TA_F_MDS <- TA_F_QC <- TA_F_MDS_QC <- TA_ERA <- NULL
+  
   ## loop over all HH files in the directory 'dir'
   out <- purrr::map( as.list(list.files(dir, pattern = "HH")),
               ~get_tmax_fluxnet2015_byfile(paste0(dir, .)))
@@ -45,6 +49,10 @@ get_tmax_fluxnet2015 <- function(dir){
 #' }
 
 get_tmax_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
+  
+  # CRAN compliance, define variables
+  TIMESTAMP_START <- TIMESTAMP_END <- date_start <- date_day <- TA_F <-
+    TA_F_MDS <- TA_F_QC <- TA_F_MDS_QC <- TA_ERA <- NULL
   
   filename_dd_tmax <- filename_hh %>% 
     stringr::str_replace("HH", "DD") %>% 

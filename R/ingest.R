@@ -22,6 +22,7 @@
 #'
 #' @return A named list of data frames (tibbles) containing input data for each site is returned.
 #' @import purrr dplyr
+#' @importFrom rlang :=
 #' @export
 #'
 #' @examples
@@ -969,6 +970,12 @@ expand_bysite <- function(sitename, year_start, year_end){
 
 aggregate_layers_gsde <- function(df, varnam, use_layer){
   
+  # define state variables
+  var <- above_1 <- above_2 <- above_3 <- above_4 <- above_5 <-
+    above_6 <- above_7 <- layer <- data <- sitename <- 
+    bottom <- top <- layer <- depth <- depth_tot_cm <-
+    var <- var_wgt <- NULL
+  
   fill_layer_from_above <- function(df, varnam){
     
     df %>% 
@@ -1006,7 +1013,7 @@ aggregate_layers_gsde <- function(df, varnam, use_layer){
     group_by(sitename) %>% 
     tidyr::nest() %>% 
     mutate(data = purrr::map(data, ~fill_layer_from_above(., varnam))) %>% 
-    unnest(data)
+    tidyr::unnest(data)
   
   df_layers <- tibble(layer = 1:8, bottom = c(4.5, 9.1, 16.6, 28.9, 49.3, 82.9, 138.3, 229.6)) %>%
     mutate(top = lag(bottom)) %>%

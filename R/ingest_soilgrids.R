@@ -16,7 +16,7 @@ ingest_soilgrids <- function(siteinfo, settings){
   
   # CRAN compliance, declaring unstated variables
   sitename <- lon <- lat <- layer <- depth <- depth_tot_cm <- 
-    x <- y <- value <- name <- value_wgt <- NULL
+    x <- y <- X <- Y <- value <- name <- value_wgt <- NULL
   
   siteinfo <- siteinfo %>% 
     dplyr::select(id = sitename,

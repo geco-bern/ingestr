@@ -4,6 +4,7 @@
 ^_config\.yml$
 ^pkgdown$
 ^docs$
+^vignettes_add$
 ^data-raw$
 ^manuscript$
 

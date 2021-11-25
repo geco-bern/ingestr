@@ -135,6 +135,11 @@ get_obs_bysite_fluxnet <- function(
   verbose=TRUE 
   ){
   
+  # CRAN compliance, define variables
+  year <- week <- VPD_F <- VPD_F_QC <- VPD_F_MDS <- VPD_ERA <-
+    moy <- TA_F <- . <- res <- soilm_obs_mean <- vpd_day <- 
+    vpd <- patm <- ppfd <- prec <- NULL
+  
   if (verbose) print(paste("Getting FLUXNET data for", sitename, "..."))
 
   ##-----------------------------------------------------------------
@@ -998,6 +1003,11 @@ get_obs_fluxnet2015_raw <- function( sitename, path, freq="d" ){
   ## 2015 data file of respective temporal resolution.
   ## Returns data in units given in the fluxnet dataset
   ##--------------------------------------------------------------------
+  
+  # CRAN compliance, define variables
+  TIMESTAMP <- TIMESTAMP_START <- TIMESTAMP_END <- date_start <-
+    month <- year <-  NULL
+  
   ## get data
   # df <-  readr::read_csv( path, na="-9999" ) #, col_types = cols()
   df <-  data.table::fread( path ) %>% 
@@ -1050,7 +1060,22 @@ convert_energy_fluxnet2015 <- function( le ){
   return(le_converted)
 }
 
-clean_fluxnet_gpp <- function(df, nam_gpp_nt, nam_gpp_dt, nam_nt_qc, nam_dt_qc, threshold, remove_neg = FALSE, filter_ntdt){
+clean_fluxnet_gpp <- function(
+  df,
+  nam_gpp_nt,
+  nam_gpp_dt,
+  nam_nt_qc,
+  nam_dt_qc,
+  threshold,
+  remove_neg = FALSE,
+  filter_ntdt
+  ) {
+  
+  # define variables
+  GPP_NT_VUT_REF <- NEE_VUT_REF_NIGHT_QC <- GPP_DT_VUT_REF <-
+    NEE_VUT_REF_DAY_QC <- res <- NULL
+  
+  
   ##--------------------------------------------------------------------
   ## Cleans daily data using criteria 1-4 as documented in Tramontana et al., 2016
   ## gpp_nt: based on nighttime flux decomposition ("NT")
@@ -1083,10 +1108,9 @@ clean_fluxnet_gpp <- function(df, nam_gpp_nt, nam_gpp_dt, nam_nt_qc, nam_dt_qc, 
     df <- df %>%
       mutate(res = GPP_NT_VUT_REF - GPP_DT_VUT_REF)
 
-    q025 <- quantile( df$res, probs = 0.025, na.rm=TRUE )
-    q975 <- quantile( df$res, probs = 0.975, na.rm=TRUE )
-
-
+    q025 <- stats::quantile( df$res, probs = 0.025, na.rm=TRUE )
+    q975 <- stats::quantile( df$res, probs = 0.975, na.rm=TRUE )
+    
     ## remove data outside the quartiles of the residuals between the DT and NT estimates
     df <- df %>%
       mutate(GPP_NT_VUT_REF = replace_with_na_res(GPP_NT_VUT_REF, res, q025, q975),
