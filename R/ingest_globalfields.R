@@ -637,7 +637,8 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
     mutate(data = purrr::map(data, ~dplyr::select(., -date))) %>%
     tidyr::unnest(data) %>%
     rowwise() %>%
-    mutate(date = lubridate::ymd(paste0(as.character(year), "-", sprintf( "%02d", moy), "-15"))) %>%
+    mutate(date = lubridate::ymd(paste0(as.character(year),
+                                        "-", sprintf( "%02d", moy), "-15"))) %>%
     dplyr::select(-year, -moy)
   
   return( mdf )
@@ -649,7 +650,8 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
 ##--------------------------------------------------------------------
 expand_clim_cru_monthly <- function( mdf, cruvars ){
   
-  ddf <- purrr::map( as.list(unique(mdf$year)), ~expand_clim_cru_monthly_byyr( ., mdf, cruvars ) ) %>%
+  ddf <- purrr::map(as.list(unique(mdf$year)),
+      ~expand_clim_cru_monthly_byyr( ., mdf, cruvars ) ) %>%
     bind_rows()
   
   return( ddf )
@@ -661,7 +663,9 @@ expand_clim_cru_monthly <- function( mdf, cruvars ){
 ## for a single year
 ##--------------------------------------------------------------------
 expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
-  
+
+  # define variables  
+  year <- ccov_int <- NULL
   nmonth <- 12
   
   startyr <- mdf$year %>% first()
@@ -830,7 +834,14 @@ find_nearest_cruland_by_lat <- function( lon, lat, filn ){
 ## Extracts point data for a set of sites given by df_lonlat using
 ## functions from the raster package.
 ##--------------------------------------------------------------------
-extract_pointdata_allsites <- function(filename, df_lonlat, get_time = FALSE){
+extract_pointdata_allsites <- function(
+  filename,
+  df_lonlat,
+  get_time = FALSE
+  ) {
+  
+  # define variables
+  lon <- lat <- data <- NULL
   
   ## load file using the raster library
   #print(paste("Creating raster brick from file", filename))
@@ -869,6 +880,9 @@ extract_pointdata_allsites <- function(filename, df_lonlat, get_time = FALSE){
 ## shapefile. df_lonlat requires columns sitename, lon, and lat.
 ##--------------------------------------------------------------------
 extract_pointdata_allsites_shp <- function( dir, df_lonlat, layer ){
+  
+  # define variables
+  lon <-lat <- . <- NULL
   
   shp <- rgdal::readOGR(dsn = dir, layer = layer)
   
@@ -1037,7 +1051,13 @@ get_daily_prec <- function( mval_prec, mval_wet, set_seed=FALSE, leapyear=FALSE 
 #'
 #' @return A named list of data frames (tibbles) containing input data for each site is returned.
 #'
-monthly2daily <- function( mval, method="polynom", mval_prev=mval[nmonth], mval_next=mval[1], leapyear=FALSE ){
+monthly2daily <- function(
+  mval,
+  method="polynom",
+  mval_prev=mval[nmonth],
+  mval_next=mval[1],
+  leapyear=FALSE 
+  ) {
   
   # mval <- 20*sin( seq(0, 2*pi, 2*pi/11)-0.5*pi)
   # mval_prev <- mval[12]
@@ -1082,7 +1102,9 @@ monthly2daily <- function( mval, method="polynom", mval_prev=mval[nmonth], mval_
       d3t <- endt^3.0 - startt^3.0
       
       # Take a sheet of paper and try solve the polynom, well here is the outcome
-      polya <- (mval[month]*dt - deltatemp*d2t/dt/2.0 - starttemp*dt + deltatemp*startt) / (d3t/3.0 - d2t^2.0/dt/2.0 - dt*startt^2.0 + startt*d2t)
+      polya <- (mval[month]*dt - deltatemp*d2t/dt/2.0 - 
+                  starttemp*dt + deltatemp*startt) / 
+        (d3t/3.0 - d2t^2.0/dt/2.0 - dt*startt^2.0 + startt*d2t)
       polyb <- deltatemp/dt - polya*(startt+endt)
       polyc <- starttemp - polya*startt^2.0 - polyb*startt
       
@@ -1134,13 +1156,14 @@ fill_gaps <- function( vec, is.prec = FALSE ){
   } else {
     ## linear approximation
     if ( any(is.na(vec)) && any(!is.na(vec)) ){
-      vec <- approx( xvals, vec, xout=xvals )$y
+      vec <- stats::approx( xvals, vec, xout=xvals )$y
     }
     
     ## extend to missing in head and tail
     if ( any(is.na(vec))  && any(!is.na(vec)) ){
       for (idx in seq(length(vec))){
-        if ( any( is.na( tail( vec, n=idx ) ) ) && any( !is.na( tail( vec, n=(idx+1) ) ) ) ){
+        if ( any( is.na( utils::tail( vec, n=idx ) ) ) &&
+             any( !is.na(utils::tail( vec, n=(idx+1) ) ) ) ){
           if (length(vec[ (length(vec)-idx) ])>0){
             vec[ (length(vec)-idx+1):length(vec) ] <- vec[ (length(vec)-idx) ]
           } else {

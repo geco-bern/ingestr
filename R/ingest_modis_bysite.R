@@ -761,7 +761,7 @@ gapfill_interpol <- function(
   ## create a mask based on the selected layer (0 for focal point only)
   arr_mask <- arr_pixelnumber
   arr_mask[which(arr_distance > n_focal)] <- NA
-  vec_usepixels <- c(arr_mask) %>% na.omit() %>% as.vector()
+  vec_usepixels <- c(arr_mask) %>% stats::na.omit() %>% as.vector()
 
   message(paste("Number of available pixels: ", npixels))
   message(paste("Averaging across number of pixels: ",

@@ -137,7 +137,8 @@ get_obs_bysite_fluxnet <- function(
   
   # CRAN compliance, define variables
   year <- week <- VPD_F <- VPD_F_QC <- VPD_F_MDS <- VPD_ERA <-
-    moy <- TA_F <- . <- res <- soilm_obs_mean <- vpd_day <- 
+    moy <- TA_F <- . <- res <- soilm_obs_mean <- vpd_day <-
+    TA_F_QC <- TA_F_MDS <- TA_F_MDS_QC <- TA_ERA <-
     vpd <- patm <- ppfd <- prec <- NULL
   
   if (verbose) print(paste("Getting FLUXNET data for", sitename, "..."))

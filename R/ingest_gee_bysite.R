@@ -220,7 +220,10 @@ gapfill_interpol_gee <- function(
 
       ## separate into bits
       rowwise() %>%
-      mutate(qc_bitname = intToBits( qc ) %>% as.character() %>% paste(collapse = "")) %>%
+      mutate(qc_bitname = intToBits( qc ) %>%
+               as.character() %>%
+               paste(collapse = "")
+             ) %>%
 
       ## Bits 0-1: VI Quality
       ##   00 VI produced with good quality
@@ -240,7 +243,10 @@ gapfill_interpol_gee <- function(
       ##   1110 L1B data faulty
       ##   1111 Not useful for any other reason/not processed
       mutate(vi_useful = substr( qc_bitname, start=3, stop=6 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(vi_useful %in% c("0000", "0001", "0010", "0100", "1000", "1001", "1010", "1100"), modisvar, NA)) %>%
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          vi_useful %in% c("0000", "0001", "0010", "0100",
+                           "1000", "1001", "1010", "1100"), modisvar, NA)) %>%
 
       ## Bits 6-7: Aerosol Quantity
       ##  00 Climatology
@@ -248,25 +254,29 @@ gapfill_interpol_gee <- function(
       ##  10 Intermediate
       ##  11 High
       mutate(aerosol = substr( qc_bitname, start=7, stop=8 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(aerosol %in% c("00", "01", "10"), modisvar, NA)) %>%
+      dplyr::mutate(modisvar_filtered = ifelse(aerosol %in% c("00", "01", "10"),
+                                               modisvar, NA)) %>%
 
       ## Bit 8: Adjacent cloud detected
       ##  0 No
       ##  1 Yes
       mutate(adjcloud = substr( qc_bitname, start=9, stop=9 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(adjcloud %in% c("0"), modisvar, NA)) %>%
+      dplyr::mutate(modisvar_filtered = ifelse(adjcloud %in% c("0"),
+                                               modisvar, NA)) %>%
 
       ## Bits 9: Atmosphere BRDF Correction
       ##   0 No
       ##   1 Yes
       mutate(brdf_corr = substr( qc_bitname, start=10, stop=10 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(brdf_corr %in% c("1"), modisvar, NA)) %>%
+      dplyr::mutate(modisvar_filtered = ifelse(brdf_corr %in% c("1"),
+                                               modisvar, NA)) %>%
 
       ## Bits 10: Mixed Clouds
       ##   0 No
       ##   1 Yes
       mutate(mixcloud = substr( qc_bitname, start=11, stop=11 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(mixcloud %in% c("0"), modisvar, NA)) %>%
+      dplyr::mutate(modisvar_filtered = ifelse(mixcloud %in% c("0"),
+                                               modisvar, NA)) %>%
 
       ## Bits 11-13: Land/Water Mask
       ##  000 Shallow ocean
@@ -306,7 +316,8 @@ gapfill_interpol_gee <- function(
 
       ## separate into bits
       rowwise() %>%
-      mutate(qc_bitname = intToBits( !!qc_name )[1:8] %>% rev() %>% as.character() %>% paste(collapse = "")) %>%
+      mutate(qc_bitname = intToBits( !!qc_name )[1:8] %>%
+               rev() %>% as.character() %>% paste(collapse = "")) %>%
 
       ## MODLAND_QC bits
       ## 0: Good  quality (main algorithm with or without saturation)
@@ -332,7 +343,9 @@ gapfill_interpol_gee <- function(
       ## 10 2  Mixed cloud present in  pixel
       ## 11 3  Cloud state not defined,  assumed clear
       mutate(qc_bit3 = substr( qc_bitname, start=4, stop=5 )) %>%
-      mutate(CloudState = ifelse( qc_bit3=="00", 0, ifelse( qc_bit3=="01", 1, ifelse( qc_bit3=="10", 2, 3 ) ) )) %>%
+      mutate(CloudState = ifelse( qc_bit3=="00", 0,
+                                  ifelse( qc_bit3=="01",
+                                    1, ifelse( qc_bit3=="10", 2, 3 ) ) )) %>%
 
       ## SCF_QC (five level confidence score)
       ## 000 0 Main (RT) method used, best result possible (no saturation)
@@ -427,8 +440,8 @@ gapfill_interpol_gee <- function(
       ##  the distance of the distance of the 75% quantile to the median
       dplyr::mutate(
         outlier = ifelse(
-          modisvar - median( modisvar, na.rm=TRUE ) > 5 * 
-          ( quantile( modisvar, probs=0.75, na.rm=TRUE  ) - 
+          modisvar - stats::median( modisvar, na.rm=TRUE ) > 5 * 
+          ( stats::quantile( modisvar, probs=0.75, na.rm=TRUE  ) - 
               stats::median( modisvar, na.rm=TRUE ) ), TRUE, FALSE ) ) %>%
 
       ## Filter, i.e. replacing by NA in order to keep all dates

@@ -32,7 +32,9 @@ ingest_soilgrids <- function(siteinfo, settings){
   
   fun_pixel_values  <- function(data, VOI, VOI_LYR, factor){
     
-    out <- try(gdallocationinfo(
+    
+    
+    out <- try(gdalUtils::gdallocationinfo(
       srcfile = paste0(settings$webdav_path, "/", VOI, "/", VOI_LYR, ".vrt"),
       coords  = as.matrix(data[, c("X", "Y")]),
       geoloc  = TRUE,
