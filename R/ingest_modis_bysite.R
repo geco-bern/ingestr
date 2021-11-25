@@ -924,6 +924,9 @@ extrapolate_missing_headtail <- function(
   ## extrapolate to missing values at head and tail using mean seasonal cycle
   ##--------------------------------------
 
+  # define variables
+  var <- NULL
+  
   ## new: fill gaps at head
   idxs <- findna_head( ddf$var )
   if (length(idxs)>0){
@@ -959,14 +962,14 @@ findna_head <- function(vec) {
 
   ## Remove (cut) NAs from the head and tail of a vector.
   ## Returns the indexes to be dropped from a vector
-
+  
   ## Get indeces of consecutive NAs at head
   if (is.na(vec[1])){
     idx <- 0
     cuthead <- 1
     while ( idx < length(vec) ){
       idx <- idx + 1
-      test <- head( vec, idx )
+      test <- stats::head( vec, idx )
       if (any(!is.na(test))){
         ## first non-NA found at position idx
         cuthead <- idx - 1
@@ -992,7 +995,7 @@ findna_tail <- function( vec ){
     cuttail <- 1
     while ( idx < length(vec) ){
       idx <- idx + 1
-      test <- tail( vec, idx )
+      test <- stats::tail( vec, idx )
       if (any(!is.na(test))){
         ## first non-NA found at position idx, counting from tail
         cuttail <- idx - 1
@@ -1008,4 +1011,6 @@ findna_tail <- function( vec ){
 
 }
 
-na.omit.list <- function(y) { return(y[!sapply(y, function(x) all(is.na(x)))]) }
+na.omit.list <- function(y) {
+  return(y[!sapply(y, function(x) all(is.na(x)))]) 
+}

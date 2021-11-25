@@ -138,7 +138,7 @@ get_obs_bysite_fluxnet <- function(
   # CRAN compliance, define variables
   year <- week <- VPD_F <- VPD_F_QC <- VPD_F_MDS <- VPD_ERA <-
     moy <- TA_F <- . <- res <- soilm_obs_mean <- vpd_day <-
-    TA_F_QC <- TA_F_MDS <- TA_F_MDS_QC <- TA_ERA <-
+    TA_F_QC <- TA_F_MDS <- TA_F_MDS_QC <- TA_ERA <- VPD_F_MDS_QC <-
     vpd <- patm <- ppfd <- prec <- NULL
   
   if (verbose) print(paste("Getting FLUXNET data for", sitename, "..."))
@@ -822,7 +822,9 @@ get_obs_bysite_fluxnet <- function(
 
   ## check if anything is missing
   if (any(!(getvars %in% names(df)))){
-    stop(paste("Not all getvars were found in file. Missing variable: ", getvars[which(!(getvars %in% names(df)))], "for site: ", sitename))
+    stop(paste("Not all getvars were found in file. Missing variable: ",
+               getvars[which(!(getvars %in% names(df)))],
+               "for site: ", sitename))
   }
 
   if (!return_qc){
@@ -953,7 +955,7 @@ get_obs_bysite_wcont_fluxnet2015 <- function( sitename, dir, timescale ){
   } else  if (timescale=="m"){
     ## Monthly
     filn <- list.files( dir,
-      pattern = paste0(..., collapse = NULL),
+      pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_MM.*.csv" ),
       recursive = TRUE
       )
   } else  if (timescale=="y"){
@@ -964,7 +966,12 @@ get_obs_bysite_wcont_fluxnet2015 <- function( sitename, dir, timescale ){
       )
   }
 
-  if (length(filn)==0) abort(paste0("No files found for timescale ", timescale, "in sub-directories of ", dir ) )
+  if (length(filn)==0){
+    stop(
+      paste0("No files found for timescale ",
+             timescale, "in sub-directories of ", dir)
+      )
+  }
 
   ## This returns a data frame with columns (date, temp, prec, nrad, ppfd, vpd, ccov)
   ddf <- get_obs_fluxnet2015_raw( sitename,

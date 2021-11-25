@@ -1,19 +1,33 @@
-#' Get FLUXNET 2015 observational data for one site based on the GePiSaT method flux decomposition.
+#' The GePiSaT method flux decomposition.
 #'
 #' Function for reading observational GPP data from GePiSaT (Tyler's 
 #' alternative flux decomposition) for FLUXNET 2015 stations.
 #'
-#' @param sitename A character string specifying the site name for which FLUXNET 2015 data is searched (based on the site name appearing as part of the respective file name). Defaults to NA.
-#' @param path_gepisat A character string specifying the local path of FLUXNET 2015 data.
-#' @param timescale A character specifying the time scale of FLUXNET 2015 data. Only available: \code{c("d")} for daily.
+#' @param sitename A character string specifying the site name for which FLUXNET
+#'  2015 data is searched (based on the site name appearing as part of the
+#'  respective file name). Defaults to NA.
+#' @param path_gepisat A character string specifying the local path of 
+#'  FLUXNET 2015 data.
+#' @param timescale A character specifying the time scale of FLUXNET 2015 data.
+#'  Only available: \code{c("d")} for daily.
 #'
 #' @return A data frame (tibble) containint observational data.
 #' @export
 #'
-#' @examples df <- get_obs_bysite_gpp_gepisat
-#' 
-get_obs_bysite_gpp_gepisat <- function( sitename, path_gepisat, timescale = "d" ){
+#' @examples 
+#' \dontrun{
+#' df <- get_obs_bysite_gpp_gepisat
+#' }
+ 
+get_obs_bysite_gpp_gepisat <- function(
+  sitename,
+  path_gepisat,
+  timescale = "d"
+  ) {
 
+  # define variables
+  GPP_mol.m2 <- GPP_err_mol.m2 <- gpp_obs <- cols <- 
+    ymd <- Timestamp <- NULL
     
   ## Take only file for this site
   if (timescale=="d"){
@@ -26,13 +40,14 @@ get_obs_bysite_gpp_gepisat <- function( sitename, path_gepisat, timescale = "d" 
 
   } else {
 
-    abort("Aborting. GePiSaT data only available for daily time step.")
+    warning("Aborting. GePiSaT data only available for daily time step.")
 
   }
 
   if (length(filn)>0){
 
-    ## This returns a data frame with columns (date, temp, prec, nrad, ppfd, vpd, ccov)
+    ## This returns a data frame with columns 
+    ## (date, temp, prec, nrad, ppfd, vpd, ccov)
     df <- get_obs_gepisat_raw( 
       sitename = sitename, 
       path = paste0(path_gepisat, filn), 
@@ -66,17 +81,23 @@ get_obs_gepisat_raw <- function( sitename, path, freq="d" ){
   ## data file of respective temporal resolution.
   ## Returns data in units given in the fluxnet 2015 dataset
   ##--------------------------------------------------------------------
+  
+  # define variables
+  cols <- ymd <- Timestamp <- NULL
+  
   ## get data
   df <-  readr::read_csv( path, na="-9999", col_types = cols() )
 
   ## get dates, their format differs slightly between temporal resolution
   if ( freq=="d" ){
 
-    df <- df %>% mutate( Timestamp = ymd( Timestamp ) ) %>% rename( date = Timestamp )
+    df <- df %>%
+      mutate( Timestamp = ymd( Timestamp ) ) %>%
+      rename( date = Timestamp )
 
   } else {
 
-    abort("get_obs_gepisat_raw() implemented only for daily time step.")
+    warning("get_obs_gepisat_raw() implemented only for daily time step.")
 
   }
 

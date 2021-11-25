@@ -39,7 +39,7 @@ plot_fapar_ingestr_bysite <- function(df, settings, sitename = NULL){
 
   # CRAN compliance, define variables
   linear <- spline <- loess <- sgfilter <- modisvar <- 
-    modisvar_filtered <- NULL
+    modisvar_filtered <- method <- modisvar_interpol <-  NULL
     
   if (is.null(sitename)) sitename <- df$sitename[[1]]
 

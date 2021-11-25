@@ -45,7 +45,7 @@ ingest_globalfields <- function(
   # CRAN compliance, define state variables
   myvar <- temp <- rain <- snow <- sitename <- year <- moy <- 
   vap <- tmin <- tmax <- prec <- days_in_month <- nhx <- noy <-
-    lon <- lat <- data <- V1 <- elv <- varname <- value <- fact <- NULL
+    lon <- lat <- data <- V1 <- elv <- varnam <- value <- fact <- NULL
   
   if (!(source %in% c("etopo1", "wwf", "gsde", "worldclim"))){
     
@@ -458,7 +458,11 @@ ingest_globalfields <- function(
 ## Extract temperature time series for a set of sites at once (opening
 ## each file only once).
 ##--------------------------------------------------------------------
-ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
+ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
+  
+  # define variables
+  yr <- mo <- filename <- drop_na <- data <- sitename <- 
+    dom <- myvar <- doy <- data_pre <- . <- NULL
   
   dirn <- paste0( dir, "/", varnam, "/" )
   
@@ -503,7 +507,7 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
   allyears <- year_start_read:year_end_read
   df <- expand.grid(allmonths, allyears) %>%
     dplyr::as_tibble() %>%
-    setNames(c("mo", "yr")) %>%
+    stats::setNames(c("mo", "yr")) %>%
     rowwise() %>%
     dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), ".nc" )) %>%
     ungroup() %>%
@@ -512,7 +516,7 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
   ## rearrange to a daily data frame
   complement_df <- function(df){
     df <- df %>%
-      setNames(., c("myvar")) %>%
+      stats::setNames(., c("myvar")) %>%
       mutate( dom = 1:nrow(.))
     return(df)
   }
@@ -570,7 +574,7 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
       by = "sitename") %>% 
       mutate(data = purrr::map2(data_pre, data, ~bind_rows(.x, .y))) %>% 
       dplyr::select(-data_pre) %>% 
-      unnest(data) %>% 
+      tidyr::unnest(data) %>% 
       arrange(date) %>%   # to make sure
       distinct() # out of desperation
   }
@@ -585,6 +589,9 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
 ##--------------------------------------------------------------------
 ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
   
+  # define variable
+  data <- NULL
+  
   ## construct data frame holding longitude and latitude info
   df_lonlat <- tibble(
     sitename = siteinfo$sitename,
@@ -595,7 +602,7 @@ ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
   ## extract the data
   filename <- list.files( dir, paste0("ndep_", varnam, "_lamarque11cc_historical_halfdeg.nc") )
   df <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = TRUE) %>%
-    dplyr::mutate(data = purrr::map(data, ~setNames(., c(varnam, "year")))) %>% 
+    dplyr::mutate(data = purrr::map(data, ~stats::setNames(., c(varnam, "year")))) %>% 
     dplyr::mutate(data = purrr::map(data, ~mutate(., date = lubridate::ymd(paste0(as.character(year), "-01-01")))))
   
   adf <- df %>%
@@ -611,6 +618,9 @@ ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
 ##--------------------------------------------------------------------
 ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   
+  # define variables
+  data <- year <- moy <- NULL 
+  
   ## construct data frame holding longitude and latitude info
   df_lonlat <- tibble(
     sitename = siteinfo$sitename,
@@ -622,7 +632,7 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   filename <- list.files( dir, pattern=paste0( varnam, ".dat.nc" ) )
   if (length(filename)==0) stop(paste("Aborting. No files found for CRU variable", varnam))
   df <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = TRUE ) %>%
-    dplyr::mutate(data = purrr::map(data, ~setNames(., c("myvar", "date"))))
+    dplyr::mutate(data = purrr::map(data, ~stats::setNames(., c("myvar", "date"))))
   
   ## rearrange to a monthly data frame. Necesary work-around with date, because unnest() seems to have a bug
   ## when unnesting a dataframe that contains a lubridate ymd objet.
@@ -936,7 +946,7 @@ get_daily_prec <- function( mval_prec, mval_wet, set_seed=FALSE, leapyear=FALSE 
   if (set_seed) {set.seed(0)}
   prdaily_random <- array( NA, dim=c(ndayyear,2))
   for (doy in 1:ndayyear){
-    prdaily_random[doy,] <- runif(2)
+    prdaily_random[doy,] <- stats::runif(2)
   }
   
   dval_prec <- rep(NA,ndayyear)
@@ -981,8 +991,9 @@ get_daily_prec <- function( mval_prec, mval_wet, set_seed=FALSE, leapyear=FALSE 
         if (iloop==1) {
           vv <- prdaily_random[doy,1]
         } else {
-          # xxx problem: rand() generates a random number that leads to floating point exception
-          vv <- runif(1)
+          # problem: rand() generates a random number that leads to 
+          # floating point exception
+          vv <- stats::runif(1)
         }
         
         

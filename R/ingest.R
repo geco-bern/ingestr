@@ -805,7 +805,7 @@ ingest <- function(
 	  ## if 'dir' is provided, try reading from existing file, otherwise download
 	  path <- paste0(dir, "/cCO2_rcp85_const850-1765.csv")
 	  if (file.exists(path)){
-	    df_co2 <- read_csv(path)
+	    df_co2 <- readr::read_csv(path)
 	  } else {
 	    stop(
 	      "File cCO2_rcp85_const850-1765.csv must be available in directory
