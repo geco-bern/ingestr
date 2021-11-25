@@ -133,7 +133,7 @@ ingest <- function(
             lubridate::year(siteinfo$date_start[.]),
             lubridate::year(siteinfo$date_end[.]),
             noleap = TRUE,
-            timescale = "d"))
+            timescale = timescale))
         names(ddf_dates) <- siteinfo$sitename
         ddf_dates <- ddf_dates %>%
           bind_rows(.id = "sitename")
