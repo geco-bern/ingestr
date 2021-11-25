@@ -342,7 +342,7 @@ ingest <- function(
             pivot_longer(cols = starts_with("prec_"), names_to = "month", values_to = "prec", names_prefix = "prec_") %>%
             mutate(month = as.integer(month)) %>%
             rename(prec_fine = prec) %>%
-            mutate(prec_fine = prec_fine / days_in_month(month)) %>%   # mm/month -> mm/d
+            mutate(prec_fine = prec_fine / lubridate::days_in_month(month)) %>%   # mm/month -> mm/d
             mutate(prec_fine = prec_fine / (60 * 60 * 24)) %>%         # mm/d -> mm/sec
             right_join(ddf %>%
                          dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>%
