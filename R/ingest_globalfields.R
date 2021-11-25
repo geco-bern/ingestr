@@ -42,6 +42,11 @@ ingest_globalfields <- function(
   verbose = FALSE
 ){
   
+  # CRAN compliance, define state variables
+  myvar <- temp <- rain <- snow <- sitename <- year <- moy <- 
+  vap <- tmin <- tmax <- prec <- days_in_month <- nhx <- noy <-
+    lon <- lat <- data <- V1 <- elv <- varname <- value <- fact <- NULL
+  
   if (!(source %in% c("etopo1", "wwf", "gsde", "worldclim"))){
     
     # get a daily (monthly) data frame with all dates for all sites
@@ -124,7 +129,7 @@ ingest_globalfields <- function(
       select(-starts_with("myvar"))
     
     if (timescale=="m"){
-      rlang::abort("ingest_globalfields(): aggregating WATCH-WFDEI to monthly not implemented yet.")
+      stop("ingest_globalfields(): aggregating WATCH-WFDEI to monthly not implemented yet.")
     }
     
   } else if (source=="cru"){
@@ -304,7 +309,7 @@ ingest_globalfields <- function(
     
     
     if (timescale != "y"){
-      rlang::abort("ingest_globalfields() for source = ndep: come up with solution for non-annual time step")
+      stop("ingest_globalfields() for source = ndep: come up with solution for non-annual time step")
     } else {
       df_out <- adf
     }
@@ -312,8 +317,8 @@ ingest_globalfields <- function(
   } else if (source == "etopo1"){
     
     filename <- list.files(dir, pattern = ".tif")
-    if (length(filename) > 1) rlang::abort("ingest_globalfields(): Found more than 1 file for source 'etopo1'.")
-    if (length(filename) == 0) rlang::abort("ingest_globalfields(): Found no files for source 'etopo1' in the directory provided by argument 'dir'.")
+    if (length(filename) > 1) stop("ingest_globalfields(): Found more than 1 file for source 'etopo1'.")
+    if (length(filename) == 0) stop("ingest_globalfields(): Found no files for source 'etopo1' in the directory provided by argument 'dir'.")
     
     ## re-construct this data frame (tibble) - otherwise SpatialPointsDataframe() won't work
     df_lonlat <- tibble(
@@ -339,8 +344,8 @@ ingest_globalfields <- function(
     
     ## top soil layers
     filename <- list.files(dir, pattern = paste0(layer, "1.nc"))
-    if (length(filename) > 1) rlang::abort("ingest_globalfields(): Found more than 1 file for source 'gsde'.")
-    if (length(filename) == 0) rlang::abort("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir'.")
+    if (length(filename) > 1) stop("ingest_globalfields(): Found more than 1 file for source 'gsde'.")
+    if (length(filename) == 0) stop("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir'.")
     df_out_top <- extract_pointdata_allsites( paste0(dir, "/", filename), df_lonlat, get_time = FALSE ) %>%
       dplyr::select(-lon, -lat) %>%
       tidyr::unnest(data) %>%
@@ -349,8 +354,8 @@ ingest_globalfields <- function(
     
     ## bottom soil layers
     filename <- list.files(dir, pattern = paste0(layer, "2.nc"))
-    if (length(filename) > 1) rlang::abort("ingest_globalfields(): Found more than 1 file for source 'gsde'.")
-    if (length(filename) == 0) rlang::abort(paste("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir' for layer", layer))
+    if (length(filename) > 1) stop("ingest_globalfields(): Found more than 1 file for source 'gsde'.")
+    if (length(filename) == 0) stop(paste("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir' for layer", layer))
     df_out_bottom <- extract_pointdata_allsites( paste0(dir, "/", filename), df_lonlat, get_time = FALSE ) %>%
       dplyr::select(-lon, -lat) %>%
       tidyr::unnest(data) %>%
@@ -516,7 +521,7 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
   
   ## create data frame containing all dates, using mean annual cycle (of 1979-1988) for all years before 1979
   if (pre_data){
-    rlang::inform("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1988) for all years before 1979.")
+    message("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1988) for all years before 1979.")
     
     ## get mean seasonal cycle, averaged over 1979:1988
     ddf_meandoy <- ddf %>% 
@@ -610,7 +615,7 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   
   ## extract the data
   filename <- list.files( dir, pattern=paste0( varnam, ".dat.nc" ) )
-  if (length(filename)==0) rlang::abort(paste("Aborting. No files found for CRU variable", varnam))
+  if (length(filename)==0) stop(paste("Aborting. No files found for CRU variable", varnam))
   df <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = TRUE ) %>%
     dplyr::mutate(data = purrr::map(data, ~setNames(., c("myvar", "date"))))
   
@@ -824,8 +829,8 @@ extract_pointdata_allsites <- function(filename, df_lonlat, get_time = FALSE){
   
   ## load file using the raster library
   #print(paste("Creating raster brick from file", filename))
-  if (!file.exists(filename)) rlang::abort(paste0("File not found: ", filename))
-  # rlang::inform(paste0("Reading file: ", filename))
+  if (!file.exists(filename)) stop(paste0("File not found: ", filename))
+  # message(paste0("Reading file: ", filename))
   rasta <- raster::brick(filename)
   
   df_lonlat <- raster::extract(

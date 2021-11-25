@@ -50,6 +50,11 @@ A named list of data frames (tibbles) containing input data for each site is ret
 Ingests data for site scale simulations with rsofun (or any other Dynamic Vegetation Model).
 }
 \examples{
-inputdata <- prepare_input_sofun( settings_input = settings_input, settings_sims = settings_sims, overwrite_climate = FALSE, verbose = TRUE )
-
+\dontrun{
+  inputdata <- prepare_input_sofun(
+   settings_input = settings_input,
+   settings_sims = settings_sims,
+   verwrite_climate = FALSE,
+   verbose = TRUE )
+}
 }

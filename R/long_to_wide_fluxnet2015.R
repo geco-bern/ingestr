@@ -167,7 +167,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                                   ## determine remaining duplicates
                                   df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                                   
-                                  if (nrow(df_nduplicates)>0) rlang::abort("fuck")
+                                  if (nrow(df_nduplicates)>0) stop("fuck")
                                   
                                 }
                                 
@@ -281,7 +281,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
                                   ## determine remaining duplicates
                                   df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
                                   
-                                  if (nrow(df_nduplicates)>0) rlang::abort("shitfuck.")
+                                  if (nrow(df_nduplicates)>0) stop("shitfuck.")
                                   
                                 }
                               }
@@ -305,7 +305,7 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
     wide <- sub %>% dplyr::select( -VARIABLE_GROUP, -GROUP_ID ) %>% tidyr::spread( VARIABLE, DATAVALUE )
   } else {
     print(df_nduplicates)
-    rlang::warn(paste("remaining duplicates for site", sitename))
+    warning(paste("remaining duplicates for site", sitename))
     wide <- NULL
   }
 

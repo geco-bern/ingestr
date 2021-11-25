@@ -23,6 +23,11 @@ is greater than zero and aggregating taking the mean across remaining
 hours per day.
 }
 \examples{
-df <- get_vpd_day_fluxnet2015_byfile("./FLX_BE-Vie_FLUXNET2015_FULLSET_HH_1996-2014_1-3.csv")
+\dontrun{
+df <- get_vpd_day_fluxnet2015_byfile(
+  "./FLX_BE-Vie_FLUXNET2015_FULLSET_HH_1996-2014_1-3.csv"
+  )
+}
+
 
 }

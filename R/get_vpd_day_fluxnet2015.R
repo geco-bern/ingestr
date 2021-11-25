@@ -11,7 +11,10 @@
 #' @return A list of outputs of the function \link{get_vpd_day_fluxnet2015_byfile}.
 #' @export
 #'
-#' @examples df <- get_vpd_day_fluxnet2015("./")
+#' @examples 
+#' \dontrun{
+#' df <- get_vpd_day_fluxnet2015("./")
+#' }
 #' 
 get_vpd_day_fluxnet2015 <- function(dir){
   
@@ -37,7 +40,13 @@ get_vpd_day_fluxnet2015 <- function(dir){
 #' @return A data frame (tibble) containing daily daytime VPD.
 #' @export
 #'
-#' @examples df <- get_vpd_day_fluxnet2015_byfile("./FLX_BE-Vie_FLUXNET2015_FULLSET_HH_1996-2014_1-3.csv")
+#' @examples 
+#' \dontrun{
+#' df <- get_vpd_day_fluxnet2015_byfile(
+#'   "./FLX_BE-Vie_FLUXNET2015_FULLSET_HH_1996-2014_1-3.csv"
+#'   )
+#' }
+#' 
 #' 
 get_vpd_day_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
   
@@ -48,18 +57,18 @@ get_vpd_day_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
   if (file.exists(filename_dd_vpd)){
     ## Daytime VPD file is already available, reading from file
     # print(paste("Reading daytime VPD from:", filename_dd_vpd))
-    rlang::inform(paste("Reading file with calculated daytime VPD:", filename_dd_vpd))
+    message(paste("Reading file with calculated daytime VPD:", filename_dd_vpd))
     df <- readr::read_csv(filename_dd_vpd)
     
   } else {
     ## Get daytime VPD from half-hourly data
     ## read half-hourly data
     if (!file.exists(filename_hh)){
-      rlang::abort(paste("Half-hourly file does not exist:", filename_hh))
+      stop(paste("Half-hourly file does not exist:", filename_hh))
     } 
     
     # else if (length(filename_hh)>1){
-    #   rlang::warn("Reading only largest file available")
+    #   warning("Reading only largest file available")
     #   file.info_getsize <- function(filn){
     #     file.info(filn)$size
     #   }
@@ -87,7 +96,7 @@ get_vpd_day_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
     
     ## write to csv file  
     if (write){
-      rlang::inform(paste("Writing file with daytime VPD as:", filename_dd_vpd))
+      message(paste("Writing file with daytime VPD as:", filename_dd_vpd))
       readr::write_csv(df, path = filename_dd_vpd)
     }
     

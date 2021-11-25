@@ -9,7 +9,10 @@
 #' @return A list of outputs of the function \link{get_tmin_fluxnet2015}.
 #' @export
 #'
-#' @examples df <- get_tmin_fluxnet2015("./")
+#' @examples
+#' \dontrun{
+#'  df <- get_tmin_fluxnet2015("./")
+#' }
 #' 
 get_tmin_fluxnet2015 <- function(dir){
   
@@ -33,8 +36,15 @@ get_tmin_fluxnet2015 <- function(dir){
 #' @return A data frame (tibble) containing daily daytime tmin.
 #' @export
 #'
-#' @examples df <- get_tmin_fluxnet2015_byfile("./FLX_BE-Vie_FLUXNET2015_FULLSET_HH_1996-2014_1-3.csv")
+#' @examples 
 #' 
+#' \dontrun{
+#'  df <- get_tmin_fluxnet2015_byfile(
+#'  "./FLX_BE-Vie_FLUXNET2015_FULLSET_HH_1996-2014_1-3.csv"
+#'  )
+#' }
+#'
+ 
 get_tmin_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
   
   filename_dd_tmin <- filename_hh %>% 
@@ -44,14 +54,14 @@ get_tmin_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
   if (file.exists(filename_dd_tmin)){
     ## Daytime tmin file is already available, reading from file
     # print(paste("Reading daytime tmin from:", filename_dd_tmin))
-    rlang::inform(paste("Reading file with calculated daily TMIN:", filename_dd_tmin))
+    message(paste("Reading file with calculated daily TMIN:", filename_dd_tmin))
     df <- readr::read_csv(filename_dd_tmin)
     
   } else {
     ## Get daytime tmin from half-hourly data
     ## read half-hourly data
     if (!file.exists(filename_hh)){
-      rlang::abort(paste("Half-hourly file does not exist:", filename_hh))
+      stop(paste("Half-hourly file does not exist:", filename_hh))
     } 
     
     df <- readr::read_csv(filename_hh) %>% 
@@ -71,7 +81,7 @@ get_tmin_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
     
     ## write to csv file  
     if (write){
-      rlang::inform(paste("Writing file with minimum temperature as:", filename_dd_tmin))
+      message(paste("Writing file with minimum temperature as:", filename_dd_tmin))
       readr::write_csv(df, path = filename_dd_tmin)
     }
     

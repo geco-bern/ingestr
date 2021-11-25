@@ -14,6 +14,10 @@
 #'
 ingest_soilgrids <- function(siteinfo, settings){
   
+  # CRAN compliance, declaring unstated variables
+  sitename <- lon <- lat <- layer <- depth <- depth_tot_cm <- 
+    x <- y <- value <- name <- value_wgt <- NULL
+  
   siteinfo <- siteinfo %>% 
     dplyr::select(id = sitename,
                   longitude = lon,
@@ -73,7 +77,7 @@ ingest_soilgrids <- function(siteinfo, settings){
     summarise(value = sum(value_wgt)) %>% 
     mutate(value = value / z_tot_use) %>% 
     ungroup() %>% 
-    pivot_wider(names_from = "name", values_from = "value") %>% 
+    tidyr::pivot_wider(names_from = "name", values_from = "value") %>% 
     rename(sitename = id)
   
   return(df)

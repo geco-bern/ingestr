@@ -100,10 +100,10 @@ ingest_gee_bysite <- function(
 
       end = Sys.time()
       proc_time = as.vector(end - start)
-      rlang::inform( paste( "... completed in", format( proc_time, digits = 3), "sec" ) )
+      message( paste( "... completed in", format( proc_time, digits = 3), "sec" ) )
 
       ## Raw downloaded data is saved to file
-      rlang::inform( paste( "raw data file written:", filnam_raw_csv ) )
+      message( paste( "raw data file written:", filnam_raw_csv ) )
 
     }
 
@@ -128,7 +128,7 @@ ingest_gee_bysite <- function(
 
     } else {
 
-      rlang::warn( paste( "WARNING: RAW DATA FILE NOT FOUND FOR SITE:", sitename ) )
+      warning( paste( "WARNING: RAW DATA FILE NOT FOUND FOR SITE:", sitename ) )
       df_error <- df_error %>% bind_rows( tibble( mysitename=sitename, error=2 ) )
       out <- NA
       do_continue <- FALSE
@@ -575,7 +575,7 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
     ##--------------------------------------
     ## get LOESS spline model for predicting daily values (used below)
     ##--------------------------------------
-    rlang::inform("loess...")
+    message("loess...")
 
     ## determine periodicity
     period <- ddf %>%
@@ -606,7 +606,7 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
     ##--------------------------------------
     ## get SPLINE model for predicting daily values (used below)
     ##--------------------------------------
-    rlang::inform("spline...")
+    message("spline...")
     idxs   <- which(!is.na(ddf$modisvar_filtered))
     spline <- try( with( ddf, smooth.spline( year_dec[idxs], modisvar_filtered[idxs], spar=0.01 ) ) )
 
@@ -624,7 +624,7 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
     ##--------------------------------------
     ## LINEAR INTERPOLATION
     ##--------------------------------------
-    rlang::inform("linear ...")
+    message("linear ...")
     ddf$linear <- approx( ddf$year_dec, ddf$modisvar_filtered, xout=ddf$year_dec )$y
   }
 
@@ -632,7 +632,7 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
     ##--------------------------------------
     ## SAVITZKY GOLAY FILTER
     ##--------------------------------------
-    rlang::inform("sgfilter ...")
+    message("sgfilter ...")
     ddf$sgfilter <- rep( NA, nrow(ddf) )
     idxs <- which(!is.na(ddf$modisvar_filtered))
     tmp <- try(signal::sgolayfilt( ddf$modisvar_filtered[idxs], p=3, n=51 ))
@@ -699,7 +699,7 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
   #   ##--------------------------------------
   #   ## get LOESS spline model for predicting daily values (used below)
   #   ##--------------------------------------
-  #   rlang::inform("loess...")
+  #   message("loess...")
 
   #   ## determine periodicity
   #   period <- ddf %>%
@@ -731,7 +731,7 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
   #   ##--------------------------------------
   #   ## get SPLINE model for predicting daily values (used below)
   #   ##--------------------------------------
-  #   rlang::inform("spline...")
+  #   message("spline...")
   #   idxs   <- which(!is.na(ddf$modisvar_filled))
   #   spline <- try( with( ddf, smooth.spline( year_dec[idxs], modisvar_filled[idxs], spar=0.01 ) ) )
 
@@ -748,14 +748,14 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
   #   ##--------------------------------------
   #   ## LINEAR INTERPOLATION
   #   ##--------------------------------------
-  #   rlang::inform("linear ...")
+  #   message("linear ...")
   #   ddf$linear <- approx( ddf$year_dec, ddf$modisvar_filled, xout=ddf$year_dec )$y
   # }
   # if (method_interpol == "sgfilter" || keep){
   #   ##--------------------------------------
   #   ## SAVITZKY GOLAY FILTER
   #   ##--------------------------------------
-  #   rlang::inform("sgfilter ...")
+  #   message("sgfilter ...")
   #   ddf$sgfilter <- rep( NA, nrow(ddf) )
   #   idxs <- which(!is.na(ddf$modisvar_filled))
   #   tmp <- try(signal::sgolayfilt( ddf$modisvar_filled[idxs], p=3, n=51 ))
@@ -809,12 +809,12 @@ extrapolate_missing_headtail <- function(ddf){
 
   ## new: fill gaps at head
   idxs <- findna_head( ddf$var )
-  if (length(idxs)>0) rlang::warn("Filling values with last available data point at head")
+  if (length(idxs)>0) warning("Filling values with last available data point at head")
   ddf$var[idxs] <- ddf$var[max(idxs)+1]
 
   ## new: fill gaps at tail
   idxs <- findna_tail( ddf$var )
-  if (length(idxs)>0) rlang::warn("Filling values with last available data point at tail.")
+  if (length(idxs)>0) warning("Filling values with last available data point at tail.")
   ddf$var[idxs] <- ddf$var[min(idxs)-1]
 
   # ## get mean seasonal cycle

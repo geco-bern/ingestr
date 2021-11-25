@@ -12,13 +12,20 @@
 #' Earth Engine.
 #' @export
 #'
-#' @examples settings_gee <- get_settings_gee( bundle = "modis_fpar" )
+#' @examples 
+#' \dontrun{
+#' settings_gee <- get_settings_gee( bundle = "modis_fpar" )
+#' }
+#' 
 #'
 ingest_modis_bysite <- function(
   df_siteinfo,
   settings
   ){
 
+  # CRAN compliance, declaring unstated variables
+  settings_modis <- calendar_date <- pixel <- band <- value <- NULL
+  
   ##---------------------------------------------
   ## Define names
   ##---------------------------------------------
@@ -109,7 +116,7 @@ ingest_modis_bysite <- function(
         
         while (class(sites_avl) == "try-error"){
           Sys.sleep(3)
-          rlang::warn("re-trying to get available sites...")
+          warning("re-trying to get available sites...")
           sites_avl <- try(
             do.call("rbind",
                     lapply(
@@ -138,9 +145,9 @@ ingest_modis_bysite <- function(
             ])
           
           # initial try
-          rlang::inform(paste("Initial try for band", x))
-          rlang::inform(paste("of site", site))
-          rlang::inform(paste("and network", network))
+          message(paste("Initial try for band", x))
+          message(paste("of site", site))
+          message(paste("and network", network))
           
           df <- try(
             MODISTools::mt_subset(
@@ -158,7 +165,7 @@ ingest_modis_bysite <- function(
           ## repeat if failed until it works
           while (class(df) == "try-error"){
             Sys.sleep(3)                    
-            rlang::warn("re-trying...")
+            warning("re-trying...")
             df <- try(
               MODISTools::mt_subset(
                 product   = settings$prod,  
@@ -182,7 +189,7 @@ ingest_modis_bysite <- function(
         try_mt_subset <- function(x, df_siteinfo, settings){
 
           ## initial try
-          rlang::inform(paste("Initial try for band", x))
+          message(paste("Initial try for band", x))
           
           df <- try(
             MODISTools::mt_subset(
@@ -201,7 +208,7 @@ ingest_modis_bysite <- function(
           ## repeat if failed until it works
           while (class(df) == "try-error"){
             Sys.sleep(3)                       
-            rlang::warn("re-trying...")
+            warning("re-trying...")
             df <- try(
               MODISTools::mt_subset(
                 product   = settings$prod,     
@@ -239,7 +246,7 @@ ingest_modis_bysite <- function(
       #   geom_line()
       
       ## Raw downloaded data is saved to file
-      rlang::inform( paste( "raw data file written:", filnam_raw_csv ) )
+      message( paste( "raw data file written:", filnam_raw_csv ) )
       data.table::fwrite(df, file = filnam_raw_csv, sep = ",")
       # readr::write_csv(df, path = filnam_raw_csv)
       
@@ -276,7 +283,7 @@ ingest_modis_bysite <- function(
       unique()
 
     if (length(scale_factor)!=1){
-      rlang::abort("Multiple scaling factors found for ingested bands")
+      stop("Multiple scaling factors found for ingested bands")
     } else {
       scaleme <- function(x, scale_factor){x * scale_factor}
       df <- df %>%
@@ -343,6 +350,13 @@ gapfill_interpol <- function(
   keep,
   n_focal
   ){
+  
+  # CRAN compliance, predefine internal variables
+  value <- modisvar <- qc <- qc_bitname <- vi_useful <- aerosol <- 
+  adjcloud <- brdf_corr <- mixcloud <- snowice <- shadow <- qc_bit0 <- 
+  qc_bit1 <- qc_bit2 <- qc_bit3 <- qc_bit4 <- CloudState <- modisvar_filtered <- 
+  good_quality <- SCF_QC <- sur_refl_qc_500m <- modland_qc <- pixel <- 
+  settings_modis <- approx <- prevdate <- modisvar_filled <- NULL
   
   ##--------------------------------------
   ## Returns data frame containing data
@@ -730,9 +744,9 @@ gapfill_interpol <- function(
   ## determine the distance from ("layer around") the focal point
   i_focal <- ceiling(n_side/2)
   j_focal <- ceiling(n_side/2)
-  if (i_focal != j_focal){ rlang::abort("Aborting. Non-quadratic subset.") }
+  if (i_focal != j_focal){ stop("Aborting. Non-quadratic subset.") }
   if ((n_focal + 1) > i_focal){
-    rlang::abort(
+    stop(
       paste("Aborting.
              Not enough pixels available for your choice of n_focal:",
             n_focal)) }
@@ -749,8 +763,8 @@ gapfill_interpol <- function(
   arr_mask[which(arr_distance > n_focal)] <- NA
   vec_usepixels <- c(arr_mask) %>% na.omit() %>% as.vector()
 
-  rlang::inform(paste("Number of available pixels: ", npixels))
-  rlang::inform(paste("Averaging across number of pixels: ",
+  message(paste("Number of available pixels: ", npixels))
+  message(paste("Averaging across number of pixels: ",
                       length(vec_usepixels)))
 
   ## take mean across selected pixels
@@ -799,7 +813,7 @@ gapfill_interpol <- function(
       ##--------------------------------------
       ## get LOESS spline model for predicting daily values (used below)
       ##--------------------------------------
-      rlang::inform("loess...")
+      message("loess...")
 
       ## determine periodicity
       period <- ddf %>%
@@ -832,7 +846,7 @@ gapfill_interpol <- function(
       ##--------------------------------------
       ## get SPLINE model for predicting daily values (used below)
       ##--------------------------------------
-      rlang::inform("spline...")
+      message("spline...")
       idxs   <- which(!is.na(ddf$modisvar_filtered))
       spline <- try(
         with(ddf,
@@ -852,7 +866,7 @@ gapfill_interpol <- function(
       ##--------------------------------------
       ## LINEAR INTERPOLATION
       ##--------------------------------------
-      rlang::inform("linear ...")
+      message("linear ...")
       tmp <- try(approx(ddf$year_dec, ddf$modisvar_filtered, xout=ddf$year_dec))
       if (class(tmp) == "try-error"){
         ddf <- ddf %>% mutate(linear = NA)
@@ -866,7 +880,7 @@ gapfill_interpol <- function(
       ##--------------------------------------
       ## SAVITZKY GOLAY FILTER
       ##--------------------------------------
-      rlang::inform("sgfilter ...")
+      message("sgfilter ...")
       ddf$sgfilter <- rep( NA, nrow(ddf) )
       idxs <- which(!is.na(ddf$modisvar_filtered))
       tmp <- try(signal::sgolayfilt( ddf$modisvar_filtered[idxs], p=3, n=51 ))
@@ -933,14 +947,14 @@ extrapolate_missing_headtail <- function(
   ## new: fill gaps at head
   idxs <- findna_head( ddf$var )
   if (length(idxs)>0){
-    rlang::warn("Filling values with last available data point at head")
+    warning("Filling values with last available data point at head")
   }
   ddf$var[idxs] <- ddf$var[max(idxs)+1]
 
   ## new: fill gaps at tail
   idxs <- findna_tail( ddf$var )
   if (length(idxs)>0){
-    rlang::warn("Filling values with last available data point at tail.")
+    warning("Filling values with last available data point at tail.")
   }
   ddf$var[idxs] <- ddf$var[min(idxs)-1]
 

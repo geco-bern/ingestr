@@ -139,7 +139,7 @@ ingest_bysite <- function(
         year_end_wc <- 2000
         
         if (source == "watch_wfdei"){
-          rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
+          message("Beware: WorldClim data is for years 1970-2000. Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
           year_start_wc <- 1979  # no earlier years available
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
@@ -164,7 +164,7 @@ ingest_bysite <- function(
     ## bias-correct atmospheric pressure - per default
     if ("patm" %in% getvars){
       if (is.na(elv)){
-        rlang::abort("Aborting. Argument elv is missing.")
+        stop("Aborting. Argument elv is missing.")
       }
       patm_mean_watch <- df_tmp %>% 
         summarise(patm = mean(patm, na.rm = TRUE)) %>% 
@@ -546,7 +546,7 @@ ingest_bysite <- function(
     if (file.exists(path)){
       df_co2 <- read_csv(path)
     } else {
-      rlang::abort("File cCO2_rcp85_const850-1765.csv must be available in directory specified by 'dir'.")     
+      stop("File cCO2_rcp85_const850-1765.csv must be available in directory specified by 'dir'.")     
     }
     
     df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
@@ -709,8 +709,8 @@ ingest_bysite <- function(
       nest()
     
   }  else {
-    rlang::warn(paste("you selected source =", source))
-    rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
+    warning(paste("you selected source =", source))
+    stop("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
   }
 
   ## add data frame to nice data frame containing all required time steps

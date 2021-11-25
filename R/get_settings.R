@@ -99,7 +99,7 @@ get_settings_gee <- function(
       )
 
   } else {
-    rlang::abort("get_settings_gee(): Could not identify required argument 'bundle'.")
+    stop("get_settings_gee(): Could not identify required argument 'bundle'.")
   }
 
   out$python_path        <- python_path
@@ -246,7 +246,7 @@ get_settings_modis <- function(
       )
     
   } else {
-    rlang::abort("get_settings_modis(): Could not identify required argument 'bundle'.")
+    stop("get_settings_modis(): Could not identify required argument 'bundle'.")
   }
   
   out$data_path          <- data_path
