@@ -148,7 +148,7 @@ ingest <- function(
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
                    year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
         } else if (source == "wfde5"){
-          rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WRFDE5 data is ingested for 1979-(at least) 2000.")
+          rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WFDE5 data is ingested for 1979-(at least) 2000.")
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
                    year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
@@ -354,7 +354,7 @@ ingest <- function(
             dplyr::select(sitename, month, scale)
 
           ## correct bias by month
-          if (source == "watch_wfdei"){
+          if (source == "watch_wfdei" || source == "wfde5"){
             ddf <- ddf %>%
               mutate(month = lubridate::month(date)) %>%
               left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>%
@@ -437,7 +437,7 @@ ingest <- function(
         if ("vapr" %in% getvars_wc){
 
           ## calculate vapour pressure from specific humidity - needed for bias correction with worldclim data
-          if (source == "watch_wfdei"){
+          if (source == "watch_wfdei" || source == "wfde5"){
             ## specific humidity (qair, g g-1) is read, convert to vapour pressure (vapr, Pa)
             ddf <- ddf %>% 
               rowwise() %>% 
@@ -481,7 +481,7 @@ ingest <- function(
         ## Calculate vapour pressure deficit from specific humidity
         if ("vpd" %in% getvars){
           
-          if (source == "watch_wfdei"){
+          if (source == "watch_wfdei" || source == "wfde5"){
             ## use daily mean temperature
             ddf <- ddf %>%
               rowwise() %>%
@@ -514,7 +514,7 @@ ingest <- function(
       
       if ("vpd" %in% getvars){
 
-        if (source == "watch_wfdei"){
+        if (source == "watch_wfdei" || source == "wfde5"){
           ## use daily mean temperature
           ddf <- ddf %>%
             rowwise() %>%
