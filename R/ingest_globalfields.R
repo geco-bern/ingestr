@@ -708,7 +708,6 @@ ingest_globalfields_wfde5_byvar <- function( ddf, siteinfo, dir, varnam ){
     return(df)
   }
   
-  ## New Try:
   ddf <- df %>%
     tidyr::unnest(data) %>%
     dplyr::mutate(data = purrr::map(data, ~complement_df(.))) %>%
