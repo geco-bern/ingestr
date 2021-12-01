@@ -49,6 +49,9 @@ ingest_gee_bysite <- function(
   keep
   ){
 
+  # CRAN compliance, define variables
+  lat <- lon <- ymd <- longitude <- latitude <- product <- NULL
+  
   ##---------------------------------------------
   ## Define names
   ##---------------------------------------------
@@ -83,7 +86,7 @@ ingest_gee_bysite <- function(
       ## Download via Google Earth Engine using the python function
       ##---------------------------------------------
       path_info <- paste0(dirnam_raw_csv, "info_lonlat.csv")
-      write.csv( dplyr::select( df_siteinfo, site = sitename, latitude = lat, longitude = lon), file=path_info, row.names=FALSE )
+      utils::write.csv( dplyr::select( df_siteinfo, site = sitename, latitude = lat, longitude = lon), file=path_info, row.names=FALSE )
 
       start = Sys.time()
       system(sprintf("%s %s/gee_subset.py -p %s -b %s %s -s %s -e %s -f %s -d %s -sc 30",
@@ -100,11 +103,10 @@ ingest_gee_bysite <- function(
 
       end = Sys.time()
       proc_time = as.vector(end - start)
-      rlang::inform( paste( "... completed in", format( proc_time, digits = 3), "sec" ) )
+      message( paste( "... completed in", format( proc_time, digits = 3), "sec" ) )
 
       ## Raw downloaded data is saved to file
-      rlang::inform( paste( "raw data file written:", filnam_raw_csv ) )
-
+      message( paste( "raw data file written:", filnam_raw_csv ) )
     }
 
     ##--------------------------------------------------------------------
@@ -128,7 +130,7 @@ ingest_gee_bysite <- function(
 
     } else {
 
-      rlang::warn( paste( "WARNING: RAW DATA FILE NOT FOUND FOR SITE:", sitename ) )
+      warning( paste( "WARNING: RAW DATA FILE NOT FOUND FOR SITE:", sitename ) )
       df_error <- df_error %>% bind_rows( tibble( mysitename=sitename, error=2 ) )
       out <- NA
       do_continue <- FALSE
@@ -177,7 +179,18 @@ ingest_gee_bysite <- function(
 }
 
 
-gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, qc_name, prod, method_interpol, keep ){
+gapfill_interpol_gee <- function( 
+  df,
+  sitename,
+  year_start,
+  year_end,
+  var_name,
+  qc_name,
+  prod,
+  method_interpol,
+  keep
+  ) {
+  
   ##--------------------------------------
   ## Returns data frame containing data
   ## (and year, moy, doy) for all available
@@ -185,7 +198,13 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
   ## from original 16-daily data.
   ##--------------------------------------
 
-  # require( signal )  ## for sgolayfilt, masks filter()
+  # CRAN compliance, predefine internal variables
+  value <- modisvar <- qc <- qc_bitname <- vi_useful <- aerosol <- 
+    adjcloud <- brdf_corr <- mixcloud <- snowice <- shadow <- qc_bit0 <- 
+    qc_bit1 <- qc_bit2 <- qc_bit3 <- qc_bit4 <- CloudState <- modisvar_filtered <- 
+    good_quality <- SCF_QC <- sur_refl_qc_500m <- modland_qc <- pixel <- 
+    settings_modis <- approx <- prevdate <- modisvar_filled <- 
+    Psn_QC <- Gpp <- outlier <-  NULL
 
   ##--------------------------------------
   ## CLEAN AND GAP-FILL
@@ -201,7 +220,10 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
 
       ## separate into bits
       rowwise() %>%
-      mutate(qc_bitname = intToBits( qc ) %>% as.character() %>% paste(collapse = "")) %>%
+      mutate(qc_bitname = intToBits( qc ) %>%
+               as.character() %>%
+               paste(collapse = "")
+             ) %>%
 
       ## Bits 0-1: VI Quality
       ##   00 VI produced with good quality
@@ -221,7 +243,10 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
       ##   1110 L1B data faulty
       ##   1111 Not useful for any other reason/not processed
       mutate(vi_useful = substr( qc_bitname, start=3, stop=6 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(vi_useful %in% c("0000", "0001", "0010", "0100", "1000", "1001", "1010", "1100"), modisvar, NA)) %>%
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          vi_useful %in% c("0000", "0001", "0010", "0100",
+                           "1000", "1001", "1010", "1100"), modisvar, NA)) %>%
 
       ## Bits 6-7: Aerosol Quantity
       ##  00 Climatology
@@ -229,25 +254,29 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
       ##  10 Intermediate
       ##  11 High
       mutate(aerosol = substr( qc_bitname, start=7, stop=8 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(aerosol %in% c("00", "01", "10"), modisvar, NA)) %>%
+      dplyr::mutate(modisvar_filtered = ifelse(aerosol %in% c("00", "01", "10"),
+                                               modisvar, NA)) %>%
 
       ## Bit 8: Adjacent cloud detected
       ##  0 No
       ##  1 Yes
       mutate(adjcloud = substr( qc_bitname, start=9, stop=9 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(adjcloud %in% c("0"), modisvar, NA)) %>%
+      dplyr::mutate(modisvar_filtered = ifelse(adjcloud %in% c("0"),
+                                               modisvar, NA)) %>%
 
       ## Bits 9: Atmosphere BRDF Correction
       ##   0 No
       ##   1 Yes
       mutate(brdf_corr = substr( qc_bitname, start=10, stop=10 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(brdf_corr %in% c("1"), modisvar, NA)) %>%
+      dplyr::mutate(modisvar_filtered = ifelse(brdf_corr %in% c("1"),
+                                               modisvar, NA)) %>%
 
       ## Bits 10: Mixed Clouds
       ##   0 No
       ##   1 Yes
       mutate(mixcloud = substr( qc_bitname, start=11, stop=11 )) %>%
-      dplyr::mutate(modisvar_filtered = ifelse(mixcloud %in% c("0"), modisvar, NA)) %>%
+      dplyr::mutate(modisvar_filtered = ifelse(mixcloud %in% c("0"),
+                                               modisvar, NA)) %>%
 
       ## Bits 11-13: Land/Water Mask
       ##  000 Shallow ocean
@@ -275,43 +304,6 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
       ## drop it
       dplyr::select(-qc_bitname)
 
-    ## OLD:
-    # ##--------------------------------------
-    # ## This is for MOD13Q1 EVI data downloaded from Google Earth Engine with gee_subset
-    # ## USED AS MODIS EVI GEE for P-model
-    # ##--------------------------------------
-    # ## QC interpreted according to https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMOD13Q1:
-    # ## 0: Good data, use with confidence
-    # ## 1: Marginal data, useful but look at detailed QA for more information
-    # ## 2: Pixel covered with snow/ice
-    # ## 3: Pixel is cloudy
-    # ##--------------------------------------
-    # df <- df %>%
-    #   dplyr::mutate( good_quality  = ifelse( SummaryQA %in% c(0, 1, 2), TRUE, FALSE ) ) %>%
-    #   dplyr::rename( modisvar = EVI ) %>%
-
-    #   ## Actually filter
-    #   dplyr::mutate( fapar_filtered = ifelse( good_quality, modisvar, NA )  )  ## replace by NA for values to be filtered out
-
-    # ##--------------------------------------
-    # ## replace missing values with mean by DOY (mean seasonal cycle)
-    # ##--------------------------------------
-    # ## get mean seasonal cycle
-    # ddf_meandoy <- df %>%
-    #   group_by( doy ) %>%
-    #   summarise( meandoy = mean( fapar_filtered , na.rm=TRUE ) )
-
-    # ## attach mean seasonal cycle as column 'meandoy' to daily dataframe
-    # df <- df %>%
-    #   left_join( ddf_meandoy, by="doy" ) %>%
-
-    #   ## fill gaps at head and tail with data from mean seasonal cycle
-    #   # dplyr::mutate( modisvar_filled = ifelse( is.na(modisvar_filtered), meandoy, modisvar_filtered ) )
-
-    #   ## Don't fill with mean seasonal cycle!!!
-    #   dplyr::mutate( modisvar_filled = modisvar_filtered )
-
-
   } else if (prod=="MCD15A3H"){
 
     ## QC interpreted according to https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H:
@@ -324,7 +316,8 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
 
       ## separate into bits
       rowwise() %>%
-      mutate(qc_bitname = intToBits( !!qc_name )[1:8] %>% rev() %>% as.character() %>% paste(collapse = "")) %>%
+      mutate(qc_bitname = intToBits( !!qc_name )[1:8] %>%
+               rev() %>% as.character() %>% paste(collapse = "")) %>%
 
       ## MODLAND_QC bits
       ## 0: Good  quality (main algorithm with or without saturation)
@@ -350,7 +343,9 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
       ## 10 2  Mixed cloud present in  pixel
       ## 11 3  Cloud state not defined,  assumed clear
       mutate(qc_bit3 = substr( qc_bitname, start=4, stop=5 )) %>%
-      mutate(CloudState = ifelse( qc_bit3=="00", 0, ifelse( qc_bit3=="01", 1, ifelse( qc_bit3=="10", 2, 3 ) ) )) %>%
+      mutate(CloudState = ifelse( qc_bit3=="00", 0,
+                                  ifelse( qc_bit3=="01",
+                                    1, ifelse( qc_bit3=="10", 2, 3 ) ) )) %>%
 
       ## SCF_QC (five level confidence score)
       ## 000 0 Main (RT) method used, best result possible (no saturation)
@@ -370,110 +365,6 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
       mutate(modisvar_filtered = ifelse( SCF_QC %in% c(0,1), modisvar_filtered, NA ))
 
 
-    ## OLD:
-    # ##--------------------------------------
-    # ## This is for MCD15A3H FPAR data downloaded from Google Earth Engine with gee_subset
-    # ## USED AS MODIS FPAR GEE for P-model
-    # ##--------------------------------------
-    # ## QC interpreted according to https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H:
-    # ## Bit 0: MODLAND_QC bits
-    # ##   0: Good quality (main algorithm with or without saturation)
-    # ##   1: Other quality (back-up algorithm or fill values)
-    # ## Bit 1: Sensor
-    # ##   0: Terra
-    # ##   1: Aqua
-    # ## Bit 2: Dead detector
-    # ##   0: Detectors apparently fine for up to 50% of channels 1, 2
-    # ##   1: Dead detectors caused >50% adjacent detector retrieval
-    # ## Bits 3-4: Cloud state
-    # ##   0: Significant clouds NOT present (clear)
-    # ##   1: Significant clouds WERE present
-    # ##   2: Mixed cloud present in pixel
-    # ##   3: Cloud state not defined, assumed clear
-    # ## Bits 5-7: SCF_QC
-    # ##   0: Main (RT) method used with no saturation, best result possible
-    # ##   1: Main (RT) method used with saturation, good and very usable
-    # ##   2: Main (RT) method failed due to bad geometry, empirical algorithm used
-    # ##   3: Main (RT) method failed due to problems other than geometry, empirical algorithm used
-    # ##   4: Pixel not produced at all, value couldn't be retrieved (possible reasons: bad L1B data, unusable MOD09GA data)
-    # ##--------------------------------------
-
-    # ## This is interpreted according to https://lpdaac.usgs.gov/sites/default/files/public/product_documentation/mod15_user_guide.pdf, p.9
-    # ## see mod15_user_guide.pdf
-    # df$qc_bitname <- sapply( seq(nrow(df)), function(x) as.integer( intToBits( df$FparLai_QC[x] )[1:8] ) %>% rev() %>% as.character() %>% paste( collapse="" )  )
-
-    # ## MODLAND_QC bits
-    # ## 0: Good  quality (main algorithm with or without saturation)
-    # ## 1: Other quality (backup  algorithm or fill values)
-    # df$qc_bit0 <- substr( df$qc_bitname, start=8, stop=8 )
-
-    # ## Sensor
-    # ## 0: Terra
-    # ## 1: Aqua
-    # df$qc_bit1 <- substr( df$qc_bitname, start=7, stop=7 )
-
-    # ## Dead detector
-    # ## 0: Detectors apparently  fine  for up  to  50% of  channels  1,  2
-    # ## 1: Dead  detectors caused  >50%  adjacent  detector  retrieval
-    # df$qc_bit2 <- substr( df$qc_bitname, start=6, stop=6 )
-
-    # ## CloudState
-    # ## 00 0  Significant clouds  NOT present (clear)
-    # ## 01 1  Significant clouds  WERE  present
-    # ## 10 2  Mixed cloud present in  pixel
-    # ## 11 3  Cloud state not defined,  assumed clear
-    # df$qc_bit3 <- substr( df$qc_bitname, start=4, stop=5 )
-
-    # ## SCF_QC (five level confidence score)
-    # ## 000 0 Main (RT) method used, best result possible (no saturation)
-    # ## 001 1 Main (RT) method used with saturation. Good, very usable
-    # ## 010 2 Main (RT) method failed due to bad geometry, empirical algorithm used
-    # ## 011 3 Main (RT) method failed due to problems other than geometry, empirical algorithm used
-    # ## 100 4 Pixel not produced at all, value couldn???t be retrieved (possible reasons: bad L1B data, unusable MOD09GA data)
-    # df$qc_bit4 <- substr( df$qc_bitname, start=1, stop=3 )
-
-    # df <- df %>%
-    #   rowwise() %>%
-    #   dplyr::mutate( good_quality  = ifelse( qc_bit0=="0", TRUE, FALSE ),
-    #                  terra         = ifelse( qc_bit1=="0", TRUE, FALSE ),
-    #                  dead_detector = ifelse( qc_bit2=="1", TRUE, FALSE ),
-    #                  CloudState    = ifelse( qc_bit3=="00", 0, ifelse( qc_bit3=="01", 1, ifelse( qc_bit3=="10", 2, 3 ) ) ),
-    #                  SCF_QC        = ifelse( qc_bit4=="000", 0, ifelse( qc_bit4=="001", 1, ifelse( qc_bit4=="010", 2, ifelse( qc_bit4=="011", 3, 4 ) ) ) )
-    #                  ) %>%
-
-    #   dplyr::select( -qc_bitname, -FparLai_QC, -qc_bit0, -qc_bit1, -qc_bit2, -qc_bit3, -qc_bit4 ) %>%
-    #   dplyr::rename( modisvar = Fpar ) %>%
-    #   dplyr::mutate( modisvar_filtered = modisvar) %>%
-    #   rowwise() %>%
-    #   mutate(CloudState_ok = ifelse(CloudState %in% c(0), TRUE, FALSE)) %>%
-    #   mutate(modisvar_filtered = ifelse( CloudState_ok, modisvar_filtered, NA )) %>%
-    #   mutate(modisvar_filtered = ifelse( good_quality, modisvar_filtered, NA )  ) %>%
-
-    #   ## don't believe the hype
-    #   dplyr::mutate( modisvar_filtered = ifelse( modisvar_filtered==1.0, NA, modisvar_filtered ) ) %>%
-
-    #   ## Drop all data identified as outliers = lie outside 5*IQR
-    #   dplyr::mutate( modisvar_filtered = remove_outliers( modisvar_filtered, coef=3 ) )  # maybe too dangerous - removes peaks
-
-    # ##--------------------------------------
-    # ## replace missing values with mean by DOY (mean seasonal cycle)
-    # ##--------------------------------------
-    # ## get mean seasonal cycle
-    # ddf_meandoy <- df %>%
-    #   group_by( doy ) %>%
-    #   summarise( meandoy = mean( modisvar , na.rm=TRUE ) )
-
-    # ## attach mean seasonal cycle as column 'meandoy' to daily dataframe
-    # df <- df %>%
-    #   left_join( ddf_meandoy, by="doy" ) %>%
-
-    #   ## fill gaps at head and tail
-    #   # dplyr::mutate( modisvar_filled = ifelse( is.na(modisvar_filtered), meandoy, modisvar_filtered ) )
-
-    #   ## Don't fill with mean seasonal cycle!!!
-    #   dplyr::mutate( modisvar_filled = modisvar_filtered )
-
-
   } else if (prod=="MOD17A2H"){
     ## Contains MODIS GPP
     ## quality bitmap interpreted based on https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod17a2
@@ -484,7 +375,6 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
     ## 0: Good  quality (main algorithm with  or without saturation)
     ## 1: Other quality (backup  algorithm or  fill  values)
     df$qc_bit0 <- substr( df$qc_bitname, start=8, stop=8 )
-    # >>>>>>> 4a98b7722357887423c4ebe4f33497586902ab25
 
     ## Sensor
     ## 0: Terra
@@ -512,40 +402,52 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
     ## 111 7  Fill Value
     df$qc_bit4 <- substr( df$qc_bitname, start=1, stop=3 )
 
-    df <- df %>%  dplyr::mutate(  good_quality  = ifelse( qc_bit0=="0", TRUE, FALSE ),
-                           terra         = ifelse( qc_bit1=="0", TRUE, FALSE ),
-                           dead_detector = ifelse( qc_bit2=="1", TRUE, FALSE ),
-                           CloudState    = ifelse( qc_bit3=="00", 0, ifelse( qc_bit3=="01", 1, ifelse( qc_bit3=="10", 2, 3 ) ) ),
-                           SCF_QC        = ifelse( qc_bit4=="000", 0, ifelse( qc_bit4=="001", 1, ifelse( qc_bit4=="010", 2, ifelse( qc_bit4=="011", 3, ifelse( qc_bit4=="111", 7, NA ) ) ) ) )
+    df <- df %>%  dplyr::mutate(
+      good_quality  = ifelse( qc_bit0=="0", TRUE, FALSE ),
+       terra = ifelse( qc_bit1=="0", TRUE, FALSE ),
+       dead_detector = ifelse( qc_bit2=="1", TRUE, FALSE ),
+       CloudState = ifelse( qc_bit3=="00",
+                            0,
+                            ifelse( qc_bit3=="01",
+                                    1, ifelse( qc_bit3=="10", 2, 3 ) ) ),
+       SCF_QC = ifelse( qc_bit4=="000",
+                        0,
+                        ifelse( qc_bit4=="001",
+                                1,
+                                ifelse( qc_bit4=="010",
+                                        2,
+                                        ifelse( qc_bit4=="011",
+                                                3,
+                                                ifelse( qc_bit4=="111", 7, NA)
+                                                )
+                                        )
+                                )
+                        )
       ) %>%
-      dplyr::select( -qc_bitname, -Psn_QC, -qc_bit0, -qc_bit1, -qc_bit2, -qc_bit3, -qc_bit4 ) %>%
+      dplyr::select(
+        -qc_bitname,
+        -Psn_QC,
+        -qc_bit0,
+        -qc_bit1,
+        -qc_bit2,
+        -qc_bit3,
+        -qc_bit4 
+        ) %>%
       dplyr::rename( modisvar = Gpp ) %>%
 
-      ## Identify outliers, i.e. whether value is exceedingly high, i.e. if the distance of the value to the median is more than 5 times the distance of the distance of the 75% quantile to the median
-      dplyr::mutate( outlier = ifelse( modisvar - median( modisvar, na.rm=TRUE ) > 5 * ( quantile( modisvar, probs=0.75, na.rm=TRUE  ) - median( modisvar, na.rm=TRUE ) ), TRUE, FALSE ) ) %>%
-
-    # ## Plot effect of filtering steps
-    # if (do_plot_interpolated){
-    #   dir <- paste0(dir, "/fig_fapar_gapfilling/")
-    #   if (!dir.exists(dir)) system(paste0("mkdir ", dir))
-    #   plotfiln <- paste0( dir, "gpp_MOD17A2H_fill_", sitename, ".pdf" )
-    #   print( paste( "Gapfilling illustrated in:", plotfiln ) )
-    #   pdf( plotfiln, width=15, height=6 )
-    #   par(xpd=TRUE)
-    #   with( df, plot( year_dec, modisvar, pch=16, col='red', main=sitename, xlab="year", ylab="MOD17A2H", las=1 ) )
-    #   with( dplyr::filter( df, !outlier ), points( year_dec, modisvar, pch=16, col='black' ) )
-    #   # with( dplyr::filter( df, good_quality), points( year_dec, modisvar, pch=16, col='blue' ) )
-    #   # with( dplyr::filter( df, good_quality & CloudState==0), points( year_dec, modisvar, pch=16, col='springgreen3' ) )
-    #   # with( dplyr::filter( df, good_quality & CloudState==0 & !dead_detector ), points( year_dec, modisvar, pch=16, col='orchid' ) )
-    #   # with( dplyr::filter( df, good_quality & CloudState==0 & !dead_detector & SCF_QC==0 ), points( year_dec, modisvar, pch=16, col='black' ) )
-    #   legend( "topleft",
-    #           c("initial", "!outlier"),
-    #           col=c( "red", "black" ), pch=16, bty="n", inset = c(0,-0.2)
-    #   )
-    # }
+      ## Identify outliers, i.e. whether value is exceedingly high, 
+      ## i.e. if the distance of the value to the median is more than 5 times
+      ##  the distance of the distance of the 75% quantile to the median
+      dplyr::mutate(
+        outlier = ifelse(
+          modisvar - stats::median( modisvar, na.rm=TRUE ) > 5 * 
+          ( stats::quantile( modisvar, probs=0.75, na.rm=TRUE  ) - 
+              stats::median( modisvar, na.rm=TRUE ) ), TRUE, FALSE ) ) %>%
 
       ## Filter, i.e. replacing by NA in order to keep all dates
-      dplyr::mutate( modisvar_filtered = ifelse( ( !outlier ), modisvar, NA ) ) %>%
+      dplyr::mutate( 
+          modisvar_filtered = ifelse( ( !outlier ), modisvar, NA ) 
+        ) %>%
 
       ## no replacement with mean seasonal cycle here
       dplyr::mutate( modisvar_filled = modisvar_filtered )
@@ -563,19 +465,17 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
 
   ##--------------------------------------
   ## merge N-day dataframe into daily one.
-  ## Warning: here, 'date' must be centered within 4-day period - thus not equal to start date but (start date + 2)
+  ## Warning: here, 'date' must be centered within 4-day period - 
+  ## thus not equal to start date but (start date + 2)
   ##--------------------------------------
   ddf <- ddf %>%
     left_join( df, by="date" )
-
-  # ## extrapolate missing values at head and tail
-  # ddf$modisvar <- extrapolate_missing_headtail(dplyr::select(ddf, var = modisvar, doy))
 
   if (method_interpol == "loess" || keep){
     ##--------------------------------------
     ## get LOESS spline model for predicting daily values (used below)
     ##--------------------------------------
-    rlang::inform("loess...")
+    message("loess...")
 
     ## determine periodicity
     period <- ddf %>%
@@ -586,15 +486,17 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
       min(na.rm = TRUE)
 
     ## take a three-weeks window for locally weighted regression (loess)
-    ## good explanation: https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
+    ## good explanation: 
+    ## https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
     ndays_tot <- lubridate::time_length(diff(range(ddf$date)), unit = "day")
-    span <- 100/ndays_tot # (20*period)/ndays_tot  # multiply with larger number to get smoother curve
+    span <- 100/ndays_tot 
 
     idxs    <- which(!is.na(ddf$modisvar_filtered))
-    myloess <- try( loess( modisvar_filtered ~ year_dec, data = ddf[idxs,], span=span ) )
+    myloess <- try(stats::loess(modisvar_filtered ~ year_dec,
+                                data = ddf[idxs,], span = span))
 
-    ## predict LOESS to all dates with missing data
-    tmp <- try( predict( myloess, newdata = ddf ) )
+    ## predict stats::loess to all dates with missing data
+    tmp <- try(stats::predict( myloess, newdata = ddf ) )
     if (class(tmp)!="try-error"){
       ddf$loess <- tmp
     } else {
@@ -606,12 +508,15 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
     ##--------------------------------------
     ## get SPLINE model for predicting daily values (used below)
     ##--------------------------------------
-    rlang::inform("spline...")
+    message("spline...")
     idxs   <- which(!is.na(ddf$modisvar_filtered))
-    spline <- try( with( ddf, smooth.spline( year_dec[idxs], modisvar_filtered[idxs], spar=0.01 ) ) )
+    spline <- try(
+      with(ddf,
+          stats::smooth.spline(year_dec[idxs],
+                        modisvar_filtered[idxs], spar = 0.01)))
 
     ## predict SPLINE
-    tmp <- try( with( ddf, predict( spline, year_dec ) )$y)
+    tmp <- try( with( ddf, stats::predict( spline, year_dec ) )$y)
     if (class(tmp)!="try-error"){
       ddf$spline <- tmp
     } else {
@@ -624,15 +529,17 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
     ##--------------------------------------
     ## LINEAR INTERPOLATION
     ##--------------------------------------
-    rlang::inform("linear ...")
-    ddf$linear <- approx( ddf$year_dec, ddf$modisvar_filtered, xout=ddf$year_dec )$y
+    message("linear ...")
+    ddf$linear <- stats::approx(ddf$year_dec,
+                                ddf$modisvar_filtered,
+                                xout=ddf$year_dec )$y
   }
 
   if (method_interpol == "sgfilter" || keep){
     ##--------------------------------------
     ## SAVITZKY GOLAY FILTER
     ##--------------------------------------
-    rlang::inform("sgfilter ...")
+    message("sgfilter ...")
     ddf$sgfilter <- rep( NA, nrow(ddf) )
     idxs <- which(!is.na(ddf$modisvar_filtered))
     tmp <- try(signal::sgolayfilt( ddf$modisvar_filtered[idxs], p=3, n=51 ))
@@ -653,153 +560,23 @@ gapfill_interpol_gee <- function( df, sitename, year_start, year_end, var_name, 
   } else if (method_interpol == "sgfilter"){
     ddf$modisvar_filled <- ddf$sgfilter
   }
-
-  # ## plot daily smoothed line and close plotting device
-  # if (do_plot_interpolated) with( ddf, lines( year_dec, fapar, col='red', lwd=2 ) )
-  # if (do_plot_interpolated) with( ddf, lines( year_dec, sgfilter, col='springgreen3', lwd=1 ) )
-  # if (do_plot_interpolated) with( ddf, lines( year_dec, spline, col='cyan', lwd=1 ) )
-  # if (do_plot_interpolated){
-  #   legend( "topright",
-  #           c("Savitzky-Golay filter", "Spline", "Linear interpolation (standard)"),
-  #           col=c("springgreen3", "cyan", "red" ), lty=1, lwd=c(1,1,2), bty="n", inset = c(0,-0.2)
-  #   )
-  # }
-
+  
   ## limit to within 0 and 1 (loess spline sometimes "explodes")
   ddf <- ddf %>%
-    dplyr::mutate( modisvar_filled = replace( modisvar_filled, modisvar_filled<0, 0  ) ) %>%
-    dplyr::mutate( modisvar_filled = replace( modisvar_filled, modisvar_filled>1, 1  ) )
+    dplyr::mutate(
+      modisvar_filled = replace( modisvar_filled, modisvar_filled<0, 0)
+      ) %>%
+    dplyr::mutate(
+      modisvar_filled = replace( modisvar_filled, modisvar_filled>1, 1)
+      )
 
   ## extrapolate missing values at head and tail again
   ##--------------------------------------
-  ddf$modisvar_filled <- extrapolate_missing_headtail(dplyr::select(ddf, var = modisvar_filled))
+  ddf$modisvar_filled <- extrapolate_missing_headtail(
+    dplyr::select(ddf, var = modisvar_filled)
+    )
 
   return( ddf )
-
-
-  ## OLD:
-  # ##--------------------------------------
-  # ## Create daily dataframe
-  # ##--------------------------------------
-  # ddf <- init_dates_dataframe( year_start, year_end ) %>%
-  #   dplyr::mutate( doy = lubridate::yday(date) ) %>%
-  #   mutate( ndayyear = ifelse( lubridate::leap_year(lubridate::year(date)), 366, 365  ) ) %>%
-  #   mutate( year_dec = lubridate::year(date) + (lubridate::yday(date) - 1) / ndayyear ) %>%
-  #   dplyr::select( -ndayyear )
-
-  # ## merge N-day dataframe into daily one.
-  # ## Warning: here, 'date' must be centered within 4-day period - thus not equal to start date but (start date + 2)
-  # ddf <- ddf %>%
-  #   left_join( dplyr::select(df, -year_dec, -doy), by="date" )
-
-  # # ## extrapolate missing values at head and tail
-  # # ddf$modisvar <- extrapolate_missing_headtail(dplyr::select(ddf, var = modisvar, doy))
-
-  # if (method_interpol == "loess" || keep){
-  #   ##--------------------------------------
-  #   ## get LOESS spline model for predicting daily values (used below)
-  #   ##--------------------------------------
-  #   rlang::inform("loess...")
-
-  #   ## determine periodicity
-  #   period <- ddf %>%
-  #     filter(!is.na(modisvar_filtered)) %>%
-  #     mutate(prevdate = lag(date)) %>%
-  #     mutate(period = as.integer(difftime(date, prevdate))) %>%
-  #     pull(period) %>%
-  #     min(na.rm = TRUE)
-
-  #   ## take a three-weeks window for locally weighted regression (loess)
-  #   ## good explanation: https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
-  #   ndays_tot <- lubridate::time_length(diff(range(ddf$date)), unit = "day")
-  #   span <- (20*period)/ndays_tot  # multiply with larger number to get smoother curve
-
-  #   idxs    <- which(!is.na(ddf$modisvar_filtered))
-  #   myloess <- try( loess( modisvar_filtered ~ year_dec, data = ddf[idxs,], span=span ) )
-
-  #   ## predict LOESS
-  #   tmp <- try( predict( myloess, newdata = ddf ) )
-  #   if (class(tmp)!="try-error"){
-  #     ddf$loess <- tmp
-  #   } else {
-  #     ddf$loess <- rep( NA, nrow(ddf) )
-  #   }
-  # }
-
-
-  # if (method_interpol == "spline" || keep){
-  #   ##--------------------------------------
-  #   ## get SPLINE model for predicting daily values (used below)
-  #   ##--------------------------------------
-  #   rlang::inform("spline...")
-  #   idxs   <- which(!is.na(ddf$modisvar_filled))
-  #   spline <- try( with( ddf, smooth.spline( year_dec[idxs], modisvar_filled[idxs], spar=0.01 ) ) )
-
-  #   ## predict SPLINE
-  #   tmp <- try( with( ddf, predict( spline, year_dec ) )$y)
-  #   if (class(tmp)!="try-error"){
-  #     ddf$spline <- tmp
-  #   } else {
-  #     ddf$spline <- rep( NA, nrow(ddf) )
-  #   }
-
-  # }
-  # if (method_interpol == "linear" || keep){
-  #   ##--------------------------------------
-  #   ## LINEAR INTERPOLATION
-  #   ##--------------------------------------
-  #   rlang::inform("linear ...")
-  #   ddf$linear <- approx( ddf$year_dec, ddf$modisvar_filled, xout=ddf$year_dec )$y
-  # }
-  # if (method_interpol == "sgfilter" || keep){
-  #   ##--------------------------------------
-  #   ## SAVITZKY GOLAY FILTER
-  #   ##--------------------------------------
-  #   rlang::inform("sgfilter ...")
-  #   ddf$sgfilter <- rep( NA, nrow(ddf) )
-  #   idxs <- which(!is.na(ddf$modisvar_filled))
-  #   tmp <- try(signal::sgolayfilt( ddf$modisvar_filled[idxs], p=3, n=51 ))
-  #   if (class(tmp)!="try-error"){
-  #     ddf$sgfilter[idxs] <- tmp
-  #   }
-
-  # }
-
-  # ##--------------------------------------
-  # ## Define 'fapar'
-  # ##--------------------------------------
-  # if (method_interpol == "loess"){
-  #   ddf$fapar <- ddf$loess
-  # } else if (method_interpol == "spline"){
-  #   ddf$fapar <- ddf$spline
-  # } else if (method_interpol == "linear"){
-  #   ddf$fapar <- ddf$linear
-  # } else if (method_interpol == "sgfilter"){
-  #   ddf$fapar <- ddf$sgfilter
-  # }
-
-  # # ## plot daily smoothed line and close plotting device
-  # # if (do_plot_interpolated) with( ddf, lines( year_dec, fapar, col='red', lwd=2 ) )
-  # # if (do_plot_interpolated) with( ddf, lines( year_dec, sgfilter, col='springgreen3', lwd=1 ) )
-  # # if (do_plot_interpolated) with( ddf, lines( year_dec, spline, col='cyan', lwd=1 ) )
-  # # if (do_plot_interpolated){
-  # #   legend( "topright",
-  # #           c("Savitzky-Golay filter", "Spline", "Linear interpolation (standard)"),
-  # #           col=c("springgreen3", "cyan", "red" ), lty=1, lwd=c(1,1,2), bty="n", inset = c(0,-0.2)
-  # #   )
-  # # }
-
-  # ## limit to within 0 and 1 (loess spline sometimes "explodes")
-  # ddf <- ddf %>%
-  #   dplyr::mutate( fapar = replace( fapar, fapar<0, 0  ) ) %>%
-  #   dplyr::mutate( fapar = replace( fapar, fapar>1, 1  ) )
-
-
-  # ## extrapolate missing values at head and tail again
-  # ##--------------------------------------
-  # ddf$fapar <- extrapolate_missing_headtail(dplyr::select(ddf, var = fapar, doy))
-
-  # return( ddf )
 
 }
 
@@ -807,195 +584,26 @@ extrapolate_missing_headtail <- function(ddf){
   ## extrapolate to missing values at head and tail using mean seasonal cycle
   ##--------------------------------------
 
+  # define variables
+  var <- NULL
+  
   ## new: fill gaps at head
   idxs <- findna_head( ddf$var )
-  if (length(idxs)>0) rlang::warn("Filling values with last available data point at head")
+  if (length(idxs)>0){
+    warning("Filling values with last available data point at head")
+  }
+  
   ddf$var[idxs] <- ddf$var[max(idxs)+1]
 
   ## new: fill gaps at tail
   idxs <- findna_tail( ddf$var )
-  if (length(idxs)>0) rlang::warn("Filling values with last available data point at tail.")
+  if (length(idxs)>0){
+    warning("Filling values with last available data point at tail.")
+  } 
   ddf$var[idxs] <- ddf$var[min(idxs)-1]
-
-  # ## get mean seasonal cycle
-  # ddf_meandoy <- ddf %>%
-  #   dplyr::group_by( doy ) %>%
-  #   dplyr::summarise( meandoy = mean( var , na.rm=TRUE ) )
-  #
-  # ## attach mean seasonal cycle as column 'meandoy' to daily dataframe
-  # ddf <- ddf %>%
-  #   dplyr::left_join( ddf_meandoy, by="doy" )
-  #
-  # ## fill gaps at head and tail
-  # ddf$var[ idxs ] <- ddf$meandoy[ idxs ]
 
   vec <- ddf %>%
     dplyr::pull(var)
 
   return(vec)
 }
-
-
-findna_headtail <- function( vec ){
-
-  ## Remove (cut) NAs from the head and tail of a vector.
-  ## Returns the indexes to be dropped from a vector
-
-  idxs <- c(findna_head(vec), findna_tail(vec))
-
-  return(idxs)
-
-}
-
-findna_head <- function( vec ){
-
-  ## Remove (cut) NAs from the head and tail of a vector.
-  ## Returns the indexes to be dropped from a vector
-
-  ## Get indeces of consecutive NAs at head
-  if (is.na(vec[1])){
-    idx <- 0
-    cuthead <- 1
-    while ( idx < length(vec) ){
-      idx <- idx + 1
-      test <- head( vec, idx )
-      if (any(!is.na(test))){
-        ## first non-NA found at position idx
-        cuthead <- idx - 1
-        break
-      }
-    }
-    idxs_head <- 1:cuthead
-  } else {
-    idxs_head <- c()
-  }
-
-  return(idxs_head)
-
-}
-
-findna_tail <- function( vec ){
-
-  ## Remove (cut) NAs from the head and tail of a vector.
-  ## Returns the indexes to be dropped from a vector
-
-  ## Get indeces of consecutive NAs at tail
-  if (is.na(vec[length(vec)])){
-    idx <- 0
-    cuttail <- 1
-    while ( idx < length(vec) ){
-      idx <- idx + 1
-      test <- tail( vec, idx )
-      if (any(!is.na(test))){
-        ## first non-NA found at position idx, counting from tail
-        cuttail <- idx - 1
-        break
-      }
-    }
-    idxs_tail <- (length(vec)-cuttail+1):length(vec)
-  } else {
-    idxs_tail <- c()
-  }
-
-  return(idxs_tail)
-
-}
-
-na.omit.list <- function(y) { return(y[!sapply(y, function(x) all(is.na(x)))]) }
-
-## some old code:
-
-##--------------------------------------
-## This is for data downloaded using RModisTools
-##--------------------------------------
-
-# ##--------------------------------------
-# ## data cleaning
-# ##--------------------------------------
-# ## Replace data points with quality flag = 2 (snow covered) by 0
-# # df_gapfld$centre[ which(df_gapfld$centre_qc==2) ] <- max( min( df_gapfld$centre ), 0.0 )
-# df_gapfld$raw <- df_gapfld$centre
-# df_gapfld$centre[ which(df_gapfld$centre<0) ] <- NA
-
-# if (!is.null(df_gapfld$centre_qc)){
-#   ## Drop all data with quality flag 3, 1 or -1
-#   df_gapfld$centre[ which(df_gapfld$centre_qc==3) ]  <- NA  # Target not visible, covered with cloud
-#   df_gapfld$centre[ which(df_gapfld$centre_qc==1) ]  <- NA  # Useful, but look at other QA information
-#   df_gapfld$centre[ which(df_gapfld$centre_qc==-1) ] <- NA  # Not Processed
-# }
-
-# ## open plot for illustrating gap-filling
-# if (do_plot_interpolated) pdf( paste("fig/evi_fill_", sitename, ".pdf", sep="" ), width=10, height=6 )
-# if (do_plot_interpolated) plot( df_gapfld$year_dec, df_gapfld$raw, pch=16, col='black', main=sitename, ylim=c(0,1), xlab="year", ylab="MODIS EVI 250 m", las=1 )
-# left <- seq(2000, 2016, 2)
-# right <- seq(2001, 2017, 2)
-# if (do_plot_interpolated) rect( left, -99, right, 99, border=NA, col=rgb(0,0,0,0.2) )
-# if (do_plot_interpolated) points( df_gapfld$year_dec, df_gapfld$centre, pch=16, col='red' )
-
-# # ## Drop all data identified as outliers = lie outside 5*IQR
-# # df_gapfld$centre <- remove_outliers( df_gapfld$centre, coef=5 ) ## maybe too dangerous - removes peaks
-
-# ## add points to plot opened before
-# if (do_plot_interpolated) points( df_gapfld$year_dec, df_gapfld$centre, pch=16, col='blue' )
-
-# ##--------------------------------------
-# ## get LOESS spline model for predicting daily values (below)
-# ##--------------------------------------
-# idxs    <- which(!is.na(df_gapfld$centre))
-# myloess <- try( with( df_gapfld, loess( centre[idxs] ~ year_dec[idxs], span=0.01 ) ))
-# i <- 0
-# while (class(myloess)=="try-error" && i<50){
-#   i <- i + 1
-#   print(paste("i=",i))
-#   myloess <- try( with( df_gapfld, loess( centre[idxs] ~ year_dec[idxs], span=(0.01+0.002*(i-1)) ) ))
-# }
-# print("ok now...")
-
-# ##--------------------------------------
-# ## get spline model for predicting daily values (below)
-# ##--------------------------------------
-# spline <- try( with( df_gapfld, smooth.spline( year_dec[idxs], centre[idxs], spar=0.001 ) ) )
-
-# ## aggregate by DOY
-# agg <- aggregate( centre ~ doy, data=df_gapfld, FUN=mean, na.rm=TRUE )
-# if (is.element("centre_meansurr", names(df_gapfld))){
-#   agg_meansurr <- aggregate( centre_meansurr ~ doy, data=df_gapfld, FUN=mean, na.rm=TRUE )
-#   agg <- agg %>% left_join( agg_meansurr ) %>% dplyr::rename( centre_meandoy=centre, centre_meansurr_meandoy=centre_meansurr )
-# } else {
-#   agg <- agg %>% dplyr::rename( centre_meandoy=centre )
-# }
-# df_gapfld <- df_gapfld %>% left_join( agg )
-
-# ##--------------------------------------
-# ## gap-fill with information from surrounding pixels - XXX CHANGED THIS FOR AMERIWUE: NO INFO FROM MEAN OF SURROUNDINGS USED XXX
-# ##--------------------------------------
-# idxs <- which( is.na(df_gapfld$centre) )
-# if (is.element("centre_meansurr", names(df_gapfld))){
-#   ## get current anomaly of mean across surrounding pixels w.r.t. its mean annual cycle
-#   df_gapfld$anom_surr    <- df_gapfld$centre_meansurr / df_gapfld$centre_meansurr_meandoy
-#   # df_gapfld$centre[idxs] <- df_gapfld$centre_meandoy[idxs] * df_gapfld$anom_surr[idxs]
-# } else {
-#   # df_gapfld$centre[idxs] <- df_gapfld$centre_meandoy[idxs]
-# }
-# if (do_plot_interpolated) with( df_gapfld, points( year_dec[idxs], centre[idxs], pch=16, col='green' ) )
-# if (do_plot_interpolated) legend("topright", c("modis", "outliers", "after bad values dropped and outliers removed", "added from mean of surrounding" ), col=c("black", "red", "blue", "green" ), pch=16, bty="n" )
-# # legend("topleft", c("R LOESS smoothing with span=0.01", "R smooth.spline"), col=c("red", "dodgerblue"), lty=1, bty="n" )
-
-
-# # points( df_gapfld$yr_dec_read[idxs],  df_gapfld$centre[idxs],  pch=16 )
-# # points( df_gapfld$yr_dec_read[-idxs], df_gapfld$centre[-idxs], pch=16, col='blue' )
-
-# # ## Gap-fill remaining again by mean-by-DOY
-# # idxs <- which( is.na(df_gapfld$centre) )
-# # df_gapfld$centre[idxs] <- df_gapfld$centre_meandoy[idxs]
-# # # points( df_gapfld$yr_dec_read[idxs], df_gapfld$centre[idxs], pch=16, col='red' )
-
-# # ## Gap-fill still remaining by linear approximation
-# # idxs <- which( is.na(df_gapfld$centre) )
-# # if (length(idxs)>1){
-# #   df_gapfld$centre <- approx( df_gapfld$year_dec[-idxs], df_gapfld$centre[-idxs], xout=df_gapfld$year_dec )$y
-# # }
-
-# # points( df_gapfld$yr_dec_read[idxs], df_gapfld$centre[idxs], pch=16, col='green' )
-# # lines( df_gapfld$yr_dec_read, df_gapfld$centre )
-# # dev.off()

@@ -16,19 +16,26 @@ init_dates_dataframe(
 )
 }
 \arguments{
-\item{yrstart}{An integer defining the start year of dates covered by the dataframe}
+\item{yrstart}{An integer defining the start year of dates covered by the 
+dataframe}
 
-\item{yrend}{An integer defining the end year of dates covered by the dataframe}
+\item{yrend}{An integer defining the end year of dates covered by 
+the dataframe}
 
-\item{startmoy}{An integer defining the start month of dates covered by the dataframe. Defaults to 1.}
+\item{startmoy}{An integer defining the start month of dates covered by 
+the dataframe. Defaults to 1.}
 
-\item{startdoy}{An integer defining the start day-of-year of dates covered by the dataframe. Defaults to 1.}
+\item{startdoy}{An integer defining the start day-of-year of dates covered 
+by the dataframe. Defaults to 1.}
 
-\item{timescale}{A character string specifying the time steps of dates (in rows). Defaults to \code{"d"}. Any of \code{"y", "m", "d", "h", "hh"}.}
+\item{timescale}{A character string specifying the time steps of dates 
+(in rows). Defaults to \code{"d"}. Any of \code{"y", "m", "d", "h", "hh"}.}
 
-\item{endmoy}{An integer defining the end month of dates covered by the dataframe. Defaults to 12.}
+\item{endmoy}{An integer defining the end month of dates covered by the 
+dataframe. Defaults to 12.}
 
-\item{enddom}{An integer defining the end day-of-year of dates covered by the dataframe. Defaults to 31.}
+\item{enddom}{An integer defining the end day-of-year of dates covered by 
+the dataframe. Defaults to 31.}
 
 \item{noleap}{Whether leap years are ignored. Defaults to \code{FALSE}.}
 }
@@ -41,6 +48,17 @@ library lubridate) from 'yrstart' to 'yrend'. Intervals of dates is
 specified by argument 'freq'.
 }
 \examples{
-ddf <- init_dates_dataframe( 2000, 2003, startmoy=1, startdoy=1, timescale="d", endmoy=12, enddom=31, noleap=FALSE )
+\dontrun{
+  ddf <- init_dates_dataframe(
+  2000,
+  2003,
+  startmoy=1,
+  startdoy=1,
+  timescale="d",
+  endmoy=12,
+  enddom=31,
+  noleap=FALSE
+  )
+}
 
 }

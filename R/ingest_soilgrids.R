@@ -14,6 +14,10 @@
 #'
 ingest_soilgrids <- function(siteinfo, settings){
   
+  # CRAN compliance, declaring unstated variables
+  sitename <- lon <- lat <- layer <- depth <- depth_tot_cm <- 
+    x <- y <- X <- Y <- value <- name <- value_wgt <- NULL
+  
   siteinfo <- siteinfo %>% 
     dplyr::select(id = sitename,
                   longitude = lon,
@@ -28,7 +32,9 @@ ingest_soilgrids <- function(siteinfo, settings){
   
   fun_pixel_values  <- function(data, VOI, VOI_LYR, factor){
     
-    out <- try(gdallocationinfo(
+    
+    
+    out <- try(gdalUtils::gdallocationinfo(
       srcfile = paste0(settings$webdav_path, "/", VOI, "/", VOI_LYR, ".vrt"),
       coords  = as.matrix(data[, c("X", "Y")]),
       geoloc  = TRUE,
@@ -73,7 +79,7 @@ ingest_soilgrids <- function(siteinfo, settings){
     summarise(value = sum(value_wgt)) %>% 
     mutate(value = value / z_tot_use) %>% 
     ungroup() %>% 
-    pivot_wider(names_from = "name", values_from = "value") %>% 
+    tidyr::pivot_wider(names_from = "name", values_from = "value") %>% 
     rename(sitename = id)
   
   return(df)

@@ -19,6 +19,9 @@ Removes outliers based on their distance from the inter-quartile range (IQR). Ex
 The function uses the command \code{boxplot.stats()} which uses the Tukey's method to identify the outliers ranged above and below the \code{coef*}IQR.
 }
 \examples{
+\dontrun{
 vec <- remove_outliers( vec, coef=3 ) 
+}
+
 
 }

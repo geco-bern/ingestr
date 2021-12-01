@@ -21,6 +21,10 @@ Derive daily maximum temperature from half-hourly
 data.
 }
 \examples{
-df <- get_tmax_fluxnet2015_byfile("./FLX_BE-Vie_FLUXNET2015_FULLSET_HH_1996-2014_1-3.csv")
-
+\dontrun{
+df <- 
+get_tmax_fluxnet2015_byfile(
+"./FLX_BE-Vie_FLUXNET2015_FULLSET_HH_1996-2014_1-3.csv"
+)
+}
 }

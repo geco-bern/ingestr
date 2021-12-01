@@ -18,6 +18,8 @@ Wrapper function to derive daily daily minimum temperature from half-hourly data
 for all site-scale data files in a given directory (argument \code{dir}).
 }
 \examples{
-df <- get_tmin_fluxnet2015("./")
+\dontrun{
+ df <- get_tmin_fluxnet2015("./")
+}
 
 }

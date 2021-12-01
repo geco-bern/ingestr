@@ -52,6 +52,17 @@ ingest_bysite <- function(
   verbose = FALSE
   ){
 
+  # CRAN compliance, declaring unstated variables
+  sitename <- lon <- lat <- date_start <- date_end <- problem <-
+    year_start_tmp <- x <- y <- lat_orig <- success <- elv <- patm <-
+    patm_base <-patm_mean <- month <- tavg <-temp <- temp_fine <-
+    tmax <- tmax_fine <- tmin <- tmin_fine <- prec <- prec_fine <-
+    days_in_month <- rain <- snow <- srad <- srad_fine <- ppfd <-
+    ppfd_fine <- wind <- wind_fine <- qair <- vap <- vapr <- vapr_fine <-
+    ilon <- data <- yy <- mm <- co2_avg <- year <- . <- bias <-
+    co2 <- lon...1 <- lat...2 <- bottom <- top <- depth <- var <-
+    var_wgt <- depth_tot_cm <- NULL
+  
   if (!(source %in% c("etopo1", "hwsd", "soilgrids", "wise", "gsde", "worldclim"))){
     
     ## initialise data frame with all required dates
@@ -139,7 +150,7 @@ ingest_bysite <- function(
         year_end_wc <- 2000
         
         if (source == "watch_wfdei"){
-          rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
+          message("Beware: WorldClim data is for years 1970-2000. Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
           year_start_wc <- 1979  # no earlier years available
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
@@ -164,7 +175,7 @@ ingest_bysite <- function(
     ## bias-correct atmospheric pressure - per default
     if ("patm" %in% getvars){
       if (is.na(elv)){
-        rlang::abort("Aborting. Argument elv is missing.")
+        stop("Aborting. Argument elv is missing.")
       }
       patm_mean_watch <- df_tmp %>% 
         summarise(patm = mean(patm, na.rm = TRUE)) %>% 
@@ -200,7 +211,7 @@ ingest_bysite <- function(
         ## Bias correction for temperature: subtract difference
         if ("tavg" %in% getvars_wc){
           df_bias <- df_fine %>% 
-            pivot_longer(cols = starts_with("tavg_"), names_to = "month", values_to = "tavg", names_prefix = "tavg_") %>% 
+            tidyr::pivot_longer(cols = starts_with("tavg_"), names_to = "month", values_to = "tavg", names_prefix = "tavg_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(temp_fine = tavg) %>% 
             right_join(df_tmp %>% 
@@ -223,7 +234,7 @@ ingest_bysite <- function(
         ## Bias correction for minimum temperature: subtract difference
         if ("tmin" %in% getvars_wc){
           df_bias <- df_fine %>% 
-            pivot_longer(cols = starts_with("tmin_"), names_to = "month", values_to = "tmin", names_prefix = "tmin_") %>% 
+            tidyr::pivot_longer(cols = starts_with("tmin_"), names_to = "month", values_to = "tmin", names_prefix = "tmin_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(tmin_fine = tmin) %>% 
             right_join(df_tmp %>% 
@@ -246,7 +257,7 @@ ingest_bysite <- function(
         ## Bias correction for temperature: subtract difference
         if ("tmax" %in% getvars_wc){
           df_bias <- df_fine %>% 
-            pivot_longer(cols = starts_with("tmax_"), names_to = "month", values_to = "tmax", names_prefix = "tmax_") %>% 
+            tidyr::pivot_longer(cols = starts_with("tmax_"), names_to = "month", values_to = "tmax", names_prefix = "tmax_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(tmax_fine = tmax) %>% 
             right_join(df_tmp %>% 
@@ -269,7 +280,7 @@ ingest_bysite <- function(
         ## Bias correction for precipitation: scale by ratio (snow and rain equally)
         if ("prec" %in% getvars_wc){
           df_bias <- df_fine %>% 
-            pivot_longer(cols = starts_with("prec_"), names_to = "month", values_to = "prec", names_prefix = "prec_") %>% 
+            tidyr::pivot_longer(cols = starts_with("prec_"), names_to = "month", values_to = "prec", names_prefix = "prec_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(prec_fine = prec) %>% 
             mutate(prec_fine = prec_fine / days_in_month(month)) %>%   # mm/month -> mm/d
@@ -304,7 +315,7 @@ ingest_bysite <- function(
         if ("srad" %in% getvars_wc){
           kfFEC <- 2.04
           df_bias <- df_fine %>% 
-            pivot_longer(cols = starts_with("srad_"), names_to = "month", values_to = "srad", names_prefix = "srad_") %>% 
+            tidyr::pivot_longer(cols = starts_with("srad_"), names_to = "month", values_to = "srad", names_prefix = "srad_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(srad_fine = srad) %>% 
             mutate(ppfd_fine = 1e3 * srad_fine * kfFEC * 1.0e-6 / (60 * 60 * 24) ) %>%   # kJ m-2 day-1 -> mol m−2 s−1 PAR
@@ -328,7 +339,7 @@ ingest_bysite <- function(
         ## Bias correction for atmospheric pressure: scale by ratio
         if ("wind" %in% getvars_wc){
           df_bias <- df_fine %>% 
-            pivot_longer(cols = starts_with("wind_"), names_to = "month", values_to = "wind", names_prefix = "wind_") %>% 
+            tidyr::pivot_longer(cols = starts_with("wind_"), names_to = "month", values_to = "wind", names_prefix = "wind_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(wind_fine = wind) %>% 
             right_join(df_tmp %>% 
@@ -368,7 +379,7 @@ ingest_bysite <- function(
           }
           
           df_bias <- df_fine %>% 
-            pivot_longer(cols = starts_with("vapr_"), names_to = "month", values_to = "vapr", names_prefix = "vapr_") %>% 
+            tidyr::pivot_longer(cols = starts_with("vapr_"), names_to = "month", values_to = "vapr", names_prefix = "vapr_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(vapr_fine = vapr) %>% 
             mutate(vapr_fine = vapr_fine * 1e3) %>%   # kPa -> Pa
@@ -517,7 +528,7 @@ ingest_bysite <- function(
     path <- paste0(dir, "/df_co2_mlo.csv")
     if (!identical(NULL, dir)){
       if (file.exists(path)){
-        df_co2 <- read_csv(path)
+        df_co2 <- readr::read_csv(path)
       } else {
           dplyr::select(year = yy, month = mm, co2_avg)
         readr::write_csv(df_co2, file = path)        
@@ -544,9 +555,9 @@ ingest_bysite <- function(
     ## if 'dir' is provided, try reading from existing file, otherwise download
     path <- paste0(dir, "/cCO2_rcp85_const850-1765.csv")
     if (file.exists(path)){
-      df_co2 <- read_csv(path)
+      df_co2 <- readr::read_csv(path)
     } else {
-      rlang::abort("File cCO2_rcp85_const850-1765.csv must be available in directory specified by 'dir'.")     
+      stop("File cCO2_rcp85_const850-1765.csv must be available in directory specified by 'dir'.")     
     }
     
     df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
@@ -624,13 +635,13 @@ ingest_bysite <- function(
         right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
         dplyr::select(-lon, -lat) %>%
         group_by(sitename) %>%
-        nest()
+        tidyr::nest()
     } else {
       df <- df %>%
         right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
         dplyr::select(-lon, -lat) %>%
         group_by(sitename) %>%
-        nest()
+        tidyr::nest()
 
     }
 
@@ -646,7 +657,10 @@ ingest_bysite <- function(
     
     aggregate_layers <- function(df, varnam, layer){
       
-      df_layers <- tibble(layer = 1:8, bottom = c(4.5, 9.1, 16.6, 28.9, 49.3, 82.9, 138.3, 229.6)) %>% 
+      df_layers <- tibble(
+        layer = 1:8,
+        bottom = c(4.5, 9.1, 16.6, 28.9, 49.3, 82.9, 138.3, 229.6)
+        ) %>% 
         mutate(top = lag(bottom)) %>% 
         mutate(top = ifelse(is.na(top), 0, top)) %>% 
         rowwise() %>% 
@@ -670,7 +684,6 @@ ingest_bysite <- function(
         rename(!!varnam := var)
     }
     
-    
     df <- purrr::map(
       as.list(settings$varnam),
       ~ingest_globalfields(siteinfo,
@@ -684,7 +697,7 @@ ingest_bysite <- function(
       map2(as.list(settings$varnam), ~aggregate_layers(.x, .y, settings$layer)) %>% 
       purrr::reduce(left_join, by = "sitename") %>%
       group_by(sitename) %>%
-      nest()
+      tidyr::nest()
     
     
   }  else if (source == "worldclim"){
@@ -706,11 +719,11 @@ ingest_bysite <- function(
                                layer = settings$varnam
       ) %>% 
       group_by(sitename) %>% 
-      nest()
+      tidyr::nest()
     
   }  else {
-    rlang::warn(paste("you selected source =", source))
-    rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
+    warning(paste("you selected source =", source))
+    stop("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
   }
 
   ## add data frame to nice data frame containing all required time steps

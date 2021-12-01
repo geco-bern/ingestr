@@ -99,7 +99,7 @@ get_settings_gee <- function(
       )
 
   } else {
-    rlang::abort("get_settings_gee(): Could not identify required argument 'bundle'.")
+    stop("get_settings_gee(): Could not identify required argument 'bundle'.")
   }
 
   out$python_path        <- python_path
@@ -246,7 +246,7 @@ get_settings_modis <- function(
       )
     
   } else {
-    rlang::abort("get_settings_modis(): Could not identify required argument 'bundle'.")
+    stop("get_settings_modis(): Could not identify required argument 'bundle'.")
   }
   
   out$data_path          <- data_path
@@ -419,6 +419,9 @@ get_settings_fluxnet <- function(
 #' @examples \dontrun{settings <- get_settings_soilgrids("soc")}
 #'
 get_settings_soilgrids <- function(varnam, layer = 1, agg = "mean"){
+  
+  # define variables, CRAN compliance
+  code <- data_layer <- NULL
 
   ## for association of layer character codes
   df_layer_code <- tibble(layer = 1:6, code = c("0-5cm", "5-15cm", "15-30cm", "30-60cm", "60-100cm", "100-200cm"))
@@ -429,7 +432,7 @@ get_settings_soilgrids <- function(varnam, layer = 1, agg = "mean"){
   
   ## specify layer of interest
   df_voi_layer <- expand.grid(varnam, layer) %>% 
-    setNames(c("varnam", "layer")) %>% 
+    stats::setNames(c("varnam", "layer")) %>% 
     as_tibble() %>% 
     left_join(df_layer_code, by = "layer") %>% 
     mutate(data_layer = paste(varnam, code, agg, sep = "_")) %>% 

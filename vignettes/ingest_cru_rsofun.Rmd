@@ -1,13 +1,14 @@
 ---
-title: "CRU climate forcing ingest"
-output:
-  html_document:
-    toc: true
-    toc_float: true
-    toc_depth: 3
+title: "ingest CRU"
+author: "Koen Hufkens"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ingest CRU}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, eval = FALSE}
 library(ingestr)
 library(rbeni)
 ```
@@ -23,7 +24,7 @@ CRU TS provides monthly climate fields at 0.5 degree resolution from 1901 to tod
 | ccov                       | cld                               | 
 
 
-```{r message=FALSE}
+```{r warning=FALSE, eval = FALSE}
 ## get monthly data (no temporal downscaling - original extracted values)
 mdf <- ingest_bysite(
   sitename  = "CH-Lae",
@@ -56,7 +57,7 @@ ddf <- ingest_bysite(
 ## Check temporal downscaling
 
 The temporal downscaling conserves monthly means. The following shows monthly tmin values aggregated from downscaled daily values versus values directly extracted from the original files.
-```{r}
+```{r warning=FALSE, eval = FALSE}
 mdf_test <- ddf %>% 
   mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
   group_by(year, month) %>% 
@@ -71,7 +72,7 @@ gg$gg + labs(x = "Original monthly tmin (deg C)", y = "Aggregated monthly tmin (
 ```
 
 For precipitation, the temporal downscaling conserves monthly totals and distributes precipitation to the given number of wet days (also provided by CRU as the number of wet days per month).
-```{r}
+```{r warning=FALSE, eval = FALSE}
 mdf_test <- ddf %>% 
   mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
   group_by(year, month) %>% 
@@ -91,7 +92,8 @@ VPD = (f(VAP, TMIN) + f(VAP, TMAX))/2
 $$
 
 Where $f$ is a non-linear function (`calc_vpd()`) and VAP, TMIN, and TMAX are either monthly mean values in case of `timescale = "m"` or daily values (conserved monthly means) in case of `timescale = "d"`,
-```{r}
+
+```{r warning=FALSE, eval = FALSE}
 mdf_test <- ddf %>% 
   mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
   group_by(year, month) %>% 
@@ -108,7 +110,7 @@ gg$gg + labs(x = "Original monthly VPD (Pa)", y = "Aggregated monthly VPD (Pa)")
 ## Bias correction with WorldClim
 
 Bias correction based on high-resolution WorldClim 1970-2000 monthly climatology is available for variables temp, prec, and vpd.
-```{r message=FALSE}
+```{r warning=FALSE, eval = FALSE}
 ## get monthly data (no temporal downscaling - original extracted values)
 mdf_corr <- ingest_bysite(
   sitename  = "CH-Lae",
@@ -140,7 +142,7 @@ ddf_corr <- ingest_bysite(
   )
 ```
 Check conservation of precipitation means after bias correction.
-```{r}
+```{r warning=FALSE, eval = FALSE}
 mdf_test <- ddf_corr %>% 
   mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
   group_by(year, month) %>% 
@@ -155,7 +157,7 @@ gg$gg + labs(x = "Original monthly prec (deg C)", y = "Aggregated monthly prec (
 ```
 
 Check conservation of VPD means after bias correction.
-```{r}
+```{r warning=FALSE, eval = FALSE}
 mdf_test <- ddf_corr %>% 
   mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
   group_by(year, month) %>% 
@@ -173,7 +175,7 @@ gg$gg + labs(x = "Original monthly vpd (deg C)", y = "Aggregated monthly vpd (de
 
 Comparison of bias-corrected data to FLUXNET site-level observations. For CH-Lae, this is available for 2004-2014. Visualize for three years (2012-2014). 
 Get FLUXNET data.
-```{r}
+```{r warning=FALSE, eval = FALSE}
 ddf_fluxnet <- ingestr::ingest(
   siteinfo  = siteinfo_fluxnet2015 %>% dplyr::filter(sitename == "CH-Lae"),
   source    = "fluxnet",
@@ -186,7 +188,7 @@ ddf_fluxnet <- ingestr::ingest(
 ```
 
 Looks fine for temperature.
-```{r}
+```{r warning=FALSE, eval = FALSE}
 ggplot() +
   geom_line(data = ddf_fluxnet %>% 
               dplyr::filter(lubridate::year(date) %in% 2012:2014), 
@@ -210,7 +212,7 @@ out$gg
 ```
 
 Looks fine for precipitation. Compare monthly means - not bad at all!
-```{r}
+```{r warning=FALSE, eval = FALSE}
 out <- ddf_fluxnet %>% 
   mutate(year = year(date), month = month(date)) %>% 
   group_by(year, month) %>% 
@@ -225,7 +227,7 @@ out$gg
 ```
 
 Looks fine for VPD
-```{r}
+```{r warning=FALSE, eval = FALSE}
 ggplot() +
   geom_line(data = ddf_fluxnet %>% 
               dplyr::filter(lubridate::year(date) %in% 2012:2014), 
