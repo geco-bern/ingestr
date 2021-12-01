@@ -12,20 +12,13 @@
 #' Earth Engine.
 #' @export
 #'
-#' @examples 
-#' \dontrun{
-#' settings_gee <- get_settings_gee( bundle = "modis_fpar" )
-#' }
-#' 
+#' @examples settings_gee <- get_settings_gee( bundle = "modis_fpar" )
 #'
 ingest_modis_bysite <- function(
   df_siteinfo,
   settings
   ){
 
-  # CRAN compliance, declaring unstated variables
-  settings_modis <- calendar_date <- pixel <- band <- value <- NULL
-  
   ##---------------------------------------------
   ## Define names
   ##---------------------------------------------
@@ -116,7 +109,7 @@ ingest_modis_bysite <- function(
         
         while (class(sites_avl) == "try-error"){
           Sys.sleep(3)
-          warning("re-trying to get available sites...")
+          rlang::warn("re-trying to get available sites...")
           sites_avl <- try(
             do.call("rbind",
                     lapply(
@@ -145,9 +138,9 @@ ingest_modis_bysite <- function(
             ])
           
           # initial try
-          message(paste("Initial try for band", x))
-          message(paste("of site", site))
-          message(paste("and network", network))
+          rlang::inform(paste("Initial try for band", x))
+          rlang::inform(paste("of site", site))
+          rlang::inform(paste("and network", network))
           
           df <- try(
             MODISTools::mt_subset(
@@ -165,7 +158,7 @@ ingest_modis_bysite <- function(
           ## repeat if failed until it works
           while (class(df) == "try-error"){
             Sys.sleep(3)                    
-            warning("re-trying...")
+            rlang::warn("re-trying...")
             df <- try(
               MODISTools::mt_subset(
                 product   = settings$prod,  
@@ -189,7 +182,7 @@ ingest_modis_bysite <- function(
         try_mt_subset <- function(x, df_siteinfo, settings){
 
           ## initial try
-          message(paste("Initial try for band", x))
+          rlang::inform(paste("Initial try for band", x))
           
           df <- try(
             MODISTools::mt_subset(
@@ -208,7 +201,7 @@ ingest_modis_bysite <- function(
           ## repeat if failed until it works
           while (class(df) == "try-error"){
             Sys.sleep(3)                       
-            warning("re-trying...")
+            rlang::warn("re-trying...")
             df <- try(
               MODISTools::mt_subset(
                 product   = settings$prod,     
@@ -236,17 +229,8 @@ ingest_modis_bysite <- function(
         bind_rows() %>%
         as_tibble()
       
-      # ## xxx check plot
-      # df %>%
-      #   mutate(calendar_date = lubridate::ymd(calendar_date)) %>%
-      #   dplyr::filter(band == "sur_refl_b04") %>%
-      #   group_by(calendar_date) %>%
-      #   summarise(value = mean(value)) %>%
-      #   ggplot(aes(calendar_date, value)) +
-      #   geom_line()
-      
       ## Raw downloaded data is saved to file
-      message( paste( "raw data file written:", filnam_raw_csv ) )
+      rlang::inform( paste( "raw data file written:", filnam_raw_csv ) )
       data.table::fwrite(df, file = filnam_raw_csv, sep = ",")
       # readr::write_csv(df, path = filnam_raw_csv)
       
@@ -283,7 +267,7 @@ ingest_modis_bysite <- function(
       unique()
 
     if (length(scale_factor)!=1){
-      stop("Multiple scaling factors found for ingested bands")
+      rlang::abort("Multiple scaling factors found for ingested bands")
     } else {
       scaleme <- function(x, scale_factor){x * scale_factor}
       df <- df %>%
@@ -350,13 +334,6 @@ gapfill_interpol <- function(
   keep,
   n_focal
   ){
-  
-  # CRAN compliance, predefine internal variables
-  value <- modisvar <- qc <- qc_bitname <- vi_useful <- aerosol <- 
-  adjcloud <- brdf_corr <- mixcloud <- snowice <- shadow <- qc_bit0 <- 
-  qc_bit1 <- qc_bit2 <- qc_bit3 <- qc_bit4 <- CloudState <- modisvar_filtered <- 
-  good_quality <- SCF_QC <- sur_refl_qc_500m <- modland_qc <- pixel <- 
-  settings_modis <- approx <- prevdate <- modisvar_filled <- NULL
   
   ##--------------------------------------
   ## Returns data frame containing data
@@ -577,16 +554,16 @@ gapfill_interpol <- function(
     clean_sur_refl <- function(x, qc_binary){
       ifelse(qc_binary, x, NA)
     }
-
+    
     df <- df %>%
-
+      
       ## separate into bits
       rowwise() %>%
       mutate(qc_bitname = intToBits( sur_refl_qc_500m ) %>%
                as.character() %>%
                paste(collapse = "")
-             ) %>%
-
+      ) %>%
+      
       ## Bits 0-1: MODLAND QA bits
       ##   00 corrected product produced at ideal quality -- all bands
       ##   01 corrected product produced at less than ideal quality -- some or all bands
@@ -595,133 +572,57 @@ gapfill_interpol <- function(
       mutate(modland_qc = substr( qc_bitname, start=1, stop=2 )) %>%
       mutate(
         modland_qc_binary = ifelse(modland_qc %in% c("00"), TRUE, FALSE)
-        ) %>%   # false for removing data
+      ) %>%   # false for removing data
       mutate(across(starts_with("sur_refl_b"),
                     ~clean_sur_refl(., modland_qc_binary))) %>%
-
-      # ## Bits 2-5: band 1 data quality, four bit range
-      # ##   0000 highest quality
-      # ##   0111 noisy detector
-      # ##   1000 dead detector, data interpolated in L1B
-      # ##   1001 solar zenith >= 86 degrees
-      # ##   1010 solar zenith >= 85 and < 86 degrees
-      # ##   1011 missing input
-      # ##   1100 internal constant used in place of climatological data for at least one atmospheric constant
-      # ##   1101 correction out of bounds, pixel constrained to extreme al- lowable value
-      # ##   1110 L1B data faulty
-      # ##   1111 not processed due to deep ocean or clouds
-      # mutate(modland_qc_b01 = substr( qc_bitname, start=3, stop=6 )) %>%
-      # mutate(modland_qc_b01_binary = ifelse(modland_qc_b01 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b01 = ifelse(modland_qc_b01_binary, sur_refl_b01, NA)) %>%
-      #
-      # ## Bits 6-9: band 2 data quality, four bit range
-      # ##   0000 highest quality
-      # ##   0111 noisy detector
-      # ##   1000 dead detector, data interpolated in L1B
-      # ##   1001 solar zenith >= 86 degrees
-      # ##   1010 solar zenith >= 85 and < 86 degrees
-      # ##   1011 missing input
-      # ##   1100 internal constant used in place of climatological data for at least one atmospheric constant
-      # ##   1101 correction out of bounds, pixel constrained to extreme al- lowable value
-      # ##   1110 L1B data faulty
-      # ##   1111 not processed due to deep ocean or clouds
-      # mutate(modland_qc_b02 = substr( qc_bitname, start=7, stop=10 )) %>%
-      # mutate(modland_qc_b02_binary = ifelse(modland_qc_b02 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b02 = ifelse(modland_qc_b02_binary, sur_refl_b02, NA)) %>%
-      #
-      # ## Bits 10-13: band 3 data quality, four bit range
-      # ##   0000 highest quality
-      # ##   0111 noisy detector
-      # ##   1000 dead detector, data interpolated in L1B
-      # ##   1001 solar zenith >= 86 degrees
-      # ##   1010 solar zenith >= 85 and < 86 degrees
-      # ##   1011 missing input
-      # ##   1100 internal constant used in place of climatological data for at least one atmospheric constant
-      # ##   1101 correction out of bounds, pixel constrained to extreme al- lowable value
-      # ##   1110 L1B data faulty
-      # ##   1111 not processed due to deep ocean or clouds
-      # mutate(modland_qc_b03 = substr( qc_bitname, start=11, stop=14 )) %>%
-      # mutate(modland_qc_b03_binary = ifelse(modland_qc_b03 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b03 = ifelse(modland_qc_b03_binary, sur_refl_b03, NA)) %>%
-      #
-      # ## Bits 14-17: band 4 data quality, four bit range
-      # ##   0000 highest quality
-      # ##   0111 noisy detector
-      # ##   1000 dead detector, data interpolated in L1B
-      # ##   1001 solar zenith >= 86 degrees
-      # ##   1010 solar zenith >= 85 and < 86 degrees
-      # ##   1011 missing input
-      # ##   1100 internal constant used in place of climatological data for at least one atmospheric constant
-      # ##   1101 correction out of bounds, pixel constrained to extreme al- lowable value
-      # ##   1110 L1B data faulty
-      # ##   1111 not processed due to deep ocean or clouds
-      # mutate(modland_qc_b04 = substr( qc_bitname, start=15, stop=18 )) %>%
-      # mutate(modland_qc_b04_binary = ifelse(modland_qc_b04 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b04 = ifelse(modland_qc_b04_binary, sur_refl_b04, NA)) %>%
-      #
-      # ## Bits 18-21: band 5 data quality, four bit range
-      # ##   0000 highest quality
-      # ##   0111 noisy detector
-      # ##   1000 dead detector, data interpolated in L1B
-      # ##   1001 solar zenith >= 86 degrees
-      # ##   1010 solar zenith >= 85 and < 86 degrees
-      # ##   1011 missing input
-      # ##   1100 internal constant used in place of climatological data for at least one atmospheric constant
-      # ##   1101 correction out of bounds, pixel constrained to extreme al- lowable value
-      # ##   1110 L1B data faulty
-      # ##   1111 not processed due to deep ocean or clouds
-      # mutate(modland_qc_b05 = substr( qc_bitname, start=19, stop=22 )) %>%
-      # mutate(modland_qc_b05_binary = ifelse(modland_qc_b05 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b05 = ifelse(modland_qc_b05_binary, sur_refl_b05, NA)) %>%
-      #
-      # ## Bits 22-25: band 6 data quality, four bit range
-      # ##   0000 highest quality
-      # ##   0111 noisy detector
-      # ##   1000 dead detector, data interpolated in L1B
-      # ##   1001 solar zenith >= 86 degrees
-      # ##   1010 solar zenith >= 85 and < 86 degrees
-      # ##   1011 missing input
-      # ##   1100 internal constant used in place of climatological data for at least one atmospheric constant
-      # ##   1101 correction out of bounds, pixel constrained to extreme al- lowable value
-      # ##   1110 L1B data faulty
-      # ##   1111 not processed due to deep ocean or clouds
-      # mutate(modland_qc_b06 = substr( qc_bitname, start=23, stop=26 )) %>%
-      # mutate(modland_qc_b06_binary = ifelse(modland_qc_b06 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b06 = ifelse(modland_qc_b06_binary, sur_refl_b06, NA)) %>%
-      #
-      # ## Bits 26-29: band 7 data quality, four bit range
-      # ##   0000 highest quality
-      # ##   0111 noisy detector
-      # ##   1000 dead detector, data interpolated in L1B
-      # ##   1001 solar zenith >= 86 degrees
-      # ##   1010 solar zenith >= 85 and < 86 degrees
-      # ##   1011 missing input
-      # ##   1100 internal constant used in place of climatological data for at least one atmospheric constant
-      # ##   1101 correction out of bounds, pixel constrained to extreme al- lowable value
-      # ##   1110 L1B data faulty
-      # ##   1111 not processed due to deep ocean or clouds
-      # mutate(modland_qc_b07 = substr( qc_bitname, start=27, stop=30 )) %>%
-      # mutate(modland_qc_b07_binary = ifelse(modland_qc_b07 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b07 = ifelse(modland_qc_b07_binary, sur_refl_b07, NA)) %>%
-
-      # ## Bit 30: Atmospheric correction performed
-      # ##   1 yes
-      # ##   0 no
-      # mutate(atm_corr_qc = substr( qc_bitname, start=31, stop=31 )) %>%
-      # mutate(atm_corr_qc_binary = ifelse(atm_corr_qc == "1", TRUE, FALSE)) %>%     # false for removing data
-      # mutate(across(starts_with("sur_refl_b"), ~clean_sur_refl(., atm_corr_qc_binary))) %>%
-      #
-      # ## Bit 31: Adjacency correction performed
-      # ##   1 yes
-      # ##   0 no
-      # mutate(adj_corr_qc = substr( qc_bitname, start=32, stop=32 )) %>%
-      # mutate(adj_corr_qc_binary = ifelse(adj_corr_qc == "1", TRUE, FALSE)) %>%     # false for removing data
-      # mutate(across(starts_with("sur_refl_b"), ~clean_sur_refl(., adj_corr_qc_binary))) %>%
-
+      
       ## drop it
       dplyr::select(-ends_with("_qc"), -ends_with("_qc_binary"))
+    
+    } else if (prod=="MOD11A1"){
+    ##----------------------------------------
+    ## Filter available landsurface temperature data for daily-means
+    ##----------------------------------------
+    ## QC interpreted according to 
+    ## https://lpdaac.usgs.gov/documents/118/MOD11_User_Guide_V6.pdf
+     df <- df %>%
+      dplyr::rename(modisvar = value) %>%
+      dplyr::mutate(modisvar_filtered = modisvar) %>%
 
+      ## separate into bits
+      rowwise() %>%
+      mutate(qc_bitname = intToBits( qc ) %>%
+               as.integer() %>%
+               paste(collapse = "")
+      )
+    
+      ## Bits 0-1: Pixel Quality
+      ##   00 Pixel produced with good quality
+      ##   01 Pixel produced, but check other QA
+      mutate(pixel_quality = substr( qc_bitname, start=1, stop=2 )) %>%
+      
+      dplyr::mutate(
+          modisvar_filtered = ifelse(
+            pixel_quality %in% c("00", "01"),
+            modisvar, NA)
+          ) %>%
+          
+      ## Bits 2-3: Data Quality
+      ##   00 = Good data quality of L1B bands 29, 31, 32
+      ##   01 = other quality data
+      ##   10 = 11 = TBD
+      mutate(data_quality = substr( qc_bitname, start=3, stop=4 )) %>%
 
+        
+      dplyr::mutate(
+          modisvar_filtered = ifelse(
+            data_quality %in% c("00", "01"),
+            modisvar_filtered, NA)
+      ) %>%
+        
+      ## drop it
+      dplyr::select(-qc_bitname)
+      
   }
 
   ##--------------------------------------
@@ -744,9 +645,9 @@ gapfill_interpol <- function(
   ## determine the distance from ("layer around") the focal point
   i_focal <- ceiling(n_side/2)
   j_focal <- ceiling(n_side/2)
-  if (i_focal != j_focal){ stop("Aborting. Non-quadratic subset.") }
+  if (i_focal != j_focal){ rlang::abort("Aborting. Non-quadratic subset.") }
   if ((n_focal + 1) > i_focal){
-    stop(
+    rlang::abort(
       paste("Aborting.
              Not enough pixels available for your choice of n_focal:",
             n_focal)) }
@@ -761,10 +662,10 @@ gapfill_interpol <- function(
   ## create a mask based on the selected layer (0 for focal point only)
   arr_mask <- arr_pixelnumber
   arr_mask[which(arr_distance > n_focal)] <- NA
-  vec_usepixels <- c(arr_mask) %>% stats::na.omit() %>% as.vector()
+  vec_usepixels <- c(arr_mask) %>% na.omit() %>% as.vector()
 
-  message(paste("Number of available pixels: ", npixels))
-  message(paste("Averaging across number of pixels: ",
+  rlang::inform(paste("Number of available pixels: ", npixels))
+  rlang::inform(paste("Averaging across number of pixels: ",
                       length(vec_usepixels)))
 
   ## take mean across selected pixels
@@ -779,9 +680,6 @@ gapfill_interpol <- function(
     group_by(date) %>%
     dplyr::filter(pixel %in% vec_usepixels) %>%    
     summarise(across(varnams, ~mean(., na.rm = TRUE)))
-
-  # summarise(modisvar_filtered = mean(modisvar_filtered, na.rm = TRUE),
-  #           modisvar = mean(modisvar, na.rm = TRUE))
 
   ##--------------------------------------
   ## merge N-day dataframe into daily one.
@@ -813,7 +711,7 @@ gapfill_interpol <- function(
       ##--------------------------------------
       ## get LOESS spline model for predicting daily values (used below)
       ##--------------------------------------
-      message("loess...")
+      rlang::inform("loess...")
 
       ## determine periodicity
       period <- ddf %>%
@@ -830,11 +728,11 @@ gapfill_interpol <- function(
       span <- 100/ndays_tot # (20*period)/ndays_tot  # multiply with larger number to get smoother curve
 
       idxs    <- which(!is.na(ddf$modisvar_filtered))
-      myloess <- try(stats::loess( modisvar_filtered ~ year_dec,
+      myloess <- try( loess( modisvar_filtered ~ year_dec,
                              data = ddf[idxs,], span=span ) )
 
       ## predict LOESS to all dates with missing data
-      tmp <- try( stats::predict( myloess, newdata = ddf ) )
+      tmp <- try( predict( myloess, newdata = ddf ) )
       if (class(tmp)!="try-error"){
         ddf$loess <- tmp
       } else {
@@ -846,14 +744,14 @@ gapfill_interpol <- function(
       ##--------------------------------------
       ## get SPLINE model for predicting daily values (used below)
       ##--------------------------------------
-      message("spline...")
+      rlang::inform("spline...")
       idxs   <- which(!is.na(ddf$modisvar_filtered))
       spline <- try(
         with(ddf,
-             stats::smooth.spline(year_dec[idxs], modisvar_filtered[idxs], spar=0.01)))
+             smooth.spline(year_dec[idxs], modisvar_filtered[idxs], spar=0.01)))
 
       ## predict SPLINE
-      tmp <- try( with( ddf, stats::predict( spline, year_dec ) )$y)
+      tmp <- try( with( ddf, predict( spline, year_dec ) )$y)
       if (class(tmp)!="try-error"){
         ddf$spline <- tmp
       } else {
@@ -866,7 +764,7 @@ gapfill_interpol <- function(
       ##--------------------------------------
       ## LINEAR INTERPOLATION
       ##--------------------------------------
-      message("linear ...")
+      rlang::inform("linear ...")
       tmp <- try(approx(ddf$year_dec, ddf$modisvar_filtered, xout=ddf$year_dec))
       if (class(tmp) == "try-error"){
         ddf <- ddf %>% mutate(linear = NA)
@@ -880,7 +778,7 @@ gapfill_interpol <- function(
       ##--------------------------------------
       ## SAVITZKY GOLAY FILTER
       ##--------------------------------------
-      message("sgfilter ...")
+      rlang::inform("sgfilter ...")
       ddf$sgfilter <- rep( NA, nrow(ddf) )
       idxs <- which(!is.na(ddf$modisvar_filtered))
       tmp <- try(signal::sgolayfilt( ddf$modisvar_filtered[idxs], p=3, n=51 ))
@@ -911,6 +809,11 @@ gapfill_interpol <- function(
         modisvar_filled = replace(modisvar_filled, modisvar_filled>1, 1))
   }
 
+  # ## extrapolate missing values at head and tail again
+  # ##--------------------------------------
+  # ddf$modisvar_filled <- extrapolate_missing_headtail(dplyr::select(ddf,
+  #  var = modisvar_filled))
+
   return( ddf )
 
 }
@@ -924,22 +827,31 @@ extrapolate_missing_headtail <- function(
   ## extrapolate to missing values at head and tail using mean seasonal cycle
   ##--------------------------------------
 
-  # define variables
-  var <- NULL
-  
   ## new: fill gaps at head
   idxs <- findna_head( ddf$var )
   if (length(idxs)>0){
-    warning("Filling values with last available data point at head")
+    rlang::warn("Filling values with last available data point at head")
   }
   ddf$var[idxs] <- ddf$var[max(idxs)+1]
 
   ## new: fill gaps at tail
   idxs <- findna_tail( ddf$var )
   if (length(idxs)>0){
-    warning("Filling values with last available data point at tail.")
+    rlang::warn("Filling values with last available data point at tail.")
   }
   ddf$var[idxs] <- ddf$var[min(idxs)-1]
+
+  # ## get mean seasonal cycle
+  # ddf_meandoy <- ddf %>%
+  #   dplyr::group_by( doy ) %>%
+  #   dplyr::summarise( meandoy = mean( var , na.rm=TRUE ) )
+  #
+  # ## attach mean seasonal cycle as column 'meandoy' to daily dataframe
+  # ddf <- ddf %>%
+  #   dplyr::left_join( ddf_meandoy, by="doy" )
+  #
+  # ## fill gaps at head and tail
+  # ddf$var[ idxs ] <- ddf$meandoy[ idxs ]
 
   vec <- ddf %>%
     dplyr::pull(var)
@@ -962,14 +874,14 @@ findna_head <- function(vec) {
 
   ## Remove (cut) NAs from the head and tail of a vector.
   ## Returns the indexes to be dropped from a vector
-  
+
   ## Get indeces of consecutive NAs at head
   if (is.na(vec[1])){
     idx <- 0
     cuthead <- 1
     while ( idx < length(vec) ){
       idx <- idx + 1
-      test <- stats::head( vec, idx )
+      test <- head( vec, idx )
       if (any(!is.na(test))){
         ## first non-NA found at position idx
         cuthead <- idx - 1
@@ -995,7 +907,7 @@ findna_tail <- function( vec ){
     cuttail <- 1
     while ( idx < length(vec) ){
       idx <- idx + 1
-      test <- stats::tail( vec, idx )
+      test <- tail( vec, idx )
       if (any(!is.na(test))){
         ## first non-NA found at position idx, counting from tail
         cuttail <- idx - 1
@@ -1011,6 +923,4 @@ findna_tail <- function( vec ){
 
 }
 
-na.omit.list <- function(y) {
-  return(y[!sapply(y, function(x) all(is.na(x)))]) 
-}
+na.omit.list <- function(y) { return(y[!sapply(y, function(x) all(is.na(x)))]) }
