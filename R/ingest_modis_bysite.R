@@ -12,7 +12,7 @@
 #' Earth Engine.
 #' @export
 #'
-#' @examples settings_gee <- get_settings_gee( bundle = "modis_fpar" )
+#' @examples settings_gee <- ingest_modis_bysite( bundle = "modis_fpar" )
 #'
 ingest_modis_bysite <- function(
   df_siteinfo,
@@ -877,16 +877,20 @@ gapfill_interpol <- function(
     }
 
     ##--------------------------------------
-    ## Define 'fapar'
+    ## Define the variable to be returned in the column given by settings$varnam
     ##--------------------------------------
     if (method_interpol == "loess"){
-      ddf$modisvar_filled <- ddf$loess
+      rlang::inform(paste("Column", settings$varnam, "is LOESS."))
+      ddf[[ settings$varnam ]] <- min(1.0, max(0.0, ddf$loess))
     } else if (method_interpol == "spline"){
-      ddf$modisvar_filled <- ddf$spline
+      rlang::inform(paste("Column", settings$varnam, "is spline."))
+      ddf[[ settings$varnam ]] <- min(1.0, max(0.0, ddf$spline))
     } else if (method_interpol == "linear"){
-      ddf$modisvar_filled <- ddf$linear
+      rlang::inform(paste("Column", settings$varnam, "is linear interpolation."))
+      ddf[[ settings$varnam ]] <- min(1.0, max(0.0, ddf$linear))
     } else if (method_interpol == "sgfilter"){
-      ddf$modisvar_filled <- ddf$sgfilter
+      rlang::inform(paste("Column", settings$varnam, "is Savitzki-Golay filter."))
+      ddf[[ settings$varnam ]] <- min(1.0, max(0.0, ddf$sgfilter))
     }
 
     # ## plot daily smoothed line and close plotting device
@@ -904,12 +908,6 @@ gapfill_interpol <- function(
     #   )
     # }
 
-    ## limit to within 0 and 1 (loess spline sometimes "explodes")
-    ddf <- ddf %>%
-      dplyr::mutate(
-        modisvar_filled = replace(modisvar_filled, modisvar_filled<0, 0)) %>%
-      dplyr::mutate(
-        modisvar_filled = replace(modisvar_filled, modisvar_filled>1, 1))
   }
 
   # ## extrapolate missing values at head and tail again
