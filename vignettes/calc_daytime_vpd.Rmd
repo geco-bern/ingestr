@@ -1,13 +1,14 @@
 ---
-title: "Derived FLUXNET variables"
-output:
-  html_document:
-    toc: true
-    toc_float: true
-    toc_depth: 3
+title: "Derived fluxnet variables"
+author: "Koen Hufkens"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Derived fluxnet variables}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, eval = FALSE}
 library(tidyverse)
 library(ingestr)
 ```
@@ -15,7 +16,7 @@ library(ingestr)
 ## Daytime VPD
 
 Daytime VPD is not provided in the daily FLUXNET2015 data files. Instead, we can derive it based on the half-hourly data, averaging half-hourly VPD of time steps where the shortwave incoming radiation `"SW_IN_F"` is greater than zero (i.e., during the day). To do this, we can set the `getvars` argment to `list(vpd  = "VPD_F_DAY")` and additionally provide the directory where half-hourly files are located locally through the argument `settings`. We do this just for one year here (only year 2000 data is provided as external data in this package).
-```{r message=FALSE}
+```{r warning=FALSE, eval = FALSE}
 settings_fluxnet <- list(dir_hh = paste0(path.package("ingestr"), "/extdata/"), getswc = FALSE)
 
 df_fluxnet <- ingest_bysite(
@@ -35,7 +36,7 @@ df_fluxnet
 ## Daily minimum temperature
 
 Daily minimum temperature is not provided in the daily FLUXNET2015 data files. Instead, we can derive it based on the half-hourly data. To do this, we can set the `getvars` argument to `list(tmin  = "TMIN_F")` and additionally provide the directory where half-hourly files are located locally through the argument `settings`. We do this just for one year here (only year 2000 data is provided as external data in this package).
-```{r message=FALSE}
+```{r warning=FALSE, eval = FALSE}
 settings_fluxnet <- list(dir_hh = paste0(path.package("ingestr"), "/extdata/"), getswc = FALSE)
 
 df_fluxnet <- ingest_bysite(
@@ -55,7 +56,7 @@ df_fluxnet
 ## Daily maximum temperature
 
 Daily maximum temperature is not provided in the daily FLUXNET2015 data files. Instead, we can derive it based on the half-hourly data. To do this, we can set the `getvars` argument to `list(tmin  = "TMIN_F")` and additionally provide the directory where half-hourly files are located locally through the argument `settings`. We do this just for one year here (only year 2000 data is provided as external data in this package).
-```{r message=FALSE}
+```{r warning=FALSE, eval = FALSE}
 settings_fluxnet <- list(dir_hh = paste0(path.package("ingestr"), "/extdata/"), getswc = FALSE)
 
 df_fluxnet <- ingest_bysite(

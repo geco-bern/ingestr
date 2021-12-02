@@ -1,2 +1,26 @@
+# docs and unit tests
+^\.github$
+^_pkgdown\.yml$
+^_config\.yml$
+^pkgdown$
+^docs$
+^vignettes_add$
+^data-raw$
+^manuscript$
+
+# R-markdown files in the root folder.
+^LICENSE$
+^CONDUCT\.md$
+^NEWS\.md$
+^README\.md$
+^contact\.md$
+^cran-comments\.md$
+^review-notes\.md$
+
+# Stuff
 ^.*\.Rproj$
+^.*\.Renviron$
 ^\.Rproj\.user$
+^\.httr-oauth$
+^.*-logo\..*$
+^codemeta\.json$

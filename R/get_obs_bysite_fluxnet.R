@@ -135,6 +135,12 @@ get_obs_bysite_fluxnet <- function(
   verbose=TRUE 
   ){
   
+  # CRAN compliance, define variables
+  year <- week <- VPD_F <- VPD_F_QC <- VPD_F_MDS <- VPD_ERA <-
+    moy <- TA_F <- . <- res <- soilm_obs_mean <- vpd_day <-
+    TA_F_QC <- TA_F_MDS <- TA_F_MDS_QC <- TA_ERA <- VPD_F_MDS_QC <-
+    vpd <- patm <- ppfd <- prec <- NULL
+  
   if (verbose) print(paste("Getting FLUXNET data for", sitename, "..."))
 
   ##-----------------------------------------------------------------
@@ -219,7 +225,7 @@ get_obs_bysite_fluxnet <- function(
   # getvars <- c(obsvars, paste0(obsvars, "_QC"), uncvars)
 
   if (length(filn)==0) {
-    rlang::abort(
+    stop(
       paste0("No files found for timescale ",
         timescale,
         " in sub-directories of ",
@@ -230,7 +236,7 @@ get_obs_bysite_fluxnet <- function(
     file.info_getsize <- function(filn){
       file.info(filn)$size
     }
-    rlang::warn("Reading only largest daily file available")
+    warning("Reading only largest daily file available")
     path_dd <- paste0(dir, filn)
     size_vec <- purrr::map_dbl(as.list(path_dd), ~file.info_getsize(.))
     path_dd <- path_dd[which.max(size_vec)]
@@ -239,7 +245,7 @@ get_obs_bysite_fluxnet <- function(
 
   # if (length(filn)>1){
   #   filn <- filn[which(grepl("3.csv", filn))]
-  #    rlang::warn(paste0("Multiple files found for timsescale ",
+  #    warning(paste0("Multiple files found for timsescale ",
   #  timescale, " in sub-directories of ", dir, ". Taking only ", filn ) )
   # }
 
@@ -283,7 +289,7 @@ get_obs_bysite_fluxnet <- function(
         file.info_getsize <- function(filn){
           file.info(filn)$size
         }
-        rlang::warn("Reading only largest daily VPD file available")
+        warning("Reading only largest daily VPD file available")
         path_dd_vpd <- paste0(dir_hh, filename_dd_vpd)
         size_vec <- purrr::map_dbl(as.list(path_dd_vpd), ~file.info_getsize(.))
         path_dd_vpd <- path_dd_vpd[which.max(size_vec)]
@@ -300,7 +306,7 @@ get_obs_bysite_fluxnet <- function(
       ##-----------------------------------------------------------------
       if (is.null(dir_hh)){
 
-        rlang::warn("Argument dir_hh is not provided. Daytime VPD could not be calculated.")
+        warning("Argument dir_hh is not provided. Daytime VPD could not be calculated.")
 
       } else {
 
@@ -318,18 +324,18 @@ get_obs_bysite_fluxnet <- function(
             file.info_getsize <- function(filn){
               file.info(filn)$size
             }
-            rlang::warn("Reading only largest half-hourly file available")
+            warning("Reading only largest half-hourly file available")
             size_vec <- purrr::map_dbl(as.list(path_hh), ~file.info_getsize(.))
             path_hh <- path_hh[which.max(size_vec)]
           }
 
-          rlang::inform("Reading half-hourly data to calculate daytime VPD ...")
+          message("Reading half-hourly data to calculate daytime VPD ...")
           df_vpd_day_dd <- get_vpd_day_fluxnet2015_byfile(path_hh, write = TRUE)
           merge_df_vpd_day_dd <- TRUE
 
         } else {
 
-          rlang::warn(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
+          warning(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
 
           ## get hourly file name(s)
           filn_hr <- list.files( dir_hr,
@@ -344,12 +350,12 @@ get_obs_bysite_fluxnet <- function(
               file.info_getsize <- function(filn){
                 file.info(filn)$size
               }
-              rlang::warn("Reading only largest half-hourly file available")
+              warning("Reading only largest half-hourly file available")
               size_vec <- purrr::map_dbl(as.list(path_hr), ~file.info_getsize(.))
               path_hr <- path_hr[which.max(size_vec)]
             }
 
-            rlang::inform("Reading hourly data to calculate daytime VPD ...")
+            message("Reading hourly data to calculate daytime VPD ...")
             df_vpd_day_dd <- get_vpd_day_fluxnet2015_byfile(path_hr, write = TRUE)
             merge_df_vpd_day_dd <- TRUE
 
@@ -434,7 +440,7 @@ get_obs_bysite_fluxnet <- function(
         file.info_getsize <- function(filn){
           file.info(filn)$size
         }
-        rlang::warn("Reading only largest TMIN file available")
+        warning("Reading only largest TMIN file available")
         path_dd_tmin <- paste0(dir_hh, filename_dd_tmin)
         size_vec <- purrr::map_dbl(as.list(path_dd_tmin), ~file.info_getsize(.))
         path_dd_tmin <- path_dd_tmin[which.max(size_vec)]
@@ -451,7 +457,7 @@ get_obs_bysite_fluxnet <- function(
       ##-----------------------------------------------------------------
       if (is.null(dir_hh)){
         
-        rlang::warn("Argument dir_hh is not provided. Daytime tmin could not be calculated.")
+        warning("Argument dir_hh is not provided. Daytime tmin could not be calculated.")
         
       } else {
         
@@ -469,18 +475,18 @@ get_obs_bysite_fluxnet <- function(
             file.info_getsize <- function(filn){
               file.info(filn)$size
             }
-            rlang::warn("Reading only largest half-hourly file available")
+            warning("Reading only largest half-hourly file available")
             size_vec <- purrr::map_dbl(as.list(path_hh), ~file.info_getsize(.))
             path_hh <- path_hh[which.max(size_vec)]
           }
           
-          rlang::inform("Reading half-hourly data to calculate daytime tmin ...")
+          message("Reading half-hourly data to calculate daytime tmin ...")
           df_tmin_dd <- get_tmin_fluxnet2015_byfile(path_hh, write = TRUE)
           merge_df_tmin_dd <- TRUE
           
         } else {
           
-          rlang::warn(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
+          warning(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
           
           ## get hourly file name(s)
           filn_hr <- list.files( dir_hr,
@@ -495,12 +501,12 @@ get_obs_bysite_fluxnet <- function(
               file.info_getsize <- function(filn){
                 file.info(filn)$size
               }
-              rlang::warn("Reading only largest hourly file available")
+              warning("Reading only largest hourly file available")
               size_vec <- purrr::map_dbl(as.list(path_hr), ~file.info_getsize(.))
               path_hr <- path_hr[which.max(size_vec)]
             }
             
-            rlang::inform("Reading hourly data to calculate tmin ...")
+            message("Reading hourly data to calculate tmin ...")
             df_tmin_dd <- get_tmin_fluxnet2015_byfile(path_hr, write = TRUE)
             merge_df_tmin_dd <- TRUE
             
@@ -585,7 +591,7 @@ get_obs_bysite_fluxnet <- function(
         file.info_getsize <- function(filn){
           file.info(filn)$size
         }
-        rlang::warn("Reading only largest tmax file available")
+        warning("Reading only largest tmax file available")
         path_dd_tmax <- paste0(dir_hh, filename_dd_tmax)
         size_vec <- purrr::map_dbl(as.list(path_dd_tmax), ~file.info_getsize(.))
         path_dd_tmax <- path_dd_tmax[which.max(size_vec)]
@@ -602,7 +608,7 @@ get_obs_bysite_fluxnet <- function(
       ##-----------------------------------------------------------------
       if (is.null(dir_hh)){
         
-        rlang::warn("Argument dir_hh is not provided. Daytime tmax could not be calculated.")
+        warning("Argument dir_hh is not provided. Daytime tmax could not be calculated.")
         
       } else {
         
@@ -620,18 +626,18 @@ get_obs_bysite_fluxnet <- function(
             file.info_getsize <- function(filn){
               file.info(filn)$size
             }
-            rlang::warn("Reading only largest half-hourly file available")
+            warning("Reading only largest half-hourly file available")
             size_vec <- purrr::map_dbl(as.list(path_hh), ~file.info_getsize(.))
             path_hh <- path_hh[which.max(size_vec)]
           }
           
-          rlang::inform("Reading half-hourly data to calculate daytime tmax ...")
+          message("Reading half-hourly data to calculate daytime tmax ...")
           df_tmax_dd <- get_tmax_fluxnet2015_byfile(path_hh, write = TRUE)
           merge_df_tmax_dd <- TRUE
           
         } else {
           
-          rlang::warn(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
+          warning(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
           
           ## get hourly file name(s)
           filn_hr <- list.files( dir_hr,
@@ -646,12 +652,12 @@ get_obs_bysite_fluxnet <- function(
               file.info_getsize <- function(filn){
                 file.info(filn)$size
               }
-              rlang::warn("Reading only largest hourly file available")
+              warning("Reading only largest hourly file available")
               size_vec <- purrr::map_dbl(as.list(path_hr), ~file.info_getsize(.))
               path_hr <- path_hr[which.max(size_vec)]
             }
             
-            rlang::inform("Reading hourly data to calculate tmax ...")
+            message("Reading hourly data to calculate tmax ...")
             df_tmax_dd <- get_tmax_fluxnet2015_byfile(path_hr, write = TRUE)
             merge_df_tmax_dd <- TRUE
             
@@ -776,11 +782,11 @@ get_obs_bysite_fluxnet <- function(
 
   ## clean energy data (sensible and latent heat flux) data - often has spuriously equal values
   if (any(grepl("LE_", getvars))){
-    if (any( !(c("LE_F_MDS", "LE_F_MDS_QC") %in% getvars) )) rlang::abort("Not all variables read from file that are needed for data cleaning.")
+    if (any( !(c("LE_F_MDS", "LE_F_MDS_QC") %in% getvars) )) stop("Not all variables read from file that are needed for data cleaning.")
     df$LE_F_MDS <- clean_fluxnet_energy( df$LE_F_MDS, df$LE_F_MDS_QC, threshold=threshold_LE )
   }
   if (any(grepl("H_", getvars))){
-    if (any( !(c("H_F_MDS", "H_F_MDS_QC") %in% getvars) )) rlang::abort("Not all variables read from file that are needed for data cleaning.")
+    if (any( !(c("H_F_MDS", "H_F_MDS_QC") %in% getvars) )) stop("Not all variables read from file that are needed for data cleaning.")
     df$H_F_MDS  <- clean_fluxnet_energy( df$H_F_MDS, df$H_F_MDS_QC,   threshold=threshold_H )
   }
 
@@ -808,7 +814,7 @@ get_obs_bysite_fluxnet <- function(
         ## get mean observational soil moisture across different depths (if available)
         dplyr::mutate( soilm_obs_mean = apply( dplyr::select( ., one_of(swcvars) ), 1, FUN = mean, na.rm = TRUE ) ) %>%
         dplyr::mutate( soilm_obs_mean = ifelse( is.nan(soilm_obs_mean), NA, soilm_obs_mean ) )
-      if (verbose) rlang::warn("Converting: soilm_obs_mean = mean across different soil depths (SWC_F_MDS), with na.rm = TRUE" )
+      if (verbose) warning("Converting: soilm_obs_mean = mean across different soil depths (SWC_F_MDS), with na.rm = TRUE" )
 
     }
 
@@ -816,7 +822,9 @@ get_obs_bysite_fluxnet <- function(
 
   ## check if anything is missing
   if (any(!(getvars %in% names(df)))){
-    rlang::abort(paste("Not all getvars were found in file. Missing variable: ", getvars[which(!(getvars %in% names(df)))], "for site: ", sitename))
+    stop(paste("Not all getvars were found in file. Missing variable: ",
+               getvars[which(!(getvars %in% names(df)))],
+               "for site: ", sitename))
   }
 
   if (!return_qc){
@@ -832,7 +840,7 @@ get_obs_bysite_fluxnet <- function(
   rename_byvar <- function(df, list_var, verbose){
     name_in  <- list_var %>% unlist() %>% unname()
     name_out <- list_var %>% names()
-    if (verbose) rlang::warn(paste0("Renaming: ", name_out, " = ", name_in, " \n"))
+    if (verbose) warning(paste0("Renaming: ", name_out, " = ", name_in, " \n"))
     df %>%
       dplyr::rename_at( vars(matches({{name_in}})), list(~stringr::str_replace(., {{name_in}}, {{name_out}})) )
   }
@@ -849,30 +857,30 @@ get_obs_bysite_fluxnet <- function(
   kfFEC <- 2.04
 
   if ("vpd_day" %in% names(df)){
-    if (verbose) rlang::warn("Converting: vpd_day = vpd_day * 1e2 (given in hPa, required in Pa) \n")
+    if (verbose) warning("Converting: vpd_day = vpd_day * 1e2 (given in hPa, required in Pa) \n")
     df <- df %>% dplyr::mutate( vpd_day = vpd_day * 1e2 )
   }
   if ("vpd" %in% names(df)){
-    if (verbose) rlang::warn("Converting: vpd = vpd * 1e2 (given in hPa, required in Pa) \n")
+    if (verbose) warning("Converting: vpd = vpd * 1e2 (given in hPa, required in Pa) \n")
     df <- df %>% dplyr::mutate( vpd = vpd * 1e2 )
   }
   if ("patm" %in% names(df)){
-    if (verbose) rlang::warn("Converting: patm = patm * 1e3 (given in kPa, required in Pa) \n")
+    if (verbose) warning("Converting: patm = patm * 1e3 (given in kPa, required in Pa) \n")
     df <- df %>% dplyr::mutate( patm = patm * 1e3 )
   }
   if ("ppfd" %in% names(df)){
-    if (verbose) rlang::warn("Converting: ppfd = ppfd * kfFEC * 1.0e-6 (convert from J/m2/s to mol/m2/s; kfFEC = 2.04 is the flux-to-energy conversion, micro-mol/J (Meek et al., 1984)) \n")
+    if (verbose) warning("Converting: ppfd = ppfd * kfFEC * 1.0e-6 (convert from J/m2/s to mol/m2/s; kfFEC = 2.04 is the flux-to-energy conversion, micro-mol/J (Meek et al., 1984)) \n")
     df <- df %>% dplyr::mutate( ppfd = ppfd * kfFEC * 1.0e-6 )
   }
 
   if ("prec" %in% names(df)){
     if (timescale=="d"){
       ## Daily
-      if (verbose) rlang::warn("Converting: prec = prec / (60 * 60 * 24) (convert from total mm to mm/s \n")
+      if (verbose) warning("Converting: prec = prec / (60 * 60 * 24) (convert from total mm to mm/s \n")
       df <- df %>% dplyr::mutate( prec = prec / (60 * 60 * 24) )
     } else  if (timescale=="hh"){
       ## half-hourly
-      if (verbose) rlang::warn("Converting: prec = prec / (60 * 60 * 24) (convert from total mm to mm/s \n")
+      if (verbose) warning("Converting: prec = prec / (60 * 60 * 24) (convert from total mm to mm/s \n")
       df <- df %>% dplyr::mutate( prec = prec / (60 * 30) )
     }
   }
@@ -947,7 +955,7 @@ get_obs_bysite_wcont_fluxnet2015 <- function( sitename, dir, timescale ){
   } else  if (timescale=="m"){
     ## Monthly
     filn <- list.files( dir,
-      pattern = paste0(..., collapse = NULL),
+      pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_MM.*.csv" ),
       recursive = TRUE
       )
   } else  if (timescale=="y"){
@@ -958,7 +966,12 @@ get_obs_bysite_wcont_fluxnet2015 <- function( sitename, dir, timescale ){
       )
   }
 
-  if (length(filn)==0) abort(paste0("No files found for timescale ", timescale, "in sub-directories of ", dir ) )
+  if (length(filn)==0){
+    stop(
+      paste0("No files found for timescale ",
+             timescale, "in sub-directories of ", dir)
+      )
+  }
 
   ## This returns a data frame with columns (date, temp, prec, nrad, ppfd, vpd, ccov)
   ddf <- get_obs_fluxnet2015_raw( sitename,
@@ -998,6 +1011,11 @@ get_obs_fluxnet2015_raw <- function( sitename, path, freq="d" ){
   ## 2015 data file of respective temporal resolution.
   ## Returns data in units given in the fluxnet dataset
   ##--------------------------------------------------------------------
+  
+  # CRAN compliance, define variables
+  TIMESTAMP <- TIMESTAMP_START <- TIMESTAMP_END <- date_start <-
+    month <- year <-  NULL
+  
   ## get data
   # df <-  readr::read_csv( path, na="-9999" ) #, col_types = cols()
   df <-  data.table::fread( path ) %>% 
@@ -1050,7 +1068,22 @@ convert_energy_fluxnet2015 <- function( le ){
   return(le_converted)
 }
 
-clean_fluxnet_gpp <- function(df, nam_gpp_nt, nam_gpp_dt, nam_nt_qc, nam_dt_qc, threshold, remove_neg = FALSE, filter_ntdt){
+clean_fluxnet_gpp <- function(
+  df,
+  nam_gpp_nt,
+  nam_gpp_dt,
+  nam_nt_qc,
+  nam_dt_qc,
+  threshold,
+  remove_neg = FALSE,
+  filter_ntdt
+  ) {
+  
+  # define variables
+  GPP_NT_VUT_REF <- NEE_VUT_REF_NIGHT_QC <- GPP_DT_VUT_REF <-
+    NEE_VUT_REF_DAY_QC <- res <- NULL
+  
+  
   ##--------------------------------------------------------------------
   ## Cleans daily data using criteria 1-4 as documented in Tramontana et al., 2016
   ## gpp_nt: based on nighttime flux decomposition ("NT")
@@ -1083,10 +1116,9 @@ clean_fluxnet_gpp <- function(df, nam_gpp_nt, nam_gpp_dt, nam_nt_qc, nam_dt_qc, 
     df <- df %>%
       mutate(res = GPP_NT_VUT_REF - GPP_DT_VUT_REF)
 
-    q025 <- quantile( df$res, probs = 0.025, na.rm=TRUE )
-    q975 <- quantile( df$res, probs = 0.975, na.rm=TRUE )
-
-
+    q025 <- stats::quantile( df$res, probs = 0.025, na.rm=TRUE )
+    q975 <- stats::quantile( df$res, probs = 0.975, na.rm=TRUE )
+    
     ## remove data outside the quartiles of the residuals between the DT and NT estimates
     df <- df %>%
       mutate(GPP_NT_VUT_REF = replace_with_na_res(GPP_NT_VUT_REF, res, q025, q975),

@@ -1,0 +1,330 @@
+---
+title: "Prepare FLUXNET 2015 site meta info"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+## Reshape original FLUXNET meta data
+
+The original site meta info data can be downloaded from the FLUXNET 2015 website and is called `FLX_AA-Flx_BIF_LATEST.csv`. Unfortunately, it comes in a somewhat unhandy format. Let's convert it to a (wide) flat table with columns for each meta data variable and rows for each site. Let's call the file with the wide table `FLX_AA-Flx_BIF_LATEST_WIDE.csv`. The function used for the conversion is implemented in a separate file `long_to_wide_fluxnet2015.R`.
+
+```{r}
+library(dplyr)
+library(purrr)
+library(rlang)
+library(tidyr)
+library(stringr)
+library(raster)
+library(readr)
+
+source("../data-raw/long_to_wide_fluxnet2015.R")
+system("mkdir ../output")
+
+origfilpath <- "../inst/extdata/FLX_AA-Flx_BIF_LATEST.csv"  # path to original meta info file - adjust manually
+widefiln    <- "../inst/extdata/FLX_AA-Flx_BIF_LATEST_WIDE.csv"
+
+long <- read.csv( origfilpath, sep = ";" ) %>% as_tibble()
+siteinfo <- purrr::map( as.list(unique(long$SITE_ID)), ~long_to_wide_fluxnet2015( ., long ) ) %>% 
+  bind_rows() %>% 
+  write_csv( path = widefiln )
+```
+
+Some more cleaning and renaming to my personal gusto.
+```{r}
+siteinfo <- dplyr::rename( 
+  siteinfo,
+  elv=LOCATION_ELEV, 
+  sitename=SITE_ID, 
+  lon=LOCATION_LONG, 
+  lat=LOCATION_LAT,
+  year_start=FLUX_MEASUREMENTS_DATE_START, 
+  year_end=FLUX_MEASUREMENTS_DATE_END, 
+  classid=IGBP
+  )
+
+## over-write data as numeric
+siteinfo$lon <- as.numeric( siteinfo$lon )
+siteinfo$lat <- as.numeric( siteinfo$lat )
+siteinfo$elv <- as.numeric( siteinfo$elv )
+siteinfo$year_start <- as.numeric( siteinfo$year_start )
+siteinfo$year_end   <- as.numeric( siteinfo$year_end   )
+```
+
+
+## Filter Tier 1 sites
+
+The meta data file contains much more sites than FLUXNET 2015 Tier 1. Use a separate file containing a list of Tier 1 sites.
+```{r}
+tier1sites <- read_csv( "../inst/extdata/list_tier1_sites_fluxnet2015.csv" ) %>% 
+  pull(sitename)
+	
+siteinfo <- siteinfo %>% 
+  filter(sitename %in% tier1sites) %>% 
+  dplyr::select(sitename, lon, lat, elv, year_start, year_end, classid)
+```
+
+
+## Get additional meta info from Falge et al.
+
+(only elevation data here)
+
+The file "fluxnet_site_info_all.csv" was downloaded from downloaded from https://daac.ornl.gov/cgi-bin/dsviewer.pl?ds_id=1530.
+
+```{r}
+## Get additional meta information for sites: Koeppen-Geiger Class
+## The file "siteinfo_climate_koeppengeiger_flunxet2015.csv" was downloaded from downloaded from https://daac.ornl.gov/cgi-bin/dsviewer.pl?ds_id=1530 (placed in my ~/data/FLUXNET-2015_Tier1/meta/)
+siteinfo <- read_csv("../inst/extdata/fluxnet_site_info_all.csv") %>%
+  dplyr::select(-sitename) %>% 
+  dplyr::rename( sitename = fluxnetid ) %>% 
+  mutate(lat_falge = latitude, lon_falge = longitude) %>% 
+  dplyr::select(sitename, lon_falge, lat_falge, gtopo30_elevation, igbp_land_use, plant_functional_type) %>% 
+  mutate(gtopo30_elevation = ifelse(gtopo30_elevation=="(null)", NA, gtopo30_elevation)) %>% 
+  mutate(gtopo30_elevation = as.numeric(gtopo30_elevation)) %>% 
+  right_join(siteinfo, by = "sitename") %>% 
+  
+  ## complement only elevation
+  mutate(elv = ifelse(is.na(elv) & !is.na(gtopo30_elevation), gtopo30_elevation, elv))
+
+## verify that lon and lat are identical
+library(ggplot2)
+siteinfo %>% 
+  ggplot(aes(lon, lon_falge)) +
+  geom_point()
+
+siteinfo %>% 
+  ggplot(aes(lat, lat_falge)) +
+  geom_point()
+```
+
+
+## Complement start year and end year
+
+The original FLUXNET 2015 meta info file name doesn't contain clean information on start and end years for which data is available. Complement this information using names of the FLUXNET 2015 data files. This is more reliable data than in the meta info file. To run this step, data needs to be downloaded. Here, I'm using the daily data files and specify the path where they are located.
+```{r}
+dir_DD_fluxnet2015 <-  "~/data/FLUXNET-2015_Tier1/20160128/point-scale_none_1d/original/unpacked/"
+
+## "Manually" get year start and year end from file names
+# moredata <- as.data.frame( read.table( paste0( settings_input$path_cx1data, "/FLUXNET-2015_Tier1/doc/filelist_DD.txt") ) )
+moredata <- list.files(dir_DD_fluxnet2015, pattern="FULLSET") 
+moredata <- moredata[ grepl("3.csv", moredata) ]
+moredata <- data.frame( filnam=moredata )
+moredata$sitename <- substr( as.character(moredata$filnam), start=5, stop=10 )
+moredata$year_start <- substr( as.character(moredata$filnam), start=35, stop=38 )
+moredata$year_end   <- substr( as.character(moredata$filnam), start=40, stop=43 )
+
+missing_data_for_sites <- c()
+for (idx in seq(dim(siteinfo)[1])){
+  tmp <- moredata[ which( as.character( as.character(siteinfo$sitename[idx]) )==moredata$sitename ), ]
+  if (dim(tmp)[1]==0) {
+    missing_data_for_sites <- c( missing_data_for_sites, as.character(siteinfo$sitename[idx]) )
+  } else {
+    # print(paste("overwriting for site", tmp$sitename," with year_start, year_end", tmp$year_start, tmp$year_end  ) )
+    if (!is.na(tmp$year_start)) { siteinfo$year_start[idx] <- tmp$year_start }
+    if (!is.na(tmp$year_end))   { siteinfo$year_end[idx]   <- tmp$year_end   }
+  }
+}
+
+## Some year_start and year_end data are given in a weird format (adding digits for months)
+## Assume first 4 digits are representing the year, cut accordingly
+for (idx in seq(dim(siteinfo)[1])){
+  if ( !is.na(siteinfo$year_start[idx]) ){
+    if ( nchar( as.character( siteinfo$year_start[idx]) ) > 4 ) {
+      siteinfo$year_start[idx] <- substr( as.character(siteinfo$year_start[idx]), start=1, stop=4 )
+    }
+  }
+  if ( !is.na(siteinfo$year_end[idx])){
+    if ( nchar( as.character(siteinfo$year_end[idx]) ) > 4 )   {
+      siteinfo$year_end[idx]   <- substr( as.character(siteinfo$year_end[idx]), start=1, stop=4 )
+    }
+  }
+}
+
+# ## Exclude sites where not data is given (but just happen to appear in the meta info file)
+# # siteinfo <- siteinfo[ !is.na(siteinfo$year_end), ]
+# # siteinfo <- siteinfo[ !is.na(siteinfo$year_start), ]
+# missing_metainfo_for_data <- c()
+# for (idx in seq(dim(moredata)[1])){
+#   tmp <- siteinfo[ which( as.character( moredata$sitename[idx] )==siteinfo$sitename ), ]
+#   if (dim(tmp)[1]==0){
+#     missing_metainfo_for_data <- c( missing_metainfo_for_data, as.character(moredata$sitename[idx]))
+#   }
+# }
+
+## Add number of years for which data is available
+siteinfo$years_data <- as.numeric( siteinfo$year_end ) - as.numeric( siteinfo$year_start ) + 1
+```
+
+## Exclude sites with missing data
+
+This information is collected in the step above.
+```{r}
+siteinfo <- siteinfo[ which( !is.element( siteinfo$sitename, missing_data_for_sites) ), ]
+```
+
+## Get C3/C4 information
+
+Based on information that is "manually" determined, the following sites contain a sustantial cover fraction of C4 vegetation:
+
+- AU-How
+- DE-Kli
+- FR-Gri
+- IT-BCi
+- US-Ne1
+- US-Ne2
+- US-Ne3
+
+We add a column `c4` to the meta info file, containing respective information (`TRUE` if C4 vegetation is present and `FALSE` otherwise).
+
+```{r}
+c4sites <-  c("AU-How", "DE-Kli", "FR-Gri", "IT-BCi", "US-Ne1", "US-Ne2", "US-Ne3") 
+
+siteinfo <- siteinfo %>%
+  mutate(c4 = ifelse(sitename %in% c4sites, TRUE, FALSE))
+```
+
+
+## Add water holding capacity information
+
+The soil water holding capacity (WHC) information provided in file siteinfo_fluxnet2015_sofun+whc.csv was created by David Sandoval Calle (Imperial College) based on Soilgrids data (see Stocker et al., 2018 Nature Geoscience).
+
+This information is collected separately by D. Sandoval as described in Stocker et al., (2020) *GMD* and provided in a separate file `siteinfo_fluxnet2015_sofun+whc.csv`.
+```{r}
+filn <- "../inst/extdata/siteinfo_fluxnet2015_sofun+whc.csv"
+rlang::inform( paste("Collecting water holding capacity information from file", filn ) )
+
+# if (!file.exists(filn)){
+#   download_file_cx1(  path_remote = "/work/bstocker/labprentice/data/FLUXNET-2015_Tier1/siteinfo_fluxnet2015_sofun+whc.csv", 
+#                       path_local  = paste0( settings_input$path_cx1data, "FLUXNET-2015_Tier1/" )
+#                       )
+# }
+
+siteinfo <- read_csv( filn ) %>%
+			rename(sitename = mysitename) %>%
+            dplyr::select( sitename, whc ) %>%
+            left_join( siteinfo, by = "sitename" )
+```
+
+## Add elevation information from ETOPO1
+
+This reads from the 1 arc minutes resolution ETOPO1 global elevation data (reading from a Geo-TIFF file). The nested data column contains a tibble one value for variable `elv`.
+```{r}
+siteinfo <- siteinfo %>% 
+  left_join(
+    ingestr::ingest(
+      siteinfo,
+      source = "etopo1",
+      dir = "~/data/etopo/"
+      ) %>% 
+      tidyr::unnest(data) %>% 
+      rename(elv_etopo = elv),
+    by = "sitename")
+```
+
+Look at differences between FLUXNET 2015 elevation information and values extracted from ETOPO1.
+```{r}
+siteinfo %>% 
+  ggplot(aes(x = elv, y = elv_etopo)) +
+  geom_point()
+```
+
+<!-- ## Add elevation information from WATCH-WFDEI elevation map -->
+
+<!-- For sites where no elevation information is provided, read from a (very coarse) global file to fill gaps. We read from the half-degree WATCH-WFDEI elevation map `WFDEI-elevation.nc`. -->
+<!-- ```{r} -->
+<!-- filn_elv_watch <- "../inst/extdata/WFDEI-elevation.nc" -->
+
+<!-- ## load file using the raster library -->
+<!-- rasta <- raster::brick(filn_elv_watch) -->
+
+<!-- siteinfo <- raster::extract(rasta, sp::SpatialPoints(dplyr::select(siteinfo, lon, lat)), sp = TRUE) %>%  -->
+<!--   as_tibble() %>%  -->
+<!--   dplyr::rename(elv_watch = layer) %>% -->
+<!--   right_join(siteinfo, by = c("lon", "lat")) -->
+<!--   # mutate(elv = ifelse(is.na(elv), elv_watch, elv)) -->
+<!-- ``` -->
+
+Replace missing elevation info with values extractred from ETOPO1.
+```{r}
+siteinfo <- siteinfo %>% 
+  mutate(elv = ifelse(is.na(elv), elv_etopo, elv))
+```
+
+
+## Add Koeppen-Geiger class
+
+The `fluxnet_site_info_all.csv` was downloaded from https://daac.ornl.gov/cgi-bin/dsviewer.pl?ds_id=1530. 
+
+**Citation**:
+
+Falge, E., M. Aubinet, P.S. Bakwin, D. Baldocchi, P. Berbigier, C. Bernhofer, T.A. Black, R. Ceulemans, K.J. Davis, A.J. Dolman, A. Goldstein, M.L. Goulden, A. Granier, D.Y. Hollinger, P.G. Jarvis, N. Jensen, K. Pilegaard, G. Katul, P. Kyaw Tha Paw, B.E. Law, A. Lindroth, D. Loustau, Y. Mahli, R. Monson, P. Moncrieff, E. Moors, J.W. Munger, T. Meyers, W. Oechel, E.-D. Schulze, H. Thorgeirsson, J. Tenhunen, R. Valentini, S.B. Verma, T. Vesala, and S.C. Wofsy. 2017. FLUXNET Research Network Site Characteristics, Investigators, and Bibliography, 2016. ORNL DAAC, Oak Ridge, Tennessee, USA. https://doi.org/10.3334/ORNLDAAC/1530
+
+```{r}
+siteinfo_falge <- read_csv("../inst/extdata/fluxnet_site_info_all.csv") %>%
+  dplyr::select(-sitename) %>% 
+  dplyr::rename( sitename = fluxnetid ) 
+
+tmp <- siteinfo_falge %>% 
+  dplyr::select( sitename, koeppen_climate, gtopo30_elevation )
+
+meta <- tmp %>%
+        mutate( koeppen_climate = str_split( koeppen_climate, " - " ) ) %>%
+        mutate( koeppen_code = purrr::map( koeppen_climate, 1 ) ) %>%
+        mutate( koeppen_word = purrr::map( koeppen_climate, 2 ) ) %>%
+        unnest( koeppen_code )
+
+## add info: number of data points (daily GPP)
+siteinfo <- siteinfo %>% left_join( meta, by = "sitename")
+
+## create a legend for the koeppen geiger climate codes
+koeppen_legend <- tmp$koeppen_climate %>% as_tibble() %>% 
+  filter( !is.na(value) ) %>%
+  filter( value!="-" ) %>%
+  mutate( koeppen_climate = str_split( value, " - " ) ) %>%
+  mutate( koeppen_code = purrr::map( koeppen_climate, 1 ) ) %>%
+  mutate( koeppen_word = purrr::map( koeppen_climate, 2 ) ) %>%
+  unnest( koeppen_code ) %>% 
+  unnest( koeppen_word ) %>% 
+  dplyr::select( Code = koeppen_code, Climate = koeppen_word ) %>% 
+  distinct( Code, .keep_all = TRUE ) %>%
+  arrange( Code )
+
+## write the koeppen_legend to a file
+add_filname <- "../data/koeppen_legend.Rdata"
+rlang::inform(paste0("Saving ", add_filname, " ..."))
+save( koeppen_legend, file = add_filname )
+
+## Second, extract the class from a global map, complement missing in above
+## File by Beck et al. (2018) Scientific Data, DOI: 10.1038/sdata.2018.214
+kgclass <- raster("../inst/extdata/koeppen-geiger.tif")
+kglegend <- read_csv("../inst/extdata/koppen-geiger_legend.csv") %>% 
+  setNames( c("kgnumber", "koeppen_code_extr"))
+siteinfo <- siteinfo %>% 
+  mutate( kgnumber = raster::extract( kgclass, data.frame( x=.$lon, y=.$lat ) ) ) %>% 
+  left_join( kglegend, by = "kgnumber" ) %>%
+  mutate( koeppen_code = ifelse( is.na(koeppen_code), koeppen_code_extr, koeppen_code ) ) %>%
+  dplyr::select( -koeppen_climate, -koeppen_word )
+```
+
+
+## Write to file
+
+```{r}
+siteinfo <- siteinfo %>% 
+  dplyr::select(sitename, lon, lat, elv, year_start, year_end, classid, c4, whc, koeppen_code, igbp_land_use, plant_functional_type) %>% 
+  write_csv("../inst/extdata/siteinfo_fluxnet2015.csv")
+
+save(siteinfo, file = "../data/siteinfo_fluxnet2015.Rdata")
+```
+
+
+
+
+
+
+
+
+
+

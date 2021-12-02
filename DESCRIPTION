@@ -21,23 +21,33 @@ Description: Ingest site-scale time series of environmental data from large
  files and remote repositories.
 License: GPL-3
 Encoding: UTF-8
+Depends:
+    R (>= 3.6)
 Imports: 
-  dplyr,
-  purrr,
-  lubridate,
-  tidyr,
-  raster,
-  stringi,
-  stringr,
-  sp,
-  ncdf4,
-  signal,
-  climate,
-  rgdal,
-  sf,
-  gdalUtils,
-  MODISTools,
-  data.table
+    dplyr,
+    rlang,
+    stats,
+    utils,
+    purrr,
+    lubridate,
+    tidyr,
+    tidyselect,
+    multidplyr,
+    readr,
+    hwsdr,
+    raster,
+    stringi,
+    stringr,
+    sp,
+    ncdf4,
+    signal,
+    climate,
+    rgdal,
+    sf,
+    gdalUtils,
+    MODISTools,
+    data.table,
+    ggplot2
 LazyData: true
 ByteCompile: true
 RoxygenNote: 7.1.2
@@ -45,8 +55,7 @@ Suggests:
     rmarkdown,
     covr,
     testthat,
-    knitr,
-    ggplot2
+    knitr
 VignetteBuilder: knitr
 URL: https://github.com/computationales/ingestr
 BugReports: https://github.com/computationales/ingestr/issues
