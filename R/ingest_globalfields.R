@@ -42,6 +42,11 @@ ingest_globalfields <- function(
   verbose = FALSE
 ){
   
+  # CRAN compliance, define state variables
+  myvar <- temp <- rain <- snow <- sitename <- year <- moy <- 
+  vap <- tmin <- tmax <- prec <- days_in_month <- nhx <- noy <-
+    lon <- lat <- data <- V1 <- elv <- varnam <- value <- fact <- NULL
+  
   if (!(source %in% c("etopo1", "wwf", "gsde", "worldclim"))){
     
     # get a daily (monthly) data frame with all dates for all sites
@@ -124,7 +129,7 @@ ingest_globalfields <- function(
       select(-starts_with("myvar"))
     
     if (timescale=="m"){
-      rlang::abort("ingest_globalfields(): aggregating WATCH-WFDEI to monthly not implemented yet.")
+      stop("ingest_globalfields(): aggregating WATCH-WFDEI to monthly not implemented yet.")
     }
     
   } else if (source=="wfde5"){
@@ -396,7 +401,7 @@ ingest_globalfields <- function(
     
     
     if (timescale != "y"){
-      rlang::abort("ingest_globalfields() for source = ndep: come up with solution for non-annual time step")
+      stop("ingest_globalfields() for source = ndep: come up with solution for non-annual time step")
     } else {
       df_out <- adf
     }
@@ -404,8 +409,8 @@ ingest_globalfields <- function(
   } else if (source == "etopo1"){
     
     filename <- list.files(dir, pattern = ".tif")
-    if (length(filename) > 1) rlang::abort("ingest_globalfields(): Found more than 1 file for source 'etopo1'.")
-    if (length(filename) == 0) rlang::abort("ingest_globalfields(): Found no files for source 'etopo1' in the directory provided by argument 'dir'.")
+    if (length(filename) > 1) stop("ingest_globalfields(): Found more than 1 file for source 'etopo1'.")
+    if (length(filename) == 0) stop("ingest_globalfields(): Found no files for source 'etopo1' in the directory provided by argument 'dir'.")
     
     ## re-construct this data frame (tibble) - otherwise SpatialPointsDataframe() won't work
     df_lonlat <- tibble(
@@ -431,8 +436,8 @@ ingest_globalfields <- function(
     
     ## top soil layers
     filename <- list.files(dir, pattern = paste0(layer, "1.nc"))
-    if (length(filename) > 1) rlang::abort("ingest_globalfields(): Found more than 1 file for source 'gsde'.")
-    if (length(filename) == 0) rlang::abort("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir'.")
+    if (length(filename) > 1) stop("ingest_globalfields(): Found more than 1 file for source 'gsde'.")
+    if (length(filename) == 0) stop("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir'.")
     df_out_top <- extract_pointdata_allsites( paste0(dir, "/", filename), df_lonlat, get_time = FALSE ) %>%
       dplyr::select(-lon, -lat) %>%
       tidyr::unnest(data) %>%
@@ -441,8 +446,8 @@ ingest_globalfields <- function(
     
     ## bottom soil layers
     filename <- list.files(dir, pattern = paste0(layer, "2.nc"))
-    if (length(filename) > 1) rlang::abort("ingest_globalfields(): Found more than 1 file for source 'gsde'.")
-    if (length(filename) == 0) rlang::abort(paste("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir' for layer", layer))
+    if (length(filename) > 1) stop("ingest_globalfields(): Found more than 1 file for source 'gsde'.")
+    if (length(filename) == 0) stop(paste("ingest_globalfields(): Found no files for source 'gsde' in the directory provided by argument 'dir' for layer", layer))
     df_out_bottom <- extract_pointdata_allsites( paste0(dir, "/", filename), df_lonlat, get_time = FALSE ) %>%
       dplyr::select(-lon, -lat) %>%
       tidyr::unnest(data) %>%
@@ -452,9 +457,9 @@ ingest_globalfields <- function(
     ## combine for layers read from each file
     df_out <- bind_rows(df_out_top, df_out_bottom) %>% 
       group_by(sitename) %>% 
-      nest() %>% 
+      tidyr::nest() %>% 
       mutate(data = purrr::map(data, ~mutate(., layer = 1:8))) %>% 
-      unnest(data)
+      tidyr::unnest(data)
     
     ## apply conversion factor
     df_conv <- tibble(varnam := c("TC", "OC", "TN", "PHH2O", "PHK", "PHCA", "EXA", "PBR", "POL", "PNZ", "PHO", "PMEH", "TP", "TK"),    
@@ -514,12 +519,17 @@ ingest_globalfields <- function(
       
       vec_filn <- list.files(dir, pattern = paste0(varnam, ".*.tif"))
       
-      df_out <- purrr::map2(as.list(vec_filn), as.list(str_remove(vec_filn, paste0("wc2.1_30s_", varnam, "_")) %>% str_remove(".tif")),
-                            ~{extract_pointdata_allsites( paste0(dir, "/", .x), df_lonlat, get_time = FALSE ) %>%
-                                dplyr::select(-lon, -lat) %>%
-                                tidyr::unnest(data) %>%
-                                dplyr::rename(!!paste0(varnam, "_", .y) := V1) %>%
-                                dplyr::select(sitename, !!paste0(varnam, "_", .y))}) %>% 
+      df_out <- purrr::map2(
+        as.list(vec_filn),
+        as.list(stringr::str_remove(vec_filn,
+                                    paste0("wc2.1_30s_", varnam, "_")) %>%
+          stringr::str_remove(".tif")),
+          ~{extract_pointdata_allsites( paste0(dir, "/", .x),
+                                        df_lonlat, get_time = FALSE ) %>%
+                  dplyr::select(-lon, -lat) %>%
+                  tidyr::unnest(data) %>%
+                  dplyr::rename(!!paste0(varnam, "_", .y) := V1) %>%
+                  dplyr::select(sitename, !!paste0(varnam, "_", .y))}) %>% 
         purrr::reduce(left_join, by = "sitename")
       
       return(df_out)
@@ -540,7 +550,11 @@ ingest_globalfields <- function(
 ## Extract temperature time series for a set of sites at once (opening
 ## each file only once).
 ##--------------------------------------------------------------------
-ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
+ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
+  
+  # define variables
+  yr <- mo <- filename <- drop_na <- data <- sitename <- 
+    dom <- myvar <- doy <- data_pre <- . <- NULL
   
   dirn <- paste0( dir, "/", varnam, "/" )
   
@@ -585,7 +599,7 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
   allyears <- year_start_read:year_end_read
   df <- expand.grid(allmonths, allyears) %>%
     dplyr::as_tibble() %>%
-    setNames(c("mo", "yr")) %>%
+    stats::setNames(c("mo", "yr")) %>%
     rowwise() %>%
     dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), ".nc" )) %>%
     ungroup() %>%
@@ -594,7 +608,7 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
   ## rearrange to a daily data frame
   complement_df <- function(df){
     df <- df %>%
-      setNames(., c("myvar")) %>%
+      stats::setNames(., c("myvar")) %>%
       mutate( dom = 1:nrow(.))
     return(df)
   }
@@ -608,7 +622,7 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
   
   ## create data frame containing all dates, using mean annual cycle (of 1979-1988) for all years before 1979
   if (pre_data){
-    rlang::inform("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1988) for all years before 1979.")
+    message("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1988) for all years before 1979.")
     
     ## get mean seasonal cycle, averaged over 1979:1988
     ddf_meandoy <- ddf %>% 
@@ -643,16 +657,16 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ){
       ddf %>% 
         ungroup() %>% 
         group_by(sitename) %>% 
-        nest(),
+        tidyr::nest(),
       ddf_pre %>% 
         ungroup() %>% 
         group_by(sitename) %>% 
-        nest() %>% 
+        tidyr::nest() %>% 
         rename(data_pre = data),
       by = "sitename") %>% 
       mutate(data = purrr::map2(data_pre, data, ~bind_rows(.x, .y))) %>% 
       dplyr::select(-data_pre) %>% 
-      unnest(data) %>% 
+      tidyr::unnest(data) %>% 
       arrange(date) %>%   # to make sure
       distinct() # out of desperation
   }
@@ -802,6 +816,9 @@ ingest_globalfields_wfde5_byvar <- function( ddf, siteinfo, dir, varnam ){
 ##--------------------------------------------------------------------
 ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
   
+  # define variable
+  data <- NULL
+  
   ## construct data frame holding longitude and latitude info
   df_lonlat <- tibble(
     sitename = siteinfo$sitename,
@@ -812,7 +829,7 @@ ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
   ## extract the data
   filename <- list.files( dir, paste0("ndep_", varnam, "_lamarque11cc_historical_halfdeg.nc") )
   df <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = TRUE) %>%
-    dplyr::mutate(data = purrr::map(data, ~setNames(., c(varnam, "year")))) %>% 
+    dplyr::mutate(data = purrr::map(data, ~stats::setNames(., c(varnam, "year")))) %>% 
     dplyr::mutate(data = purrr::map(data, ~mutate(., date = lubridate::ymd(paste0(as.character(year), "-01-01")))))
   
   adf <- df %>%
@@ -828,6 +845,9 @@ ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
 ##--------------------------------------------------------------------
 ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   
+  # define variables
+  data <- year <- moy <- NULL 
+  
   ## construct data frame holding longitude and latitude info
   df_lonlat <- tibble(
     sitename = siteinfo$sitename,
@@ -837,9 +857,9 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   
   ## extract the data
   filename <- list.files( dir, pattern=paste0( varnam, ".dat.nc" ) )
-  if (length(filename)==0) rlang::abort(paste("Aborting. No files found for CRU variable", varnam))
+  if (length(filename)==0) stop(paste("Aborting. No files found for CRU variable", varnam))
   df <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = TRUE ) %>%
-    dplyr::mutate(data = purrr::map(data, ~setNames(., c("myvar", "date"))))
+    dplyr::mutate(data = purrr::map(data, ~stats::setNames(., c("myvar", "date"))))
   
   ## rearrange to a monthly data frame. Necesary work-around with date, because unnest() seems to have a bug
   ## when unnesting a dataframe that contains a lubridate ymd objet.
@@ -854,7 +874,8 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
     mutate(data = purrr::map(data, ~dplyr::select(., -date))) %>%
     tidyr::unnest(data) %>%
     rowwise() %>%
-    mutate(date = lubridate::ymd(paste0(as.character(year), "-", sprintf( "%02d", moy), "-15"))) %>%
+    mutate(date = lubridate::ymd(paste0(as.character(year),
+                                        "-", sprintf( "%02d", moy), "-15"))) %>%
     dplyr::select(-year, -moy)
   
   return( mdf )
@@ -866,7 +887,8 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
 ##--------------------------------------------------------------------
 expand_clim_cru_monthly <- function( mdf, cruvars ){
   
-  ddf <- purrr::map( as.list(unique(mdf$year)), ~expand_clim_cru_monthly_byyr( ., mdf, cruvars ) ) %>%
+  ddf <- purrr::map(as.list(unique(mdf$year)),
+      ~expand_clim_cru_monthly_byyr( ., mdf, cruvars ) ) %>%
     bind_rows()
   
   return( ddf )
@@ -878,7 +900,9 @@ expand_clim_cru_monthly <- function( mdf, cruvars ){
 ## for a single year
 ##--------------------------------------------------------------------
 expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
-  
+
+  # define variables  
+  year <- ccov_int <- NULL
   nmonth <- 12
   
   startyr <- mdf$year %>% first()
@@ -1047,12 +1071,19 @@ find_nearest_cruland_by_lat <- function( lon, lat, filn ){
 ## Extracts point data for a set of sites given by df_lonlat using
 ## functions from the raster package.
 ##--------------------------------------------------------------------
-extract_pointdata_allsites <- function(filename, df_lonlat, get_time = FALSE){
+extract_pointdata_allsites <- function(
+  filename,
+  df_lonlat,
+  get_time = FALSE
+  ) {
+  
+  # define variables
+  lon <- lat <- data <- NULL
   
   ## load file using the raster library
   #print(paste("Creating raster brick from file", filename))
-  if (!file.exists(filename)) rlang::abort(paste0("File not found: ", filename))
-  # rlang::inform(paste0("Reading file: ", filename))
+  if (!file.exists(filename)) stop(paste0("File not found: ", filename))
+  # message(paste0("Reading file: ", filename))
   rasta <- raster::brick(filename)
   
   df_lonlat <- raster::extract(
@@ -1086,6 +1117,9 @@ extract_pointdata_allsites <- function(filename, df_lonlat, get_time = FALSE){
 ## shapefile. df_lonlat requires columns sitename, lon, and lat.
 ##--------------------------------------------------------------------
 extract_pointdata_allsites_shp <- function( dir, df_lonlat, layer ){
+  
+  # define variables
+  lon <-lat <- . <- NULL
   
   shp <- rgdal::readOGR(dsn = dir, layer = layer)
   
@@ -1139,7 +1173,7 @@ get_daily_prec <- function( mval_prec, mval_wet, set_seed=FALSE, leapyear=FALSE 
   if (set_seed) {set.seed(0)}
   prdaily_random <- array( NA, dim=c(ndayyear,2))
   for (doy in 1:ndayyear){
-    prdaily_random[doy,] <- runif(2)
+    prdaily_random[doy,] <- stats::runif(2)
   }
   
   dval_prec <- rep(NA,ndayyear)
@@ -1184,8 +1218,9 @@ get_daily_prec <- function( mval_prec, mval_wet, set_seed=FALSE, leapyear=FALSE 
         if (iloop==1) {
           vv <- prdaily_random[doy,1]
         } else {
-          # xxx problem: rand() generates a random number that leads to floating point exception
-          vv <- runif(1)
+          # problem: rand() generates a random number that leads to 
+          # floating point exception
+          vv <- stats::runif(1)
         }
         
         
@@ -1254,7 +1289,13 @@ get_daily_prec <- function( mval_prec, mval_wet, set_seed=FALSE, leapyear=FALSE 
 #'
 #' @return A named list of data frames (tibbles) containing input data for each site is returned.
 #'
-monthly2daily <- function( mval, method="polynom", mval_prev=mval[nmonth], mval_next=mval[1], leapyear=FALSE ){
+monthly2daily <- function(
+  mval,
+  method="polynom",
+  mval_prev=mval[nmonth],
+  mval_next=mval[1],
+  leapyear=FALSE 
+  ) {
   
   # mval <- 20*sin( seq(0, 2*pi, 2*pi/11)-0.5*pi)
   # mval_prev <- mval[12]
@@ -1299,7 +1340,9 @@ monthly2daily <- function( mval, method="polynom", mval_prev=mval[nmonth], mval_
       d3t <- endt^3.0 - startt^3.0
       
       # Take a sheet of paper and try solve the polynom, well here is the outcome
-      polya <- (mval[month]*dt - deltatemp*d2t/dt/2.0 - starttemp*dt + deltatemp*startt) / (d3t/3.0 - d2t^2.0/dt/2.0 - dt*startt^2.0 + startt*d2t)
+      polya <- (mval[month]*dt - deltatemp*d2t/dt/2.0 - 
+                  starttemp*dt + deltatemp*startt) / 
+        (d3t/3.0 - d2t^2.0/dt/2.0 - dt*startt^2.0 + startt*d2t)
       polyb <- deltatemp/dt - polya*(startt+endt)
       polyc <- starttemp - polya*startt^2.0 - polyb*startt
       
@@ -1351,13 +1394,14 @@ fill_gaps <- function( vec, is.prec = FALSE ){
   } else {
     ## linear approximation
     if ( any(is.na(vec)) && any(!is.na(vec)) ){
-      vec <- approx( xvals, vec, xout=xvals )$y
+      vec <- stats::approx( xvals, vec, xout=xvals )$y
     }
     
     ## extend to missing in head and tail
     if ( any(is.na(vec))  && any(!is.na(vec)) ){
       for (idx in seq(length(vec))){
-        if ( any( is.na( tail( vec, n=idx ) ) ) && any( !is.na( tail( vec, n=(idx+1) ) ) ) ){
+        if ( any( is.na( utils::tail( vec, n=idx ) ) ) &&
+             any( !is.na(utils::tail( vec, n=(idx+1) ) ) ) ){
           if (length(vec[ (length(vec)-idx) ])>0){
             vec[ (length(vec)-idx+1):length(vec) ] <- vec[ (length(vec)-idx) ]
           } else {

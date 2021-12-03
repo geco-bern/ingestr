@@ -1,13 +1,14 @@
 ---
-title: "Examples for ingestr"
-output:
-  html_document:
-    toc: true
-    toc_float: true
-    toc_depth: 3
+title: "ingestr example"
+author: "Koen Hufkens"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ingestr example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, eval = FALSE}
 library(ingestr)
 library(dplyr)
 library(tidyr)
@@ -27,7 +28,7 @@ This is to make your life simpler when downloading and reading site-scale data, 
 
 The key functions are `ingest_bysite()` and `ingest()` for a single-site data ingest and a multi-site data ingest, respectively. For the multi-site data ingest, site meta information is provided through the argument `siteinfo` which takes a data frame with columns `lon` for longitude, `lat` for latitude, and (for time series downloads) `year_start` and `year_end`, specifying required dates (including all days of respective years). Sites are organised along rows. An example site meta info data frame is provided as part of this package for sites included in the FLUXNET2015 Tier 1 data set (additional columns are not required by `ingest_bysite()` and `ingest()`):
 
-```{r}
+```{r eval = FALSE}
 siteinfo_fluxnet2015 %>% 
   slice(1:5) %>% 
   knitr::kable()
@@ -98,7 +99,7 @@ The function `ingest_bysite()` can be used to ingest data for a single site. The
 
 Reading from FLUXNET files offers multiple settings to be used specified by the user. Here, we're specifying that no soil water content data is read (`getswc = FALSE` in `settings_fluxnet`, passed to `ingest_bysite()` through argument `settings`).
 
-```{r message=FALSE}
+```{r message=FALSE, eval = FALSE}
 settings_fluxnet <- list(getswc = FALSE)
 
 df_fluxnet <- ingest_bysite(
@@ -126,7 +127,7 @@ df_fluxnet
 
 The same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we're reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (`"GPP_NT_VUT_REF"` and `"GPP_NT_VUT_SE"` in argument `getvars`). The `settings` argument can be used again to specify settings that are specific to the `"fluxnet"` data source. Here, we keep only data where at least 80% is based on non-gapfilled half-hourly data (`threshold_GPP = 0.8`), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (`filter_ntdt = TRUE`). Negative GPP values are not removed (`remove_neg = FALSE`). We read data for just one year here (2007).
 
-```{r warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE, eval = FALSE}
 settings_fluxnet <- list(
   getswc       = FALSE,
   filter_ntdt  = TRUE,
@@ -159,7 +160,7 @@ A bias correction may be applied by specifying the settings as in the example be
 
 WATCH-WFDEI data is available for years from 1979. If `year_start` is before that, the mean seasonal cycle, averaged across 1979-1988 is returned for all years before 1979.
 
-```{r message=FALSE, echo = T, results = 'hide'}
+```{r message=FALSE, echo = T, results = 'hide', eval = FALSE}
 df_watch <- ingest_bysite(
   sitename  = "FR-Pue",
   source    = "watch_wfdei",
@@ -182,7 +183,7 @@ As above, let's extract CRU data for the location corresponding to FLUXNET site 
 
 Note that we're using `tmx` (the daily maximum temperature). This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a weather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.
 
-```{r message=FALSE}
+```{r message=FALSE, eval = FALSE}
 df_cru <- ingest_bysite(
   sitename  = "FR-Pue",
   source    = "cru",
@@ -200,7 +201,7 @@ df_cru
 
 We can compare the temperature recorded at the site and the temperature data extracted from WATCH-WFDEI and CRU.
 
-```{r}
+```{r eval = FALSE}
 df <- df_fluxnet %>%
   rename(temp_fluxnet = temp) %>%
   left_join(rename(df_watch, temp_watch = temp), by = c("sitename", "date")) %>%
@@ -250,7 +251,7 @@ The filtering criteria are hard-coded specifically for each product, using its r
 
 The following example is for downloading MODIS FPAR MCD15A3H data. Note the specification of the argument `network = "FLUXNET"`. This triggers the download of prepared subsets aligning with site locations for different networks (see [here](https://modis.ornl.gov/sites/)) which is much faster than the download of data for arbitrary locations. This also makes the specification of longitude and latitude values in the call to `ingest_bysite()` obsolete and downloads a scene of 17 x 17 pixels. Using `n_focal` in `get_settings_modis()` subsets the scene to central pixels where the value provided for `n_focal` is the distance in number of pixels away from the center pixel to be taken for averaging. This is done the same way for the network and non-network ingest options.
 
-```{r}
+```{r eval = FALSE}
 settings_modis <- get_settings_modis(
   bundle            = "modis_fpar",
   data_path         = "~/data/modis_subsets/",
@@ -267,7 +268,7 @@ This can now be used to download the data to the directory specified by argument
 
 Note also that downloaded raw data are cutouts including pixels of 1 km within the focal point indicated by the site longitude and latitude (using arguments `km_lr = 1.0` and `km_ab = 1.0` in the `MODISTools::mt_subset()` call). This is hard-coded in ingestr. To select a smaller radius of pixels around the focal point included for taking the mean, set the setting `n_focal` to an integer (0:N), with 0 selecting only the single centre pixel in which the site is located, N=1 for including one pixel around the centre (nine in total), N=2 for 25 in total etc.
 
-```{r warning=FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_modis_fpar <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "modis",
@@ -282,101 +283,11 @@ df_modis_fpar <- ingest_bysite(
 
 Plot this data.
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 plot_fapar_ingestr_bysite(
   df_modis_fpar, 
   settings_modis)
 ```
-
-<!-- For reflectance data, the ingested data is shaped differently (multiple variables, linearly interpolated to daily values). -->
-
-<!-- ```{r} -->
-
-<!-- settings_modis <- get_settings_modis( -->
-
-<!--   bundle            = "modis_refl_terra", -->
-
-<!--   data_path         = "~/data/modis_subsets/", -->
-
-<!--   method_interpol   = "loess", -->
-
-<!--   keep              = TRUE, -->
-
-<!--   overwrite_raw     = FALSE, -->
-
-<!--   overwrite_interpol= TRUE, -->
-
-<!--   n_focal           = 0 -->
-
-<!--   ) -->
-
-<!-- ``` -->
-
-<!-- ```{r warning=FALSE} -->
-
-<!-- df_modis_fpar <- ingest_bysite( -->
-
-<!--   sitename  = "CH-Lae", -->
-
-<!--   source    = "modis", -->
-
-<!--   year_start= 2018, -->
-
-<!--   year_end  = 2019, -->
-
-<!--   lon       = 8.36439, -->
-
-<!--   lat       = 47.47833, -->
-
-<!--   settings  = settings_modis, -->
-
-<!--   verbose   = FALSE -->
-
-<!--   ) -->
-
-<!-- df_modis_fpar %>%  -->
-
-<!--   pivot_longer(cols = starts_with("sur_refl_"), names_to = "band", values_to = "reflectance") %>%  -->
-
-<!--   ggplot(aes(x = date, y = reflectance, color = band)) + -->
-
-<!--   geom_line() -->
-
-<!-- ``` -->
-
-<!-- ```{r} -->
-
-<!-- df <- read_csv("~/data/modis_subsets/raw/MODIS_NDVI_MOD13Q1_CH-Lae.csv") -->
-
-<!-- df_ndvi_spatialmean <- df %>% -->
-
-<!--   dplyr::filter(band == "250m_16_days_NDVI") %>%  -->
-
-<!--   mutate(calendar_date = ymd(calendar_date)) %>%  -->
-
-<!--   group_by(calendar_date) %>% -->
-
-<!--   summarise(mean = mean(value), min = min(value), max = max(value)) %>% -->
-
-<!--   mutate(mean = mean * scale_factor, min = min * scale_factor, max = max * scale_factor) -->
-
-<!-- df_ndvi_spatialmean %>%  -->
-
-<!--   ggplot(aes(x = calendar_date)) + -->
-
-<!--   geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") + -->
-
-<!--   geom_line(aes(y = mean)) -->
-
-<!-- df_modis_fpar %>%  -->
-
-<!--   ggplot() + -->
-
-<!--   geom_point(aes(date, modisvar_filtered)) + -->
-
-<!--   geom_line(aes(date, linear)) -->
-
-<!-- ``` -->
 
 ## Google Earth Engine
 
@@ -390,7 +301,7 @@ Then, carry out the follwing steps:
 
 -   In your terminal, change to where you want to have the repository. In this example, we're cloning it into our home directory:
 
-```{sh, eval = FALSE}
+```{r warning=FALSE, eval = FALSE}
 cd ~
 git clone https://github.com/khufkens/google_earth_engine_subsets.git
 ```
@@ -399,37 +310,37 @@ To get access to using the Google Earth Engine API (required to use the `gee_sub
 
 1.  Install google API Python client
 
-```{sh, eval = FALSE}
+```{r warning=FALSE, eval = FALSE}
 sudo pip install --upgrade google-api-python-client
 ```
 
 I had an error and first had to do this here following [this link](https://github.com/pypa/pip/issues/3165):
 
-```{sh, eval = FALSE}
+```{r warning=FALSE, eval = FALSE}
 sudo pip install --ignore-installed six
 ```
 
 2.  Install pyCrypto
 
-```{sh, eval = FALSE}
+```{r warning=FALSE, eval = FALSE}
 sudo pip install pyCrypto --upgrade
 ```
 
 3.  Install Python GEE API
 
-```{sh, eval = FALSE}
+```{r warning=FALSE, eval = FALSE}
 sudo pip install earthengine-api
 ```
 
 4.  Run authentification for GEE
 
-```{sh, eval = FALSE}
+```{r warning=FALSE, eval = FALSE}
 earthengine authenticate
 ```
 
 5.  Finally, try if it works. This shouldn't return an error:
 
-```{sh, eval = FALSE}
+```{r warning=FALSE, eval = FALSE}
 python -c "import ee; ee.Initialize()"
 ```
 
@@ -444,7 +355,7 @@ To facilitate the selection of data products and bands to be downloaded, you may
 
 The following example is for downloading MODIS FPAR data.
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 settings_gee <- get_settings_gee(
   bundle            = "modis_fpar",
   python_path       = system("which python", intern = TRUE),
@@ -459,7 +370,7 @@ settings_gee <- get_settings_gee(
 
 This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`.
 
-```{r message=FALSE, warning=FALSE, eval=FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_gee_modis_fpar <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "gee",
@@ -476,7 +387,7 @@ df_gee_modis_fpar <- ingest_bysite(
 
 Ingesting CO2 data is particularly simple. We can safely assume it's well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years, and use the same value for all sites. Using the R package [climate](https://github.com/bczernecki/climate), we can load CO2 data from Mauna Loa directly into R. This is downloading data from <ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt>. Here, `ingest()` is a wrapper for the function `climate::meteo_noaa_co2()`.
 
-```{r eval=FALSE, message=FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_co2 <- ingest_bysite(
   sitename  = "CH-Lae",
   source  = "co2_mlo",
@@ -490,7 +401,7 @@ Argument `dir` can be provided here, too. In that case, CO2 data is written (aft
 
 More info about the **climate** package and the data can be obtained [here](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html) and by:
 
-```{r, eval=FALSE}
+```{r warning=FALSE, eval = FALSE}
 ?climate::meteo_noaa_co2
 ```
 
@@ -498,7 +409,7 @@ More info about the **climate** package and the data can be obtained [here](http
 
 Mauna Loa CO2 is not available for years before 1958. Alternative CO2 data is from CMIP standard forcing with merged time series from atmospheric measurements and ice core reconstructions. This can be selected with `source = "co2_cmip`.
 
-```{r eval=FALSE, message=FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_co2 <- ingest_bysite(
   sitename  = "CH-Lae",
   source  = "co2_cmip",
@@ -515,14 +426,14 @@ Four steps are required before you can use `ingest_bysite()` to get [HWSD](https
 
 1.  The the modified version of David LeBauer's [rhwsd](https://github.com/dlebauer/rhwsd) R package. The modified version can be installed by:
 
-```{r, eval=FALSE}
+```{r warning=FALSE, eval = FALSE}
 if(!require(devtools)){install.packages(devtools)}
 devtools::install_github("stineb/rhwsd")
 ```
 
 2.  Install additionally required packages: DBI and RSQLite.
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 list.of.packages <- c("DBI", "RSQLite")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
@@ -533,7 +444,7 @@ if(length(new.packages)) install.packages(new.packages)
 
 Then, use similarly to above, with providing the path to the downloaded file with the `settings` argument:
 
-```{r, eval = FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_hwsd <- ingest_bysite(
   sitename  = "CH-Lae",
   source  = "hwsd",
@@ -548,7 +459,7 @@ df_hwsd <- ingest_bysite(
 
 This reads nitrogen deposition from global annual maps by Lamarque et al. (2011). This provides annual data separately for NHx and NOy in gN m$^{-2}$ yr$^{-1}$ from a global map provided at half-degree resolution and covering years 1860-2009.
 
-```{r, eval = FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_ndep <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "ndep",
@@ -605,7 +516,7 @@ Data is available for the following six layers.
 
 The specify which data is to be ingested define the settings using the function `get_settings_soilgrids()`, and provide standard variable names as a vector of character strings for argument `varnam`, and layers as a vector of integers for argument `layer`. For example:
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 settings_soilgrids <- get_settings_soilgrids(varnam = c("nitrogen", "cec"), layer = 1:3)
 ```
 
@@ -613,7 +524,7 @@ The ingested data is then averaged across specified layers, weighted with respec
 
 Now, the data can be ingested.
 
-```{r eval=FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_soilgrids <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "soilgrids",
@@ -625,7 +536,7 @@ df_soilgrids <- ingest_bysite(
 
 This returns a data frame with a nested column `data` which contains actually just a 1 x 1 tibble. This is to be consistent with other ingest options. You may prefer to have a normal flat data frame. Just do:
 
-```{r eval=FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_soilgrids %>% 
   unnest(data)
 ```
@@ -694,13 +605,13 @@ By default, data is extracted for the top layer only. Data is provided for the f
 
 The following settings specify data extraction for the C:N ratio of the top three layers. The returned value is the mean across selected soil layers, weighted by the respective layer's depth. `dir` specifies the path to the downloaded data bundle. Don't change the structure of it. ingestr reads from two files: `<dir>/GISfiles/wise30sec_fin` and `<dir>/Interchangeable_format/HW30s_FULL.txt`.
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 settings_wise <- get_settings_wise(varnam = c("CNrt"), layer = 1:7)
 ```
 
 Now, the data can be ingested.
 
-```{r eval=FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_wise <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "wise",
@@ -734,7 +645,7 @@ Global Soil Dataset for use in Earth System Models (GSDE) by [Shangguan et al. 2
 
 The 8 layers are:
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 df_layers <- tibble(layer = 1:8, bottom = c(4.5, 9.1, 16.6, 28.9, 49.3, 82.9, 138.3, 229.6)) %>% 
   mutate(top = lag(bottom)) %>% 
   mutate(top = ifelse(is.na(top), 0, top))
@@ -743,13 +654,13 @@ df_layers
 
 Specify the settings directly as a list with elements `varnam` (a vector of character strings specifying the variables as defined in the table above), and `layer` (a vector of integers specifying the layers over which a depth-weighted average is taken).
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 settings_gsde <- list(varnam = c("TN", "PBR", "PHH2O"), layer = 1:3)
 ```
 
 Now, the data can be ingested.
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 df_gsde <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "gsde",
@@ -762,7 +673,7 @@ df_gsde <- ingest_bysite(
 
 And data is returned with variables along columns inside a nested column `data`, and sites along rows (as for all ingestr). Make it flat by:
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 df_gsde %>% 
   unnest(data)
 ```
@@ -784,13 +695,13 @@ This ingests Worldclim monthly climatology (averaged over 1970-2000) at 30 secon
 
 Specify the settings directly as a list with elements `varnam` (a vector of character strings specifying the variables as defined in the table above), and `layer` (a vector of integers specifying the layers over which a depth-weighted average is taken).
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 settings_worldclim <- list(varnam = c("bio"))
 ```
 
 Now, the data can be ingested.
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 df_worldclim <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "worldclim",
@@ -803,7 +714,7 @@ df_worldclim <- ingest_bysite(
 
 And for Flat-Earthers:
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 df_worldclim %>% 
   unnest(data)
 ```
@@ -816,7 +727,7 @@ Note that extracting for an ensemble of sites at once is more efficient for data
 
 First, define a list of sites and get site meta information. The required meta information is provided by the exported data frame `siteinfo` (it comes as part of the ingestr package). This file is created as described in (and using code from) [metainfo_fluxnet2015](https://github.com/stineb/metainfo_fluxnet2015).
 
-```{r warning=FALSE, message=FALSE}
+```{r warning=FALSE, eval = FALSE}
 mysites <- c("BE-Vie", "DE-Tha", "DK-Sor", "FI-Hyy", "IT-Col", "NL-Loo", "US-MMS", "US-WCr", "US-UMB", "US-Syv", "DE-Hai")
 
 siteinfo <- ingestr::siteinfo_fluxnet2015 %>%
@@ -827,7 +738,7 @@ siteinfo <- ingestr::siteinfo_fluxnet2015 %>%
 
 This file looks like this:
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 print(siteinfo)
 ```
 
@@ -839,7 +750,7 @@ Next, the data can be ingested for all sites at once. Let's do it for different 
 
 This ingests meteorological data from the FLUXNET files for variables temperature, precipitation, VPD, shortwave incoming radiation, net radiation, and atmospheric pressure. Arguments that are specific for this data source are provided in the `settings` list.
 
-```{r message=FALSE, warning=FALSE}
+```{r warning=FALSE, eval = FALSE}
 ddf_fluxnet <- ingest(
   siteinfo  = siteinfo %>% slice(1:3),
   source    = "fluxnet",
@@ -863,7 +774,7 @@ ddf_fluxnet <- ingest(
 
 As described above for a single site, the same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we're reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (`""GPP_NT_VUT_REF""`), keep only data where at least 80% is based on non-gapfilled half-hourly data (`threshold_GPP = 0.8`), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (`filter_ntdt = TRUE`, see also `?get_obs_bysite_fluxnet2015`).
 
-```{r warning=FALSE, message=FALSE}
+```{r warning=FALSE, eval = FALSE}
 settings_fluxnet <- list(
   getswc       = FALSE,
   filter_ntdt  = TRUE,
@@ -890,7 +801,7 @@ A bias correction may be applied by specifying the settings as in the example be
 
 WATCH-WFDEI data is available for years from 1979. If `year_start` is before that, the mean seasonal cycle, averaged across 1979-1988 is returned for all years before 1979.
 
-```{r echo = T, results = 'hide'}
+```{r warning=FALSE, eval = FALSE}
 ddf_watch <- ingest(
   siteinfo = siteinfo %>% slice(1:2),
   source    = "watch_wfdei",
@@ -904,7 +815,7 @@ ddf_watch <- ingest(
 
 This extracts monthly data from the CRU TS data. Interpolation to daily values is done using a wather generator for daily precipitation (given monthly total precipitation and number of wet days in each month), and a polynomial that conserves monthly means for all other variables.
 
-```{r message=FALSE}
+```{r warning=FALSE, eval = FALSE}
 ddf_cru <- ingest(
   siteinfo = siteinfo %>% slice(1:2),
   source    = "cru",
@@ -915,7 +826,7 @@ ddf_cru <- ingest(
 
 Check it out for the first site (BE-Vie).
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 ggplot() +
   geom_line(data = ddf_fluxnet$data[[1]], aes(x = date, y = temp)) +
   geom_line(data = ddf_watch$data[[1]], aes(x = date, y = temp), col = "royalblue") +
@@ -938,7 +849,7 @@ Downloading with parallel jobs is available for the `"modis"` data ingest, using
 
 The following example is for downloading MODIS NDVI data.
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 settings_modis <- get_settings_modis(
   bundle            = "modis_ndvi",
   data_path         = "~/data/modis_subsets/",
@@ -952,7 +863,7 @@ settings_modis <- get_settings_modis(
 
 This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`.
 
-```{r warning=FALSE, message=FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_modis_fpar <- ingest(
   siteinfo_fluxnet2015 %>% slice(1:3), 
   source = "modis",
@@ -967,7 +878,7 @@ Note also that downloaded raw data are cutouts including pixels of 1 km within t
 
 Plot the ingested data.
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 plot_fapar_ingestr_bysite(
   df_modis_fpar$data[[1]] %>% 
     dplyr::filter(year(date) %in% 2010:2015), 
@@ -988,7 +899,7 @@ plot_fapar_ingestr_bysite(
 
 Using the same settings as specified above, we can download MODIS FPAR data for multiple sites at once from GEE:
 
-```{r warning=FALSE, message=FALSE, echo = T, results = 'hide'}
+```{r warning=FALSE, eval = FALSE}
 settings_gee <- get_settings_gee(
   bundle            = "modis_fpar",
   python_path       = system("which python", intern = TRUE),
@@ -1010,7 +921,7 @@ df_gee_modis_fpar <- ingest(
 
 Collect all plots.
 
-```{r warning=FALSE, message=FALSE}
+```{r warning=FALSE, eval = FALSE}
 list_gg <- plot_fapar_ingestr(df_gee_modis_fpar, settings_gee)
 #purrr::map(list_gg, ~print(.))
 ```
@@ -1019,7 +930,7 @@ list_gg <- plot_fapar_ingestr(df_gee_modis_fpar, settings_gee)
 
 Ingesting CO2 data is particularly simple. We can safely assume it's well mixed in the atmosphere (independent of site location), and we can use a annual mean value for all days in respective years, and use the same value for all sites. Using the R package [climate](https://github.com/bczernecki/climate), we can load CO2 data from Mauna Loa directly into R. This is downloading data from <ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt>. Here, `ingest()` is a wrapper for the function `climate::meteo_noaa_co2()`.
 
-```{r message=FALSE, eval=FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_co2 <- ingest(
   siteinfo,
   source  = "co2_mlo",
@@ -1031,7 +942,7 @@ Argument `dir` can be provided here, too. In that case, CO2 data is written (aft
 
 More info about the **climate** package and the data can be obtained [here](https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html) and by:
 
-```{r, eval=FALSE}
+```{r warning=FALSE, eval = FALSE}
 ?climate::meteo_noaa_co2
 ```
 
@@ -1039,7 +950,7 @@ More info about the **climate** package and the data can be obtained [here](http
 
 Mauna Loa CO2 is not available for years before 1958. Alternative CO2 data is from CMIP standard forcing with merged time series from atmospheric measurements and ice core reconstructions. This can be selected with `source = "co2_cmip`.
 
-```{r eval=FALSE, message=FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_co2 <- ingest(
   siteinfo,
   source  = "co2_cmip",
@@ -1051,7 +962,7 @@ df_co2 <- ingest(
 
 This reads from the 1 arc minutes resolution ETOPO1 global elevation data (reading from a Geo-TIFF file). The nested data column contains a tibble one value for variable `elv`. Download the data from [here](https://www.ngdc.noaa.gov/mgg/global/) and specify the local path with the argument `dir`.
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 df_etopo <- ingest(
   siteinfo,
   source = "etopo1",
@@ -1065,14 +976,14 @@ Four steps are required before you can use `ingest()` to get HWSD data:
 
 1.  The the modified version of David LeBauer's [rhwsd](https://github.com/dlebauer/rhwsd) R package. The modified version can be installed by:
 
-```{r, eval=FALSE}
+```{r warning=FALSE, eval = FALSE}
 if(!require(devtools)){install.packages(devtools)}
 devtools::install_github("stineb/rhwsd")
 ```
 
 2.  Install additionally required packages: DBI and RSQLite.
 
-```{r, eval=FALSE}
+```{r warning=FALSE, eval = FALSE}
 list.of.packages <- c("DBI", "RSQLite")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
@@ -1083,7 +994,7 @@ if(length(new.packages)) install.packages(new.packages)
 
 Then, use similarly to above, with providing the path to the downloaded file with the `settings` argument:
 
-```{r, eval = FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_hwsd <- ingest(
   siteinfo,
   source = "hwsd",
@@ -1095,7 +1006,7 @@ df_hwsd <- ingest(
 
 WWF Ecoregions data are provided as a shapefile, available for download [here](http://assets.worldwildlife.org/publications/15/files/original/official_teow.zip), or [here](https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c). A description of the data is available [here](http://omap.africanmarineatlas.org/BIOSPHERE/data/note_areas_sp/Ecoregions_Ecosystems/WWF_Ecoregions/WWFecoregions.htm). Download the zipped directory and adjust the argument `dir` to the path of the directory where file `wwf_terr_ecos.shp` is located. Set the settings list with `layer = "wwf_terr_ecos"`. Then, ingest data by:
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 df_wwf <- ingest(
   siteinfo,
   source = "wwf",
@@ -1129,7 +1040,7 @@ Please cite as: *Olson, D. M., Dinerstein, E. ,Wikramanayake, E. D., Burgess, N.
 
 This reads nitrogen deposition from global annual maps by Lamarque et al. (2011). This provides annual data separately for NHx and NOy in gN m$^{-2}$ yr$^{-1}$ from a global map provided at half-degree resolution and covering years 1860-2009.
 
-```{r, eval = FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_ndep <- ingest(
   siteinfo_fluxnet2015 %>% 
     slice(1:2),
@@ -1146,13 +1057,13 @@ Point extractions from [SoilGrids](https://soilgrids.org/) layers are implemente
 
 Available layers, variable naming conventions, and units are described above (section *Examples for a single site - SoilGrids*) and [here](https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean). Which variable is to be extracted and for which soil depth layer can be specified in the settings, a list returned by the function call `get_settings_soilgrids()`.
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 settings_soilgrids <- get_settings_soilgrids(varnam = c("nitrogen", "cec"), layer = 1:3)
 ```
 
 Now, the data can be ingested.
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 df_soilgrids <- ingest(
   siteinfo_fluxnet2015 %>% slice(1:3),
   source    = "soilgrids",
@@ -1162,7 +1073,7 @@ df_soilgrids <- ingest(
 
 This returns a data frame with a nested column `data` which contains actually just a 1 x 1 tibble. This is to be consistent with other ingest options. You may prefer to have a normal flat data frame. Just do:
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 df_soilgrids %>% 
   unnest(data)
 ```
@@ -1175,13 +1086,13 @@ See above (section *Examples for a single site*) for a description of variables 
 
 The following settings specify data extraction for the C:N ratio of the top three layers. The returned value is the mean across selected soil layers, weighted by the respective layer's depth. `dir` specifies the path to the downloaded data bundle. Don't change the structure of it. ingestr reads from two files: `<dir>/GISfiles/wise30sec_fin` and `<dir>/Interchangeable_format/HW30s_FULL.txt`.
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 settings_wise <- get_settings_wise(varnam = c("CNrt", "CECS"), layer = 1:3)
 ```
 
 Now, the data can be ingested.
 
-```{r eval=FALSE}
+```{r warning=FALSE, eval = FALSE}
 df_wise <- ingest(
   siteinfo_fluxnet2015 %>% slice(1:2),
   source    = "wise",
@@ -1196,13 +1107,13 @@ Global Soil Dataset for use in Earth System Models (GSDE) by [Shangguan et al. 2
 
 Specify the settings directly as a list with elements `varnam` (a vector of character strings specifying the variables as defined in the table above), and `layer` (a vector of integers specifying the layers over which a depth-weighted average is taken).
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 settings_gsde <- list(varnam = c("PBR", "PHH2O"), layer = 1:8)
 ```
 
 Now, the data can be ingested.
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 df_gsde <- ingest(
   siteinfo_fluxnet2015 %>% slice(1:2),
   source    = "gsde",
@@ -1213,7 +1124,7 @@ df_gsde <- ingest(
 
 And data is returned with variables along columns inside a nested column `data`, and sites along rows (as for all ingestr). Make it flat by:
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 df_gsde %>% 
   unnest(data)
 ```
@@ -1235,13 +1146,13 @@ This ingests Worldclim monthly climatology (averaged over 1970-2000) at 30 secon
 
 Specify the settings directly as a list with elements `varnam` (a vector of character strings specifying the variables as defined in the table above), and `layer` (a vector of integers specifying the layers over which a depth-weighted average is taken).
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 settings_worldclim <- list(varnam = c("bio"))
 ```
 
 Now, the data can be ingested.
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 df_worldclim <- ingest(
   siteinfo_fluxnet2015 %>% slice(1:2),
   source    = "worldclim",
@@ -1254,7 +1165,7 @@ df_worldclim <- ingest(
 
 Ingestr, i.a., designed to collect forcing data for the rsofun modelling framework. Within that, you may chose to run the P-model for predicting leaf-level quantities (acclimated Vcmax and Jmax). These are independent of fAPAR. Still, forcing for fAPAR (variable standard name `fapar`) is required and can be set to 1.0 for all sites and required dates. To get an object in the required standard format, use `ingest` with `source = "fapar_unity"`:
 
-```{r}
+```{r warning=FALSE, eval = FALSE}
 ddf_fapar_unity <- ingest(
   siteinfo  = siteinfo,
   source    = "fapar_unity"

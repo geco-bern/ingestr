@@ -20,6 +20,8 @@ filtering hours where the shortwave incoming radiation (SW_IN_F) is
 zero and aggregating taking the mean across remaining hours per day.
 }
 \examples{
+\dontrun{
 df <- get_vpd_day_fluxnet2015("./")
+}
 
 }

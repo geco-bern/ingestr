@@ -1,3 +1,5 @@
+[![R-CMD-check](https://github.com/khufkens/ingestr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/khufkens/ingestr/actions/workflows/R-CMD-check.yaml)
+
 # ingestr
 
 The package `ingestr` provides functions to extract (ingest) environmental point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution (currently, just daily implemented). The main functionalities are:

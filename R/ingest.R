@@ -23,10 +23,18 @@
 #'
 #' @return A named list of data frames (tibbles) containing input data for each site is returned.
 #' @import purrr dplyr
+#' @importFrom rlang :=
 #' @export
 #'
-#' @examples inputdata <- prepare_input_sofun( settings_input = settings_input, settings_sims = settings_sims, overwrite_climate = FALSE, verbose = TRUE )
-#'
+#' @examples
+#' \dontrun{
+#'   inputdata <- prepare_input_sofun(
+#'    settings_input = settings_input,
+#'    settings_sims = settings_sims,
+#'    verwrite_climate = FALSE,
+#'    verbose = TRUE )
+#' }
+
 ingest <- function(
 	siteinfo,
 	source,
@@ -39,13 +47,30 @@ ingest <- function(
 	verbose   = FALSE
   ){
 
+  # CRAN compliance, declaring unstated variables
+  sitename <- lon <- lat <- date_start <- date_end <- problem <-
+  year_start_tmp <- x <- y <- lat_orig <- success <- elv <- patm <-
+  patm_base <-patm_mean <- month <- tavg <-temp <- temp_fine <-
+  tmax <- tmax_fine <- tmin <- tmin_fine <- prec <- prec_fine <-
+  days_in_month <- rain <- snow <- srad <- srad_fine <- ppfd <-
+  ppfd_fine <- wind <- wind_fine <- qair <- vap <- vapr <- vapr_fine <-
+  ilon <- data <- yy <- mm <- co2_avg <- year <- . <- bias <- NULL
+  
   ## Check: all sites are distinct wrt name, lon and lat
   if (nrow(siteinfo) != nrow(dplyr::distinct(siteinfo, sitename, lon, lat))){
-    rlang::abort("Non-distinct sites present w.r.t. name, lon, and lat.")
+    stop("Non-distinct sites present w.r.t. name, lon, and lat.")
   }
 
   ## Check dates and years for time series types
-  if (!(source %in% c("hwsd", "etopo1", "wwf", "soilgrids", "wise", "gsde", "worldclim"))){
+  if (!(source %in% c(
+    "hwsd",
+    "etopo1",
+    "wwf",
+    "soilgrids",
+    "wise",
+    "gsde",
+    "worldclim"))
+    ) {
     
     ## complement dates information
     if (!("year_start" %in% names(siteinfo))){
@@ -53,7 +78,8 @@ ingest <- function(
         siteinfo <- siteinfo %>%
           mutate(year_start = lubridate::year(date_start))
       } else {
-        rlang::abort("ingest(): Columns 'year_start' and 'date_start' missing in object provided by argument 'siteinfo'")
+        stop("ingest(): Columns 'year_start' and 'date_start' missing
+                     in object provided by argument 'siteinfo'")
       }
     }
     if (!("year_end" %in% names(siteinfo))){
@@ -61,24 +87,35 @@ ingest <- function(
         siteinfo <- siteinfo %>%
           mutate(year_end = lubridate::year(date_end))
       } else {
-        rlang::abort("ingest(): Columns 'year_end' and 'date_end' missing in object provided by argument 'siteinfo'")
+        stop("ingest(): Columns 'year_end' and 'date_end' missing 
+             in object provided by argument 'siteinfo'")
       }
     }
 
     if (!("date_start" %in% names(siteinfo))){
       if ("year_start" %in% names(siteinfo)){
         siteinfo <- siteinfo %>%
-          mutate(date_start = lubridate::ymd(paste0(as.character(year_start), "-01-01")))
+          mutate(
+            date_start = lubridate::ymd(paste0(as.character(year_start),
+                                               "-01-01")
+                                        )
+            )
       } else {
-        rlang::abort("ingest(): Columns 'year_start' and 'date_start' missing in object provided by argument 'siteinfo'")
+        stop("ingest(): Columns 'year_start' and 'date_start' missing
+             in object provided by argument 'siteinfo'")
       }
     }
     if (!("date_end" %in% names(siteinfo))){
       if ("year_end" %in% names(siteinfo)){
         siteinfo <- siteinfo %>%
-          mutate(date_end = lubridate::ymd(paste0(as.character(year_end), "-12-31")))
+          mutate(
+            date_end = lubridate::ymd(paste0(as.character(year_end),
+                                                  "-12-31")
+                                      )
+            )
       } else {
-        rlang::abort("ingest(): Columns 'year_end' and 'date_end' missing in object provided by argument 'siteinfo'")
+        stop("ingest(): Columns 'year_end' and 'date_end' missing
+             in object provided by argument 'siteinfo'")
       }
     }
     
@@ -87,47 +124,59 @@ ingest <- function(
         mutate(problem = year_start > year_end) %>% 
         pull(problem) %>% 
         any()){
-      rlang::warn("At least one case found where year_start > year_end. The are exchanged now")
+      warning("At least one case found where year_start > year_end. The are exchanged now")
       siteinfo <- siteinfo %>% 
-        mutate(year_start_tmp = ifelse(year_start > year_end, year_end, year_start)) %>% 
-        mutate(year_end = ifelse(year_start > year_end, year_start, year_end)) %>% 
+        mutate(year_start_tmp = ifelse(year_start > year_end,
+                                       year_end,
+                                       year_start)) %>% 
+        mutate(year_end = ifelse(year_start > year_end,
+                                 year_start,
+                                 year_end)) %>% 
         mutate(year_start = year_start_tmp) %>% 
         dplyr::select(-year_start_tmp) %>% 
-        mutate(date_start = lubridate::ymd(paste0(as.character(year_start), "-01-01"))) %>% 
-        mutate(date_end = lubridate::ymd(paste0(as.character(year_end), "-12-31")))
+        mutate(
+          date_start = lubridate::ymd(paste0(as.character(year_start),
+                                             "-01-01")
+                                      )
+          ) %>% 
+        mutate(
+          date_end = lubridate::ymd(paste0(as.character(year_end),
+                                           "-12-31")
+                                    )
+          )
     }
-
   }
 
 	if (source == "fluxnet"){
 	  #-----------------------------------------------------------
 	  # Get data from sources given by site
 	  #-----------------------------------------------------------
-		ddf <- purrr::map(
-		  as.list(seq(nrow(siteinfo))),
-		  ~ingest_bysite( siteinfo$sitename[.],
-											source                     = source,
-											getvars                    = getvars,
-											dir                        = dir,
-											settings                   = settings,
-											timescale                  = timescale,
-											year_start                 = lubridate::year(siteinfo$date_start[.]),
-											year_end                   = lubridate::year(siteinfo$date_end[.]),
-											verbose                    = verbose
-		  )
-		) %>%
-		bind_rows()
-
+	  ddf <- purrr::map(
+	    as.list(seq(nrow(siteinfo))),
+	    ~ingest_bysite( siteinfo$sitename[.],
+	     source = source,
+	     getvars = getvars,
+	     dir = dir,
+       settings = settings,
+       timescale = timescale,
+       year_start = lubridate::year(siteinfo$date_start[.]),
+       year_end = lubridate::year(siteinfo$date_end[.]),
+       verbose = verbose
+	    )
+	  ) %>%
+	    bind_rows()
+	  
 
 	} else if (source == "cru" || source == "watch_wfdei" || source == "ndep" || source == "wfde5"){
 	  #-----------------------------------------------------------
 	  # Get data from global fields
 	  #-----------------------------------------------------------
-	  ## special treatment of dates when bias correction is applied
+	  # special treatment of dates when bias correction is applied
 	  if (!identical(NULL, settings$correct_bias)){
 	    if (settings$correct_bias == "worldclim"){
 
-        ## save data frame with required dates for all sites (may be different by site)
+        # save data frame with required dates for
+        #  all sites (may be different by site)
         ddf_dates <- purrr::map(
           as.list(seq(nrow(siteinfo))),
           ~ingestr::init_dates_dataframe(
@@ -143,7 +192,9 @@ ingest <- function(
         year_end_wc <- 2000
         
         if (source == "watch_wfdei"){
-          rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
+          message(
+          "Beware: WorldClim data is for years 1970-2000.
+          Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
           year_start_wc <- 1979  # no earlier years available
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
@@ -154,13 +205,17 @@ ingest <- function(
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
                    year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
-        } else if (source == "cru"){
-          rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore CRU data is ingested for 1970-(at least) 2000.")
-          siteinfo <- siteinfo %>% 
-            mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
-                   year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
-        }
 
+        } else if (source == "cru"){
+          message(
+            "Beware: WorldClim data is for years 1970-2000. 
+            Therefore CRU data is ingested for 1970-(at least) 2000.")
+          siteinfo <- siteinfo %>% 
+            mutate(year_start = ifelse(year_start < year_start_wc,
+                                       year_start, year_start_wc),
+                   year_end   = ifelse(year_end > year_end_wc,
+                                       year_end, year_end_wc))
+        }
 	    }
 	  }
 
@@ -175,7 +230,8 @@ ingest <- function(
     ## check if data was extracted for all sites (may be located over ocean)
     sites_missing <- ddf %>%
       group_by(sitename) %>%
-      summarise(across(where(is.double), ~sum(!is.na(.x)))) %>%
+      summarise(across(tidyselect::vars_select_helpers$where(is.double),
+                       ~sum(!is.na(.x)))) %>%
       dplyr::filter(across(c(-sitename, -date), ~ .x == 0)) %>%
       pull(sitename)
 
@@ -186,14 +242,23 @@ ingest <- function(
       } else if (source == "cru"){
         path <- paste0(dir, "/elv_cru_halfdeg.nc")
       }
-      if (!file.exists(path)) rlang::abort(paste0("Looking for elevation file for determining closest land cell, but not found under ", path))
-      rasta <- raster(path)
+      if (!file.exists(path)) {
+        stop(paste0("Looking for elevation file for determining 
+                    closest land cell, but not found under ", path))
+      }
+      rasta <- raster::raster(path)
       siteinfo_missing <- siteinfo %>%
         dplyr::filter(sitename %in% sites_missing)
       siteinfo_missing <- siteinfo_missing %>%
         dplyr::select(x = lon, y = lat) %>%
-        mutate(lon = xFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA))[1]),
-               lat = yFromCell(rasta, which.min(replace(distanceFromPoints(rasta, .), is.na(rasta), NA))[1])) %>%
+        mutate(
+          lon = raster::xFromCell(
+            rasta,
+            which.min(replace(raster::distanceFromPoints(rasta, .),
+                              is.na(rasta), NA))[1]),
+          lat = raster::yFromCell(
+            rasta, which.min(replace(raster::distanceFromPoints(rasta, .),
+                                     is.na(rasta), NA))[1])) %>%
         rename(lon_orig = x, lat_orig = y) %>%
         bind_cols(siteinfo_missing %>% dplyr::select(-lon, -lat)) %>%
         mutate(success = ifelse(abs(lat-lat_orig)>1.0, FALSE, TRUE))
@@ -207,7 +272,9 @@ ingest <- function(
                                          verbose = FALSE)
 
       if (sum(!siteinfo_missing$success)>0){
-        rlang::warn("No land found within 1 degree latitude for the following sites: Consider excluding them.")
+        warning(
+        "No land found within 1 degree latitude for the following sites:
+        Consider excluding them.")
         print(siteinfo_missing %>% dplyr::filter(!success))
       }
 
@@ -263,11 +330,17 @@ ingest <- function(
         if ("tavg" %in% getvars_wc){
           df_bias <- df_fine %>%
             dplyr::select(sitename, starts_with("tavg_")) %>%
-            pivot_longer(cols = starts_with("tavg_"), names_to = "month", values_to = "tavg", names_prefix = "tavg_") %>%
+            tidyr::pivot_longer(
+              cols = starts_with("tavg_"),
+              names_to = "month",
+              values_to = "tavg",
+              names_prefix = "tavg_") %>%
             mutate(month = as.integer(month)) %>%
             rename(temp_fine = tavg) %>%
             right_join(ddf %>%
-                         dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>%
+                         dplyr::filter(
+                           lubridate::year(date) %in% year_start_wc:year_end_wc
+                           ) %>%
                          mutate(month = lubridate::month(date)) %>%
                          group_by(sitename, month) %>%
                          summarise(temp = mean(temp, na.rm = TRUE)),
@@ -278,7 +351,8 @@ ingest <- function(
           ## correct bias by month
           ddf <- ddf %>%
             mutate(month = lubridate::month(date)) %>%
-            left_join(df_bias %>% dplyr::select(sitename, month, bias), by = c("sitename", "month")) %>%
+            left_join(df_bias %>% dplyr::select(sitename, month, bias),
+                      by = c("sitename", "month")) %>%
             arrange(sitename, date) %>%
             mutate(temp = ifelse(is.na(bias), temp, temp - bias)) %>%
             dplyr::select(-bias, -month)
@@ -289,22 +363,30 @@ ingest <- function(
           if (source == "cru"){ # no tmin or tmax in wwfd
             df_bias <- df_fine %>%
               dplyr::select(sitename, starts_with("tmin_")) %>%
-              pivot_longer(cols = starts_with("tmin_"), names_to = "month", values_to = "tmin", names_prefix = "tmin_") %>%
+              tidyr::pivot_longer(
+                cols = starts_with("tmin_"),
+                names_to = "month",
+                values_to = "tmin",
+                names_prefix = "tmin_") %>%
               mutate(month = as.integer(month)) %>%
               rename(tmin_fine = tmin) %>%
               right_join(ddf %>%
-                           dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>%
-                           mutate(month = lubridate::month(date)) %>%
-                           group_by(sitename, month) %>%
-                           summarise(tmin = mean(tmin, na.rm = TRUE)),
+                           dplyr::filter(
+                             lubridate::year(date) %in% year_start_wc:year_end_wc
+                           ) %>%
+              mutate(month = lubridate::month(date)) %>%
+              group_by(sitename, month) %>%
+              summarise(tmin = mean(tmin, na.rm = TRUE)),
                          by = c("sitename", "month")) %>%
               mutate(bias = tmin - tmin_fine) %>%
               dplyr::select(-tmin, -tmin_fine)
-  
+            
             ## correct bias by month
             ddf <- ddf %>%
               mutate(month = lubridate::month(date)) %>%
-              left_join(df_bias %>% dplyr::select(sitename, month, bias), by = c("sitename", "month")) %>%
+              left_join(
+                df_bias %>% dplyr::select(sitename, month, bias),
+                by = c("sitename", "month")) %>%
               arrange(sitename, date) %>%
               mutate(tmin = ifelse(is.na(bias), tmin, tmin - bias)) %>%
               dplyr::select(-bias, -month)
@@ -317,22 +399,31 @@ ingest <- function(
           if (source == "cru"){ # no tmin or tmax in wwfd
             df_bias <- df_fine %>%
               dplyr::select(sitename, starts_with("tmax_")) %>%
-              pivot_longer(cols = starts_with("tmax_"), names_to = "month", values_to = "tmax", names_prefix = "tmax_") %>%
+              tidyr::pivot_longer(
+                cols = starts_with("tmax_"),
+                names_to = "month",
+                values_to = "tmax",
+                names_prefix = "tmax_") %>%
               mutate(month = as.integer(month)) %>%
               rename(tmax_fine = tmax) %>%
               right_join(ddf %>%
-                           dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>%
-                           mutate(month = lubridate::month(date)) %>%
-                           group_by(sitename, month) %>%
-                           summarise(tmax = mean(tmax, na.rm = TRUE)),
-                         by = c("sitename", "month")) %>%
+               dplyr::filter(
+                 lubridate::year(date) %in% year_start_wc:year_end_wc
+                 ) %>%
+               mutate(month = lubridate::month(date)) %>%
+               group_by(sitename, month) %>%
+               summarise(tmax = mean(tmax, na.rm = TRUE)),
+               by = c("sitename", "month")) %>%
               mutate(bias = tmax - tmax_fine) %>%
               dplyr::select(-tmax, -tmax_fine)
   
             ## correct bias by month
             ddf <- ddf %>%
               mutate(month = lubridate::month(date)) %>%
-              left_join(df_bias %>% dplyr::select(sitename, month, bias), by = c("sitename", "month")) %>%
+              left_join(
+                df_bias %>% dplyr::select(sitename, month, bias),
+                by = c("sitename", "month")
+                ) %>%
               arrange(sitename, date) %>%
               mutate(tmax = ifelse(is.na(bias), tmax, tmax - bias)) %>%
               dplyr::select(-bias, -month)
@@ -343,7 +434,7 @@ ingest <- function(
         if ("prec" %in% getvars_wc){
           df_bias <- df_fine %>%
             dplyr::select(sitename, starts_with("prec_")) %>%
-            pivot_longer(cols = starts_with("prec_"), names_to = "month", values_to = "prec", names_prefix = "prec_") %>%
+            tidyr::pivot_longer(cols = starts_with("prec_"), names_to = "month", values_to = "prec", names_prefix = "prec_") %>%
             mutate(month = as.integer(month)) %>%
             rename(prec_fine = prec) %>%
             mutate(prec_fine = prec_fine / lubridate::days_in_month(month)) %>%   # mm/month -> mm/d
@@ -387,7 +478,7 @@ ingest <- function(
           kfFEC <- 2.04
           df_bias <- df_fine %>%
             dplyr::select(sitename, starts_with("srad_")) %>%
-            pivot_longer(cols = starts_with("srad_"), names_to = "month", values_to = "srad", names_prefix = "srad_") %>%
+            tidyr::pivot_longer(cols = starts_with("srad_"), names_to = "month", values_to = "srad", names_prefix = "srad_") %>%
             mutate(month = as.integer(month)) %>%
             rename(srad_fine = srad) %>%
             mutate(ppfd_fine = 1e3 * srad_fine * kfFEC * 1.0e-6 / (60 * 60 * 24) ) %>%   # kJ m-2 day-1 -> mol m−2 s−1 PAR
@@ -414,11 +505,16 @@ ingest <- function(
         if ("wind" %in% getvars_wc){
           df_bias <- df_fine %>%
             dplyr::select(sitename, starts_with("wind_")) %>%
-            pivot_longer(cols = starts_with("wind_"), names_to = "month", values_to = "wind", names_prefix = "wind_") %>%
+            tidyr::pivot_longer(cols = starts_with("wind_"),
+                                names_to = "month",
+                                values_to = "wind",
+                                names_prefix = "wind_") %>%
             mutate(month = as.integer(month)) %>%
             rename(wind_fine = wind) %>%
             right_join(ddf %>%
-                         dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>%
+                         dplyr::filter(
+                           lubridate::year(date) %in% year_start_wc:year_end_wc
+                           ) %>%
                          mutate(month = lubridate::month(date)) %>%
                          group_by(sitename, month) %>%
                          summarise(wind = mean(wind, na.rm = TRUE)),
@@ -429,7 +525,8 @@ ingest <- function(
           ## correct bias by month
           ddf <- ddf %>%
             mutate(month = lubridate::month(date)) %>%
-            left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>%
+            left_join(df_bias %>% dplyr::select(sitename, month, scale),
+                      by = c("sitename", "month")) %>%
             arrange(sitename, date) %>%
             mutate(scale = ifelse(is.infinite(scale), 0, scale)) %>%
             mutate(wind = ifelse(is.na(scale), wind, wind * scale)) %>%
@@ -445,7 +542,11 @@ ingest <- function(
             ## specific humidity (qair, g g-1) is read, convert to vapour pressure (vapr, Pa)
             ddf <- ddf %>% 
               rowwise() %>% 
-              dplyr::mutate(vapr = calc_vp(qair = qair, tc = temp, patm = patm)) %>% 
+              dplyr::mutate(
+                vapr = calc_vp(qair = qair,
+                               tc = temp,
+                               patm = patm)
+                ) %>% 
               ungroup()
             
           } else if (source == "cru"){
@@ -458,7 +559,11 @@ ingest <- function(
 
           df_bias <- df_fine %>%
             dplyr::select(sitename, starts_with("vapr_")) %>%
-            pivot_longer(cols = starts_with("vapr_"), names_to = "month", values_to = "vapr", names_prefix = "vapr_") %>%
+            tidyr::pivot_longer(
+              cols = starts_with("vapr_"),
+              names_to = "month",
+              values_to = "vapr",
+              names_prefix = "vapr_") %>%
             mutate(month = as.integer(month)) %>%
             rename(vapr_fine = vapr) %>%
             mutate(vapr_fine = vapr_fine * 1e3) %>%   # kPa -> Pa
@@ -490,7 +595,11 @@ ingest <- function(
             ddf <- ddf %>%
               rowwise() %>%
               dplyr::mutate(
-                vapr = calc_vp(qair = qair, tc = temp, patm = patm),
+                vapr = calc_vp(
+                  qair = qair,
+                  tc = temp,
+                  patm = patm
+                  ),
                 vpd = calc_vpd(eact = vapr, tc = temp)) %>% 
               ungroup()
             
@@ -498,10 +607,11 @@ ingest <- function(
             ## use daily minimum and maximum temperatures
             ddf <- ddf %>%
               rowwise() %>%
-              dplyr::mutate(vpd = calc_vpd(eact = vapr, tmin = tmin, tmax = tmax)) %>% 
+              dplyr::mutate(
+                vpd = calc_vpd(eact = vapr, tmin = tmin, tmax = tmax)
+                ) %>% 
               ungroup()
           }
-
         }
 
         ## keep only required dates
@@ -532,7 +642,9 @@ ingest <- function(
           ## use daily minimum and maximum temperatures
           ddf <- ddf %>%
             rowwise() %>%
-            dplyr::mutate(vpd = calc_vpd(eact = vapr, tmin = tmin, tmax = tmax)) %>% 
+            dplyr::mutate(
+              vpd = calc_vpd(eact = vapr, tmin = tmin, tmax = tmax)
+              ) %>% 
             ungroup()
         }
 
@@ -619,11 +731,21 @@ ingest <- function(
 	  
 		if (parallel){
 
-			if (is.null(ncores)) rlang::abort(paste("Aborting. Please provide number of cores for parallel jobs."))
+			if (is.null(ncores)){
+			  stop("Aborting. Please provide number of cores for parallel jobs.")
+			} 
 
 	    cl <- multidplyr::new_cluster(ncores) %>%
 	      multidplyr::cluster_assign(settings = settings) %>%
-	      multidplyr::cluster_library(c("dplyr", "purrr", "rlang", "ingestr", "readr", "lubridate", "MODISTools", "tidyr"))
+	      multidplyr::cluster_library(
+	        c("dplyr", 
+	          "purrr",
+	          "rlang",
+	          "ingestr",
+	          "readr", 
+	          "lubridate",
+	          "MODISTools",
+	          "tidyr"))
 
 		  ## distribute to cores, making sure all data from a specific site is sent to the same core
 		  ddf <- tibble(ilon = seq(nrow(siteinfo))) %>%
@@ -656,7 +778,7 @@ ingest <- function(
 	  path <- paste0(dir, "/df_co2_mlo.csv")
 	  if (!identical(NULL, dir)){
 	    if (file.exists(path)){
-	      df_co2 <- read_csv(path)
+	      df_co2 <- readr::read_csv(path)
 	    } else {
 	      df_co2 <- climate::meteo_noaa_co2() %>%
 	        dplyr::select(year = yy, month = mm, co2_avg)
@@ -692,9 +814,12 @@ ingest <- function(
 	  ## if 'dir' is provided, try reading from existing file, otherwise download
 	  path <- paste0(dir, "/cCO2_rcp85_const850-1765.csv")
 	  if (file.exists(path)){
-	    df_co2 <- read_csv(path)
+	    df_co2 <- readr::read_csv(path)
 	  } else {
-	    rlang::abort("File cCO2_rcp85_const850-1765.csv must be available in directory specified by 'dir'.")
+	    stop(
+	      "File cCO2_rcp85_const850-1765.csv must be available in directory
+	      specified by 'dir'."
+	      )
 	  }
 
 	  ## expand to data frame for each site
@@ -740,8 +865,12 @@ ingest <- function(
 	  #-----------------------------------------------------------
 	  # Get HWSD soil data. year_start and year_end not required
 	  #-----------------------------------------------------------
+	  
+	  # TODO replace with {hwsdr} call
 	  con <- rhwsd::get_hwsd_con()
-	  ddf <- rhwsd::get_hwsd_siteset(x = dplyr::select(siteinfo, sitename, lon, lat), con = con, hwsd.bil = settings$fil ) %>%
+	  ddf <- rhwsd::get_hwsd_siteset(
+	    x = dplyr::select(siteinfo, sitename, lon, lat),
+	    con = con, hwsd.bil = settings$fil ) %>%
 	    dplyr::ungroup() %>%
 	    dplyr::select(sitename, data) %>%
 	    tidyr::unnest(data)
@@ -771,25 +900,14 @@ ingest <- function(
 	  # Get WISE30secs soil data. year_start and year_end not required
 	  #-----------------------------------------------------------
 	  ddf <- purrr::map(as.list(settings$varnam),
-	                    ~ingest_wise_byvar(., siteinfo, layer = settings$layer, dir = dir)) %>%
+	                    ~ingest_wise_byvar(.,
+	                                       siteinfo,
+	                                       layer = settings$layer, dir = dir)) %>%
 	    purrr::reduce(left_join, by = c("lon", "lat")) %>%
 	    distinct() %>% 
-	    right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
+	    right_join(dplyr::select(
+	      siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
 	    dplyr::select(-lon, -lat)
-
-	  # if (length(settings$varnam) > 1){
-	  #   ddf <- ddf %>%
-	  #     rename(lon = lon...1, lat = lat...2) %>%
-	  #     dplyr::select(-starts_with("lon..."), -starts_with("lat...")) %>%
-	  #     right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
-	  #     dplyr::select(-lon, -lat)
-	  #
-	  # } else {
-	  #   ddf <- ddf %>%
-	  #     right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
-	  #     dplyr::select(-lon, -lat)
-	  #
-	  # }
 
 	} else if (source == "gsde"){
 	  #-----------------------------------------------------------
@@ -805,7 +923,8 @@ ingest <- function(
 	                         verbose = FALSE,
 	                         layer = .
 	    )) %>%
-	    map2(as.list(settings$varnam), ~aggregate_layers_gsde(.x, .y, settings$layer)) %>%
+	    map2(as.list(settings$varnam),
+	         ~aggregate_layers_gsde(.x, .y, settings$layer)) %>%
 	    purrr::reduce(left_join, by = "sitename")
 
 	 }  else if (source == "worldclim"){
@@ -824,14 +943,14 @@ ingest <- function(
 	 } else {
 
 	  rlang::warn(paste("you selected source =", source))
-	  rlang::abort("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'wfde5', co2_mlo', 'etopo1', or 'gee'.")
+	  stop("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'wfde5', co2_mlo', 'etopo1', or 'gee'.")
 
 	}
 
   ddf <- ddf %>%
     bind_rows() %>%
     group_by(sitename) %>%
-    nest()
+    tidyr::nest()
   
   return(ddf)
 
@@ -861,6 +980,12 @@ expand_bysite <- function(sitename, year_start, year_end, timescale ){
 }
 
 aggregate_layers_gsde <- function(df, varnam, use_layer){
+  
+  # define state variables
+  var <- above_1 <- above_2 <- above_3 <- above_4 <- above_5 <-
+    above_6 <- above_7 <- layer <- data <- sitename <- 
+    bottom <- top <- layer <- depth <- depth_tot_cm <-
+    var <- var_wgt <- NULL
   
   fill_layer_from_above <- function(df, varnam){
     
@@ -897,9 +1022,9 @@ aggregate_layers_gsde <- function(df, varnam, use_layer){
   ## fill missing values with next available value from layer above
   df <- df %>% 
     group_by(sitename) %>% 
-    nest() %>% 
+    tidyr::nest() %>% 
     mutate(data = purrr::map(data, ~fill_layer_from_above(., varnam))) %>% 
-    unnest(data)
+    tidyr::unnest(data)
   
   df_layers <- tibble(layer = 1:8, bottom = c(4.5, 9.1, 16.6, 28.9, 49.3, 82.9, 138.3, 229.6)) %>%
     mutate(top = lag(bottom)) %>%

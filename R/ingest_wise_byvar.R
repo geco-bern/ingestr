@@ -16,12 +16,17 @@
 #'
 ingest_wise_byvar <- function(var, df_lonlat, layer = 1, dir){
 
+  # CRAN compliance, variable declaration
+  lon <- lat <- ID <- NEWSUID <- PROP <- Layer <- var_wgt <-
+    depth_cm <- depth_tot_cm <- wise30sec_fin <- 
+    modisvar_interpol <- NULL
+  
   ## read as a raster
   rasta <- raster::raster(paste0(dir, "/GISfiles/wise30sec_fin"))
 
   ## read data table
   ## variables are described in ISRIC_Report_2015_01.pdf, p. 53
-  df <- read_csv(paste0(dir, "/Interchangeable_format/HW30s_FULL.txt"))
+  df <- readr::read_csv(paste0(dir, "/Interchangeable_format/HW30s_FULL.txt"))
 
   ## extract the ID for a given location (lon/lat)
   df_out <- raster::extract(

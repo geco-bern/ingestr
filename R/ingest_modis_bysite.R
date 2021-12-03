@@ -229,15 +229,6 @@ ingest_modis_bysite <- function(
         bind_rows() %>%
         as_tibble()
       
-      # ## xxx check plot
-      # df %>%
-      #   mutate(calendar_date = lubridate::ymd(calendar_date)) %>%
-      #   dplyr::filter(band == "sur_refl_b04") %>%
-      #   group_by(calendar_date) %>%
-      #   summarise(value = mean(value)) %>%
-      #   ggplot(aes(calendar_date, value)) +
-      #   geom_line()
-      
       ## Raw downloaded data is saved to file
       rlang::inform( paste( "raw data file written:", filnam_raw_csv ) )
       data.table::fwrite(df, file = filnam_raw_csv, sep = ",")
@@ -563,16 +554,16 @@ gapfill_interpol <- function(
     clean_sur_refl <- function(x, qc_binary){
       ifelse(qc_binary, x, NA)
     }
-
+    
     df <- df %>%
-
+      
       ## separate into bits
       rowwise() %>%
       mutate(qc_bitname = intToBits( sur_refl_qc_500m ) %>%
                as.character() %>%
                paste(collapse = "")
-             ) %>%
-
+      ) %>%
+      
       ## Bits 0-1: MODLAND QA bits
       ##   00 corrected product produced at ideal quality -- all bands
       ##   01 corrected product produced at less than ideal quality -- some or all bands
@@ -581,133 +572,57 @@ gapfill_interpol <- function(
       mutate(modland_qc = substr( qc_bitname, start=1, stop=2 )) %>%
       mutate(
         modland_qc_binary = ifelse(modland_qc %in% c("00"), TRUE, FALSE)
-        ) %>%   # false for removing data
+      ) %>%   # false for removing data
       mutate(across(starts_with("sur_refl_b"),
                     ~clean_sur_refl(., modland_qc_binary))) %>%
-
-      # ## Bits 2-5: band 1 data quality, four bit range
-      # ##   0000 highest quality
-      # ##   0111 noisy detector
-      # ##   1000 dead detector, data interpolated in L1B
-      # ##   1001 solar zenith >= 86 degrees
-      # ##   1010 solar zenith >= 85 and < 86 degrees
-      # ##   1011 missing input
-      # ##   1100 internal constant used in place of climatological data for at least one atmospheric constant
-      # ##   1101 correction out of bounds, pixel constrained to extreme al- lowable value
-      # ##   1110 L1B data faulty
-      # ##   1111 not processed due to deep ocean or clouds
-      # mutate(modland_qc_b01 = substr( qc_bitname, start=3, stop=6 )) %>%
-      # mutate(modland_qc_b01_binary = ifelse(modland_qc_b01 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b01 = ifelse(modland_qc_b01_binary, sur_refl_b01, NA)) %>%
-      #
-      # ## Bits 6-9: band 2 data quality, four bit range
-      # ##   0000 highest quality
-      # ##   0111 noisy detector
-      # ##   1000 dead detector, data interpolated in L1B
-      # ##   1001 solar zenith >= 86 degrees
-      # ##   1010 solar zenith >= 85 and < 86 degrees
-      # ##   1011 missing input
-      # ##   1100 internal constant used in place of climatological data for at least one atmospheric constant
-      # ##   1101 correction out of bounds, pixel constrained to extreme al- lowable value
-      # ##   1110 L1B data faulty
-      # ##   1111 not processed due to deep ocean or clouds
-      # mutate(modland_qc_b02 = substr( qc_bitname, start=7, stop=10 )) %>%
-      # mutate(modland_qc_b02_binary = ifelse(modland_qc_b02 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b02 = ifelse(modland_qc_b02_binary, sur_refl_b02, NA)) %>%
-      #
-      # ## Bits 10-13: band 3 data quality, four bit range
-      # ##   0000 highest quality
-      # ##   0111 noisy detector
-      # ##   1000 dead detector, data interpolated in L1B
-      # ##   1001 solar zenith >= 86 degrees
-      # ##   1010 solar zenith >= 85 and < 86 degrees
-      # ##   1011 missing input
-      # ##   1100 internal constant used in place of climatological data for at least one atmospheric constant
-      # ##   1101 correction out of bounds, pixel constrained to extreme al- lowable value
-      # ##   1110 L1B data faulty
-      # ##   1111 not processed due to deep ocean or clouds
-      # mutate(modland_qc_b03 = substr( qc_bitname, start=11, stop=14 )) %>%
-      # mutate(modland_qc_b03_binary = ifelse(modland_qc_b03 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b03 = ifelse(modland_qc_b03_binary, sur_refl_b03, NA)) %>%
-      #
-      # ## Bits 14-17: band 4 data quality, four bit range
-      # ##   0000 highest quality
-      # ##   0111 noisy detector
-      # ##   1000 dead detector, data interpolated in L1B
-      # ##   1001 solar zenith >= 86 degrees
-      # ##   1010 solar zenith >= 85 and < 86 degrees
-      # ##   1011 missing input
-      # ##   1100 internal constant used in place of climatological data for at least one atmospheric constant
-      # ##   1101 correction out of bounds, pixel constrained to extreme al- lowable value
-      # ##   1110 L1B data faulty
-      # ##   1111 not processed due to deep ocean or clouds
-      # mutate(modland_qc_b04 = substr( qc_bitname, start=15, stop=18 )) %>%
-      # mutate(modland_qc_b04_binary = ifelse(modland_qc_b04 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b04 = ifelse(modland_qc_b04_binary, sur_refl_b04, NA)) %>%
-      #
-      # ## Bits 18-21: band 5 data quality, four bit range
-      # ##   0000 highest quality
-      # ##   0111 noisy detector
-      # ##   1000 dead detector, data interpolated in L1B
-      # ##   1001 solar zenith >= 86 degrees
-      # ##   1010 solar zenith >= 85 and < 86 degrees
-      # ##   1011 missing input
-      # ##   1100 internal constant used in place of climatological data for at least one atmospheric constant
-      # ##   1101 correction out of bounds, pixel constrained to extreme al- lowable value
-      # ##   1110 L1B data faulty
-      # ##   1111 not processed due to deep ocean or clouds
-      # mutate(modland_qc_b05 = substr( qc_bitname, start=19, stop=22 )) %>%
-      # mutate(modland_qc_b05_binary = ifelse(modland_qc_b05 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b05 = ifelse(modland_qc_b05_binary, sur_refl_b05, NA)) %>%
-      #
-      # ## Bits 22-25: band 6 data quality, four bit range
-      # ##   0000 highest quality
-      # ##   0111 noisy detector
-      # ##   1000 dead detector, data interpolated in L1B
-      # ##   1001 solar zenith >= 86 degrees
-      # ##   1010 solar zenith >= 85 and < 86 degrees
-      # ##   1011 missing input
-      # ##   1100 internal constant used in place of climatological data for at least one atmospheric constant
-      # ##   1101 correction out of bounds, pixel constrained to extreme al- lowable value
-      # ##   1110 L1B data faulty
-      # ##   1111 not processed due to deep ocean or clouds
-      # mutate(modland_qc_b06 = substr( qc_bitname, start=23, stop=26 )) %>%
-      # mutate(modland_qc_b06_binary = ifelse(modland_qc_b06 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b06 = ifelse(modland_qc_b06_binary, sur_refl_b06, NA)) %>%
-      #
-      # ## Bits 26-29: band 7 data quality, four bit range
-      # ##   0000 highest quality
-      # ##   0111 noisy detector
-      # ##   1000 dead detector, data interpolated in L1B
-      # ##   1001 solar zenith >= 86 degrees
-      # ##   1010 solar zenith >= 85 and < 86 degrees
-      # ##   1011 missing input
-      # ##   1100 internal constant used in place of climatological data for at least one atmospheric constant
-      # ##   1101 correction out of bounds, pixel constrained to extreme al- lowable value
-      # ##   1110 L1B data faulty
-      # ##   1111 not processed due to deep ocean or clouds
-      # mutate(modland_qc_b07 = substr( qc_bitname, start=27, stop=30 )) %>%
-      # mutate(modland_qc_b07_binary = ifelse(modland_qc_b07 %in% c("0000"), TRUE, FALSE)) %>%    # false for removing data
-      # mutate(sur_refl_b07 = ifelse(modland_qc_b07_binary, sur_refl_b07, NA)) %>%
-
-      # ## Bit 30: Atmospheric correction performed
-      # ##   1 yes
-      # ##   0 no
-      # mutate(atm_corr_qc = substr( qc_bitname, start=31, stop=31 )) %>%
-      # mutate(atm_corr_qc_binary = ifelse(atm_corr_qc == "1", TRUE, FALSE)) %>%     # false for removing data
-      # mutate(across(starts_with("sur_refl_b"), ~clean_sur_refl(., atm_corr_qc_binary))) %>%
-      #
-      # ## Bit 31: Adjacency correction performed
-      # ##   1 yes
-      # ##   0 no
-      # mutate(adj_corr_qc = substr( qc_bitname, start=32, stop=32 )) %>%
-      # mutate(adj_corr_qc_binary = ifelse(adj_corr_qc == "1", TRUE, FALSE)) %>%     # false for removing data
-      # mutate(across(starts_with("sur_refl_b"), ~clean_sur_refl(., adj_corr_qc_binary))) %>%
-
+      
       ## drop it
       dplyr::select(-ends_with("_qc"), -ends_with("_qc_binary"))
+    
+    } else if (prod=="MOD11A1"){
+    ##----------------------------------------
+    ## Filter available landsurface temperature data for daily-means
+    ##----------------------------------------
+    ## QC interpreted according to 
+    ## https://lpdaac.usgs.gov/documents/118/MOD11_User_Guide_V6.pdf
+     df <- df %>%
+      dplyr::rename(modisvar = value) %>%
+      dplyr::mutate(modisvar_filtered = modisvar) %>%
 
+      ## separate into bits
+      rowwise() %>%
+      mutate(qc_bitname = intToBits( qc ) %>%
+               as.integer() %>%
+               paste(collapse = "")
+      )
+    
+      ## Bits 0-1: Pixel Quality
+      ##   00 Pixel produced with good quality
+      ##   01 Pixel produced, but check other QA
+      mutate(pixel_quality = substr( qc_bitname, start=1, stop=2 )) %>%
+      
+      dplyr::mutate(
+          modisvar_filtered = ifelse(
+            pixel_quality %in% c("00", "01"),
+            modisvar, NA)
+          ) %>%
+          
+      ## Bits 2-3: Data Quality
+      ##   00 = Good data quality of L1B bands 29, 31, 32
+      ##   01 = other quality data
+      ##   10 = 11 = TBD
+      mutate(data_quality = substr( qc_bitname, start=3, stop=4 )) %>%
 
+        
+      dplyr::mutate(
+          modisvar_filtered = ifelse(
+            data_quality %in% c("00", "01"),
+            modisvar_filtered, NA)
+      ) %>%
+        
+      ## drop it
+      dplyr::select(-qc_bitname)
+      
   }
 
   ##--------------------------------------
@@ -765,9 +680,6 @@ gapfill_interpol <- function(
     group_by(date) %>%
     dplyr::filter(pixel %in% vec_usepixels) %>%    
     summarise(across(varnams, ~mean(., na.rm = TRUE)))
-
-  # summarise(modisvar_filtered = mean(modisvar_filtered, na.rm = TRUE),
-  #           modisvar = mean(modisvar, na.rm = TRUE))
 
   ##--------------------------------------
   ## merge N-day dataframe into daily one.
@@ -888,21 +800,6 @@ gapfill_interpol <- function(
     } else if (method_interpol == "sgfilter"){
       ddf$modisvar_filled <- ddf$sgfilter
     }
-
-    # ## plot daily smoothed line and close plotting device
-    # if (do_plot_interpolated){
-    # with( ddf, lines( year_dec, fapar, col='red', lwd=2 ) )}
-    # if (do_plot_interpolated){
-    # with( ddf, lines( year_dec, sgfilter, col='springgreen3', lwd=1 ) )}
-    # if (do_plot_interpolated){
-    # with( ddf, lines( year_dec, spline, col='cyan', lwd=1 ) )
-    # if (do_plot_interpolated){
-    #   legend( "topright",
-    # c("Savitzky-Golay filter", "Spline", "Linear interpolation (standard)"),
-    # col=c("springgreen3", "cyan", "red" ),
-    #  lty=1, lwd=c(1,1,2), bty="n", inset = c(0,-0.2)
-    #   )
-    # }
 
     ## limit to within 0 and 1 (loess spline sometimes "explodes")
     ddf <- ddf %>%

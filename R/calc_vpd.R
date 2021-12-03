@@ -28,7 +28,7 @@ calc_vpd <- function(qair=NA, eact=NA, tc=NA, tmin=NA, tmax=NA, patm=NA, elv=NA)
   ## calculate atmopheric pressure (Pa) assuming standard conditions at sea level (elv=0)
   if (is.na(elv) && is.na(patm) && is.na(eact)){
     
-    rlang::warn("calc_vpd(): Either patm or elv must be provided if eact is not given.")
+    warning("calc_vpd(): Either patm or elv must be provided if eact is not given.")
     vpd <- NA
     
   } else {

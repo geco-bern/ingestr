@@ -2,16 +2,20 @@
 % Please edit documentation in R/get_obs_bysite_gpp_gepisat.R
 \name{get_obs_bysite_gpp_gepisat}
 \alias{get_obs_bysite_gpp_gepisat}
-\title{Get FLUXNET 2015 observational data for one site based on the GePiSaT method flux decomposition.}
+\title{The GePiSaT method flux decomposition.}
 \usage{
 get_obs_bysite_gpp_gepisat(sitename, path_gepisat, timescale = "d")
 }
 \arguments{
-\item{sitename}{A character string specifying the site name for which FLUXNET 2015 data is searched (based on the site name appearing as part of the respective file name). Defaults to NA.}
+\item{sitename}{A character string specifying the site name for which FLUXNET
+2015 data is searched (based on the site name appearing as part of the
+respective file name). Defaults to NA.}
 
-\item{path_gepisat}{A character string specifying the local path of FLUXNET 2015 data.}
+\item{path_gepisat}{A character string specifying the local path of 
+FLUXNET 2015 data.}
 
-\item{timescale}{A character specifying the time scale of FLUXNET 2015 data. Only available: \code{c("d")} for daily.}
+\item{timescale}{A character specifying the time scale of FLUXNET 2015 data.
+Only available: \code{c("d")} for daily.}
 }
 \value{
 A data frame (tibble) containint observational data.
@@ -21,6 +25,7 @@ Function for reading observational GPP data from GePiSaT (Tyler's
 alternative flux decomposition) for FLUXNET 2015 stations.
 }
 \examples{
+\dontrun{
 df <- get_obs_bysite_gpp_gepisat
-
+}
 }
