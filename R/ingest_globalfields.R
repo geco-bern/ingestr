@@ -681,7 +681,7 @@ ingest_globalfields_wfde5_byvar <- function( ddf, siteinfo, dir, varnam ){
   ## if pre-1980 data are required, read at least 10 first years to get mean climatology
   if (pre_data){
     year_start_read <- 1980
-    year_end_read <- max(1988, year_end)
+    year_end_read <- max(1989, year_end)
   } else {
     year_start_read <- year_start
     year_end_read <- year_end
@@ -737,14 +737,14 @@ ingest_globalfields_wfde5_byvar <- function( ddf, siteinfo, dir, varnam ){
     dplyr::mutate(date = lubridate::ymd_h(paste0(as.character(yr), "-", sprintf( "%02d", mo), "-", sprintf( "%02d", dom), " ", sprintf( "%02d", hod))) ) %>%
     dplyr::select(-mo, -yr, -dom, -hod)
   
-  ## create data frame containing all dates, using mean annual cycle (of 1980-1988) for all years before 1980
+  ## create data frame containing all dates, using mean annual cycle (of 1980-1989) for all years before 1980
   if (pre_data){
-    rlang::inform("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1988) for all years before 1979.")
-    rlang::inform("NCDF file on Euler lacks first seven hours of 1979-01-01. Thus, only cycle from 1980-1988 is taken.")
+    rlang::inform("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1989) for all years before 1979.")
+    rlang::inform("NCDF file on Euler lacks first seven hours of 1979-01-01. Thus, only cycle from 1980-1989 is taken.")
     
-    ## get mean seasonal cycle, averaged over 1980:1988
+    ## get mean seasonal cycle, averaged over 1980:1989
     ddf_mean <- ddf %>% 
-      dplyr::filter(lubridate::year(date) %in% 1980:1988) %>% 
+      dplyr::filter(lubridate::year(date) %in% 1980:1989) %>% 
       mutate(hod = rep(0:23, nrow(.)/24),
              doy = lubridate::yday(date)) %>% 
       group_by(sitename, hod, doy) %>% 
