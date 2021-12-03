@@ -217,7 +217,7 @@ Looks sweet.
 
 ## WFDE5
 
-Let's have a look at the hourly climate data from the [WFDE5 dataset](https://doi.org/10.5194/essd-12-2097-2020). Again, let's extract meth data for the location corresponding to FLUXNET site 'FR-Pue' (lon = 8.365, lat = 47.4781). All input arguments work the same way as described above for WATCH-WFDEI and CRU TS. Note that we are setting `timescale = "h"` here to obtain an hourly dataframe. Available variables are: `"temp", "ppfd", "vpd", "patm", "prec"`.
+Let's have a look at the hourly climate data from the [WFDE5 dataset](https://doi.org/10.5194/essd-12-2097-2020). Again, let's extract meth data for the location corresponding to FLUXNET site 'FR-Pue' (lon = 8.365, lat = 47.4781). All input arguments work the same way as described above for WATCH-WFDEI and CRU TS. Note that we are setting `timescale = "h"` here to obtain an hourly dataframe. Available variables are: `"temp", "ppfd", "vpd", "patm", "prec", "wind", "swin", "lwin"`.
 
 ```{r message=FALSE, echo = T, results = 'hide'}
 df_wfde5 <- ingest_bysite(
@@ -570,19 +570,31 @@ Available layers and variable naming conventions are described [here](https://ww
 
 Available variables are described in the table below. Conversion facto are applied by ingestr. Hence, the returned data is in units as described in the table below as "Conventional units".
 
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | Name     | Description                                                                        | Mapped units   | Conversion factor | Conventional units |
-|----------|------------------------------------------------------------------------------------|----------------|-------------------|--------------------|
++==========+====================================================================================+================+===================+====================+
 | bdod     | Bulk density of the fine earth fraction                                            | cg/cm³         | 100               | kg/dm³             |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | cec      | Cation Exchange Capacity of the soil                                               | mmol(c)/kg     | 10                | cmol(c)/kg         |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | cfvo     | Volumetric fraction of coarse fragments (\> 2 mm)                                  | cm3/dm3 (vol‰) | 10                | cm3/100cm3 (vol%)  |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | clay     | Proportion of clay particles (\< 0.002 mm) in the fine earth fraction              | g/kg           | 10                | g/100g (%)         |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | nitrogen | Total nitrogen (N)                                                                 | cg/kg          | 100               | g/kg               |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | phh2o    | Soil pH                                                                            | pHx10          | 10                | pH                 |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | sand     | Proportion of sand particles (\> 0.05 mm) in the fine earth fraction               | g/kg           | 10                | g/100g (%)         |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | silt     | Proportion of silt particles (≥ 0.002 mm and ≤ 0.05 mm) in the fine earth fraction | g/kg           | 10                | g/100g (%)         |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | soc      | Soil organic carbon content in the fine earth fraction                             | dg/kg          | 10                | g/kg               |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | ocd      | Organic carbon density                                                             | hg/dm³         | 10                | kg/dm³             |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 | ocs      | Organic carbon stocks                                                              | t/ha           | 10                | kg/m²              |
++----------+------------------------------------------------------------------------------------+----------------+-------------------+--------------------+
 
 Data is available for the following six layers.
 
@@ -624,28 +636,49 @@ This reads from local files. Download them from ISRIC [here](https://data.isric.
 
 Point extraction from the global gridded WISE30sec data product ([Batjes et al., 2016](http://dx.doi.org/10.1016/j.geoderma.2016.01.034)) can be done for a set of variables and soil layers by specifying the ingest demand in the settings. ingestr returns data as a mean across available map units for selected location (pixel), weighted by the fractional coverage of map units for this pixel. The table below describes available variables (info based on [ISRIC Report 2015/01](https://www.isric.org/documents/document-type/isric-report-201501-world-soil-property-estimates-broad-scale-modelling)).
 
++-------+----------------------------------------------------------------------------------------------------------+
 | Name  | Description                                                                                              |
-|-------|----------------------------------------------------------------------------------------------------------|
++=======+==========================================================================================================+
 | CFRAG | Coarse fragments (vol. % \> 2mm), mean                                                                   |
++-------+----------------------------------------------------------------------------------------------------------+
 | SDTO  | Sand (mass %), mean                                                                                      |
++-------+----------------------------------------------------------------------------------------------------------+
 | STPC  | Silt (mass %)                                                                                            |
++-------+----------------------------------------------------------------------------------------------------------+
 | CLPC  | Clay (mass %)                                                                                            |
++-------+----------------------------------------------------------------------------------------------------------+
 | PSCL  | Texture class (SOTER conventions)                                                                        |
++-------+----------------------------------------------------------------------------------------------------------+
 | BULK  | Bulk density (kg dm-3, g cm-3)                                                                           |
++-------+----------------------------------------------------------------------------------------------------------+
 | TAWC  | Available water capacity (cm m-1, -33 to -1500 kPa, conform USDA standards) Standard deviation for above |
++-------+----------------------------------------------------------------------------------------------------------+
 | CECS  | Cation exchange capacity (cmol kg-1) of fine earth fraction                                              |
++-------+----------------------------------------------------------------------------------------------------------+
 | BSAT  | Base saturation as percentage of CECsoil                                                                 |
++-------+----------------------------------------------------------------------------------------------------------+
 | ESP   | Exchangeable sodium percentage                                                                           |
++-------+----------------------------------------------------------------------------------------------------------+
 | CECc  | CECclay, corrected for contribution of organic matter (cmol kg-1)                                        |
++-------+----------------------------------------------------------------------------------------------------------+
 | PHAQ  | pH measured in water                                                                                     |
++-------+----------------------------------------------------------------------------------------------------------+
 | TCEQ  | Total carbonate equivalent (g C kg-1)                                                                    |
++-------+----------------------------------------------------------------------------------------------------------+
 | GYPS  | Gypsum content (g kg-1)                                                                                  |
++-------+----------------------------------------------------------------------------------------------------------+
 | ELCO  | Electrical conductivity (dS m-1)                                                                         |
++-------+----------------------------------------------------------------------------------------------------------+
 | ORGC  | Organic carbon content (g kg-1)                                                                          |
++-------+----------------------------------------------------------------------------------------------------------+
 | TOTN  | Total nitrogen (g kg-1)                                                                                  |
++-------+----------------------------------------------------------------------------------------------------------+
 | CNrt  | C/N ratio                                                                                                |
++-------+----------------------------------------------------------------------------------------------------------+
 | ECEC  | Effective CEC (cmol kg-1)                                                                                |
++-------+----------------------------------------------------------------------------------------------------------+
 | ALSA  | Aluminum saturation (as % of ECEC)                                                                       |
++-------+----------------------------------------------------------------------------------------------------------+
 
 By default, data is extracted for the top layer only. Data is provided for the following seven layers (depths in cm).
 

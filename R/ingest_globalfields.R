@@ -133,7 +133,7 @@ ingest_globalfields <- function(
     ##----------------------------------------------------------------------
     ## Development Checks
     if (timescale != "h"){
-      rlang::abort("ingest_globalfields(): WFDE5 currently only holds implementation of houry ingestion.")
+      rlang::abort("ingest_globalfields(): WFDE5 currently only available for hourly output.")
     }
     
     ## vpd based on relative humidity, air temperature, and atmospheric pressure
@@ -187,6 +187,27 @@ ingest_globalfields <- function(
       kfFEC <- 2.04
       df_out <- ingest_globalfields_wfde5_byvar( df_out, siteinfo, dir, "SWdown" ) %>%
         dplyr::mutate(ppfd = myvar * kfFEC * 1.0e-6 ) %>%  # W m-2 -> mol m-2 s-1
+        dplyr::right_join(df_out, by = c("sitename", "date"))
+    }
+    
+    ## short-wave irradiation
+    if ("swin" %in% getvars && !("swin" %in% names(df_out))){
+      df_out <- ingest_globalfields_wfde5_byvar( df_out, siteinfo, dir, "SWdown" ) %>%
+        dplyr::rename(swin = myvar) %>%
+        dplyr::right_join(df_out, by = c("sitename", "date"))
+    }
+    
+    ## long-wave irradiation
+    if ("lwin" %in% getvars && !("lwin" %in% names(df_out))){
+      df_out <- ingest_globalfields_wfde5_byvar( df_out, siteinfo, dir, "LWdown" ) %>%
+        dplyr::rename(lwin = myvar) %>%
+        dplyr::right_join(df_out, by = c("sitename", "date"))
+    }
+    
+    ## wind
+    if ("wind" %in% getvars && !("wind" %in% names(df_out))){
+      df_out <- ingest_globalfields_wfde5_byvar( df_out, siteinfo, dir, "Wind" ) %>%
+        dplyr::rename(wind = myvar) %>%
         dplyr::right_join(df_out, by = c("sitename", "date"))
     }
     

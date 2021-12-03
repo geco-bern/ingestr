@@ -9,7 +9,8 @@
 #' the source dataset corresponding to standard names \code{"temp"} for temperature,
 #' \code{"prec"} for precipitation, \code{"patm"} for atmospheric pressure,
 #' \code{"vpd"} for vapour pressure deficit, \code{"netrad"} for net radiation,
-#' \code{"swin"} for shortwave incoming radiation.
+#' \code{"swin"} for shortwave incoming radiation, \code{"lwin"} for longwave incoming radiation,
+#' \code{"wind"} for wind.
 #' @param dir A character specifying the directory where data is located.
 #' @param settings A list of additional settings used for reading original files.
 #' @param timescale A character or vector of characters, specifying the time scale of data used from
@@ -245,7 +246,9 @@ ingest <- function(
         if ("prec" %in% getvars){getvars_wc <- c(getvars_wc, "prec")}
         if ("ppfd" %in% getvars){getvars_wc <- c(getvars_wc, "srad")}
         if ("wind" %in% getvars){getvars_wc <- c(getvars_wc, "wind")}
-        if ("vpd" %in% getvars){getvars_wc <- c(getvars_wc, "vapr", "tmin", "tmax")}
+        if ("vpd"  %in% getvars){getvars_wc <- c(getvars_wc, "vapr", "tmin", "tmax")}
+        if ("swin" %in% getvars){rlang::inform("Bias Correction: Not yet implemented for swin.")}
+        if ("lwin" %in% getvars){rlang::inform("Bias Correction: Not yet implemented for lwin.")}
 
         df_fine <- ingest_globalfields(siteinfo,
                                        source = "worldclim",
