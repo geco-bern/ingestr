@@ -302,7 +302,7 @@ ingest_bysite <- function(
             df_tmp <- df_tmp %>% 
               mutate(month = lubridate::month(date)) %>% 
               left_join(df_bias %>% dplyr::select(month, scale), by = "month") %>% 
-              mutate(prec = prec * scale) %>% 
+              mutate(prec = ifelse(is.na(scale), prec, prec * scale)) %>% 
               dplyr::select(-scale, -month)
           }
         }
@@ -328,7 +328,7 @@ ingest_bysite <- function(
           df_tmp <- df_tmp %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(month, scale), by = "month") %>% 
-            mutate(ppfd = ppfd * scale) %>% 
+            mutate(ppfd = ifelse(is.na(scale), ppfd, ppfd * scale)) %>% 
             dplyr::select(-scale, -month)
         }
         
@@ -351,7 +351,7 @@ ingest_bysite <- function(
           df_tmp <- df_tmp %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(month, scale), by = "month") %>% 
-            mutate(wind = wind * scale) %>% 
+            mutate(wind = ifelse(is.na(scale), wind, wind * scale)) %>% 
             dplyr::select(-scale, -month)
         }
         
