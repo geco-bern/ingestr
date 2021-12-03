@@ -283,7 +283,7 @@ ingest_bysite <- function(
             dplyr::select(-prec, -prec_fine, -sitename)
           
           ## correct bias by month
-          if (source == "watch_wfdei"){
+          if (source == "watch_wfdei" || source == "wfde5"){
             ## scaling also snow and rain rates
             df_tmp <- df_tmp %>% 
               mutate(month = lubridate::month(date)) %>% 

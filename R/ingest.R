@@ -150,6 +150,7 @@ ingest <- function(
                    year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
         } else if (source == "wfde5"){
           rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WFDE5 data is ingested for 1979-(at least) 2000.")
+          year_start_wc <- 1979  # no earlier years available
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
                    year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
