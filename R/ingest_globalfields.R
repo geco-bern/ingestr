@@ -739,6 +739,7 @@ ingest_globalfields_wfde5_byvar <- function( ddf, siteinfo, dir, varnam ){
   
   ## create data frame containing all dates, using mean annual cycle (of 1979-1988) for all years before 1979
   if (pre_data){
+    rlang::abort("Data for years before 1979 requested. Not yet implemented for hourly WFDE5 data.")
     rlang::inform("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1988) for all years before 1979.")
     
     ## get mean seasonal cycle, averaged over 1979:1988

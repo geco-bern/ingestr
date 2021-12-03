@@ -144,6 +144,12 @@ ingest_bysite <- function(
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
                    year_end = ifelse(year_end > year_end_wc, year_end, year_end_wc))
+        } else if (source == "wfde5"){
+          rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WFDE5 data is ingested for 1979-(at least) 2000.")
+          year_start_wc <- 1979  # no earlier years available
+          siteinfo <- siteinfo %>% 
+            mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
+                   year_end = ifelse(year_end > year_end_wc, year_end, year_end_wc))
         } else if (source == "cru"){
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
@@ -186,7 +192,9 @@ ingest_bysite <- function(
         if ("prec" %in% getvars){getvars_wc <- c(getvars_wc, "prec")}
         if ("ppfd" %in% getvars){getvars_wc <- c(getvars_wc, "srad")}
         if ("wind" %in% getvars){getvars_wc <- c(getvars_wc, "wind")}
-        if ("vpd" %in% getvars){getvars_wc <- c(getvars_wc, "vapr", "tmin", "tmax")}
+        if ("vpd"  %in% getvars){getvars_wc <- c(getvars_wc, "vapr", "tmin", "tmax")}
+        if ("swin" %in% getvars){rlang::inform("Bias Correction: Not yet implemented for swin.")}
+        if ("lwin" %in% getvars){rlang::inform("Bias Correction: Not yet implemented for lwin.")}
         
         df_fine <- ingest_globalfields(siteinfo,
                                        source = "worldclim",
@@ -392,7 +400,7 @@ ingest_bysite <- function(
         ## Calculate vapour pressure deficit from specific humidity
         if ("vpd" %in% getvars){
           
-          if (source == "watch_wfdei"){
+          if (source == "watch_wfdei" || source == "wfde5"){
             ## use daily mean temperature
             df_tmp <- df_tmp %>%
               rowwise() %>%
