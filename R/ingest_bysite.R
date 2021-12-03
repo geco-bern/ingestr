@@ -258,7 +258,7 @@ ingest_bysite <- function(
           df_tmp <- df_tmp %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(month, bias), by = "month") %>% 
-            mutate(tmin = tmin - bias) %>% 
+            mutate(tmin = ifelse(!(is.na(bias)), tmin - bias, tmin)) %>% 
             dplyr::select(-bias, -month)
         }
         
@@ -281,7 +281,7 @@ ingest_bysite <- function(
           df_tmp <- df_tmp %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(month, bias), by = "month") %>% 
-            mutate(tmax = tmax - bias) %>% 
+            mutate(tmax = ifelse(!(is.na(bias)), tmax - bias, tmax)) %>% 
             dplyr::select(-bias, -month)
         }
         
@@ -308,7 +308,9 @@ ingest_bysite <- function(
             df_tmp <- df_tmp %>% 
               mutate(month = lubridate::month(date)) %>% 
               left_join(df_bias %>% dplyr::select(month, scale), by = "month") %>% 
-              mutate(prec = prec * scale, rain = rain * scale, snow = snow * scale) %>% 
+              mutate(prec = ifelse(is.na(scale), prec, prec * scale),
+                     rain = ifelse(is.na(scale), rain, rain * scale),
+                     snow = ifelse(is.na(scale), snow, snow * scale)) %>% 
               dplyr::select(-scale, -month)
           } else {
             df_tmp <- df_tmp %>% 
@@ -404,7 +406,7 @@ ingest_bysite <- function(
           df_tmp <- df_tmp %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(month, scale), by = "month") %>% 
-            mutate(vapr = vapr * scale) %>% 
+            mutate(vapr = ifelse(is.na(scale), vapr, vapr * scale)) %>% 
             dplyr::select(-scale, -month)
         }      
         
