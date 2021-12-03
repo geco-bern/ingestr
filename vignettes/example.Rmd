@@ -230,8 +230,8 @@ df_wfde5 <- ingest_bysite(
   year_end  = 2007,
   lon       = 3.5958,
   lat       = 43.7414,
-  verbose   = TRUE#,
-  #settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
+  verbose   = TRUE,
+  settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
   )
 df_wfde5
 ```
