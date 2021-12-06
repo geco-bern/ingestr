@@ -23,6 +23,6 @@ Returns a list of two data frames, one with data at original
 modis dates (df), and one interpolated to all days (ddf).
 }
 \examples{
-settings_gee <- get_settings_gee( bundle = "modis_fpar" )
+df <- ingest_modis_bysite( bundle = "modis_fpar" )
 
 }

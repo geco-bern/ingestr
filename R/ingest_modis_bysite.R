@@ -12,7 +12,7 @@
 #' Earth Engine.
 #' @export
 #'
-#' @examples settings_gee <- ingest_modis_bysite( bundle = "modis_fpar" )
+#' @examples df <- ingest_modis_bysite( bundle = "modis_fpar" )
 #'
 ingest_modis_bysite <- function(
   df_siteinfo,
@@ -833,6 +833,9 @@ gapfill_interpol <- function(
   # ddf$modisvar_filled <- extrapolate_missing_headtail(dplyr::select(ddf,
   #  var = modisvar_filled))
 
+    
+  }
+  
   return( ddf )
 
 }
