@@ -84,7 +84,7 @@ ingest_bysite <- function(
   }
 
   ##-----------------------------------------------------------
-  ## FLUXNET 2015 readin
+  ## FLUXNET 2015 reading
   ##-----------------------------------------------------------
   if (source == "fluxnet"){
 
@@ -120,7 +120,7 @@ ingest_bysite <- function(
                                     ) %>%
       mutate(sitename = sitename)
 
-  } else if (source == "cru" || source == "watch_wfdei" || source == "ndep"){
+  } else if (source == "cru" || source == "watch_wfdei" || source == "ndep" || source == "wfde5"){
     #-----------------------------------------------------------
     # Get data from global fields and one single site
     #-----------------------------------------------------------
@@ -155,6 +155,12 @@ ingest_bysite <- function(
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
                    year_end = ifelse(year_end > year_end_wc, year_end, year_end_wc))
+        } else if (source == "wfde5"){
+          rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WFDE5 data is ingested for 1979-(at least) 2000.")
+          year_start_wc <- 1979  # no earlier years available
+          siteinfo <- siteinfo %>% 
+            mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
+                   year_end = ifelse(year_end > year_end_wc, year_end, year_end_wc))
         } else if (source == "cru"){
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
@@ -164,13 +170,13 @@ ingest_bysite <- function(
     }
 
     ## this returns a flat data frame with data from all sites
-    df_tmp <- ingest_globalfields(siteinfo,
-                               source = source,
-                               getvars = getvars,
-                               dir = dir,
-                               timescale = timescale,
-                               verbose = FALSE
-                              )
+    df_tmp <- ingest_globalfields(siteinfo  = siteinfo,
+                                  source    = source,
+                                  getvars   = getvars,
+                                  dir       = dir,
+                                  timescale = timescale,
+                                  verbose   = FALSE
+                                  )
     
     ## bias-correct atmospheric pressure - per default
     if ("patm" %in% getvars){
@@ -197,7 +203,9 @@ ingest_bysite <- function(
         if ("prec" %in% getvars){getvars_wc <- c(getvars_wc, "prec")}
         if ("ppfd" %in% getvars){getvars_wc <- c(getvars_wc, "srad")}
         if ("wind" %in% getvars){getvars_wc <- c(getvars_wc, "wind")}
-        if ("vpd" %in% getvars){getvars_wc <- c(getvars_wc, "vapr", "tmin", "tmax")}
+        if ("vpd"  %in% getvars){getvars_wc <- c(getvars_wc, "vapr", "tmin", "tmax")}
+        if ("swin" %in% getvars){rlang::inform("Bias Correction: Not yet implemented for swin.")}
+        if ("lwin" %in% getvars){rlang::inform("Bias Correction: Not yet implemented for lwin.")}
         
         df_fine <- ingest_globalfields(siteinfo,
                                        source = "worldclim",
@@ -227,7 +235,7 @@ ingest_bysite <- function(
           df_tmp <- df_tmp %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(month, bias), by = "month") %>% 
-            mutate(temp = temp - bias) %>% 
+            mutate(temp = ifelse(!(is.na(bias)), temp - bias, temp)) %>% 
             dplyr::select(-bias, -month)
         }
 
@@ -250,7 +258,7 @@ ingest_bysite <- function(
           df_tmp <- df_tmp %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(month, bias), by = "month") %>% 
-            mutate(tmin = tmin - bias) %>% 
+            mutate(tmin = ifelse(!(is.na(bias)), tmin - bias, tmin)) %>% 
             dplyr::select(-bias, -month)
         }
         
@@ -273,7 +281,7 @@ ingest_bysite <- function(
           df_tmp <- df_tmp %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(month, bias), by = "month") %>% 
-            mutate(tmax = tmax - bias) %>% 
+            mutate(tmax = ifelse(!(is.na(bias)), tmax - bias, tmax)) %>% 
             dplyr::select(-bias, -month)
         }
         
@@ -295,18 +303,20 @@ ingest_bysite <- function(
             dplyr::select(-prec, -prec_fine, -sitename)
           
           ## correct bias by month
-          if (source == "watch_wfdei"){
+          if (source == "watch_wfdei" || source == "wfde5"){
             ## scaling also snow and rain rates
             df_tmp <- df_tmp %>% 
               mutate(month = lubridate::month(date)) %>% 
               left_join(df_bias %>% dplyr::select(month, scale), by = "month") %>% 
-              mutate(prec = prec * scale, rain = rain * scale, snow = snow * scale) %>% 
+              mutate(prec = ifelse(is.na(scale), prec, prec * scale),
+                     rain = ifelse(is.na(scale), rain, rain * scale),
+                     snow = ifelse(is.na(scale), snow, snow * scale)) %>% 
               dplyr::select(-scale, -month)
           } else {
             df_tmp <- df_tmp %>% 
               mutate(month = lubridate::month(date)) %>% 
               left_join(df_bias %>% dplyr::select(month, scale), by = "month") %>% 
-              mutate(prec = prec * scale) %>% 
+              mutate(prec = ifelse(is.na(scale), prec, prec * scale)) %>% 
               dplyr::select(-scale, -month)
           }
         }
@@ -332,7 +342,7 @@ ingest_bysite <- function(
           df_tmp <- df_tmp %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(month, scale), by = "month") %>% 
-            mutate(ppfd = ppfd * scale) %>% 
+            mutate(ppfd = ifelse(is.na(scale), ppfd, ppfd * scale)) %>% 
             dplyr::select(-scale, -month)
         }
         
@@ -355,7 +365,7 @@ ingest_bysite <- function(
           df_tmp <- df_tmp %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(month, scale), by = "month") %>% 
-            mutate(wind = wind * scale) %>% 
+            mutate(wind = ifelse(is.na(scale), wind, wind * scale)) %>% 
             dplyr::select(-scale, -month)
         }
         
@@ -396,7 +406,7 @@ ingest_bysite <- function(
           df_tmp <- df_tmp %>% 
             mutate(month = lubridate::month(date)) %>% 
             left_join(df_bias %>% dplyr::select(month, scale), by = "month") %>% 
-            mutate(vapr = vapr * scale) %>% 
+            mutate(vapr = ifelse(is.na(scale), vapr, vapr * scale)) %>% 
             dplyr::select(-scale, -month)
         }      
         
@@ -404,7 +414,7 @@ ingest_bysite <- function(
         ## Calculate vapour pressure deficit from specific humidity
         if ("vpd" %in% getvars){
           
-          if (source == "watch_wfdei"){
+          if (source == "watch_wfdei" || source == "wfde5"){
             ## use daily mean temperature
             df_tmp <- df_tmp %>%
               rowwise() %>%
@@ -538,8 +548,8 @@ ingest_bysite <- function(
         dplyr::select(year = yy, month = mm, co2_avg)
     }
     
-    df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
-      dplyr::mutate(month = month(date), year = lubridate::year(date)) %>%
+    df_tmp <- init_dates_dataframe( year_start, year_end, timescale = timescale ) %>%
+      dplyr::mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%
       dplyr::left_join(
         df_co2,
         by = c("year", "month")
@@ -560,8 +570,8 @@ ingest_bysite <- function(
       stop("File cCO2_rcp85_const850-1765.csv must be available in directory specified by 'dir'.")     
     }
     
-    df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
-      dplyr::mutate(month = month(date), year = lubridate::year(date)) %>%
+    df_tmp <- init_dates_dataframe( year_start, year_end, timescale = timescale ) %>%
+      dplyr::mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%
       dplyr::left_join(
         df_co2,
         by = c("year")
@@ -574,7 +584,7 @@ ingest_bysite <- function(
     #-----------------------------------------------------------
     # Assume fapar = 1 for all dates
     #-----------------------------------------------------------
-    df_tmp <- init_dates_dataframe( year_start, year_end ) %>%
+    df_tmp <- init_dates_dataframe( year_start, year_end, timescale = timescale ) %>%
       dplyr::mutate(sitename = sitename, fapar = 1.0)
 
   } else if (source == "etopo1"){
@@ -722,8 +732,8 @@ ingest_bysite <- function(
       tidyr::nest()
     
   }  else {
-    warning(paste("you selected source =", source))
-    stop("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
+    rlang::warn(paste("you selected source =", source))
+    stop("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'wfde5', 'co2_mlo', 'etopo1', or 'gee'.")
   }
 
   ## add data frame to nice data frame containing all required time steps

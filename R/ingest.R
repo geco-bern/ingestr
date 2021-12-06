@@ -9,7 +9,8 @@
 #' the source dataset corresponding to standard names \code{"temp"} for temperature,
 #' \code{"prec"} for precipitation, \code{"patm"} for atmospheric pressure,
 #' \code{"vpd"} for vapour pressure deficit, \code{"netrad"} for net radiation,
-#' \code{"swin"} for shortwave incoming radiation.
+#' \code{"swin"} for shortwave incoming radiation, \code{"lwin"} for longwave incoming radiation,
+#' \code{"wind"} for wind.
 #' @param dir A character specifying the directory where data is located.
 #' @param settings A list of additional settings used for reading original files.
 #' @param timescale A character or vector of characters, specifying the time scale of data used from
@@ -166,7 +167,7 @@ ingest <- function(
 	    bind_rows()
 	  
 
-	} else if (source == "cru" || source == "watch_wfdei" || source == "ndep"){
+	} else if (source == "cru" || source == "watch_wfdei" || source == "ndep" || source == "wfde5"){
 	  #-----------------------------------------------------------
 	  # Get data from global fields
 	  #-----------------------------------------------------------
@@ -182,7 +183,7 @@ ingest <- function(
             lubridate::year(siteinfo$date_start[.]),
             lubridate::year(siteinfo$date_end[.]),
             noleap = TRUE,
-            timescale = "d"))
+            timescale = timescale))
         names(ddf_dates) <- siteinfo$sitename
         ddf_dates <- ddf_dates %>%
           bind_rows(.id = "sitename")
@@ -196,10 +197,15 @@ ingest <- function(
           Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
           year_start_wc <- 1979  # no earlier years available
           siteinfo <- siteinfo %>% 
-            mutate(year_start = ifelse(year_start < year_start_wc,
-                                       year_start, year_start_wc),
-                   year_end = ifelse(year_end > year_end_wc,
-                                     year_end, year_end_wc))
+            mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
+                   year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
+        } else if (source == "wfde5"){
+          rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WFDE5 data is ingested for 1979-(at least) 2000.")
+          year_start_wc <- 1979  # no earlier years available
+          siteinfo <- siteinfo %>% 
+            mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
+                   year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
+
         } else if (source == "cru"){
           message(
             "Beware: WorldClim data is for years 1970-2000. 
@@ -308,8 +314,9 @@ ingest <- function(
         if ("prec" %in% getvars){getvars_wc <- c(getvars_wc, "prec")}
         if ("ppfd" %in% getvars){getvars_wc <- c(getvars_wc, "srad")}
         if ("wind" %in% getvars){getvars_wc <- c(getvars_wc, "wind")}
-        if ("vpd" %in% getvars){getvars_wc <- c(getvars_wc, "vapr",
-                                                "tmin", "tmax")}
+        if ("vpd"  %in% getvars){getvars_wc <- c(getvars_wc, "vapr", "tmin", "tmax")}
+        if ("swin" %in% getvars){rlang::inform("Bias Correction: Not yet implemented for swin.")}
+        if ("lwin" %in% getvars){rlang::inform("Bias Correction: Not yet implemented for lwin.")}
 
         df_fine <- ingest_globalfields(siteinfo,
                                        source = "worldclim",
@@ -319,7 +326,7 @@ ingest <- function(
                                        verbose = FALSE,
                                        layer = unique(getvars_wc))
 
-        ## Bias correction for temperature: substract difference
+        ## Bias correction for temperature: subtract difference
         if ("tavg" %in% getvars_wc){
           df_bias <- df_fine %>%
             dplyr::select(sitename, starts_with("tavg_")) %>%
@@ -351,7 +358,7 @@ ingest <- function(
             dplyr::select(-bias, -month)
         }
 
-        ## Bias correction for temperature: substract difference
+        ## Bias correction for temperature: subtract difference
         if ("tmin" %in% getvars_wc){
           if (source == "cru"){ # no tmin or tmax in wwfd
             df_bias <- df_fine %>%
@@ -386,7 +393,8 @@ ingest <- function(
           }
         }    
 
-        ## Bias correction for temperature: substract difference
+
+        ## Bias correction for temperature: subtract difference
         if ("tmax" %in% getvars_wc){
           if (source == "cru"){ # no tmin or tmax in wwfd
             df_bias <- df_fine %>%
@@ -429,7 +437,7 @@ ingest <- function(
             tidyr::pivot_longer(cols = starts_with("prec_"), names_to = "month", values_to = "prec", names_prefix = "prec_") %>%
             mutate(month = as.integer(month)) %>%
             rename(prec_fine = prec) %>%
-            mutate(prec_fine = prec_fine / days_in_month(month)) %>%   # mm/month -> mm/d
+            mutate(prec_fine = prec_fine / lubridate::days_in_month(month)) %>%   # mm/month -> mm/d
             mutate(prec_fine = prec_fine / (60 * 60 * 24)) %>%         # mm/d -> mm/sec
             right_join(ddf %>%
                          dplyr::filter(lubridate::year(date) %in% year_start_wc:year_end_wc) %>%
@@ -441,7 +449,7 @@ ingest <- function(
             dplyr::select(sitename, month, scale)
 
           ## correct bias by month
-          if (source == "watch_wfdei"){
+          if (source == "watch_wfdei" || source == "wfde5"){
             ddf <- ddf %>%
               mutate(month = lubridate::month(date)) %>%
               left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>%
@@ -530,7 +538,7 @@ ingest <- function(
         if ("vapr" %in% getvars_wc){
 
           ## calculate vapour pressure from specific humidity - needed for bias correction with worldclim data
-          if (source == "watch_wfdei"){
+          if (source == "watch_wfdei" || source == "wfde5"){
             ## specific humidity (qair, g g-1) is read, convert to vapour pressure (vapr, Pa)
             ddf <- ddf %>% 
               rowwise() %>% 
@@ -582,7 +590,7 @@ ingest <- function(
         ## Calculate vapour pressure deficit from specific humidity
         if ("vpd" %in% getvars){
           
-          if (source == "watch_wfdei"){
+          if (source == "watch_wfdei" || source == "wfde5"){
             ## use daily mean temperature
             ddf <- ddf %>%
               rowwise() %>%
@@ -620,7 +628,7 @@ ingest <- function(
       
       if ("vpd" %in% getvars){
 
-        if (source == "watch_wfdei"){
+        if (source == "watch_wfdei" || source == "wfde5"){
           ## use daily mean temperature
           ddf <- ddf %>%
             rowwise() %>%
@@ -793,7 +801,8 @@ ingest <- function(
 	      df_co2,
 	      sitename = siteinfo$sitename[.],
 	      year_start = lubridate::year(siteinfo$date_start[.]),
-	      year_end   = lubridate::year(siteinfo$date_end[.])
+	      year_end   = lubridate::year(siteinfo$date_end[.]),
+	      timescale  = timescale
 	      )
 	    )
 
@@ -820,7 +829,8 @@ ingest <- function(
 	      df_co2,
 	      sitename = siteinfo$sitename[.],
 	      year_start = lubridate::year(siteinfo$date_start[.]),
-	      year_end   = lubridate::year(siteinfo$date_end[.])
+	      year_end   = lubridate::year(siteinfo$date_end[.]),
+	      timescale = timescale
 	    )
 	  )
 
@@ -831,9 +841,10 @@ ingest <- function(
 	  ddf <- purrr::map(
 	    as.list(seq(nrow(siteinfo))),
 	    ~expand_bysite(
-	      sitename = siteinfo$sitename[.],
+	      sitename   = siteinfo$sitename[.],
 	      year_start = lubridate::year(siteinfo$date_start[.]),
-	      year_end   = lubridate::year(siteinfo$date_end[.])
+	      year_end   = lubridate::year(siteinfo$date_end[.]),
+	      timescale  = timescale
 	      ) %>%
 	      mutate(fapar = 1.0)
 	  )
@@ -931,8 +942,8 @@ ingest <- function(
 
 	 } else {
 
-	  warning(paste("you selected source =", source))
-	  stop("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'co2_mlo', 'etopo1', or 'gee'.")
+	  rlang::warn(paste("you selected source =", source))
+	  stop("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'wfde5', co2_mlo', 'etopo1', or 'gee'.")
 
 	}
 
@@ -946,9 +957,9 @@ ingest <- function(
 }
 
 ## give each site and day within year the same co2 value
-expand_co2_bysite <- function(df, sitename, year_start, year_end){
+expand_co2_bysite <- function(df, sitename, year_start, year_end, timescale){
 
-  ddf <- init_dates_dataframe( year_start, year_end ) %>%
+  ddf <- init_dates_dataframe( year_start, year_end, timescale = timescale) %>%
     dplyr::mutate(year = lubridate::year(date)) %>%
     dplyr::left_join(
       df,
@@ -959,9 +970,9 @@ expand_co2_bysite <- function(df, sitename, year_start, year_end){
   return(ddf)
 }
 
-expand_bysite <- function(sitename, year_start, year_end){
+expand_bysite <- function(sitename, year_start, year_end, timescale ){
 
-  ddf <- init_dates_dataframe( year_start, year_end ) %>%
+  ddf <- init_dates_dataframe( year_start, year_end, timescale = timescale) %>%
     dplyr::mutate(sitename = sitename)
 
   return(ddf)
