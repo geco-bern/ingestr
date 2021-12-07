@@ -704,7 +704,9 @@ ingest_bysite <- function(
                            verbose = FALSE,
                            layer = .
       )) %>% 
-      map2(as.list(settings$varnam), ~aggregate_layers(.x, .y, settings$layer)) %>% 
+      map2(as.list(settings$varnam),
+           ~aggregate_layers(.x, .y, settings$layer)
+           ) %>% 
       purrr::reduce(left_join, by = "sitename") %>%
       group_by(sitename) %>%
       tidyr::nest()
@@ -733,7 +735,9 @@ ingest_bysite <- function(
     
   }  else {
     rlang::warn(paste("you selected source =", source))
-    stop("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'wfde5', 'co2_mlo', 'etopo1', or 'gee'.")
+    stop("ingest(): Argument 'source' could not be identified. 
+         Use one of 'fluxnet', 'cru', 'watch_wfdei', 'wfde5',
+         'co2_mlo', 'etopo1', or 'gee'.")
   }
 
   ## add data frame to nice data frame containing all required time steps

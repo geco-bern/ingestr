@@ -15,17 +15,23 @@ monthly2daily(
 \arguments{
 \item{mval}{A vector of twelve numeric values for monthly values.}
 
-\item{method}{A character string specifying the method for interpolation. Defaults to \code{"polynom"} for using a polynomial.}
+\item{method}{A character string specifying the method for interpolation. 
+Defaults to \code{"polynom"} for using a polynomial.}
 
-\item{mval_prev}{The monthly value of the month before the twelve months for which values are provided by argument \code{mval}.}
+\item{mval_prev}{The monthly value of the month before the twelve months for 
+which values are provided by argument \code{mval}.}
 
-\item{mval_next}{The monthly value of the month after the twelve months for which values are provided by argument \code{mval}.}
+\item{mval_next}{The monthly value of the month after the twelve months for 
+which values are provided by argument \code{mval}.}
 
-\item{leapyear}{A logical specifying whether interpolation is done for a leap year (with 366 days).}
+\item{leapyear}{A logical specifying whether interpolation is done for a 
+leap year (with 366 days).}
 }
 \value{
-A named list of data frames (tibbles) containing input data for each site is returned.
+A named list of data frames (tibbles) containing 
+ input data for each site is returned.
 }
 \description{
-Implements different methods to interpolate from monthly to daily values, including fitting a polynomial.
+Implements different methods to interpolate from monthly to daily values,
+including fitting a polynomial.
 }

@@ -26,7 +26,8 @@ ingest(
 the source dataset corresponding to standard names \code{"temp"} for temperature,
 \code{"prec"} for precipitation, \code{"patm"} for atmospheric pressure,
 \code{"vpd"} for vapour pressure deficit, \code{"netrad"} for net radiation,
-\code{"swin"} for shortwave incoming radiation.}
+\code{"swin"} for shortwave incoming radiation, \code{"lwin"} for longwave incoming radiation,
+\code{"wind"} for wind.}
 
 \item{dir}{A character specifying the directory where data is located.}
 

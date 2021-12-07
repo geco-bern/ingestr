@@ -4,21 +4,28 @@
 #' for a pre-defined set of "bundles" (\code{c("modis_fpar",
 #' "modis_evi", "modis_lai", "modis_gpp")}).
 #'
-#' @param bundle A character string specifying which dataset (bundle) to download.
-#' Defaults to \code{"modis_fpar"}. Available are: \code{c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")}.
-#' @param python_path A character string specifying the local path to the python executable
-#' @param gee_path A character string specifying the local path to the \code{gee_subseet} library.
+#' @param bundle A character string specifying which dataset (bundle) 
+#'  to download. Defaults to \code{"modis_fpar"}. Available are:
+#'  \code{c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")}.
+#' @param python_path A character string specifying the local path to the 
+#'  python executable
+#' @param gee_path A character string specifying the local path to the
+#'  \code{gee_subseet} library.
 #' Defaults to \code{"."} (present working directory).
-#' @param data_path A character string specifying the path of where the data should be downloaded to.
+#' @param data_path A character string specifying the path of where the data
+#'  should be downloaded to.
 #' Defaults to \code{"."} (present working directory).
-#' @param method_interpol A character string specifying which interpolation method to use. Defaults to linear interpolation (\code{"linear"}).
-#' Alternatives are
-#' @param keep A logical specifying whether to keep all intermediate data (before filtering, and before imputing mean seasonal cycle),
-#' and all alternative interpolation results. Defaults to \code{FALSE}.
-#' @param overwrite_raw A logical specifying whether raw data as downloaded from GEE is to be overwritten. Defaults to \code{FALSE},
-#' i.e. data is read from exisitng file if available.
-#' @param overwrite_interpol A logical specifying whether processed (interpolated) data, is to be overwritten. Defaults to \code{FALSE},
-#' i.e. data is read from exisitng file if available.
+#' @param method_interpol A character string specifying which interpolation
+#'  method to use. Defaults to linear interpolation (\code{"linear"}).
+#' @param keep A logical specifying whether to keep all intermediate data
+#'  (before filtering, and before imputing mean seasonal cycle),
+#'  and all alternative interpolation results. Defaults to \code{FALSE}.
+#' @param overwrite_raw A logical specifying whether raw data as downloaded
+#'  from GEE is to be overwritten. Defaults to \code{FALSE},
+#'  i.e. data is read from exisitng file if available.
+#' @param overwrite_interpol A logical specifying whether processed 
+#'  (interpolated) data, is to be overwritten. Defaults to \code{FALSE},
+#'  i.e. data is read from exisitng file if available.
 #' @return A named list containing information required for download from Google
 #' Earth Engine.
 #' @export
@@ -121,9 +128,9 @@ get_settings_gee <- function(
 #' for a pre-defined set of "bundles" (\code{c("modis_fpar",
 #' "modis_evi", "modis_lai", "modis_gpp")}).
 #'
-#' @param bundle A character string specifying which dataset (bundle) to download.
-#' Defaults to \code{"modis_fpar"}. Available are: \code{c("modis_fpar",
-#'  "modis_evi", "modis_lai", "modis_gpp")}.
+#' @param bundle A character string specifying which dataset (bundle) to
+#'  download.Defaults to \code{"modis_fpar"}. 
+#'  Available: \code{c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")}.
 #' @param data_path A character string specifying the path of where the data
 #' should be downloaded to. Defaults to \code{"."} (present working directory).
 #' @param method_interpol A character string specifying which interpolation
@@ -258,7 +265,9 @@ get_settings_modis <- function(
       )
     
   } else {
-    rlang::abort("get_settings_modis(): Could not identify required argument 'bundle'.")
+    stop(
+      "get_settings_modis(): Could not identify required argument 'bundle'."
+      )
   }
   
   out$data_path          <- data_path
@@ -358,17 +367,18 @@ get_settings_modis <- function(
 #' monthly, and annual data and 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
 #' meaning no data is excluded.
-#' @param filter_ntdt A logical specifying whether agreement of daytime and nighttime-
-#' based GPP estimates is to be used as a filter. Data points are removed
-#' where their difference is below the the 97.5% and above the 2.5% quantile of all
-#' difference values per site. Defaults to \code{FALSE}.
+#' @param filter_ntdt A logical specifying whether agreement of daytime 
+#' and nighttime based GPP estimates is to be used as a filter. 
+#' Data points are removed where their difference is below the the 97.5% and 
+#' above the 2.5% quantile of all difference values per site.
+#' Defaults to \code{FALSE}.
 #' @param return_qc A logical specifying whether quality control variables
 #' should be returned. Defaults to \code{FALSE}.
 #' @param remove_neg A logical specifying whether negative GPP values are to
 #' be removed (replaces with NA). Defaults to \code{FALSE}.
 #'
-#' @return A named list containing information required for read data from standard
-#' FLUXNET data files (CSV files).
+#' @return A named list containing information required for read data from 
+#' standard FLUXNET data files (CSV files).
 #' @export
 #'
 #' @examples \dontrun{settings_gee <- get_settings_fluxnet()}
@@ -415,33 +425,48 @@ get_settings_fluxnet <- function(
 
 #' Defines settings for settings for SoilGrids ingest
 #'
-#' Defines settings for settings for SoilGrids ingest. Handles the specification of the required layer identifier.
+#' Defines settings for settings for SoilGrids ingest. Handles the
+#' specification of the required layer identifier.
 #'
 #' @param varnam A charachter string specifying the variable of interest.
 #' See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for naming conventions.
 #' @param layer An integer or vector of integers specifying the soil layers.
 #' See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for available layers.
 #' Defaults to \code{"0-5cm"}.
-#' @param agg A character string specifying the aggregation statistic for depth layer-specific values. Defaults to
+#' @param agg A character string specifying the aggregation statistic for depth
+#'  layer-specific values. Defaults to
 #' \code{"mean"}. See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for
 #' available statistics.
-#' @return A named list containing information required for download from SoilGrids
+#' @return A named list containing information required for download 
+#'  from SoilGrids
 #' @export
 #'
 #' @examples \dontrun{settings <- get_settings_soilgrids("soc")}
 #'
-get_settings_soilgrids <- function(varnam, layer = 1, agg = "mean"){
+get_settings_soilgrids <- function(
+  varnam,
+  layer = 1,
+  agg = "mean"
+  ){
 
+  code <- data_layer <- NULL
+  
   ## for association of layer character codes
-  df_layer_code <- tibble(layer = 1:6, code = c("0-5cm", "5-15cm", "15-30cm", "30-60cm", "60-100cm", "100-200cm"))
+  df_layer_code <- tibble(
+    layer = 1:6,
+    code = c("0-5cm", "5-15cm", "15-30cm", "30-60cm", "60-100cm", "100-200cm")
+    )
 
   ## for association of conversion factors
-  df_conversion <- tibble(varnam = c("bdod", "cec", "cfvo", "clay", "nitrogen", "phh2o", "sand", "silt", "soc", "ocd", "ocs"),
-                          factor = c(100, 10 , 10 , 10 , 100, 10 , 10 , 10 , 10 , 10 , 10))
+  df_conversion <- tibble(
+    varnam = c("bdod", "cec", "cfvo", "clay", "nitrogen",
+               "phh2o", "sand", "silt", "soc", "ocd", "ocs"),
+    factor = c(100, 10 , 10 , 10 , 100, 10 , 10 , 10 , 10 , 10 , 10)
+    )
   
   ## specify layer of interest
   df_voi_layer <- expand.grid(varnam, layer) %>% 
-    setNames(c("varnam", "layer")) %>% 
+    stats::setNames(c("varnam", "layer")) %>% 
     as_tibble() %>% 
     left_join(df_layer_code, by = "layer") %>% 
     mutate(data_layer = paste(varnam, code, agg, sep = "_")) %>% 
@@ -461,18 +486,20 @@ get_settings_soilgrids <- function(varnam, layer = 1, agg = "mean"){
 
 #' Defines settings for settings for WISE30sec ingest
 #'
-#' Defines settings for settings for WISE30sec ingest. Handles the specification of the required layer identifier.
+#' Defines settings for settings for WISE30sec ingest. Handles the specification
+#' of the required layer identifier.
 #'
 #' @param varnam A charachter string specifying the variable of interest.
 #' See \url{https://www.isric.org/documents/document-type/isric-report-201501-world-soil-property-estimates-broad-scale-modelling} for naming conventions.
 #' @param layer An integer specifying soil layer.
 #' See \url{https://www.isric.org/documents/document-type/isric-report-201501-world-soil-property-estimates-broad-scale-modelling} for available layers.
 #' Defaults to \code{1}.
-#' @return A named list containing information required for download from WISE30sec
+#' @return A named list containing information required for download from 
+#' WISE30sec
 #' @export
 #'
 #' @examples \dontrun{settings <- get_settings_wise("CNrt")}
-#'
+
 get_settings_wise <- function(varnam, layer = 1){
   
   out <- list()

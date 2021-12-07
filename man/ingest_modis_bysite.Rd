@@ -23,6 +23,7 @@ Returns a list of two data frames, one with data at original
 modis dates (df), and one interpolated to all days (ddf).
 }
 \examples{
+\dontrun{
 df <- ingest_modis_bysite( bundle = "modis_fpar" )
-
+}
 }
