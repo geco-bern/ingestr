@@ -376,6 +376,7 @@ get_settings_modis <- function(
 #' should be returned. Defaults to \code{FALSE}.
 #' @param remove_neg A logical specifying whether negative GPP values are to
 #' be removed (replaces with NA). Defaults to \code{FALSE}.
+#' @param verbose verbose output
 #'
 #' @return A named list containing information required for read data from 
 #' standard FLUXNET data files (CSV files).

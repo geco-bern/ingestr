@@ -3,15 +3,13 @@
 #' SoilGrids point data ingest
 #' This follows code outlined here: \url{https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md}
 #'
-#' @param sitename A character string specifying the site name (ID)
-#' @param lon Longitude (numeric)
-#' @param lat Latitude (numeric)
+#' @param siteinfo A character string specifying the site name (ID)
 #' @param settings A list returned by a call to \link{get_settings_soilgrids}
 #' @return A data frame with ingested data, nested in column data.
 #' @export
 #'
 #' @examples \dontrun{settings <- ingest_soilgrids("id1", lon = 100, lat = 50)}
-#'
+
 ingest_soilgrids <- function(siteinfo, settings){
   
   # CRAN compliance, declaring unstated variables

@@ -125,6 +125,8 @@ should be returned. Defaults to \code{FALSE}.}
 
 \item{remove_neg}{A logical specifying whether negative GPP values are to
 be removed (replaces with NA). Defaults to \code{FALSE}.}
+
+\item{verbose}{verbose output}
 }
 \value{
 A named list containing information required for read data from 

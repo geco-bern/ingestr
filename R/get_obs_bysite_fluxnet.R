@@ -106,6 +106,8 @@
 #' should be returned.
 #' @param remove_neg A logical specifying whether negative GPP values are to
 #' be removed (replaces with NA).
+#' @param getswc include soil water content (TRUE/FALSE, default = TRUE)
+#' @param verbose verbose output
 #'
 #' @return A data frame (tibble) containing cleaned observational data,
 #' named and in units corresponding to rsofun standard.
@@ -120,7 +122,7 @@ get_obs_bysite_fluxnet <- function(
   dir_hr = NULL,
   timescale,
   getvars,
-  getswc=TRUE,
+  getswc = TRUE,
   threshold_GPP=0.0,
   threshold_LE=0.0,
   threshold_H=0.0,
