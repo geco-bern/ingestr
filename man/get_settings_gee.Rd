@@ -16,27 +16,34 @@ get_settings_gee(
 )
 }
 \arguments{
-\item{bundle}{A character string specifying which dataset (bundle) to download.
-Defaults to \code{"modis_fpar"}. Available are: \code{c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")}.}
+\item{bundle}{A character string specifying which dataset (bundle) 
+to download. Defaults to \code{"modis_fpar"}. Available are:
+\code{c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")}.}
 
-\item{python_path}{A character string specifying the local path to the python executable}
+\item{python_path}{A character string specifying the local path to the 
+python executable}
 
-\item{gee_path}{A character string specifying the local path to the \code{gee_subseet} library.
+\item{gee_path}{A character string specifying the local path to the
+ \code{gee_subseet} library.
 Defaults to \code{"."} (present working directory).}
 
-\item{data_path}{A character string specifying the path of where the data should be downloaded to.
+\item{data_path}{A character string specifying the path of where the data
+ should be downloaded to.
 Defaults to \code{"."} (present working directory).}
 
-\item{method_interpol}{A character string specifying which interpolation method to use. Defaults to linear interpolation (\code{"linear"}).
-Alternatives are}
+\item{method_interpol}{A character string specifying which interpolation
+method to use. Defaults to linear interpolation (\code{"linear"}).}
 
-\item{keep}{A logical specifying whether to keep all intermediate data (before filtering, and before imputing mean seasonal cycle),
+\item{keep}{A logical specifying whether to keep all intermediate data
+(before filtering, and before imputing mean seasonal cycle),
 and all alternative interpolation results. Defaults to \code{FALSE}.}
 
-\item{overwrite_raw}{A logical specifying whether raw data as downloaded from GEE is to be overwritten. Defaults to \code{FALSE},
+\item{overwrite_raw}{A logical specifying whether raw data as downloaded
+from GEE is to be overwritten. Defaults to \code{FALSE},
 i.e. data is read from exisitng file if available.}
 
-\item{overwrite_interpol}{A logical specifying whether processed (interpolated) data, is to be overwritten. Defaults to \code{FALSE},
+\item{overwrite_interpol}{A logical specifying whether processed 
+(interpolated) data, is to be overwritten. Defaults to \code{FALSE},
 i.e. data is read from exisitng file if available.}
 }
 \value{

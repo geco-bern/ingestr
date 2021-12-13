@@ -17,9 +17,9 @@ get_settings_modis(
 )
 }
 \arguments{
-\item{bundle}{A character string specifying which dataset (bundle) to download.
-Defaults to \code{"modis_fpar"}. Available are: \code{c("modis_fpar",
- "modis_evi", "modis_lai", "modis_gpp")}.}
+\item{bundle}{A character string specifying which dataset (bundle) to
+download.Defaults to \code{"modis_fpar"}. 
+Available: \code{c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")}.}
 
 \item{data_path}{A character string specifying the path of where the data
 should be downloaded to. Defaults to \code{"."} (present working directory).}

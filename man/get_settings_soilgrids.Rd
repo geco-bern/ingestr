@@ -14,15 +14,18 @@ See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filen
 See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for available layers.
 Defaults to \code{"0-5cm"}.}
 
-\item{agg}{A character string specifying the aggregation statistic for depth layer-specific values. Defaults to
+\item{agg}{A character string specifying the aggregation statistic for depth
+ layer-specific values. Defaults to
 \code{"mean"}. See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for
 available statistics.}
 }
 \value{
-A named list containing information required for download from SoilGrids
+A named list containing information required for download 
+ from SoilGrids
 }
 \description{
-Defines settings for settings for SoilGrids ingest. Handles the specification of the required layer identifier.
+Defines settings for settings for SoilGrids ingest. Handles the
+specification of the required layer identifier.
 }
 \examples{
 \dontrun{settings <- get_settings_soilgrids("soc")}

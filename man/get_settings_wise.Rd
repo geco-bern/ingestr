@@ -15,12 +15,13 @@ See \url{https://www.isric.org/documents/document-type/isric-report-201501-world
 Defaults to \code{1}.}
 }
 \value{
-A named list containing information required for download from WISE30sec
+A named list containing information required for download from 
+WISE30sec
 }
 \description{
-Defines settings for settings for WISE30sec ingest. Handles the specification of the required layer identifier.
+Defines settings for settings for WISE30sec ingest. Handles the specification
+of the required layer identifier.
 }
 \examples{
 \dontrun{settings <- get_settings_wise("CNrt")}
-
 }

@@ -114,20 +114,23 @@ monthly, and annual data and 0 [measured], 1 [good quality gapfill], 2 [
 medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
 meaning no data is excluded.}
 
-\item{filter_ntdt}{A logical specifying whether agreement of daytime and nighttime-
-based GPP estimates is to be used as a filter. Data points are removed
-where their difference is below the the 97.5% and above the 2.5% quantile of all
-difference values per site. Defaults to \code{FALSE}.}
+\item{filter_ntdt}{A logical specifying whether agreement of daytime 
+and nighttime based GPP estimates is to be used as a filter. 
+Data points are removed where their difference is below the the 97.5% and 
+above the 2.5% quantile of all difference values per site.
+Defaults to \code{FALSE}.}
 
 \item{return_qc}{A logical specifying whether quality control variables
 should be returned. Defaults to \code{FALSE}.}
 
 \item{remove_neg}{A logical specifying whether negative GPP values are to
 be removed (replaces with NA). Defaults to \code{FALSE}.}
+
+\item{verbose}{verbose output}
 }
 \value{
-A named list containing information required for read data from standard
-FLUXNET data files (CSV files).
+A named list containing information required for read data from 
+standard FLUXNET data files (CSV files).
 }
 \description{
 Defines settings for settings for FLUXNET data ingestion

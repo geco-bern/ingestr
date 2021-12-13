@@ -7,13 +7,9 @@
 ingest_soilgrids(siteinfo, settings)
 }
 \arguments{
+\item{siteinfo}{A character string specifying the site name (ID)}
+
 \item{settings}{A list returned by a call to \link{get_settings_soilgrids}}
-
-\item{sitename}{A character string specifying the site name (ID)}
-
-\item{lon}{Longitude (numeric)}
-
-\item{lat}{Latitude (numeric)}
 }
 \value{
 A data frame with ingested data, nested in column data.
@@ -24,5 +20,4 @@ This follows code outlined here: \url{https://git.wur.nl/isric/soilgrids/soilgri
 }
 \examples{
 \dontrun{settings <- ingest_soilgrids("id1", lon = 100, lat = 50)}
-
 }

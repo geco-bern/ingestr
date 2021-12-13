@@ -220,7 +220,7 @@ Looks sweet.
 
 Let's have a look at the hourly climate data from the [WFDE5 dataset](https://doi.org/10.5194/essd-12-2097-2020). Again, let's extract meth data for the location corresponding to FLUXNET site 'FR-Pue' (lon = 8.365, lat = 47.4781). All input arguments work the same way as described above for WATCH-WFDEI and CRU TS. Note that we are setting `timescale = "h"` here to obtain an hourly dataframe. Available variables are: `"temp", "ppfd", "vpd", "patm", "prec", "wind", "swin", "lwin"`.
 
-```{r message=FALSE, echo = T, results = 'hide'}
+```{r message=FALSE, echo = T, results = 'hide', eval = FALSE}
 df_wfde5 <- ingest_bysite(
   sitename  = "FR-Pue",
   source    = "wfde5",
