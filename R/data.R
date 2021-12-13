@@ -5,7 +5,7 @@
 #'
 #' @format A data frame (tibble)
 #' \describe{
-#'   \item{mysitename}{Site name}
+#'   \item{sitename}{Site name}
 #'   \item{lon}{Longitude of site}
 #'   \item{lat}{Latitude of site}
 #'   \item{c4}{C4 vegetation or not}
@@ -25,3 +25,19 @@
 #' and complemented by information given in koeppen-geiger.tif.
 
 "siteinfo_fluxnet2015"
+
+
+#' Demo data
+#'
+#' Flux demo data
+#'
+#' @format A data frame (tibble)
+#' \describe{
+#'   \item{sitename}{Site name}
+#'   \item{params_siml}{simulation parametrs}
+#'   \item{siteinfo}{site info}
+#'   \item{df_soiltexture}{soil texture info}
+#'   \item{forcing}{climate forcing}
+#' }
+
+"df_drivers"

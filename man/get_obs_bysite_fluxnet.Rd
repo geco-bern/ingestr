@@ -51,7 +51,7 @@ or yearly, respectively.}
 FLUXNET variable names as used in the original data files. See
 \url{https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/}. If argument
 \code{getswc==TRUE}, then soil water content data (variables starting with
-\code{"SWC_}) are read.}
+\code{SWC_}) are read.}
 
 \item{getswc}{include soil water content (TRUE/FALSE, default = TRUE)}
 

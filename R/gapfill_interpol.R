@@ -24,8 +24,10 @@ gapfill_interpol <- function(
   n_focal
 ){
   
+  # TODO: check settings_modis use
+  
   value <- modisvar <- qc <- qc_bitname <- vi_useful <- aerosol <-
-    adjcloud <- brdf_corr <- mixcloud <- snowice <- shadow <- 
+    adjcloud <- brdf_corr <- mixcloud <- snowice <- shadow <- settings_modis <-
     qc_bit0 <- qc_bit1 <- qc_bit2 <- qc_bit3 <- qc_bit4 <- modisvar_filtered <- 
     good_quality <- SCF_QC <- modland_qc <- pixel_quality <- data_quality <-
     prevdate <- CloudState <- sur_refl_qc_500m <- pixel <- settings <- NULL

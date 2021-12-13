@@ -107,7 +107,7 @@ ingest_modis_bysite <- function(
         sites_avl <- try(
           do.call("rbind",
                   lapply(
-                    settings_modis$network,
+                    settings$network,
                     function(network){MODISTools::mt_sites(network = network)}
                          )
                   )
@@ -119,7 +119,7 @@ ingest_modis_bysite <- function(
           sites_avl <- try(
             do.call("rbind",
                     lapply(
-                      settings_modis$network,
+                      settings$network,
                       function(network){MODISTools::mt_sites(network = network)}
                     )
             )

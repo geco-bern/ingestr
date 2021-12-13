@@ -867,13 +867,13 @@ ingest <- function(
 	  #-----------------------------------------------------------
 	  
 	  # TODO replace with {hwsdr} call
-	  con <- rhwsd::get_hwsd_con()
-	  ddf <- rhwsd::get_hwsd_siteset(
-	    x = dplyr::select(siteinfo, sitename, lon, lat),
-	    con = con, hwsd.bil = settings$fil ) %>%
-	    dplyr::ungroup() %>%
-	    dplyr::select(sitename, data) %>%
-	    tidyr::unnest(data)
+	  # con <- rhwsd::get_hwsd_con()
+	  # ddf <- rhwsd::get_hwsd_siteset(
+	  #   x = dplyr::select(siteinfo, sitename, lon, lat),
+	  #   con = con, hwsd.bil = settings$fil ) %>%
+	  #   dplyr::ungroup() %>%
+	  #   dplyr::select(sitename, data) %>%
+	  #   tidyr::unnest(data)
 
 	} else if (source == "wwf"){
 	  #-----------------------------------------------------------

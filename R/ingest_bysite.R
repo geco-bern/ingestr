@@ -613,8 +613,11 @@ ingest_bysite <- function(
       lon = lon,
       lat = lat
     )
-    con <- rhwsd::get_hwsd_con()
-    df <- rhwsd::get_hwsd(x = siteinfo, con = con, hwsd.bil = settings$fil )
+    
+    # TODO: replace by hwsdr call
+    
+    # con <- rhwsd::get_hwsd_con()
+    # df <- rhwsd::get_hwsd(x = siteinfo, con = con, hwsd.bil = settings$fil )
 
   } else if (source == "soilgrids"){
     #-----------------------------------------------------------

@@ -7,7 +7,7 @@
 \format{
 A data frame (tibble)
 \describe{
-  \item{mysitename}{Site name}
+  \item{sitename}{Site name}
   \item{lon}{Longitude of site}
   \item{lat}{Latitude of site}
   \item{c4}{C4 vegetation or not}
