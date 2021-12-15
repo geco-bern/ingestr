@@ -27,10 +27,10 @@ gapfill_interpol <- function(
   # TODO: check settings_modis use
   
   value <- modisvar <- qc <- qc_bitname <- vi_useful <- aerosol <-
-    adjcloud <- brdf_corr <- mixcloud <- snowice <- shadow <- settings_modis <-
+    adjcloud <- brdf_corr <- mixcloud <- snowice <- shadow <-
     qc_bit0 <- qc_bit1 <- qc_bit2 <- qc_bit3 <- qc_bit4 <- modisvar_filtered <- 
     good_quality <- SCF_QC <- modland_qc <- pixel_quality <- data_quality <-
-    prevdate <- CloudState <- sur_refl_qc_500m <- pixel <- settings <- NULL
+    prevdate <- CloudState <- sur_refl_qc_500m <- pixel <- NULL
   
   ##--------------------------------------
   ## Returns data frame containing data
@@ -263,7 +263,9 @@ gapfill_interpol <- function(
       ##   01 corrected product produced at less than ideal quality -- some or all bands
       ##   10 corrected product not produced due to cloud effects -- all bands
       ##   11 corrected product not produced for other reasons -- some or all bands, may be fill value (11) [Note that a value of (11) overrides a value of (01)].
-      mutate(modland_qc = substr( qc_bitname, start=1, stop=2 )) %>%
+      mutate(
+        modland_qc = substr( qc_bitname, start=1, stop=2 )
+        ) %>%
       mutate(
         modland_qc_binary = ifelse(modland_qc %in% c("00"), TRUE, FALSE)
       ) %>%   # false for removing data
@@ -320,10 +322,6 @@ gapfill_interpol <- function(
       
       ## drop it
       dplyr::select(-qc_bitname)
-    
-    
-    plot(df$date, df$modisvar_filtered)
-    
   }
   
   ##--------------------------------------
@@ -373,15 +371,12 @@ gapfill_interpol <- function(
   
   ## take mean across selected pixels
   if (prod == "MOD09A1"){
-    varnams <- settings_modis$band_var
+    varnams <- settings$band_var
   } else {
     varnams <- c("modisvar", "modisvar_filtered")
   }
   
   # to control which pixel's information to be used.
-  print(str(df))
-  print(vec_usepixels)
-  
   df <- df %>%
     group_by(date) %>%
     dplyr::filter(pixel %in% vec_usepixels) %>%    
@@ -410,7 +405,7 @@ gapfill_interpol <- function(
     }
     
     ddf <- ddf %>%
-      mutate(across(settings_modis$band_var, ~myapprox(.)))
+      mutate(across(settings$band_var, ~myapprox(.)))
     
   } else {
     
