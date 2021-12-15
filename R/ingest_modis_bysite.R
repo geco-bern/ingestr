@@ -188,7 +188,7 @@ ingest_modis_bysite <- function(
         try_mt_subset <- function(x, df_siteinfo, settings){
 
           ## initial try
-          rlang::inform(paste("Initial try for band", x))
+          message(paste("Initial try for band", x))
           
           df <- try(
             MODISTools::mt_subset(
@@ -207,7 +207,7 @@ ingest_modis_bysite <- function(
           ## repeat if failed until it works
           while (class(df) == "try-error"){
             Sys.sleep(3)                       
-            rlang::warn("re-trying...")
+            warning("re-trying...")
             df <- try(
               MODISTools::mt_subset(
                 product   = settings$prod,     
@@ -239,7 +239,6 @@ ingest_modis_bysite <- function(
       rlang::inform( paste( "raw data file written:", filnam_raw_csv ) )
       data.table::fwrite(df, file = filnam_raw_csv, sep = ",")
       # readr::write_csv(df, path = filnam_raw_csv)
-      
 
     } else {
 
@@ -272,8 +271,8 @@ ingest_modis_bysite <- function(
       as.numeric() %>%
       unique()
 
-    if (length(scale_factor)!=1){
-      rlang::abort("Multiple scaling factors found for ingested bands")
+    if (length(scale_factor) != 1){
+      stop("Multiple scaling factors found for ingested bands")
     } else {
       scaleme <- function(x, scale_factor){x * scale_factor}
       df <- df %>%
@@ -286,7 +285,7 @@ ingest_modis_bysite <- function(
       df <- df %>%
         rename(value = !!settings$band_var, qc = !!settings$band_qc)
     }
-
+    
     ##--------------------------------------------------------------------
     ## Clean (gapfill and interpolate) full time series data to daily
     ##--------------------------------------------------------------------
@@ -305,8 +304,6 @@ ingest_modis_bysite <- function(
     ## save cleaned and interpolated data to file
     ##---------------------------------------------
     readr::write_csv( ddf, path = filnam_daily_csv )
-
-
   }
 
   ddf <- ddf %>%

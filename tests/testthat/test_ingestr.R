@@ -14,19 +14,12 @@ test_that("test init data frame", {
   
 })
 
-test_that("test MODIS LST download", {
-  skip_on_cran()
+#test_that("test MODIS LST download", {
+#  skip_on_cran()
   #skip_if_not(euler)
-  
   source("R/get_settings.R")
   source("R/ingest_bysite.R")
-  
-  df <- init_dates_dataframe(
-    2018,
-    2019,
-    noleap = TRUE,
-    timescale = "d"
-  )
+  source("R/gapfill_interpol.R")
   
   settings_modis <- get_settings_modis(
     bundle            = "modis_lst_daily",
@@ -50,4 +43,4 @@ test_that("test MODIS LST download", {
   
   print(df)
   
-})
+#})

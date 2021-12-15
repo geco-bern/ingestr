@@ -222,7 +222,6 @@ gapfill_interpol <- function(
         good_quality, modisvar_filtered, NA )) %>%
       
       ## new addition 5.1.2021
-      # mutate(modisvar_filtered = ifelse( !dead_detector, modisvar_filtered, NA )) %>%
       mutate(modisvar_filtered = ifelse(
         SCF_QC %in% c(0,1), modisvar_filtered, NA ))
     
@@ -274,7 +273,7 @@ gapfill_interpol <- function(
       ## drop it
       dplyr::select(-ends_with("_qc"), -ends_with("_qc_binary"))
     
-  } else if (prod=="MOD11A1"){
+  } else if (prod=="MOD11A2"){
     ##----------------------------------------
     ## Filter available landsurface temperature data for daily-means
     ##----------------------------------------
@@ -282,21 +281,24 @@ gapfill_interpol <- function(
     ## https://lpdaac.usgs.gov/documents/118/MOD11_User_Guide_V6.pdf
     df <- df %>%
       dplyr::rename(modisvar = value) %>%
-      dplyr::mutate(modisvar_filtered = modisvar) %>%
+      dplyr::mutate(
+        modisvar = modisvar - 273.15,
+        modisvar_filtered = modisvar)
       
       ## separate into bits
-      rowwise() %>%
+    df <- df %>% rowwise() %>%
       mutate(qc_bitname = intToBits( qc ) %>%
                as.integer() %>%
                paste(collapse = "")
-      )
+      ) %>%
     
     ## Bits 0-1: Pixel Quality
     ##   00 Pixel produced with good quality
     ##   01 Pixel produced, but check other QA
-    mutate(pixel_quality = substr( qc_bitname, start=1, stop=2 )) %>%
-      
-      dplyr::mutate(
+    dplyr::mutate(
+      pixel_quality = substr( qc_bitname, start=1, stop=2 )
+      ) %>%
+    dplyr::mutate(
         modisvar_filtered = ifelse(
           pixel_quality %in% c("00", "01"),
           modisvar, NA)
@@ -306,8 +308,9 @@ gapfill_interpol <- function(
       ##   00 = Good data quality of L1B bands 29, 31, 32
       ##   01 = other quality data
       ##   10 = 11 = TBD
-      mutate(data_quality = substr( qc_bitname, start=3, stop=4 )) %>%
-      
+      dplyr::mutate(
+        data_quality = substr( qc_bitname, start = 3, stop = 4 )
+        ) %>%
       
       dplyr::mutate(
         modisvar_filtered = ifelse(
@@ -317,6 +320,9 @@ gapfill_interpol <- function(
       
       ## drop it
       dplyr::select(-qc_bitname)
+    
+    
+    plot(df$date, df$modisvar_filtered)
     
   }
   
@@ -357,7 +363,9 @@ gapfill_interpol <- function(
   ## create a mask based on the selected layer (0 for focal point only)
   arr_mask <- arr_pixelnumber
   arr_mask[which(arr_distance > n_focal)] <- NA
-  vec_usepixels <- c(arr_mask) %>% stats::na.omit() %>% as.vector()
+  vec_usepixels <- c(arr_mask) %>%
+    stats::na.omit() %>%
+    as.vector()
   
   rlang::inform(paste("Number of available pixels: ", npixels))
   rlang::inform(paste("Averaging across number of pixels: ",
@@ -371,6 +379,9 @@ gapfill_interpol <- function(
   }
   
   # to control which pixel's information to be used.
+  print(str(df))
+  print(vec_usepixels)
+  
   df <- df %>%
     group_by(date) %>%
     dplyr::filter(pixel %in% vec_usepixels) %>%    
