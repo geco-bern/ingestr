@@ -505,9 +505,12 @@ ingest_bysite <- function(
     siteinfo <- tibble(
       sitename = sitename,
       lon = lon,
-      lat = lat) %>%
-      mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
-      mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
+      lat = lat,
+      year_start = year_start,
+      year_end = year_end,
+      date_start = lubridate::ymd(paste0(year_start, "-01-01")),
+      date_end = lubridate::ymd(paste0(year_end, "-12-31"))
+      )
     
     df_tmp <- ingest_modis_bysite(siteinfo, settings)
 
@@ -611,12 +614,13 @@ ingest_bysite <- function(
       lat = lat
       )
 
-    df <- ingest_globalfields(siteinfo,
-                                  source = source,
-                                  getvars = NULL,
-                                  dir = dir,
-                                  timescale = NULL,
-                                  verbose = FALSE
+    df <- ingest_globalfields(
+      siteinfo,
+      source = source,
+      getvars = NULL,
+      dir = dir,
+      timescale = NULL,
+      verbose = FALSE
     )
 
   } else if (source == "hwsd"){
