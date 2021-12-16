@@ -194,13 +194,13 @@ get_settings_modis <- function(
     
   } else if (bundle == "modis_lst_daily") { ## daily average
     out <- list(
-      prod     = "MOD11A1",
-      band_var = "LST_Day_1KM",
+      prod     = "MOD11A2",
+      band_var = "LST_Day_1km",
       band_qc  = "QC_Day",
       varnam   = "lst",
       period   = 4,
-      prod_suffix = "MOD11A1",
-      productnam = "MODIS_LST_MOD11A1",
+      prod_suffix = "MOD11A2",
+      productnam = "MODIS_LST_MOD11A2",
       network = network
     )
     

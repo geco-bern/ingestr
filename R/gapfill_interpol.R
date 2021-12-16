@@ -5,11 +5,8 @@
 #' @param sitename a site name
 #' @param year_start a start year
 #' @param year_end an end year
-#' @param prod a MODIS product
-#' @param method_interpol the interpolation method
-#' @param keep keep original data
-#' @param n_focal average across multiple pixels (if available)
-#'
+#' @param settings processing settings file
+
 #' @return gap filled time series
 #' @export
 
@@ -18,19 +15,21 @@ gapfill_interpol <- function(
   sitename,
   year_start,
   year_end,
-  prod,
-  method_interpol,
-  keep,
-  n_focal
+  settings
 ){
   
-  # TODO: check settings_modis use
+  # split out variables for readability
+  prod <- settings$prod
+  method_interpol <- settings$method_interpol
+  keep <- settings$keep
+  n_focal <- settings$n_focal
+  varnam <- settings$varnam
   
   value <- modisvar <- qc <- qc_bitname <- vi_useful <- aerosol <-
-    adjcloud <- brdf_corr <- mixcloud <- snowice <- shadow <- settings_modis <-
+    adjcloud <- brdf_corr <- mixcloud <- snowice <- shadow <-
     qc_bit0 <- qc_bit1 <- qc_bit2 <- qc_bit3 <- qc_bit4 <- modisvar_filtered <- 
     good_quality <- SCF_QC <- modland_qc <- pixel_quality <- data_quality <-
-    prevdate <- CloudState <- sur_refl_qc_500m <- pixel <- settings <- NULL
+    prevdate <- CloudState <- sur_refl_qc_500m <- pixel <- NULL
   
   ##--------------------------------------
   ## Returns data frame containing data
@@ -222,7 +221,6 @@ gapfill_interpol <- function(
         good_quality, modisvar_filtered, NA )) %>%
       
       ## new addition 5.1.2021
-      # mutate(modisvar_filtered = ifelse( !dead_detector, modisvar_filtered, NA )) %>%
       mutate(modisvar_filtered = ifelse(
         SCF_QC %in% c(0,1), modisvar_filtered, NA ))
     
@@ -264,7 +262,9 @@ gapfill_interpol <- function(
       ##   01 corrected product produced at less than ideal quality -- some or all bands
       ##   10 corrected product not produced due to cloud effects -- all bands
       ##   11 corrected product not produced for other reasons -- some or all bands, may be fill value (11) [Note that a value of (11) overrides a value of (01)].
-      mutate(modland_qc = substr( qc_bitname, start=1, stop=2 )) %>%
+      mutate(
+        modland_qc = substr( qc_bitname, start=1, stop=2 )
+        ) %>%
       mutate(
         modland_qc_binary = ifelse(modland_qc %in% c("00"), TRUE, FALSE)
       ) %>%   # false for removing data
@@ -274,7 +274,7 @@ gapfill_interpol <- function(
       ## drop it
       dplyr::select(-ends_with("_qc"), -ends_with("_qc_binary"))
     
-  } else if (prod=="MOD11A1"){
+  } else if (prod == "MOD11A2"){
     ##----------------------------------------
     ## Filter available landsurface temperature data for daily-means
     ##----------------------------------------
@@ -284,40 +284,49 @@ gapfill_interpol <- function(
       dplyr::rename(modisvar = value) %>%
       dplyr::mutate(modisvar_filtered = modisvar) %>%
       
-      ## separate into bits
-      rowwise() %>%
-      mutate(qc_bitname = intToBits( qc ) %>%
-               as.integer() %>%
-               paste(collapse = "")
-      )
-    
+      mutate(
+        
+        qc_bitname = intToBits( qc )[1:8] %>%
+          rev() %>%
+          as.character() %>%
+          paste(collapse = "")
+          # 
+          # qc_bitname = intToBits( qc ) %>%
+          #    as.integer() %>%
+          #    paste(collapse = "")
+      ) %>%
+      
     ## Bits 0-1: Pixel Quality
     ##   00 Pixel produced with good quality
     ##   01 Pixel produced, but check other QA
-    mutate(pixel_quality = substr( qc_bitname, start=1, stop=2 )) %>%
-      
-      dplyr::mutate(
+    dplyr::mutate(
+      pixel_quality = substr( qc_bitname, start = 1, stop = 2 )
+      ) %>%
+    dplyr::mutate(
         modisvar_filtered = ifelse(
           pixel_quality %in% c("00", "01"),
-          modisvar, NA)
+          modisvar_filtered, NA)
       ) %>%
       
       ## Bits 2-3: Data Quality
       ##   00 = Good data quality of L1B bands 29, 31, 32
       ##   01 = other quality data
       ##   10 = 11 = TBD
-      mutate(data_quality = substr( qc_bitname, start=3, stop=4 )) %>%
-      
+      dplyr::mutate(
+        data_quality = substr( qc_bitname, start = 3, stop = 4 )
+        ) %>%
       
       dplyr::mutate(
         modisvar_filtered = ifelse(
           data_quality %in% c("00", "01"),
-          modisvar_filtered, NA)
+          modisvar_filtered, NA),
+        modisvar_filtered = ifelse(
+          modisvar_filtered <= 0, NA, modisvar_filtered)
       ) %>%
-      
+    
       ## drop it
       dplyr::select(-qc_bitname)
-    
+      
   }
   
   ##--------------------------------------
@@ -357,15 +366,17 @@ gapfill_interpol <- function(
   ## create a mask based on the selected layer (0 for focal point only)
   arr_mask <- arr_pixelnumber
   arr_mask[which(arr_distance > n_focal)] <- NA
-  vec_usepixels <- c(arr_mask) %>% stats::na.omit() %>% as.vector()
+  vec_usepixels <- c(arr_mask) %>%
+    stats::na.omit() %>%
+    as.vector()
   
-  rlang::inform(paste("Number of available pixels: ", npixels))
-  rlang::inform(paste("Averaging across number of pixels: ",
+  message(paste("Number of available pixels: ", npixels))
+  message(paste("Averaging across number of pixels: ",
                       length(vec_usepixels)))
   
   ## take mean across selected pixels
   if (prod == "MOD09A1"){
-    varnams <- settings_modis$band_var
+    varnams <- settings$band_var
   } else {
     varnams <- c("modisvar", "modisvar_filtered")
   }
@@ -385,7 +396,8 @@ gapfill_interpol <- function(
     left_join( df, by="date" )
   
   # ## extrapolate missing values at head and tail
-  # ddf$modisvar <- extrapolate_missing_headtail(dplyr::select(ddf, var = modisvar, doy))
+  # ddf$modisvar <- 
+  # extrapolate_missing_headtail(dplyr::select(ddf, var = modisvar, doy))
   
   ##--------------------------------------
   ## Interpolate
@@ -399,7 +411,7 @@ gapfill_interpol <- function(
     }
     
     ddf <- ddf %>%
-      mutate(across(settings_modis$band_var, ~myapprox(.)))
+      mutate(across(settings$band_var, ~myapprox(.)))
     
   } else {
     
@@ -407,7 +419,7 @@ gapfill_interpol <- function(
       ##--------------------------------------
       ## get LOESS spline model for predicting daily values (used below)
       ##--------------------------------------
-      rlang::inform("loess...")
+      message("loess...")
       
       ## determine periodicity
       period <- ddf %>%
@@ -421,15 +433,17 @@ gapfill_interpol <- function(
       ## good explanation: 
       ## https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
       ndays_tot <- lubridate::time_length(diff(range(ddf$date)), unit = "day")
-      # (20*period)/ndays_tot  # multiply with larger number to get smoother curve
+      # (20*period)/ndays_tot  
+      # multiply with larger number to get smoother curve
       span <- 100/ndays_tot
       
       idxs    <- which(!is.na(ddf$modisvar_filtered))
       myloess <- try(stats::loess( modisvar_filtered ~ year_dec,
-                             data = ddf[idxs,], span=span ) )
+                             data = ddf[idxs,], span=span ),
+                     silent = TRUE)
       
       ## predict LOESS to all dates with missing data
-      tmp <- try(stats::predict( myloess, newdata = ddf ) )
+      tmp <- try(stats::predict( myloess, newdata = ddf ), silent = TRUE)
       if (class(tmp)!="try-error"){
         ddf$loess <- tmp
       } else {
@@ -441,11 +455,14 @@ gapfill_interpol <- function(
       ##--------------------------------------
       ## get SPLINE model for predicting daily values (used below)
       ##--------------------------------------
-      rlang::inform("spline...")
+      message("spline...")
       idxs   <- which(!is.na(ddf$modisvar_filtered))
       spline <- try(
         with(ddf,
-             stats::smooth.spline(year_dec[idxs], modisvar_filtered[idxs], spar=0.01)))
+             stats::smooth.spline(
+               year_dec[idxs],
+               modisvar_filtered[idxs], spar=0.01)),
+        silent = TRUE)
       
       ## predict SPLINE
       tmp <- try( with( ddf, predict( spline, year_dec ) )$y)
@@ -461,8 +478,9 @@ gapfill_interpol <- function(
       ##--------------------------------------
       ## LINEAR INTERPOLATION
       ##--------------------------------------
-      rlang::inform("linear ...")
-      tmp <- try(stats::approx(ddf$year_dec, ddf$modisvar_filtered, xout=ddf$year_dec))
+      message("linear ...")
+      tmp <- try(stats::approx(ddf$year_dec, ddf$modisvar_filtered, xout=ddf$year_dec),
+                 silent = TRUE)
       if (class(tmp) == "try-error"){
         ddf <- ddf %>% mutate(linear = NA)
       } else {
@@ -475,31 +493,44 @@ gapfill_interpol <- function(
       ##--------------------------------------
       ## SAVITZKY GOLAY FILTER
       ##--------------------------------------
-      rlang::inform("sgfilter ...")
+      message("sgfilter ...")
       ddf$sgfilter <- rep( NA, nrow(ddf) )
+      ddf <- ddf %>%
+        mutate(
+          modisvar_filtered = ifelse(
+            is.nan(modisvar_filtered),
+            NA,
+            modisvar_filtered)
+        )
       idxs <- which(!is.na(ddf$modisvar_filtered))
-      tmp <- try(signal::sgolayfilt( ddf$modisvar_filtered[idxs], p=3, n=51 ))
-      if (class(tmp)!="try-error"){
+      tmp <- 
+        suppressMessages(
+          try(
+            signal::sgolayfilt( ddf$modisvar_filtered[idxs], p=3, n=51 ),
+            silent = TRUE
+            )
+          )
+      
+      if (!inherits(tmp, "try-error")){
         ddf$sgfilter[idxs] <- tmp
+      } else {
+        message("SG filter failed, no smoothing returned...")
       }
       
     }
     
     ##--------------------------------------
-    ## Define the variable to be returned in the column given by settings$varnam
+    ## Define the variable to be returned in 
+    ## the column given by settings$varnam
     ##--------------------------------------
     if (method_interpol == "loess"){
-      rlang::inform(paste("Column", settings$varnam, "is LOESS."))
-      ddf[[ settings$varnam ]] <- min(1.0, max(0.0, ddf$loess))
+      ddf[[ varnam ]] <- ddf$loess
     } else if (method_interpol == "spline"){
-      rlang::inform(paste("Column", settings$varnam, "is spline."))
-      ddf[[ settings$varnam ]] <- min(1.0, max(0.0, ddf$spline))
+      ddf[[ varnam ]] <- ddf$spline
     } else if (method_interpol == "linear"){
-      rlang::inform(paste("Column", settings$varnam, "is linear interpolation."))
-      ddf[[ settings$varnam ]] <- min(1.0, max(0.0, ddf$linear))
+      ddf[[ varnam ]] <- ddf$linear
     } else if (method_interpol == "sgfilter"){
-      rlang::inform(paste("Column", settings$varnam, "is Savitzki-Golay filter."))
-      ddf[[ settings$varnam ]] <- min(1.0, max(0.0, ddf$sgfilter))
+      ddf[[ varnam ]] <- ddf$sgfilter
     }
     
   }

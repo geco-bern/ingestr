@@ -5,7 +5,7 @@
 #' Returns a list of two data frames, one with data at original
 #' modis dates (df), and one interpolated to all days (ddf).
 #'
-#' @param df_siteinfo site info data frame
+#' @param siteinfo site info data frame
 #' @param settings download settings
 #'
 #' @return A named list containing information required for download from Google
@@ -18,7 +18,7 @@
 #' }
 
 ingest_modis_bysite <- function(
-  df_siteinfo,
+  siteinfo,
   settings
   ){
 
@@ -28,11 +28,12 @@ ingest_modis_bysite <- function(
   ## Define names
   ##---------------------------------------------
   ## this function is hacked to only do one site at a time
-  sitename <- df_siteinfo$sitename[1]
-  df_siteinfo <- slice(df_siteinfo, 1)
+  sitename <- siteinfo$sitename[1]
+  siteinfo <- slice(siteinfo, 1)
 
-  dirnam_daily_csv <- paste0(settings$data_path, settings$productnam)
-  dirnam_raw_csv <- paste0(settings$data_path, settings$productnam, "/raw/")
+  # set storage paths
+  dirnam_daily_csv <- file.path(settings$data_path, settings$productnam)
+  dirnam_raw_csv <- file.path(settings$data_path, settings$productnam, "raw")
 
   if (!dir.exists(dirnam_daily_csv)){
     dir.create(
@@ -49,33 +50,41 @@ ingest_modis_bysite <- function(
   }
 
   if (settings$filename_with_year){
-    filnam_daily_csv <- paste0(
-      dirnam_daily_csv, "/",
-      settings$productnam, "_daily_",
-      sitename, "_",
-      df_siteinfo$year_start, "_",
-      df_siteinfo$year_end, ".csv"
+    filnam_daily_csv <- file.path(
+        dirnam_daily_csv,
+        paste0(
+          settings$productnam, "_daily_",
+          sitename, "_",
+          siteinfo$year_start, "_",
+          siteinfo$year_end, ".csv"
+        )
       )
     
-    filnam_raw_csv <- paste0(
-      dirnam_raw_csv, "/",
-      settings$productnam, "_",
-      sitename, "_",
-      df_siteinfo$year_start, "_",
-      df_siteinfo$year_end, ".csv"
+    filnam_raw_csv <- file.path(
+      dirnam_raw_csv, 
+      paste0(
+        settings$productnam, "_",
+        sitename, "_",
+        siteinfo$year_start, "_",
+        siteinfo$year_end, ".csv"
+      )
       )
     
   } else {
-    filnam_daily_csv <- paste0(
-      dirnam_daily_csv, "/",
-      settings$productnam, "_daily_",
-      sitename, ".csv"
+    filnam_daily_csv <- file.path(
+      dirnam_daily_csv,
+      paste0(
+        settings$productnam, "_daily_",
+        sitename, ".csv"
       )
+    )
     
-    filnam_raw_csv <- paste0(
-      dirnam_raw_csv, "/",
-      settings$productnam, "_",
-      sitename, ".csv"
+    filnam_raw_csv <- file.path(
+      dirnam_raw_csv,
+      paste0(
+        settings$productnam, "_",
+        sitename, ".csv"
+      )
       )
   }
 
@@ -128,19 +137,19 @@ ingest_modis_bysite <- function(
           
         }
         
-        part_of_network <- df_siteinfo$sitename %in% sites_avl$network_siteid
+        part_of_network <- siteinfo$sitename %in% sites_avl$network_siteid
       }
 
       if (part_of_network){
 
-        try_mt_subset <- function(x, df_siteinfo, settings){
+        try_mt_subset <- function(x, siteinfo, settings){
           
           # grab required info
           site <- sites_avl$network_siteid[
-            which(sites_avl$network_siteid %in% df_siteinfo$sitename)[1]
+            which(sites_avl$network_siteid %in% siteinfo$sitename)[1]
             ]
           network <- tolower(sites_avl$network[
-            which(sites_avl$network_siteid %in% df_siteinfo$sitename)[1]
+            which(sites_avl$network_siteid %in% siteinfo$sitename)[1]
             ])
           
           # initial try
@@ -152,8 +161,8 @@ ingest_modis_bysite <- function(
             MODISTools::mt_subset(
               product   = settings$prod,          
               band      = x,
-              start     = df_siteinfo$date_start, 
-              end       = df_siteinfo$date_end,   
+              start     = siteinfo$date_start, 
+              end       = siteinfo$date_end,   
               site_id   = site,                   
               network   = network,
               internal  = TRUE,
@@ -169,8 +178,8 @@ ingest_modis_bysite <- function(
               MODISTools::mt_subset(
                 product   = settings$prod,  
                 band      = x,
-                start     = df_siteinfo$date_start,
-                end       = df_siteinfo$date_end,  
+                start     = siteinfo$date_start,
+                end       = siteinfo$date_end,  
                 site_id   = site,                  
                 network   = network,
                 internal  = TRUE,
@@ -185,20 +194,20 @@ ingest_modis_bysite <- function(
 
       } else {
 
-        try_mt_subset <- function(x, df_siteinfo, settings){
+        try_mt_subset <- function(x, siteinfo, settings){
 
           ## initial try
-          rlang::inform(paste("Initial try for band", x))
+          message(paste("Initial try for band", x))
           
           df <- try(
             MODISTools::mt_subset(
               product   = settings$prod,        
               band      = x,
-              lon       = df_siteinfo$lon,
-              lat       = df_siteinfo$lat,
-              start     = df_siteinfo$date_start, 
-              end       = df_siteinfo$date_end,
-              site_name = df_siteinfo$sitename,
+              lon       = siteinfo$lon,
+              lat       = siteinfo$lat,
+              start     = siteinfo$date_start, 
+              end       = siteinfo$date_end,
+              site_name = siteinfo$sitename,
               internal  = TRUE,
               progress  = TRUE
             )
@@ -207,16 +216,16 @@ ingest_modis_bysite <- function(
           ## repeat if failed until it works
           while (class(df) == "try-error"){
             Sys.sleep(3)                       
-            rlang::warn("re-trying...")
+            warning("re-trying...")
             df <- try(
               MODISTools::mt_subset(
                 product   = settings$prod,     
                 band      = x,
-                lon       = df_siteinfo$lon,
-                lat       = df_siteinfo$lat,
-                start     = df_siteinfo$date_start,
-                end       = df_siteinfo$date_end,         
-                site_name = df_siteinfo$sitename,         
+                lon       = siteinfo$lon,
+                lat       = siteinfo$lat,
+                start     = siteinfo$date_start,
+                end       = siteinfo$date_end,         
+                site_name = siteinfo$sitename,         
                 internal  = TRUE,
                 progress  = TRUE
               )
@@ -231,7 +240,7 @@ ingest_modis_bysite <- function(
       ## download for each band as a separate call - safer!
       df <- purrr::map(
         as.list(c(settings$band_var, settings$band_qc)),
-        ~try_mt_subset(., df_siteinfo, settings)) %>%
+        ~try_mt_subset(., siteinfo, settings)) %>%
         bind_rows() %>%
         as_tibble()
       
@@ -239,7 +248,6 @@ ingest_modis_bysite <- function(
       rlang::inform( paste( "raw data file written:", filnam_raw_csv ) )
       data.table::fwrite(df, file = filnam_raw_csv, sep = ",")
       # readr::write_csv(df, path = filnam_raw_csv)
-      
 
     } else {
 
@@ -272,8 +280,8 @@ ingest_modis_bysite <- function(
       as.numeric() %>%
       unique()
 
-    if (length(scale_factor)!=1){
-      rlang::abort("Multiple scaling factors found for ingested bands")
+    if (length(scale_factor) != 1){
+      stop("Multiple scaling factors found for ingested bands")
     } else {
       scaleme <- function(x, scale_factor){x * scale_factor}
       df <- df %>%
@@ -286,27 +294,22 @@ ingest_modis_bysite <- function(
       df <- df %>%
         rename(value = !!settings$band_var, qc = !!settings$band_qc)
     }
-
+    
     ##--------------------------------------------------------------------
     ## Clean (gapfill and interpolate) full time series data to daily
     ##--------------------------------------------------------------------
     ddf <- gapfill_interpol(
       df,
       sitename,
-      year_start      = lubridate::year(df_siteinfo$date_start),
-      year_end        = lubridate::year(df_siteinfo$date_end),
-      prod            = settings$prod,
-      method_interpol = settings$method_interpol,
-      keep            = settings$keep,
-      n_focal         = settings$n_focal
+      year_start      = lubridate::year(siteinfo$date_start),
+      year_end        = lubridate::year(siteinfo$date_end),
+      settings        = settings
     )
 
     ##---------------------------------------------
     ## save cleaned and interpolated data to file
     ##---------------------------------------------
-    readr::write_csv( ddf, path = filnam_daily_csv )
-
-
+    readr::write_csv(ddf, file = filnam_daily_csv )
   }
 
   ddf <- ddf %>%

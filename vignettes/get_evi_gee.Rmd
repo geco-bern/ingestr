@@ -1,10 +1,11 @@
 ---
 title: "Getting MODIS EVI data from Google Earth Engine"
-output:
-  html_document:
-    toc: true
-    toc_float: true
-    toc_depth: 3
+author: "Koen Hufkens"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting MODIS EVI data from Google Earth Engine}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
 ---
 
 ```{r setup, include=FALSE}
@@ -72,7 +73,7 @@ python -c "import ee; ee.Initialize()"
 To facilitate the selection of data products and bands to be downloaded, you may use the function `get_settings_gee()` which defines defaults for different data bundles (`c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")` are available). We use `"modis_evi"`, downloading the MODIS/006/MOD13Q1, band EVI data.
 
 The following example is for downloading MODIS EVI data.
-```{r}
+```{r eval = FALSE}
 settings_gee <- get_settings_gee(
   bundle            = "modis_evi",
   python_path       = system("which python", intern = TRUE),
@@ -86,7 +87,7 @@ settings_gee <- get_settings_gee(
 ```
 
 This can now be used to download the data to the directory specified by argument `data_path` of function `get_settings_gee()`.
-```{r}
+```{r eval = FALSE}
 df_gee_modis_fpar <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "gee",
@@ -100,7 +101,7 @@ df_gee_modis_fpar <- ingest_bysite(
 ```
 
 Plot this data.
-```{r}
+```{r eval = FALSE}
 plot_fapar_ingestr_bysite(df_gee_modis_fpar, settings_gee)
 ```
 
@@ -108,7 +109,7 @@ plot_fapar_ingestr_bysite(df_gee_modis_fpar, settings_gee)
 ## Multiple sites
 
 Using the same settings as specified above, we can download MODIS FPAR data for multiple sites at once from GEE:
-```{r warning=FALSE, message=FALSE, echo = T, results = 'hide'}
+```{r warning=FALSE, message=FALSE, echo = T, results = 'hide', eval = FALSE}
 settings_gee <- get_settings_gee(
   bundle            = "modis_evi",
   python_path       = system("which python", intern = TRUE),
@@ -145,7 +146,7 @@ write_csv(
 ```
 
 Collect all plots.
-```{r warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE, eval = FALSE}
 list_gg <- plot_fapar_ingestr(df_gee_modis_fpar, settings_gee)
 #purrr::map(list_gg, ~print(.))
 ```

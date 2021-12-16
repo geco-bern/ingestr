@@ -53,7 +53,7 @@ ingest_bysite <- function(
   ){
 
   # CRAN compliance, declaring unstated variables
-  sitename <- lon <- lat <- date_start <- date_end <- problem <-
+  date_start <- date_end <- problem <-
     year_start_tmp <- x <- y <- lat_orig <- success <- elv <- patm <-
     patm_base <-patm_mean <- month <- tavg <-temp <- temp_fine <-
     tmax <- tmax_fine <- tmin <- tmin_fine <- prec <- prec_fine <-
@@ -63,7 +63,14 @@ ingest_bysite <- function(
     co2 <- lon...1 <- lat...2 <- bottom <- top <- depth <- var <-
     var_wgt <- depth_tot_cm <- NULL
   
-  if (!(source %in% c("etopo1", "hwsd", "soilgrids", "wise", "gsde", "worldclim"))){
+  if (!(source %in% c(
+    "etopo1",
+    "hwsd",
+    "soilgrids",
+    "wise",
+    "gsde",
+    "worldclim"
+    ))){
     
     ## initialise data frame with all required dates
     df <- init_dates_dataframe(
@@ -99,28 +106,33 @@ ingest_bysite <- function(
     }
 
     df_tmp <- get_obs_bysite_fluxnet(sitename,
-                                     dir             = dir,
-                                     dir_hh          = settings$dir_hh,
-                                     dir_hr          = settings$dir_hr,
-                                     timescale       = timescale,
-                                     getvars         = getvars,
-                                     getswc          = settings$getswc,
-                                     threshold_GPP   = settings$threshold_GPP,
-                                     threshold_LE    = settings$threshold_LE,
-                                     threshold_H     = settings$threshold_H,
-                                     threshold_SWC   = settings$threshold_SWC,
-                                     threshold_WS    = settings$threshold_WS,
-                                     threshold_USTAR = settings$threshold_USTAR,
-                                     threshold_T     = settings$threshold_T,
-                                     threshold_NETRAD= settings$threshold_NETRAD,
-                                     filter_ntdt     = settings$filter_ntdt,
-                                     return_qc       = settings$return_qc,
-                                     remove_neg      = settings$remove_neg,
-                                     verbose         = verbose
+       dir             = dir,
+       dir_hh          = settings$dir_hh,
+       dir_hr          = settings$dir_hr,
+       timescale       = timescale,
+       getvars         = getvars,
+       getswc          = settings$getswc,
+       threshold_GPP   = settings$threshold_GPP,
+       threshold_LE    = settings$threshold_LE,
+       threshold_H     = settings$threshold_H,
+       threshold_SWC   = settings$threshold_SWC,
+       threshold_WS    = settings$threshold_WS,
+       threshold_USTAR = settings$threshold_USTAR,
+       threshold_T     = settings$threshold_T,
+       threshold_NETRAD= settings$threshold_NETRAD,
+       filter_ntdt     = settings$filter_ntdt,
+       return_qc       = settings$return_qc,
+       remove_neg      = settings$remove_neg,
+       verbose         = verbose
                                     ) %>%
       mutate(sitename = sitename)
 
-  } else if (source == "cru" || source == "watch_wfdei" || source == "ndep" || source == "wfde5"){
+  } else if (
+    source == "cru" ||
+    source == "watch_wfdei" ||
+    source == "ndep" ||
+    source == "wfde5"
+    ){
     #-----------------------------------------------------------
     # Get data from global fields and one single site
     #-----------------------------------------------------------
@@ -170,13 +182,14 @@ ingest_bysite <- function(
     }
 
     ## this returns a flat data frame with data from all sites
-    df_tmp <- ingest_globalfields(siteinfo  = siteinfo,
-                                  source    = source,
-                                  getvars   = getvars,
-                                  dir       = dir,
-                                  timescale = timescale,
-                                  verbose   = FALSE
-                                  )
+    df_tmp <- ingest_globalfields(
+      siteinfo  = siteinfo,
+      source    = source,
+      getvars   = getvars,
+      dir       = dir,
+      timescale = timescale,
+      verbose   = FALSE
+    )
     
     ## bias-correct atmospheric pressure - per default
     if ("patm" %in% getvars){
@@ -207,13 +220,14 @@ ingest_bysite <- function(
         if ("swin" %in% getvars){rlang::inform("Bias Correction: Not yet implemented for swin.")}
         if ("lwin" %in% getvars){rlang::inform("Bias Correction: Not yet implemented for lwin.")}
         
-        df_fine <- ingest_globalfields(siteinfo,
-                                       source = "worldclim",
-                                       dir = settings$dir_bias,
-                                       getvars = NULL,
-                                       timescale = NULL,
-                                       verbose = FALSE,
-                                       layer = unique(getvars_wc)
+        df_fine <- ingest_globalfields(
+          siteinfo,
+          source = "worldclim",
+          dir = settings$dir_bias,
+          getvars = NULL,
+          timescale = NULL,
+          verbose = FALSE,
+          layer = unique(getvars_wc)
         )
         
         ## Bias correction for temperature: subtract difference
@@ -491,10 +505,13 @@ ingest_bysite <- function(
     siteinfo <- tibble(
       sitename = sitename,
       lon = lon,
-      lat = lat) %>%
-      mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
-      mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
-
+      lat = lat,
+      year_start = year_start,
+      year_end = year_end,
+      date_start = lubridate::ymd(paste0(year_start, "-01-01")),
+      date_end = lubridate::ymd(paste0(year_end, "-12-31"))
+      )
+    
     df_tmp <- ingest_modis_bysite(siteinfo, settings)
 
 
@@ -597,12 +614,13 @@ ingest_bysite <- function(
       lat = lat
       )
 
-    df <- ingest_globalfields(siteinfo,
-                                  source = source,
-                                  getvars = NULL,
-                                  dir = dir,
-                                  timescale = NULL,
-                                  verbose = FALSE
+    df <- ingest_globalfields(
+      siteinfo,
+      source = source,
+      getvars = NULL,
+      dir = dir,
+      timescale = NULL,
+      verbose = FALSE
     )
 
   } else if (source == "hwsd"){
