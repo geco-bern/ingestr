@@ -4,10 +4,10 @@
 \alias{ingest_modis_bysite}
 \title{Download data by site}
 \usage{
-ingest_modis_bysite(df_siteinfo, settings)
+ingest_modis_bysite(siteinfo, settings)
 }
 \arguments{
-\item{df_siteinfo}{site info data frame}
+\item{siteinfo}{site info data frame}
 
 \item{settings}{download settings}
 }
