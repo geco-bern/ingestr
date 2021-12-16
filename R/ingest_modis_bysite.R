@@ -294,16 +294,13 @@ ingest_modis_bysite <- function(
       sitename,
       year_start      = lubridate::year(df_siteinfo$date_start),
       year_end        = lubridate::year(df_siteinfo$date_end),
-      prod            = settings$prod,
-      method_interpol = settings$method_interpol,
-      keep            = settings$keep,
-      n_focal         = settings$n_focal
+      settings        = settings
     )
 
     ##---------------------------------------------
     ## save cleaned and interpolated data to file
     ##---------------------------------------------
-    readr::write_csv( ddf, path = filnam_daily_csv )
+    readr::write_csv(ddf, file = filnam_daily_csv )
   }
 
   ddf <- ddf %>%
