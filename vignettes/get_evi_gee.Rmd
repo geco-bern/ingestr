@@ -3,7 +3,7 @@ title: "Getting MODIS EVI data from Google Earth Engine"
 author: "Koen Hufkens"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{ingest CRU}
+  %\VignetteIndexEntry{Getting MODIS EVI data from Google Earth Engine}
   %\VignetteEngine{knitr::rmarkdown}
   %\usepackage[utf8]{inputenc}
 ---
