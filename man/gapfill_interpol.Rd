@@ -4,16 +4,7 @@
 \alias{gapfill_interpol}
 \title{Gap fills a modis time series}
 \usage{
-gapfill_interpol(
-  df,
-  sitename,
-  year_start,
-  year_end,
-  prod,
-  method_interpol,
-  keep,
-  n_focal
-)
+gapfill_interpol(df, sitename, year_start, year_end, settings)
 }
 \arguments{
 \item{df}{data frame with time series data}
@@ -24,13 +15,7 @@ gapfill_interpol(
 
 \item{year_end}{an end year}
 
-\item{prod}{a MODIS product}
-
-\item{method_interpol}{the interpolation method}
-
-\item{keep}{keep original data}
-
-\item{n_focal}{average across multiple pixels (if available)}
+\item{settings}{processing settings file}
 }
 \value{
 gap filled time series
