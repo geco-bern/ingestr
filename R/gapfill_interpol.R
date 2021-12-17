@@ -41,7 +41,7 @@ gapfill_interpol <- function(
   ##--------------------------------------
   ## CLEAN AND GAP-FILL
   ##--------------------------------------
-  if (prod=="MOD13Q1"){
+  if (prod == "MOD13Q1"){
     ##--------------------------------------
     ## This is for MOD13Q1 Vegetation indeces (NDVI, EVI) 
     ## data downloaded from MODIS LP DAAC
@@ -148,7 +148,7 @@ gapfill_interpol <- function(
       dplyr::select(-qc_bitname)
     
     
-  } else if (prod=="MCD15A3H"){
+  } else if (prod == "MCD15A3H"){
     
     ## QC interpreted according to
     ##  https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H:
@@ -236,7 +236,7 @@ gapfill_interpol <- function(
       dplyr::rowwise() %>%
       dplyr::mutate(modisvar_filtered = modisvar)
     
-  } else if (prod=="MOD09A1"){
+  } else if (prod == "MOD09A1"){
     ##--------------------------------------
     ## Filter surface reflectance data
     ##--------------------------------------
