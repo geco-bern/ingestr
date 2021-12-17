@@ -2,7 +2,7 @@ library(tidyverse)
 library(ingestr)
 
 settings_modis <- get_settings_modis(
-  bundle            = "modis_lst",
+  bundle            = "modis_ndvi",
   data_path         = tempdir(),
   method_interpol   = "loess",
   keep              = TRUE,

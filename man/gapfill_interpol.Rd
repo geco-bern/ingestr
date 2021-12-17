@@ -4,16 +4,16 @@
 \alias{gapfill_interpol}
 \title{Gap fills a modis time series}
 \usage{
-gapfill_interpol(df, sitename, year_start, year_end, settings)
+gapfill_interpol(df, sitename, date_start, date_end, settings)
 }
 \arguments{
 \item{df}{data frame with time series data}
 
 \item{sitename}{a site name}
 
-\item{year_start}{a start year}
+\item{date_start}{a start year}
 
-\item{year_end}{an end year}
+\item{date_end}{an end year}
 
 \item{settings}{processing settings file}
 }

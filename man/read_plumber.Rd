@@ -4,7 +4,7 @@
 \alias{read_plumber}
 \title{Reads plumber2 netcdf data}
 \usage{
-read_plumber(site = "AT-Neu", path = "~/Desktop")
+read_plumber(site = "AT-Neu", path)
 }
 \arguments{
 \item{site}{fluxnet site name}

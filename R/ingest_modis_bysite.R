@@ -323,18 +323,10 @@ ingest_modis_bysite <- function(
     ddf <- gapfill_interpol(
       df,
       sitename,
-      year_start      = lubridate::year(siteinfo$date_start),
-      year_end        = lubridate::year(siteinfo$date_end),
-      settings        = settings
+      date_start  = siteinfo$date_start,
+      date_end = siteinfo$date_end,
+      settings = settings
     )
-
-    df <- df %>%
-      
-      # subset to the calendar range requested
-      # saved the full raw data above
-      dplyr::filter(
-        date >= siteinfo$date_start && date <= siteinfo$date_end
-      )
     
     ##---------------------------------------------
     ## save cleaned and interpolated data to file
