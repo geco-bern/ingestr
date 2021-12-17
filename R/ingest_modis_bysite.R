@@ -34,7 +34,7 @@ ingest_modis_bysite <- function(
   # set storage paths
   dirnam_daily_csv <- file.path(settings$data_path, settings$productnam)
   dirnam_raw_csv <- file.path(settings$data_path, settings$productnam, "raw")
-
+  
   if (!dir.exists(dirnam_daily_csv)){
     dir.create(
       dirnam_daily_csv,
@@ -144,13 +144,23 @@ ingest_modis_bysite <- function(
 
         try_mt_subset <- function(x, siteinfo, settings){
           
+          # get required sites
+          loc <- which(sites_avl$network_siteid %in% siteinfo$sitename)[1]
+          
           # grab required info
-          site <- sites_avl$network_siteid[
-            which(sites_avl$network_siteid %in% siteinfo$sitename)[1]
-            ]
-          network <- tolower(sites_avl$network[
-            which(sites_avl$network_siteid %in% siteinfo$sitename)[1]
-            ])
+          site <- sites_avl$network_siteid[loc]
+          network <- tolower(sites_avl$network[loc])
+          
+          # calculate the first date of the product queried
+          # to get full coverage
+          coverage <- MODISTools::mt_dates(
+            product = settings$prod,
+            site_id = site,
+            network = network
+          )$calendar_date
+          
+          first_date <- min(coverage)
+          last_date <- max(coverage)
           
           # initial try
           rlang::inform(paste("Initial try for band", x))
@@ -161,8 +171,8 @@ ingest_modis_bysite <- function(
             MODISTools::mt_subset(
               product   = settings$prod,          
               band      = x,
-              start     = siteinfo$date_start, 
-              end       = siteinfo$date_end,   
+              start     = first_date, 
+              end       = last_date,
               site_id   = site,                   
               network   = network,
               internal  = TRUE,
@@ -178,8 +188,8 @@ ingest_modis_bysite <- function(
               MODISTools::mt_subset(
                 product   = settings$prod,  
                 band      = x,
-                start     = siteinfo$date_start,
-                end       = siteinfo$date_end,  
+                start     = first_date,
+                end       = last_date,  
                 site_id   = site,                  
                 network   = network,
                 internal  = TRUE,
@@ -199,14 +209,25 @@ ingest_modis_bysite <- function(
           ## initial try
           message(paste("Initial try for band", x))
           
+          # calculate the first date of the product queried
+          # to get full coverage
+          coverage <- MODISTools::mt_dates(
+            product = settings$prod,
+            lat = siteinfo$lat,
+            lon = siteinfo$lon
+          )$calendar_date
+          
+          first_date <- min(coverage)
+          last_date <- max(coverage)
+          
           df <- try(
             MODISTools::mt_subset(
               product   = settings$prod,        
               band      = x,
               lon       = siteinfo$lon,
               lat       = siteinfo$lat,
-              start     = siteinfo$date_start, 
-              end       = siteinfo$date_end,
+              start     = first_date,
+              end       = last_date,
               site_name = siteinfo$sitename,
               internal  = TRUE,
               progress  = TRUE
@@ -223,8 +244,8 @@ ingest_modis_bysite <- function(
                 band      = x,
                 lon       = siteinfo$lon,
                 lat       = siteinfo$lat,
-                start     = siteinfo$date_start,
-                end       = siteinfo$date_end,         
+                start     = first_date,
+                end       = last_date,
                 site_name = siteinfo$sitename,         
                 internal  = TRUE,
                 progress  = TRUE
@@ -234,7 +255,6 @@ ingest_modis_bysite <- function(
 
           return(df)
         }
-        
       }
 
       ## download for each band as a separate call - safer!
@@ -261,13 +281,15 @@ ingest_modis_bysite <- function(
     }
 
 
-    ##--------------------------------------------------------------------
-    ## Reformat raw data
-    ##--------------------------------------------------------------------
+    #--------------------------------------------------------------------
+    # Reformat raw data
+    #--------------------------------------------------------------------
     df <- df %>%
-
-      ## put QC info to a separate column
+      
+      # convert date
       dplyr::mutate(date = lubridate::ymd(calendar_date)) %>%
+      
+      # put QC info to a separate column
       dplyr::select(pixel, date, band, value) %>%
       tidyr::pivot_wider(values_from = value, names_from = band)
 
@@ -306,6 +328,14 @@ ingest_modis_bysite <- function(
       settings        = settings
     )
 
+    df <- df %>%
+      
+      # subset to the calendar range requested
+      # saved the full raw data above
+      dplyr::filter(
+        date >= siteinfo$date_start && date <= siteinfo$date_end
+      )
+    
     ##---------------------------------------------
     ## save cleaned and interpolated data to file
     ##---------------------------------------------
