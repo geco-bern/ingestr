@@ -2,7 +2,8 @@
 #'
 #' Ingests data for site scale simulations with rsofun (or any other Dynamic Vegetation Model).
 #'
-#' @param siteinfo A data frame containing site meta info. Required columns are: \code{"sitename", "date_start", "date_end", "lon", "lat", "elv"}.
+#' @param siteinfo A data frame containing site meta info. Required columns are:
+#'  \code{"sitename", "date_start", "date_end", "lon", "lat", "elv"}.
 #' @param source A character used as identifiyer for the type of data source
 #' (e.g., \code{"fluxnet"}). See vignette for a full description of available options.
 #' @param getvars A named list of characters specifying the variable names in
@@ -747,7 +748,8 @@ ingest <- function(
 	          "MODISTools",
 	          "tidyr"))
 
-		  ## distribute to cores, making sure all data from a specific site is sent to the same core
+		  ## distribute to cores, making sure all data from 
+		  ## a specific site is sent to the same core
 		  ddf <- tibble(ilon = seq(nrow(siteinfo))) %>%
 		    multidplyr::partition(cl) %>%
 		    dplyr::mutate(data = purrr::map( ilon,
