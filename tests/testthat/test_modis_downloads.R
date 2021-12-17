@@ -1,19 +1,3 @@
-# is the server reachable
-euler <- grepl('eu-', Sys.info()['nodename'])
-
-test_that("test init data frame", {
-  skip_on_cran()
-  df <- init_dates_dataframe(
-    2018,
-    2019,
-    noleap = TRUE,
-    timescale = "d"
-  )
-  
-  expect_type(df, "list")
-  
-})
-
 test_that("test MODIS LST download", {
   skip_on_cran()
   
