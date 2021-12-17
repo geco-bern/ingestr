@@ -31,7 +31,7 @@
 #'
 #' @export
 #' 
-calc_patm <- function( elv, patm0 = 101325 ){
+calc_patm <- function(elv, patm0 = 101325) {
   
   # Define constants:
   kTo <- 298.15    # base temperature, K (Prentice, unpublished)

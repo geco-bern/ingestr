@@ -2,11 +2,11 @@ library(tidyverse)
 library(ingestr)
 
 settings_modis <- get_settings_modis(
-  bundle            = "modis_lst_daily",
+  bundle            = "modis_lst",
   data_path         = tempdir(),
   method_interpol   = "loess",
   keep              = TRUE,
-  overwrite_raw     = TRUE,
+  overwrite_raw     = FALSE,
   overwrite_interpol= TRUE,
   n_focal           = 0,
   network           = "FLUXNET"

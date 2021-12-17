@@ -101,4 +101,16 @@ test_that("test vpd from rh", {
   
 })
 
+test_that("test patm from elevation", {
+  skip_on_cran()
+  
+  df <- calc_patm(
+    elv = 0
+  )
+  
+  expect_type(df, "double")
+  
+})
+
+
 

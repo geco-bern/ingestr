@@ -4,7 +4,7 @@
 \alias{calc_vp}
 \title{Calculate vapor pressure from relative humidity}
 \usage{
-calc_vp(qair, tc, tmin, tmax, patm, elv)
+calc_vp(qair, tc, tmin, tmax, patm = NA, elv = NA)
 }
 \arguments{
 \item{qair}{Air specific humidity (g g-1)}

@@ -515,7 +515,6 @@ ingest_bysite <- function(
     
     df_tmp <- ingest_modis_bysite(siteinfo, settings)
 
-
   } else if (source == "gee"){
     #-----------------------------------------------------------
     # Get data from Google Earth Engine

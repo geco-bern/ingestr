@@ -10,9 +10,6 @@ calc_vp_inst(qair, patm, elv)
 \item{qair}{Air specific humidity (g g-1)}
 
 \item{patm}{Atmospheric pressure (Pa)}
-
-\item{elv}{Elevation above sea level (m) (Used only if \code{patm} is missing 
-for calculating it based on standard sea level pressure)}
 }
 \value{
 

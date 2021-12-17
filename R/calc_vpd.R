@@ -15,7 +15,16 @@
 #' @return vapor pressure deficit (Pa)
 #' @export
 #' 
-calc_vpd <- function(qair=NA, eact=NA, tc=NA, tmin=NA, tmax=NA, patm=NA, elv=NA){
+calc_vpd <- function(
+  qair = NA,
+  eact = NA,
+  tc = NA,
+  tmin = NA,
+  tmax = NA,
+  patm = NA,
+  elv = NA
+) {
+  
   ##-----------------------------------------------------------------------
   ## Ref:      Eq. 5.1, Abtew and Meleese (2013), Ch. 5 Vapor Pressure 
   ##           Calculation Methods, in Evaporation and Evapotranspiration: 
@@ -86,7 +95,7 @@ calc_vpd_inst <- function(
   ##-----------------------------------------------------------------------
 
   if (is.na(eact)){
-    kTo = 288.15   # base temperature, K (Prentice, unpublished)
+    # kTo = 288.15   # base temperature, K (Prentice, unpublished)
     kR  = 8.3143   # universal gas constant, J/mol/K (Allen, 1973)
     kMv = 18.02    # molecular weight of water vapor, g/mol (Tsilingiris, 2008)
     kMa = 28.963   # molecular weight of dry air, g/mol (Tsilingiris, 2008)
