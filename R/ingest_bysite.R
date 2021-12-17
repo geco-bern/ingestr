@@ -1,6 +1,7 @@
 #' Data ingest for a single site
 #'
-#' Ingests data for a single site and one specific data type, specified by argument \code{source}.
+#' Ingests data for a single site and one specific data type,
+#' specified by argument \code{source}.
 #'
 #' @param sitename A character string used as site identification. When data is extracted from
 #' global files or remote servers, \code{sitename} is simply used as a label and any string can
@@ -46,8 +47,8 @@ ingest_bysite <- function(
   timescale = "d",
   year_start = NA,
   year_end = NA,
-  lon = ifelse(source=="fluxnet", NA),
-  lat = ifelse(source=="fluxnet", NA),
+  lon = ifelse(source == "fluxnet", NA),
+  lat = ifelse(source == "fluxnet", NA),
   elv = NA,
   verbose = FALSE
   ){
@@ -55,7 +56,7 @@ ingest_bysite <- function(
   # CRAN compliance, declaring unstated variables
   date_start <- date_end <- problem <-
     year_start_tmp <- x <- y <- lat_orig <- success <- elv <- patm <-
-    patm_base <-patm_mean <- month <- tavg <-temp <- temp_fine <-
+    patm_base <-patm_mean <- month <- tavg <- temp <- temp_fine <-
     tmax <- tmax_fine <- tmin <- tmin_fine <- prec <- prec_fine <-
     days_in_month <- rain <- snow <- srad <- srad_fine <- ppfd <-
     ppfd_fine <- wind <- wind_fine <- qair <- vap <- vapr <- vapr_fine <-
@@ -514,7 +515,6 @@ ingest_bysite <- function(
     
     df_tmp <- ingest_modis_bysite(siteinfo, settings)
 
-
   } else if (source == "gee"){
     #-----------------------------------------------------------
     # Get data from Google Earth Engine
@@ -601,7 +601,11 @@ ingest_bysite <- function(
     #-----------------------------------------------------------
     # Assume fapar = 1 for all dates
     #-----------------------------------------------------------
-    df_tmp <- init_dates_dataframe( year_start, year_end, timescale = timescale ) %>%
+    df_tmp <- init_dates_dataframe(
+        year_start,
+        year_end,
+        timescale = timescale 
+      ) %>%
       dplyr::mutate(sitename = sitename, fapar = 1.0)
 
   } else if (source == "etopo1"){
@@ -609,9 +613,9 @@ ingest_bysite <- function(
     # Get ETOPO1 elevation data. year_start and year_end not required
     #-----------------------------------------------------------
     siteinfo <- tibble(
-      sitename = sitename,
-      lon = lon,
-      lat = lat
+        sitename = sitename,
+        lon = lon,
+        lat = lat
       )
 
     df <- ingest_globalfields(
@@ -657,19 +661,28 @@ ingest_bysite <- function(
       lat = lat
     )
 
-    df <- purrr::map_dfc(as.list(settings$varnam), ~ingest_wise_byvar(., siteinfo, layer = settings$layer, dir = dir))
+    df <- purrr::map_dfc(
+        as.list(settings$varnam),
+        ~ingest_wise_byvar(., siteinfo, layer = settings$layer, dir = dir)
+      )
 
     if (length(settings$varnam) > 1){
       df <- df %>%
         rename(lon = lon...1, lat = lat...2) %>%
         dplyr::select(-starts_with("lon..."), -starts_with("lat...")) %>%
-        right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
+        right_join(
+            dplyr::select(siteinfo, sitename, lon, lat),
+            by = c("lon", "lat")
+          ) %>%
         dplyr::select(-lon, -lat) %>%
         group_by(sitename) %>%
         tidyr::nest()
     } else {
       df <- df %>%
-        right_join(dplyr::select(siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
+        right_join(
+            dplyr::select(siteinfo, sitename, lon, lat),
+            by = c("lon", "lat")
+          ) %>%
         dplyr::select(-lon, -lat) %>%
         group_by(sitename) %>%
         tidyr::nest()

@@ -3,8 +3,8 @@
 #'
 #' @param df data frame with time series data
 #' @param sitename a site name
-#' @param year_start a start year
-#' @param year_end an end year
+#' @param date_start a start year
+#' @param date_end an end year
 #' @param settings processing settings file
 
 #' @return gap filled time series
@@ -13,8 +13,8 @@
 gapfill_interpol <- function(
   df,
   sitename,
-  year_start,
-  year_end,
+  date_start,
+  date_end,
   settings
 ){
   
@@ -41,7 +41,7 @@ gapfill_interpol <- function(
   ##--------------------------------------
   ## CLEAN AND GAP-FILL
   ##--------------------------------------
-  if (prod=="MOD13Q1"){
+  if (prod == "MOD13Q1"){
     ##--------------------------------------
     ## This is for MOD13Q1 Vegetation indeces (NDVI, EVI) 
     ## data downloaded from MODIS LP DAAC
@@ -148,7 +148,7 @@ gapfill_interpol <- function(
       dplyr::select(-qc_bitname)
     
     
-  } else if (prod=="MCD15A3H"){
+  } else if (prod == "MCD15A3H"){
     
     ## QC interpreted according to
     ##  https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H:
@@ -236,7 +236,7 @@ gapfill_interpol <- function(
       dplyr::rowwise() %>%
       dplyr::mutate(modisvar_filtered = modisvar)
     
-  } else if (prod=="MOD09A1"){
+  } else if (prod == "MOD09A1"){
     ##--------------------------------------
     ## Filter surface reflectance data
     ##--------------------------------------
@@ -332,7 +332,10 @@ gapfill_interpol <- function(
   ##--------------------------------------
   ## Create daily dataframe
   ##--------------------------------------
-  ddf <- init_dates_dataframe( year_start, year_end ) %>%
+  ddf <- init_dates_dataframe(
+    lubridate::year(date_start),
+    lubridate::year(date_end)
+    ) %>%
     
     ## decimal date
     mutate(year_dec = lubridate::decimal_date(date))
@@ -535,6 +538,12 @@ gapfill_interpol <- function(
     
   }
   
-  return( ddf )
+  # filter by year
+  ddf <- ddf %>%
+    dplyr::filter(
+      date >= as.Date(date_start) &
+        date <= as.Date(date_end)
+    )
   
+  return(ddf)
 }

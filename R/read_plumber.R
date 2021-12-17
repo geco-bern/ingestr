@@ -11,7 +11,7 @@
 
 read_plumber <- function(
   site = "AT-Neu",
-  path = "~/Desktop"
+  path
 ){
   
   # list all files

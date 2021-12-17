@@ -4,7 +4,7 @@
 \alias{calc_vp}
 \title{Calculate vapor pressure from relative humidity}
 \usage{
-calc_vp(qair = NA, tc = NA, tmin = NA, tmax = NA, patm = NA, elv = NA)
+calc_vp(qair, tc, tmin, tmax, patm = NA, elv = NA)
 }
 \arguments{
 \item{qair}{Air specific humidity (g g-1)}
@@ -24,5 +24,5 @@ for calculating it based on standard sea level pressure)}
 vapor pressure (Pa)
 }
 \description{
-xxx
+Follows Abtew and Meleese (2013), Ch. 5 Vapor Pressure Calculation Methods
 }

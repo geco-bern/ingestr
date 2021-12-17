@@ -95,7 +95,7 @@ init_dates_dataframe <- function(
               sprintf( "%02d", enddom  ), " 23:30:00" ) )
   }
   
-  if (startdate > enddate){
+  if (startdate > enddate || is.null(startdate) || is.null(enddate )){
     ddf <- tibble(date = NA)
   } else {
     ddf <-  tibble( date = seq( from = startdate, to = enddate, by = freq ) )
@@ -104,7 +104,6 @@ init_dates_dataframe <- function(
         dplyr::filter(
           !(lubridate::month(date) == 2 & lubridate::mday(date) == 29)
           )
-    
   }
 
   return( ddf )

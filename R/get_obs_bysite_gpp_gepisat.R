@@ -30,7 +30,7 @@ get_obs_bysite_gpp_gepisat <- function(
     ymd <- Timestamp <- NULL
     
   ## Take only file for this site
-  if (timescale=="d"){
+  if (timescale == "d") {
 
     ## Daily
     filn <- list.files( path_gepisat, 
@@ -44,7 +44,7 @@ get_obs_bysite_gpp_gepisat <- function(
 
   }
 
-  if (length(filn)>0){
+  if (length(filn) > 0) {
 
     ## This returns a data frame with columns 
     ## (date, temp, prec, nrad, ppfd, vpd, ccov)
@@ -65,17 +65,19 @@ get_obs_bysite_gpp_gepisat <- function(
       mutate( gpp_obs = ifelse( is.nan(gpp_obs), NA, gpp_obs ) )
   
   } else {
-
     df <- NULL
-  
   }
   
   return(df)
-
 }
 
 
-get_obs_gepisat_raw <- function( sitename, path, freq="d" ){
+get_obs_gepisat_raw <- function(
+  sitename,
+  path,
+  freq = "d"
+) {
+  
   ##--------------------------------------------------------------------
   ## Function returns a dataframe containing all the data of the GePiSaT
   ## data file of respective temporal resolution.
@@ -86,23 +88,20 @@ get_obs_gepisat_raw <- function( sitename, path, freq="d" ){
   cols <- ymd <- Timestamp <- NULL
   
   ## get data
-  df <-  readr::read_csv( path, na="-9999", col_types = cols() )
+  df <-  readr::read_csv( path, na = "-9999", col_types = cols() )
 
   ## get dates, their format differs slightly between temporal resolution
-  if ( freq=="d" ){
+  if ( freq == "d" ){
 
     df <- df %>%
       mutate( Timestamp = ymd( Timestamp ) ) %>%
       rename( date = Timestamp )
 
   } else {
-
     warning("get_obs_gepisat_raw() implemented only for daily time step.")
-
   }
 
   return( df )
-
 }
 
 

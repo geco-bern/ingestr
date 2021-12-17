@@ -179,20 +179,8 @@ get_settings_modis <- function(
       productnam = "MODIS_FPAR_MCD15A3H",
       network = network
       )
-
-  } else if (bundle == "modis_lst") { ## 8 day average
-    out <- list(
-      prod     = "MYD21A2",
-      band_var = "LST_Day_1KM",
-      band_qc  = "QC_Day",
-      varnam   = "lst",
-      period   = 4,
-      prod_suffix = "MYD21A2",
-      productnam = "MODIS_LST_MYD21A2",
-      network = network
-    )
     
-  } else if (bundle == "modis_lst_daily") { ## daily average
+  } else if (bundle == "modis_lst") { ## daily average
     out <- list(
       prod     = "MOD11A2",
       band_var = "LST_Day_1km",

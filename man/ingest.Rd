@@ -17,7 +17,8 @@ ingest(
 )
 }
 \arguments{
-\item{siteinfo}{A data frame containing site meta info. Required columns are: \code{"sitename", "date_start", "date_end", "lon", "lat", "elv"}.}
+\item{siteinfo}{A data frame containing site meta info. Required columns are:
+\code{"sitename", "date_start", "date_end", "lon", "lat", "elv"}.}
 
 \item{source}{A character used as identifiyer for the type of data source
 (e.g., \code{"fluxnet"}). See vignette for a full description of available options.}
