@@ -1,6 +1,7 @@
 #' Calculate vapour pressure deficit from relative humidity
 #'
-#' xxx
+#' Follows Abtew and Meleese (2013), Ch. 5 Vapor Pressure Calculation Methods,
+#' in Evaporation and Evapotranspiration
 #'
 #' @param qair Air specific humidity (g g-1)
 #' @param eact Water vapour pressure (Pa)
@@ -41,16 +42,39 @@ calc_vpd <- function(qair=NA, eact=NA, tc=NA, tmin=NA, tmax=NA, patm=NA, elv=NA)
     
     ## Calculate VPD as mean of VPD based on Tmin and VPD based on Tmax if they are availble.
     ## Otherwise, use just tc for calculating VPD.
-    vpd <- ifelse(!is.na(tmin) && !is.na(tmax),
-                  (calc_vpd_inst( qair=qair, eact=eact, tc=tmin, patm=patm) + calc_vpd_inst( qair=qair, eact=eact, tc=tmax, patm=patm))/2,
-                  calc_vpd_inst( qair=qair, eact=eact, tc=tc, patm=patm)
+    vpd <- ifelse(
+      !is.na(tmin) && !is.na(tmax),
+      (calc_vpd_inst( qair=qair, eact=eact, tc=tmin, patm=patm) +
+         calc_vpd_inst( qair=qair, eact=eact, tc=tmax, patm=patm))/2,
+      calc_vpd_inst( qair=qair, eact=eact, tc=tc, patm=patm)
     )
   }
   return( vpd )
-  
 }
 
-calc_vpd_inst <- function( qair=NA, eact=NA, tc=NA, patm=NA, elv=NA  ){
+#' Calculate instantenous VPD from ambient conditions
+#' 
+#' Follows Abtew and Meleese (2013), Ch. 5 Vapor Pressure Calculation Methods,
+#' in Evaporation and Evapotranspiration
+#' 
+#' @param qair Air specific humidity (g g-1)
+#' @param eact Water vapour pressure (Pa)
+#' @param tc temperature, deg C
+#' @param patm Atmospehric pressure (Pa)
+#' @param elv Elevation above sea level (m) (Used only if \code{patm} is missing 
+#' for calculating it based on standard sea level pressure)
+#'
+#' @return
+#' @export
+
+calc_vpd_inst <- function(
+  qair=NA,
+  eact=NA, 
+  tc=NA,
+  patm=NA,
+  elv=NA
+) {
+  
   ##-----------------------------------------------------------------------
   ## Ref:      Eq. 5.1, Abtew and Meleese (2013), Ch. 5 Vapor Pressure 
   ##           Calculation Methods, in Evaporation and Evapotranspiration: 
@@ -60,6 +84,7 @@ calc_vpd_inst <- function( qair=NA, eact=NA, tc=NA, patm=NA, elv=NA  ){
   ##                 tc = average daily air temperature, deg C
   ##                 eact  = actual vapor pressure, Pa
   ##-----------------------------------------------------------------------
+
   if (is.na(eact)){
     kTo = 288.15   # base temperature, K (Prentice, unpublished)
     kR  = 8.3143   # universal gas constant, J/mol/K (Allen, 1973)
@@ -81,9 +106,9 @@ calc_vpd_inst <- function( qair=NA, eact=NA, tc=NA, patm=NA, elv=NA  ){
   ## calculate VPD in units of Pa
   vpd <- ( esat - eact )    
   
-  ## this empirical equation may lead to negative values for VPD (happens very rarely). assume positive...
+  ## this empirical equation may lead to negative values for VPD
+  ## (happens very rarely). assume positive...
   vpd <- max( 0.0, vpd )
   
   return( vpd )
-  
 }
