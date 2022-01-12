@@ -180,15 +180,55 @@ get_settings_modis <- function(
       network = network
       )
     
-  } else if (bundle == "modis_lst") { ## daily average
+    } else if (bundle == "modis_lst_aqua") { ## terra 8-days average
+    out <- list(
+      prod     = "MODIS/006/MYD11A2",
+      band_var = "LST_Day_1km",
+      band_qc  = "QC_Day",
+      day_time = "Day_view_time",
+      varnam   = "lst_a",
+      # period   = 4,
+      prod_suffix = "MOD11A2",
+      productnam = "MODIS_LST_MYD11A2_gee",
+      network = network
+    )
+  
+  } else if (bundle == "modis_lst_daily_aqua") { ## daily average
+    out <- list(
+      prod     = "MODIS/006/MYD11A1",
+      band_var = "LST_Day_1km",
+      band_qc  = "QC_Day",
+      day_time = "Day_view_time",
+      varnam   = "lst_daily_a",
+      # period   = 4,
+      prod_suffix = "MOD11A2",
+      productnam = "MODIS_LST_MYD11A1_gee",
+      network = network
+    )  
+  
+  } else if (bundle == "modis_lst_terra") { ## 8-days average
     out <- list(
       prod     = "MOD11A2",
       band_var = "LST_Day_1km",
       band_qc  = "QC_Day",
-      varnam   = "lst",
+      day_time = "Day_view_time",
+      varnam   = "lst_daily_t",
       period   = 4,
       prod_suffix = "MOD11A2",
       productnam = "MODIS_LST_MOD11A2",
+      network = network
+    )
+  
+  } else if (bundle == "modis_lst_daily_terra") { ## daily average from aqua
+    out <- list(
+      prod     = "MODIS/006/MOD11A1",
+      band_var = "LST_Day_1km",
+      band_qc  = "QC_Day",
+      day_time = "Day_view_time",
+      varnam   = "lst_t",
+      # period   = 4,
+      prod_suffix = "MOD11A2",
+      productnam = "MODIS_LST_MOD11A1_gee",
       network = network
     )
     
