@@ -41,7 +41,7 @@ get_settings_gee <- function(
   keep = FALSE,
   overwrite_raw = FALSE,
   overwrite_interpol = FALSE
-  ) {
+) {
   
   if (bundle == "modis_fpar") {
     ##--------------------------------------------------------------------
@@ -58,8 +58,8 @@ get_settings_gee <- function(
       scale_factor = 0.01,
       period = 4,
       asfaparinput = TRUE
-      )
-
+    )
+    
   } else if (bundle == "modis_evi") {
     ##--------------------------------------------------------------------
     ## EVI
@@ -75,8 +75,8 @@ get_settings_gee <- function(
       scale_factor = 0.0001,
       period = 16,
       asfaparinput = TRUE
-      )
-
+    )
+    
   } else if (bundle == "modis_lai") {
     ##--------------------------------------------------------------------
     ## LAI
@@ -87,8 +87,8 @@ get_settings_gee <- function(
       prod     = "MOD15A2",
       varnam   = "lai",
       productnam = "lai"
-      )
-
+    )
+    
   } else if (bundle == "modis_gpp") {
     ##--------------------------------------------------------------------
     ## GPP (kg C m-2), 500 m, 8-daily
@@ -103,12 +103,12 @@ get_settings_gee <- function(
       scale_factor = 0.0001,
       period = 8,
       asfaparinput = FALSE
-      )
-
+    )
+    
   } else {
     rlang::abort("get_settings_gee(): Could not identify required argument 'bundle'.")
   }
-
+  
   out$python_path        <- python_path
   out$gee_path           <- gee_path
   out$data_path          <- data_path
@@ -116,9 +116,9 @@ get_settings_gee <- function(
   out$keep               <- keep
   out$overwrite_raw      <- overwrite_raw
   out$overwrite_interpol <- overwrite_interpol
-
+  
   return(out)
-
+  
 }
 
 
@@ -166,8 +166,8 @@ get_settings_modis <- function(
   n_focal = 0,
   filename_with_year = TRUE,
   network = NA
-  ) {
-
+) {
+  
   if (bundle == "modis_fpar") {
     out <- list(
       prod     = "MCD15A3H",
@@ -178,9 +178,9 @@ get_settings_modis <- function(
       prod_suffix = "MCD15A3H",
       productnam = "MODIS_FPAR_MCD15A3H",
       network = network
-      )
+    )
     
-    } else if (bundle == "modis_lst_aqua") { ## terra 8-days average
+  } else if (bundle == "modis_lst_aqua") { ## 8-days average from aqua
     out <- list(
       prod     = "MODIS/006/MYD11A2",
       band_var = "LST_Day_1km",
@@ -188,12 +188,12 @@ get_settings_modis <- function(
       day_time = "Day_view_time",
       varnam   = "lst_a",
       # period   = 4,
-      prod_suffix = "MOD11A2",
+      prod_suffix = "MYD11A2",
       productnam = "MODIS_LST_MYD11A2_gee",
       network = network
     )
-  
-  } else if (bundle == "modis_lst_daily_aqua") { ## daily average
+    
+  } else if (bundle == "modis_lst_daily_aqua") { ## daily average from aqua
     out <- list(
       prod     = "MODIS/006/MYD11A1",
       band_var = "LST_Day_1km",
@@ -201,12 +201,12 @@ get_settings_modis <- function(
       day_time = "Day_view_time",
       varnam   = "lst_daily_a",
       # period   = 4,
-      prod_suffix = "MOD11A2",
+      prod_suffix = "MOD11A1",
       productnam = "MODIS_LST_MYD11A1_gee",
       network = network
     )  
-  
-  } else if (bundle == "modis_lst_terra") { ## 8-days average
+    
+  } else if (bundle == "modis_lst_terra") { ## 8-days average from terra
     out <- list(
       prod     = "MOD11A2",
       band_var = "LST_Day_1km",
@@ -218,8 +218,8 @@ get_settings_modis <- function(
       productnam = "MODIS_LST_MOD11A2",
       network = network
     )
-  
-  } else if (bundle == "modis_lst_daily_terra") { ## daily average from aqua
+    
+  } else if (bundle == "modis_lst_daily_terra") { ## daily average from terra
     out <- list(
       prod     = "MODIS/006/MOD11A1",
       band_var = "LST_Day_1km",
@@ -227,7 +227,7 @@ get_settings_modis <- function(
       day_time = "Day_view_time",
       varnam   = "lst_t",
       # period   = 4,
-      prod_suffix = "MOD11A2",
+      prod_suffix = "MOD11A1",
       productnam = "MODIS_LST_MOD11A1_gee",
       network = network
     )
@@ -243,7 +243,7 @@ get_settings_modis <- function(
       productnam = "MODIS_LAI_MCD15A3H",
       network = network
     )
-
+    
   } else if (bundle == "modis_evi") {
     out <- list(
       prod     = "MOD13Q1",
@@ -254,8 +254,8 @@ get_settings_modis <- function(
       prod_suffix = "MOD13Q1",
       productnam = "MODIS_EVI_MOD13Q1",
       network = network
-      )
-
+    )
+    
   } else if (bundle == "modis_ndvi") {
     out <- list(
       prod     = "MOD13Q1",
@@ -290,12 +290,12 @@ get_settings_modis <- function(
       prod_suffix = "MCD43A4",
       productnam = "MODIS_refl_MCD43A4",
       network = NA
-      )
+    )
     
   } else {
     stop(
       "get_settings_modis(): Could not identify required argument 'bundle'."
-      )
+    )
   }
   
   out$data_path          <- data_path
@@ -305,9 +305,9 @@ get_settings_modis <- function(
   out$overwrite_interpol <- overwrite_interpol
   out$n_focal            <- n_focal
   out$filename_with_year <- filename_with_year
-
+  
   return(out)
-
+  
 }
 
 
@@ -428,8 +428,8 @@ get_settings_fluxnet <- function(
   return_qc          = FALSE,
   remove_neg         = FALSE,
   verbose            = TRUE
-  ){
-
+){
+  
   settings <- list(
     dir_hh= dir_hh,
     dir_hr= dir_hr,
@@ -446,10 +446,10 @@ get_settings_fluxnet <- function(
     return_qc          = return_qc,
     remove_neg         = remove_neg,
     verbose            = verbose
-    )
-
+  )
+  
   return(settings)
-
+  
 }
 
 #' Defines settings for settings for SoilGrids ingest
@@ -476,22 +476,22 @@ get_settings_soilgrids <- function(
   varnam,
   layer = 1,
   agg = "mean"
-  ){
-
+){
+  
   code <- data_layer <- NULL
   
   ## for association of layer character codes
   df_layer_code <- tibble(
     layer = 1:6,
     code = c("0-5cm", "5-15cm", "15-30cm", "30-60cm", "60-100cm", "100-200cm")
-    )
-
+  )
+  
   ## for association of conversion factors
   df_conversion <- tibble(
     varnam = c("bdod", "cec", "cfvo", "clay", "nitrogen",
                "phh2o", "sand", "silt", "soc", "ocd", "ocs"),
     factor = c(100, 10 , 10 , 10 , 100, 10 , 10 , 10 , 10 , 10 , 10)
-    )
+  )
   
   ## specify layer of interest
   df_voi_layer <- expand.grid(varnam, layer) %>% 
@@ -509,7 +509,7 @@ get_settings_soilgrids <- function(
   
   ## set other variables necessary for the WCS call for all kinds of requests
   out$webdav_path = '/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/'
-
+  
   return(out)
 }
 
