@@ -39,7 +39,7 @@
 ingest <- function(
 	siteinfo,
 	source,
-	getvars,
+	getvars   = c(),
 	dir       = NULL,
 	settings  = NULL,
 	timescale = "d",
@@ -286,21 +286,23 @@ ingest <- function(
     }
 
     ## bias-correct atmospheric pressure - per default
-    if ("patm" %in% getvars){
-
-      df_patm_base <- siteinfo %>%
-      	dplyr::select(sitename, elv) %>%
-      	mutate(patm_base = calc_patm(elv))
-
-      ddf <- ddf %>%
-      	group_by(sitename) %>%
-        summarise(patm_mean = mean(patm, na.rm = TRUE)) %>%
-        left_join(df_patm_base, by = "sitename") %>%
-        mutate(scale = patm_base / patm_mean) %>%
-        right_join(ddf, by = "sitename") %>%
-        mutate(patm = patm * scale) %>%
-        dplyr::select(-patm_base, -elv, -patm_mean, -scale)
-
+    if (!is.null(getvars)){
+      if ("patm" %in% getvars){
+        
+        df_patm_base <- siteinfo %>%
+          dplyr::select(sitename, elv) %>%
+          mutate(patm_base = calc_patm(elv))
+        
+        ddf <- ddf %>%
+          group_by(sitename) %>%
+          summarise(patm_mean = mean(patm, na.rm = TRUE)) %>%
+          left_join(df_patm_base, by = "sitename") %>%
+          mutate(scale = patm_base / patm_mean) %>%
+          right_join(ddf, by = "sitename") %>%
+          mutate(patm = patm * scale) %>%
+          dplyr::select(-patm_base, -elv, -patm_mean, -scale)
+        
+      }
     }
 
     if (!identical(NULL, settings$correct_bias)){

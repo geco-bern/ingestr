@@ -7,7 +7,7 @@
 ingest(
   siteinfo,
   source,
-  getvars,
+  getvars = c(),
   dir = NULL,
   settings = NULL,
   timescale = "d",

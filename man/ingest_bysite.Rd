@@ -7,14 +7,14 @@
 ingest_bysite(
   sitename,
   source,
-  getvars,
+  getvars = c(),
   dir = NULL,
   settings = NULL,
   timescale = "d",
   year_start = NA,
   year_end = NA,
-  lon = ifelse(source == "fluxnet", NA),
-  lat = ifelse(source == "fluxnet", NA),
+  lon = NA,
+  lat = NA,
   elv = NA,
   verbose = FALSE
 )

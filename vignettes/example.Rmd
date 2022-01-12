@@ -246,6 +246,7 @@ This uses the [MODISTools](https://docs.ropensci.org/MODISTools/) R package maki
 -   `"modis_evi"`: MODIS collection 6, MOD13Q1, band `250m_16_days_EVI`
 -   `"modis_ndvi"`: MODIS collection 6, MOD13Q1, band `250m_16_days_NDVI`
 -   `"modis_refl"`: MODIS/Terra+Aqua Nadir BRDF-Adjusted Reflectance (NBAR) Daily L3 Global 500 m SIN Grid, all bands
+-   `"modis_lst"`: MODIS/Terra Land Surface Temperature/Emissivity 8-Day L3 Global 1 km SIN Grid (MOD11A2 v006)
 
 The filtering criteria are hard-coded specifically for each product, using its respective quality control information (see function `gapfill_interpol()` in `R/ingest_modis_bysite.R`). For more information on the settings do `?get_settings_modis`.
 
@@ -288,6 +289,37 @@ plot_fapar_ingestr_bysite(
   df_modis_fpar, 
   settings_modis)
 ```
+
+### Land surface temperatures
+
+Land surface temperature data is not interpolated. 
+```{r}
+settings_modis <- get_settings_modis(
+    bundle            = "modis_lst",
+    data_path         = "~/data/modis_subsets/",
+    method_interpol   = "loess",
+    keep              = TRUE,
+    overwrite_raw     = FALSE,
+    overwrite_interpol= TRUE,
+    n_focal           = 0,
+    network           = "FLUXNET"
+)
+settings_modis$interpol
+```
+
+```{r}
+df_modis_lst <- ingest_bysite(
+    sitename  = "CH-Lae",
+    source    = "modis",
+    year_start= 2018,
+    year_end  = 2019,
+    # lon       = 8.36439,   # not needed when network = "FLUXNET"
+    # lat       = 47.47833,  # not needed when network = "FLUXNET"
+    settings  = settings_modis,
+    verbose   = FALSE
+)
+```
+
 
 ## Google Earth Engine
 
