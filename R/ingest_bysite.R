@@ -392,7 +392,7 @@ ingest_bysite <- function(
             ## specific humidity (qair, g g-1) is read, convert to vapour pressure (vapr, Pa)
             df_tmp <- df_tmp %>% 
               rowwise() %>% 
-              dplyr::mutate(vapr = calc_vp(qair = qair, tc = temp, patm = patm)) %>% 
+              dplyr::mutate(vapr = calc_vp(qair = qair, patm = patm)) %>% 
               ungroup()
             
           } else if (source == "cru"){
@@ -467,7 +467,7 @@ ingest_bysite <- function(
             ## specific humidity (qair, g g-1) is read, convert to vapour pressure (vapr, Pa)
             df_tmp <- df_tmp %>% 
               rowwise() %>% 
-              dplyr::mutate(vapr = calc_vp(qair = qair, tc = temp, patm = patm)) %>% 
+              dplyr::mutate(vapr = calc_vp(qair = qair, patm = patm)) %>% 
               ungroup()
             
           } else if (source == "cru"){

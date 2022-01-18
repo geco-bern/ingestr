@@ -320,6 +320,13 @@ df_modis_lst <- ingest_bysite(
 )
 ```
 
+```{r}
+df_modis_lst %>% 
+  drop_na() %>% 
+  ggplot(aes(date, modisvar_filtered)) + 
+  geom_line()
+```
+
 
 ## Google Earth Engine
 
