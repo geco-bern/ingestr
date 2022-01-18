@@ -25,8 +25,7 @@ test_that("test vp", {
   
   df <- calc_vp_inst(
     1,
-    100000,
-    0
+    100000
   )
   
   expect_type(df, "double")

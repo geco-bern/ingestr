@@ -290,42 +290,6 @@ plot_fapar_ingestr_bysite(
   settings_modis)
 ```
 
-### Land surface temperatures
-
-Land surface temperature data is not interpolated. 
-```{r}
-settings_modis <- get_settings_modis(
-    bundle            = "modis_lst",
-    data_path         = "~/data/modis_subsets/",
-    method_interpol   = "loess",
-    keep              = TRUE,
-    overwrite_raw     = FALSE,
-    overwrite_interpol= TRUE,
-    n_focal           = 0,
-    network           = "FLUXNET"
-)
-settings_modis$interpol
-```
-
-```{r}
-df_modis_lst <- ingest_bysite(
-    sitename  = "CH-Lae",
-    source    = "modis",
-    year_start= 2018,
-    year_end  = 2019,
-    # lon       = 8.36439,   # not needed when network = "FLUXNET"
-    # lat       = 47.47833,  # not needed when network = "FLUXNET"
-    settings  = settings_modis,
-    verbose   = FALSE
-)
-```
-
-```{r}
-df_modis_lst %>% 
-  drop_na() %>% 
-  ggplot(aes(date, modisvar_filtered)) + 
-  geom_line()
-```
 
 
 ## Google Earth Engine
