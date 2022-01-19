@@ -177,7 +177,8 @@ get_settings_modis <- function(
       period   = 4,
       prod_suffix = "MCD15A3H",
       productnam = "MODIS_FPAR_MCD15A3H",
-      network = network
+      network = network,
+      interpol = TRUE
       )
     
   } else if (bundle == "modis_lst") { ## daily average
@@ -189,7 +190,8 @@ get_settings_modis <- function(
       period   = 4,
       prod_suffix = "MOD11A2",
       productnam = "MODIS_LST_MOD11A2",
-      network = network
+      network = network,
+      interpol = FALSE
     )
     
   } else if (bundle == "modis_lai") {
@@ -201,7 +203,8 @@ get_settings_modis <- function(
       period   = 4,
       prod_suffix = "MCD15A3H",
       productnam = "MODIS_LAI_MCD15A3H",
-      network = network
+      network = network,
+      interpol = TRUE
     )
 
   } else if (bundle == "modis_evi") {
@@ -213,7 +216,8 @@ get_settings_modis <- function(
       period   = 16,
       prod_suffix = "MOD13Q1",
       productnam = "MODIS_EVI_MOD13Q1",
-      network = network
+      network = network,
+      interpol = TRUE
       )
 
   } else if (bundle == "modis_ndvi") {
@@ -225,7 +229,8 @@ get_settings_modis <- function(
       period   = 16,
       prod_suffix = "MOD13Q1",
       productnam = "MODIS_NDVI_MOD13Q1",
-      network = network
+      network = network,
+      interpol = TRUE
     )
     
   }  else if (bundle == "modis_refl"){
@@ -249,7 +254,8 @@ get_settings_modis <- function(
       period   = 1,
       prod_suffix = "MCD43A4",
       productnam = "MODIS_refl_MCD43A4",
-      network = NA
+      network = NA,
+      interpol = TRUE
       )
     
   } else {

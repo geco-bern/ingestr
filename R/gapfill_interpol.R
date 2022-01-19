@@ -402,138 +402,141 @@ gapfill_interpol <- function(
   # ddf$modisvar <- 
   # extrapolate_missing_headtail(dplyr::select(ddf, var = modisvar, doy))
   
-  ##--------------------------------------
-  ## Interpolate
-  ##--------------------------------------
-  if (prod=="MOD09A1"){
-    
-    ## For reflectance data, linearly interpolate all bands to daily
-    myapprox <- function(vec){
-      x <- 1:length(vec)
-      stats::approx(x, vec, xout = x)$y
-    }
-    
-    ddf <- ddf %>%
-      mutate(across(settings$band_var, ~myapprox(.)))
-    
-  } else {
-    
-    if (method_interpol == "loess" || keep){
-      ##--------------------------------------
-      ## get LOESS spline model for predicting daily values (used below)
-      ##--------------------------------------
-      message("loess...")
+  if (settings$interpol){
+    ##--------------------------------------
+    ## Interpolate to daily
+    ##--------------------------------------
+    if (prod=="MOD09A1"){
       
-      ## determine periodicity
-      period <- ddf %>%
-        dplyr::filter(!is.na(modisvar_filtered)) %>%
-        mutate(prevdate = lag(date)) %>%
-        mutate(period = as.integer(difftime(date, prevdate))) %>%
-        pull(period) %>%
-        min(na.rm = TRUE)
-      
-      ## take a three-weeks window for locally weighted regression (loess)
-      ## good explanation: 
-      ## https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
-      ndays_tot <- lubridate::time_length(diff(range(ddf$date)), unit = "day")
-      # (20*period)/ndays_tot  
-      # multiply with larger number to get smoother curve
-      span <- 100/ndays_tot
-      
-      idxs    <- which(!is.na(ddf$modisvar_filtered))
-      myloess <- try(stats::loess( modisvar_filtered ~ year_dec,
-                             data = ddf[idxs,], span=span ),
-                     silent = TRUE)
-      
-      ## predict LOESS to all dates with missing data
-      tmp <- try(stats::predict( myloess, newdata = ddf ), silent = TRUE)
-      if (class(tmp)!="try-error"){
-        ddf$loess <- tmp
-      } else {
-        ddf$loess <- rep( NA, nrow(ddf) )
-      }
-    }
-    
-    if (method_interpol == "spline" || keep){
-      ##--------------------------------------
-      ## get SPLINE model for predicting daily values (used below)
-      ##--------------------------------------
-      message("spline...")
-      idxs   <- which(!is.na(ddf$modisvar_filtered))
-      spline <- try(
-        with(ddf,
-             stats::smooth.spline(
-               year_dec[idxs],
-               modisvar_filtered[idxs], spar=0.01)),
-        silent = TRUE)
-      
-      ## predict SPLINE
-      tmp <- try( with( ddf, predict( spline, year_dec ) )$y)
-      if (class(tmp)!="try-error"){
-        ddf$spline <- tmp
-      } else {
-        ddf$spline <- rep( NA, nrow(ddf) )
+      ## For reflectance data, linearly interpolate all bands to daily
+      myapprox <- function(vec){
+        x <- 1:length(vec)
+        stats::approx(x, vec, xout = x)$y
       }
       
-    }
-    
-    if (method_interpol == "linear" || keep){
-      ##--------------------------------------
-      ## LINEAR INTERPOLATION
-      ##--------------------------------------
-      message("linear ...")
-      tmp <- try(stats::approx(ddf$year_dec, ddf$modisvar_filtered, xout=ddf$year_dec),
-                 silent = TRUE)
-      if (class(tmp) == "try-error"){
-        ddf <- ddf %>% mutate(linear = NA)
-      } else {
-        ddf$linear <- tmp$y
-      }
-    }
-    
-    # commented out to avoid dependency to 'signal'
-    if (method_interpol == "sgfilter" || keep){
-      ##--------------------------------------
-      ## SAVITZKY GOLAY FILTER
-      ##--------------------------------------
-      message("sgfilter ...")
-      ddf$sgfilter <- rep( NA, nrow(ddf) )
       ddf <- ddf %>%
-        mutate(
-          modisvar_filtered = ifelse(
-            is.nan(modisvar_filtered),
-            NA,
-            modisvar_filtered)
-        )
-      idxs <- which(!is.na(ddf$modisvar_filtered))
-      tmp <- 
-        suppressMessages(
-          try(
-            signal::sgolayfilt( ddf$modisvar_filtered[idxs], p=3, n=51 ),
-            silent = TRUE
+        mutate(across(settings$band_var, ~myapprox(.)))
+      
+    } else {
+      
+      if (method_interpol == "loess" || keep){
+        ##--------------------------------------
+        ## get LOESS spline model for predicting daily values (used below)
+        ##--------------------------------------
+        message("loess...")
+        
+        ## determine periodicity
+        period <- ddf %>%
+          dplyr::filter(!is.na(modisvar_filtered)) %>%
+          mutate(prevdate = lag(date)) %>%
+          mutate(period = as.integer(difftime(date, prevdate))) %>%
+          pull(period) %>%
+          min(na.rm = TRUE)
+        
+        ## take a three-weeks window for locally weighted regression (loess)
+        ## good explanation: 
+        ## https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
+        ndays_tot <- lubridate::time_length(diff(range(ddf$date)), unit = "day")
+        # (20*period)/ndays_tot  
+        # multiply with larger number to get smoother curve
+        span <- 100/ndays_tot
+        
+        idxs    <- which(!is.na(ddf$modisvar_filtered))
+        myloess <- try(stats::loess( modisvar_filtered ~ year_dec,
+                                     data = ddf[idxs,], span=span ),
+                       silent = TRUE)
+        
+        ## predict LOESS to all dates with missing data
+        tmp <- try(stats::predict( myloess, newdata = ddf ), silent = TRUE)
+        if (class(tmp)!="try-error"){
+          ddf$loess <- tmp
+        } else {
+          ddf$loess <- rep( NA, nrow(ddf) )
+        }
+      }
+      
+      if (method_interpol == "spline" || keep){
+        ##--------------------------------------
+        ## get SPLINE model for predicting daily values (used below)
+        ##--------------------------------------
+        message("spline...")
+        idxs   <- which(!is.na(ddf$modisvar_filtered))
+        spline <- try(
+          with(ddf,
+               stats::smooth.spline(
+                 year_dec[idxs],
+                 modisvar_filtered[idxs], spar=0.01)),
+          silent = TRUE)
+        
+        ## predict SPLINE
+        tmp <- try( with( ddf, predict( spline, year_dec ) )$y)
+        if (class(tmp)!="try-error"){
+          ddf$spline <- tmp
+        } else {
+          ddf$spline <- rep( NA, nrow(ddf) )
+        }
+        
+      }
+      
+      if (method_interpol == "linear" || keep){
+        ##--------------------------------------
+        ## LINEAR INTERPOLATION
+        ##--------------------------------------
+        message("linear ...")
+        tmp <- try(stats::approx(ddf$year_dec, ddf$modisvar_filtered, xout=ddf$year_dec),
+                   silent = TRUE)
+        if (class(tmp) == "try-error"){
+          ddf <- ddf %>% mutate(linear = NA)
+        } else {
+          ddf$linear <- tmp$y
+        }
+      }
+      
+      # commented out to avoid dependency to 'signal'
+      if (method_interpol == "sgfilter" || keep){
+        ##--------------------------------------
+        ## SAVITZKY GOLAY FILTER
+        ##--------------------------------------
+        message("sgfilter ...")
+        ddf$sgfilter <- rep( NA, nrow(ddf) )
+        ddf <- ddf %>%
+          mutate(
+            modisvar_filtered = ifelse(
+              is.nan(modisvar_filtered),
+              NA,
+              modisvar_filtered)
+          )
+        idxs <- which(!is.na(ddf$modisvar_filtered))
+        tmp <- 
+          suppressMessages(
+            try(
+              signal::sgolayfilt( ddf$modisvar_filtered[idxs], p=3, n=51 ),
+              silent = TRUE
             )
           )
-      
-      if (!inherits(tmp, "try-error")){
-        ddf$sgfilter[idxs] <- tmp
-      } else {
-        message("SG filter failed, no smoothing returned...")
+        
+        if (!inherits(tmp, "try-error")){
+          ddf$sgfilter[idxs] <- tmp
+        } else {
+          message("SG filter failed, no smoothing returned...")
+        }
+        
       }
       
-    }
-    
-    ##--------------------------------------
-    ## Define the variable to be returned in 
-    ## the column given by settings$varnam
-    ##--------------------------------------
-    if (method_interpol == "loess"){
-      ddf[[ varnam ]] <- ddf$loess
-    } else if (method_interpol == "spline"){
-      ddf[[ varnam ]] <- ddf$spline
-    } else if (method_interpol == "linear"){
-      ddf[[ varnam ]] <- ddf$linear
-    } else if (method_interpol == "sgfilter"){
-      ddf[[ varnam ]] <- ddf$sgfilter
+      ##--------------------------------------
+      ## Define the variable to be returned in 
+      ## the column given by settings$varnam
+      ##--------------------------------------
+      if (method_interpol == "loess"){
+        ddf[[ varnam ]] <- ddf$loess
+      } else if (method_interpol == "spline"){
+        ddf[[ varnam ]] <- ddf$spline
+      } else if (method_interpol == "linear"){
+        ddf[[ varnam ]] <- ddf$linear
+      } else if (method_interpol == "sgfilter"){
+        ddf[[ varnam ]] <- ddf$sgfilter
+      }
+      
     }
     
   }
@@ -542,8 +545,8 @@ gapfill_interpol <- function(
   ddf <- ddf %>%
     dplyr::filter(
       date >= as.Date(date_start) &
-        date <= as.Date(date_end)
-    )
+        date <= as.Date(date_end)) %>% 
+    dplyr::mutate(modisvar_filtered = ifelse(is.nan(modisvar_filtered), NA, modisvar_filtered))
   
   return(ddf)
 }

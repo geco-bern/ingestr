@@ -4,16 +4,10 @@
 \alias{calc_vp}
 \title{Calculate vapor pressure from relative humidity}
 \usage{
-calc_vp(qair, tc, tmin, tmax, patm = NA, elv = NA)
+calc_vp(qair, patm = NA, elv = NA)
 }
 \arguments{
 \item{qair}{Air specific humidity (g g-1)}
-
-\item{tc}{temperature, deg C}
-
-\item{tmin}{(optional) min daily air temp, deg C}
-
-\item{tmax}{(optional) max daily air temp, deg C}
 
 \item{patm}{Atmospehric pressure (Pa)}
 

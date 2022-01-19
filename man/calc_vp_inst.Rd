@@ -4,7 +4,7 @@
 \alias{calc_vp_inst}
 \title{Instantaneous vapour pressure}
 \usage{
-calc_vp_inst(qair, patm, elv)
+calc_vp_inst(qair, patm)
 }
 \arguments{
 \item{qair}{Air specific humidity (g g-1)}

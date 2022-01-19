@@ -1,4 +1,4 @@
-[![R-CMD-check](https://github.com/khufkens/ingestr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/khufkens/ingestr/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/computationales/ingestr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/computationales/ingestr/actions/workflows/R-CMD-check.yaml)
 
 # ingestr
 

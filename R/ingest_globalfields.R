@@ -126,7 +126,7 @@ ingest_globalfields <- function(
     
     ## remove spurious myvar columns
     df_out <- df_out %>%
-      select(-starts_with("myvar"))
+      dplyr::select(-starts_with("myvar"))
     
     if (timescale=="m"){
       stop("ingest_globalfields(): aggregating WATCH-WFDEI to monthly not implemented yet.")
@@ -218,7 +218,7 @@ ingest_globalfields <- function(
     
     ## remove spurious myvar columns
     df_out <- df_out %>%
-      select(-starts_with("myvar"))
+      dplyr::select(-starts_with("myvar"))
     
     if (timescale=="m"){
       rlang::abort("ingest_globalfields(): aggregating WATCH-WFDEI to monthly not implemented yet.")

@@ -3,9 +3,6 @@
 #' Follows Abtew and Meleese (2013), Ch. 5 Vapor Pressure Calculation Methods
 #'
 #' @param qair Air specific humidity (g g-1)
-#' @param tc temperature, deg C
-#' @param tmin (optional) min daily air temp, deg C 
-#' @param tmax (optional) max daily air temp, deg C
 #' @param patm Atmospehric pressure (Pa)
 #' @param elv Elevation above sea level (m) (Used only if \code{patm} is missing 
 #' for calculating it based on standard sea level pressure)
@@ -15,9 +12,6 @@
 #' 
 calc_vp <- function(
   qair,
-  tc,
-  tmin,
-  tmax,
   patm = NA,
   elv = NA
 ) {
@@ -48,15 +42,8 @@ calc_vp <- function(
                    calc_patm(elv),
                    patm)
     
-    ## Calculate VPD as mean of VPD based on Tmin and VPD 
-    ## based on Tmax if they are availble.
-    ## Otherwise, use just tc for calculating VPD.
-    vp <- ifelse(
-      !missing(tmin) && !missing(tmax),
-      (calc_vp_inst(qair = qair, tc = tmin, patm = patm) +
-         calc_vp_inst(qair = qair, tc = tmax, patm = patm))/2,
-      calc_vp_inst(qair = qair, tc = tc, patm = patm)
-    )
+    ## Calculate VP.
+    vp <- calc_vp_inst(qair = qair, patm = patm)
   }
   return( vp )
   
@@ -74,8 +61,7 @@ calc_vp <- function(
 
 calc_vp_inst <- function(
   qair,
-  patm,
-  elv
+  patm
 ){
   
   ##-----------------------------------------------------------------------

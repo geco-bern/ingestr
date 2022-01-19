@@ -41,14 +41,14 @@
 ingest_bysite <- function(
   sitename,
   source,
-  getvars,
+  getvars = c(),
   dir = NULL,
   settings  = NULL,
   timescale = "d",
   year_start = NA,
   year_end = NA,
-  lon = ifelse(source == "fluxnet", NA),
-  lat = ifelse(source == "fluxnet", NA),
+  lon = NA,
+  lat = NA,
   elv = NA,
   verbose = FALSE
   ){
@@ -392,7 +392,7 @@ ingest_bysite <- function(
             ## specific humidity (qair, g g-1) is read, convert to vapour pressure (vapr, Pa)
             df_tmp <- df_tmp %>% 
               rowwise() %>% 
-              dplyr::mutate(vapr = calc_vp(qair = qair, tc = temp, patm = patm)) %>% 
+              dplyr::mutate(vapr = calc_vp(qair = qair, patm = patm)) %>% 
               ungroup()
             
           } else if (source == "cru"){
@@ -467,7 +467,7 @@ ingest_bysite <- function(
             ## specific humidity (qair, g g-1) is read, convert to vapour pressure (vapr, Pa)
             df_tmp <- df_tmp %>% 
               rowwise() %>% 
-              dplyr::mutate(vapr = calc_vp(qair = qair, tc = temp, patm = patm)) %>% 
+              dplyr::mutate(vapr = calc_vp(qair = qair, patm = patm)) %>% 
               ungroup()
             
           } else if (source == "cru"){

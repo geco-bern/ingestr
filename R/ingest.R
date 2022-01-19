@@ -20,6 +20,8 @@
 #' only available for \code{source = "modis"} and requires argument \code{ncores} to be set.
 #' @param ncores An integer specifying the number of cores for parallel runs of ingest per site. Required only
 #' if \code{parallel = TRUE}
+#' @param find_closest A logical specifying whether to extract data from the closest 
+#' gridcell with data if no data is available for the specified location. Defaults to \code{FALSE}.
 #' @param verbose if \code{TRUE}, additional messages are printed.
 #'
 #' @return A named list of data frames (tibbles) containing input data for each site is returned.
@@ -39,13 +41,14 @@
 ingest <- function(
 	siteinfo,
 	source,
-	getvars,
-	dir       = NULL,
-	settings  = NULL,
-	timescale = "d",
-	parallel  = FALSE,
-	ncores    = NULL,
-	verbose   = FALSE
+	getvars      = c(),
+	dir          = NULL,
+	settings     = NULL,
+	timescale    = "d",
+	parallel     = FALSE,
+	ncores       = NULL,
+	find_closest = FALSE,
+	verbose      = FALSE
   ){
 
   # CRAN compliance, declaring unstated variables
@@ -227,80 +230,85 @@ ingest <- function(
                                getvars = getvars,
                                timescale = timescale,
                                verbose = FALSE)
-
-    ## check if data was extracted for all sites (may be located over ocean)
-    sites_missing <- ddf %>%
-      group_by(sitename) %>%
-      summarise(across(tidyselect::vars_select_helpers$where(is.double),
-                       ~sum(!is.na(.x)))) %>%
-      dplyr::filter(across(c(-sitename, -date), ~ .x == 0)) %>%
-      pull(sitename)
-
-    if (length(sites_missing) > 0 & !identical(NULL, settings$correct_bias)){
-      ## determine closest cell with non-NA
-      if (source == "watch_wfdei"){
-        path <- paste0(dir, "/WFDEI-elevation.nc")
-      } else if (source == "cru"){
-        path <- paste0(dir, "/elv_cru_halfdeg.nc")
-      }
-      if (!file.exists(path)) {
-        stop(paste0("Looking for elevation file for determining 
+    
+    
+    if (find_closest){
+      ## check if data was extracted for all sites (may be located over ocean)
+      sites_missing <- ddf %>%
+        group_by(sitename) %>%
+        summarise(across(tidyselect::vars_select_helpers$where(is.double),
+                         ~sum(!is.na(.x)))) %>%
+        dplyr::filter(across(c(-sitename, -date), ~ .x == 0)) %>%
+        pull(sitename)
+      
+      if (length(sites_missing) > 0 & !identical(NULL, settings$correct_bias)){
+        ## determine closest cell with non-NA
+        if (source == "watch_wfdei"){
+          path <- paste0(dir, "/WFDEI-elevation.nc")
+        } else if (source == "cru"){
+          path <- paste0(dir, "/elv_cru_halfdeg.nc")
+        }
+        if (!file.exists(path)) {
+          stop(paste0("Looking for elevation file for determining 
                     closest land cell, but not found under ", path))
-      }
-      rasta <- raster::raster(path)
-      siteinfo_missing <- siteinfo %>%
-        dplyr::filter(sitename %in% sites_missing)
-      siteinfo_missing <- siteinfo_missing %>%
-        dplyr::select(x = lon, y = lat) %>%
-        mutate(
-          lon = raster::xFromCell(
-            rasta,
-            which.min(replace(raster::distanceFromPoints(rasta, .),
-                              is.na(rasta), NA))[1]),
-          lat = raster::yFromCell(
-            rasta, which.min(replace(raster::distanceFromPoints(rasta, .),
-                                     is.na(rasta), NA))[1])) %>%
-        rename(lon_orig = x, lat_orig = y) %>%
-        bind_cols(siteinfo_missing %>% dplyr::select(-lon, -lat)) %>%
-        mutate(success = ifelse(abs(lat-lat_orig)>1.0, FALSE, TRUE))
-
-      ## extract again for sites with missing data
-      ddf_missing <- ingest_globalfields(siteinfo_missing,
-                                         source = source,
-                                         dir = dir,
-                                         getvars = getvars,
-                                         timescale = timescale,
-                                         verbose = FALSE)
-
-      if (sum(!siteinfo_missing$success)>0){
-        warning(
-        "No land found within 1 degree latitude for the following sites:
+        }
+        rasta <- raster::raster(path)
+        siteinfo_missing <- siteinfo %>%
+          dplyr::filter(sitename %in% sites_missing)
+        siteinfo_missing <- siteinfo_missing %>%
+          dplyr::select(x = lon, y = lat) %>%
+          mutate(
+            lon = raster::xFromCell(
+              rasta,
+              which.min(replace(raster::distanceFromPoints(rasta, .),
+                                is.na(rasta), NA))[1]),
+            lat = raster::yFromCell(
+              rasta, which.min(replace(raster::distanceFromPoints(rasta, .),
+                                       is.na(rasta), NA))[1])) %>%
+          rename(lon_orig = x, lat_orig = y) %>%
+          bind_cols(siteinfo_missing %>% dplyr::select(-lon, -lat)) %>%
+          mutate(success = ifelse(abs(lat-lat_orig)>1.0, FALSE, TRUE))
+        
+        ## extract again for sites with missing data
+        ddf_missing <- ingest_globalfields(siteinfo_missing,
+                                           source = source,
+                                           dir = dir,
+                                           getvars = getvars,
+                                           timescale = timescale,
+                                           verbose = FALSE)
+        
+        if (sum(!siteinfo_missing$success)>0){
+          warning(
+            "No land found within 1 degree latitude for the following sites:
         Consider excluding them.")
-        print(siteinfo_missing %>% dplyr::filter(!success))
+          print(siteinfo_missing %>% dplyr::filter(!success))
+        }
+        
+        ## replace site with adjusted location
+        ddf <- ddf %>%
+          dplyr::filter(!(sitename %in% sites_missing)) %>%
+          bind_rows(ddf_missing)
       }
-
-      ## replace site with adjusted location
-      ddf <- ddf %>%
-        dplyr::filter(!(sitename %in% sites_missing)) %>%
-        bind_rows(ddf_missing)
     }
 
     ## bias-correct atmospheric pressure - per default
-    if ("patm" %in% getvars){
-
-      df_patm_base <- siteinfo %>%
-      	dplyr::select(sitename, elv) %>%
-      	mutate(patm_base = calc_patm(elv))
-
-      ddf <- ddf %>%
-      	group_by(sitename) %>%
-        summarise(patm_mean = mean(patm, na.rm = TRUE)) %>%
-        left_join(df_patm_base, by = "sitename") %>%
-        mutate(scale = patm_base / patm_mean) %>%
-        right_join(ddf, by = "sitename") %>%
-        mutate(patm = patm * scale) %>%
-        dplyr::select(-patm_base, -elv, -patm_mean, -scale)
-
+    if (!is.null(getvars)){
+      if ("patm" %in% getvars){
+        
+        df_patm_base <- siteinfo %>%
+          dplyr::select(sitename, elv) %>%
+          mutate(patm_base = calc_patm(elv))
+        
+        ddf <- ddf %>%
+          group_by(sitename) %>%
+          summarise(patm_mean = mean(patm, na.rm = TRUE)) %>%
+          left_join(df_patm_base, by = "sitename") %>%
+          mutate(scale = patm_base / patm_mean) %>%
+          right_join(ddf, by = "sitename") %>%
+          mutate(patm = patm * scale) %>%
+          dplyr::select(-patm_base, -elv, -patm_mean, -scale)
+        
+      }
     }
 
     if (!identical(NULL, settings$correct_bias)){
@@ -545,7 +553,6 @@ ingest <- function(
               rowwise() %>% 
               dplyr::mutate(
                 vapr = calc_vp(qair = qair,
-                               tc = temp,
                                patm = patm)
                 ) %>% 
               ungroup()
@@ -598,7 +605,6 @@ ingest <- function(
               dplyr::mutate(
                 vapr = calc_vp(
                   qair = qair,
-                  tc = temp,
                   patm = patm
                   ),
                 vpd = calc_vpd(eact = vapr, tc = temp)) %>% 
@@ -634,7 +640,7 @@ ingest <- function(
           ddf <- ddf %>%
             rowwise() %>%
             dplyr::mutate(
-              vapr = calc_vp(qair = qair, tc = temp, patm = patm),
+              vapr = calc_vp(qair = qair, patm = patm),
               vpd = calc_vpd(eact = vapr, tc = temp)
               ) %>% 
             ungroup()
