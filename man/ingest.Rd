@@ -13,6 +13,7 @@ ingest(
   timescale = "d",
   parallel = FALSE,
   ncores = NULL,
+  find_closest = FALSE,
   verbose = FALSE
 )
 }
@@ -42,6 +43,9 @@ only available for \code{source = "modis"} and requires argument \code{ncores} t
 
 \item{ncores}{An integer specifying the number of cores for parallel runs of ingest per site. Required only
 if \code{parallel = TRUE}}
+
+\item{find_closest}{A logical specifying whether to extract data from the closest 
+gridcell with data if no data is available for the specified location. Defaults to \code{FALSE}.}
 
 \item{verbose}{if \code{TRUE}, additional messages are printed.}
 }
