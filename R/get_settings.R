@@ -82,12 +82,15 @@ get_settings_gee <- function(
     ## LAI
     ##--------------------------------------------------------------------
     out <- list(
-      band_var = "Lai_1km",
+      band_var = "Lai_500m",
       band_qc  = "FparLai_QC",
-      prod     = "MOD15A2",
-      varnam   = "lai",
-      productnam = "lai"
-      )
+      prod       = "MODIS/006/MOD15A2H",
+      prod_suffix = "MOD15A2H",         
+      varnam     = "lai",            
+      productnam = "MODIS_LAI",
+      scale_factor = 0.1,
+      asfaparinput = FALSE
+    )
 
   } else if (bundle == "modis_gpp") {
     ##--------------------------------------------------------------------
@@ -105,6 +108,150 @@ get_settings_gee <- function(
       asfaparinput = FALSE
       )
 
+  } else if (bundle == "modis_lst_aqua") {
+    ##--------------------------------------------------------------------
+    ## LST (Kelvin), 1000 m, daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "LST_Day_1km",
+      band_qc  = "QC_Day",
+      prod     = "MODIS/006/MYD11A1",  # string defining the "ImageCollection ID" on Google Earth Engine
+      prod_suffix = "MYD11A1",         # string to be used here for defining product source (must correspond to part after last / in 'prod')
+      varnam   = "lst_aqua",                 # string to be used here for defining variable
+      productnam = "MODIS_LST_AQUA",         # string to be used here for defining product source
+      scale_factor = 0.02,
+      period = 1,
+      asfaparinput = FALSE
+    )  
+    
+  } else if (bundle == "modis_lst_terra") {
+    ##--------------------------------------------------------------------
+    ## LST (Kelvin), 1000 m, daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "LST_Day_1km",
+      band_qc  = "QC_Day",
+      prod     = "MODIS/006/MOD11A1",  # string defining the "ImageCollection ID" on Google Earth Engine
+      prod_suffix = "MOD11A1",         # string to be used here for defining product source (must correspond to part after last / in 'prod')
+      varnam   = "lst_terra",                 # string to be used here for defining variable
+      productnam = "MODIS_LST_TERRA",         # string to be used here for defining product source
+      scale_factor = 0.02,
+      period = 1,
+      asfaparinput = FALSE
+    )  
+  
+  } else if (bundle == "modis_refl_1") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band1",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band1",
+      prod     = "MODIS/006/MCD43A4",  # string defining the "ImageCollection ID" on Google Earth Engine
+      prod_suffix = "MCD43A4",         # string to be used here for defining product source (must correspond to part after last / in 'prod')
+      varnam   = "band_1",                 # string to be used here for defining variable
+      productnam = "MODIS_REFL",         # string to be used here for defining product source
+      scale_factor = 0.0001,
+      period = 8,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_2") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band2",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band2",
+      prod     = "MODIS/006/MCD43A4",  # string defining the "ImageCollection ID" on Google Earth Engine
+      prod_suffix = "MCD43A4",         # string to be used here for defining product source (must correspond to part after last / in 'prod')
+      varnam   = "band_2",                 # string to be used here for defining variable
+      productnam = "MODIS_REFL",         # string to be used here for defining product source
+      scale_factor = 0.0001,
+      period = 8,
+      asfaparinput = FALSE
+    )   
+  
+  } else if (bundle == "modis_refl_3") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band3",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band3",
+      prod     = "MODIS/006/MCD43A4",  # string defining the "ImageCollection ID" on Google Earth Engine
+      prod_suffix = "MCD43A4",         # string to be used here for defining product source (must correspond to part after last / in 'prod')
+      varnam   = "band_3",                 # string to be used here for defining variable
+      productnam = "MODIS_REFL",         # string to be used here for defining product source
+      scale_factor = 0.0001,
+      period = 8,
+      asfaparinput = FALSE
+    )   
+    
+  } else if (bundle == "modis_refl_4") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band4",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band4",
+      prod     = "MODIS/006/MCD43A4",  # string defining the "ImageCollection ID" on Google Earth Engine
+      prod_suffix = "MCD43A4",         # string to be used here for defining product source (must correspond to part after last / in 'prod')
+      varnam   = "band_4",                 # string to be used here for defining variable
+      productnam = "MODIS_REFL",         # string to be used here for defining product source
+      scale_factor = 0.0001,
+      period = 8,
+      asfaparinput = FALSE
+    )   
+  
+  } else if (bundle == "modis_refl_5") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band5",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band5",
+      prod     = "MODIS/006/MCD43A4",  # string defining the "ImageCollection ID" on Google Earth Engine
+      prod_suffix = "MCD43A4",         # string to be used here for defining product source (must correspond to part after last / in 'prod')
+      varnam   = "band_5",                 # string to be used here for defining variable
+      productnam = "MODIS_REFL",         # string to be used here for defining product source
+      scale_factor = 0.0001,
+      period = 8,
+      asfaparinput = FALSE
+    )   
+    
+  } else if (bundle == "modis_refl_6") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band6",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band6",
+      prod     = "MODIS/006/MCD43A4",  # string defining the "ImageCollection ID" on Google Earth Engine
+      prod_suffix = "MCD43A4",         # string to be used here for defining product source (must correspond to part after last / in 'prod')
+      varnam   = "band_6",                 # string to be used here for defining variable
+      productnam = "MODIS_REFL",         # string to be used here for defining product source
+      scale_factor = 0.0001,
+      period = 8,
+      asfaparinput = FALSE
+    )   
+  
+  } else if (bundle == "modis_refl_7") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band7",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band7",
+      prod     = "MODIS/006/MCD43A4",  # string defining the "ImageCollection ID" on Google Earth Engine
+      prod_suffix = "MCD43A4",         # string to be used here for defining product source (must correspond to part after last / in 'prod')
+      varnam   = "band_7",                 # string to be used here for defining variable
+      productnam = "MODIS_REFL",         # string to be used here for defining product source
+      scale_factor = 0.0001,
+      period = 8,
+      asfaparinput = FALSE
+    )
+    
   } else {
     rlang::abort("get_settings_gee(): Could not identify required argument 'bundle'.")
   }
