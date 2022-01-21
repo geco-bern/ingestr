@@ -368,7 +368,10 @@ gapfill_interpol_gee <- function(
       ## 011 3 Main (RT) method failed due to problems other than geometry, empirical algorithm used
       ## 100 4 Pixel not produced at all, value couldn???t be retrieved (possible reasons: bad L1B data, unusable MOD09GA data)
       mutate(qc_bit4 = substr( qc_bitname, start=1, stop=3 )) %>%
-      mutate(SCF_QC = ifelse( qc_bit4=="000", 0, ifelse( qc_bit4=="001", 1, ifelse( qc_bit4=="010", 2, ifelse( qc_bit4=="011", 3, 4 ) ) ) )) %>%
+      mutate(SCF_QC = ifelse(
+        qc_bit4=="000",
+        0, ifelse( qc_bit4=="001",
+         1, ifelse( qc_bit4=="010", 2, ifelse( qc_bit4=="011", 3, 4 ) ) ) )) %>%
 
       ## Actually do the filtering
       mutate(modisvar_filtered = ifelse( CloudState %in% c(0), modisvar_filtered, NA )) %>%
@@ -383,7 +386,8 @@ gapfill_interpol_gee <- function(
     ## Contains MODIS GPP
     ## quality bitmap interpreted based on https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod17a2
 
-    df$qc_bitname <- sapply( seq(nrow(df)), function(x) as.integer( intToBits( df$Psn_QC[x] )[1:8] ) %>% rev() %>% as.character() %>% paste( collapse="" )  )
+    df$qc_bitname <- sapply( seq(nrow(df)), function(x) as.integer( intToBits( df$Psn_QC[x] )[1:8] ) %>%
+                               rev() %>% as.character() %>% paste( collapse="" )  )
 
     ## MODLAND_QC bits
     ## 0: Good  quality (main algorithm with  or without saturation)
