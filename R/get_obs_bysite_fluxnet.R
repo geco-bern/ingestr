@@ -171,13 +171,13 @@ get_obs_bysite_fluxnet <- function(
   }
   if (any(grepl("GPP_", getvars))) {
     if ("GPP_NT_VUT_REF" %in% getvars) {
-      toadd <- "NEE_VUT_REF_NIGHT_QC"
+      toadd <- c("NEE_VUT_REF_NIGHT_QC","NEE_VUT_REF_QC")
       getvars <- c(getvars, toadd) %>%
         unique()
       added <- c(added, toadd)
     }
     if ("GPP_DT_VUT_REF" %in% getvars) {
-      toadd <- "NEE_VUT_REF_DAY_QC"
+      toadd <- c("NEE_VUT_REF_DAY_QC","NEE_VUT_REF_QC")
       getvars <- c(getvars, toadd) %>%
         unique()
       added <- c(added, toadd)
@@ -783,7 +783,11 @@ get_obs_bysite_fluxnet <- function(
   ## clean GPP data
   if (any(grepl("GPP_", getvars))){
     df <- df %>%
-      clean_fluxnet_gpp(threshold = threshold_GPP, remove_neg = remove_neg, filter_ntdt = filter_ntdt) %>%
+      clean_fluxnet_gpp(
+        threshold = threshold_GPP,
+        remove_neg = remove_neg,
+        filter_ntdt = filter_ntdt,
+        freq = timescale) %>%
       dplyr::select(-res)
   }
 
@@ -829,7 +833,7 @@ get_obs_bysite_fluxnet <- function(
 
   ## check if anything is missing
   if (any(!(getvars %in% names(df)))){
-    stop(
+    warning(
       paste("Not all getvars were found in file. Missing variable: ",
                paste(getvars[which(!(getvars %in% names(df)))], collapse = ", "),
                "for site: ", sitename))
@@ -1104,11 +1108,8 @@ convert_energy_fluxnet2015 <- function( le ){
 
 clean_fluxnet_gpp <- function(
   df,
-  nam_gpp_nt,
-  nam_gpp_dt,
-  nam_nt_qc,
-  nam_dt_qc,
   threshold,
+  freq,
   remove_neg = FALSE,
   filter_ntdt
   ) {
@@ -1135,28 +1136,40 @@ clean_fluxnet_gpp <- function(
     return(gpp)
   }
 
-  df <- df %>%
-    mutate(
-      GPP_NT_VUT_REF = replace_with_na_qc(
-        GPP_NT_VUT_REF,
-        NEE_VUT_REF_NIGHT_QC,
-        threshold),
-      GPP_DT_VUT_REF = replace_with_na_qc(
-        GPP_DT_VUT_REF,
-        NEE_VUT_REF_DAY_QC,
-        threshold)
+  if (freq != "hh") {
+    df <- df %>%
+      mutate(
+        GPP_NT_VUT_REF = replace_with_na_qc(
+          GPP_NT_VUT_REF,
+          NEE_VUT_REF_NIGHT_QC,
+          threshold),
+        GPP_DT_VUT_REF = replace_with_na_qc(
+          GPP_DT_VUT_REF,
+          NEE_VUT_REF_DAY_QC,
+          threshold)
       )
-
-  # ## Remove data points that are based on too much gap-filled data in the underlying half-hourly data
-  # gpp_nt[ which(qflag_nt < threshold) ] <- NA  ## based on fraction of data based on gap-filled half-hourly
-  # gpp_dt[ which(qflag_dt < threshold) ] <- NA  ## based on fraction of data based on gap-filled half-hourly
-
+    
+  }  else {
+    
+    df <- df %>%
+      mutate(
+        GPP_NT_VUT_REF = ifelse(
+          NEE_VUT_REF_QC <= 1,
+          GPP_NT_VUT_REF,
+          NA),
+        GPP_DT_VUT_REF = ifelse(
+          NEE_VUT_REF_QC <= 1,
+          GPP_DT_VUT_REF,
+          NA)
+      )
+  }
+  
   if (filter_ntdt){
     ## Remove data points where the two flux decompositions are inconsistent,
     ## i.e. where the residual of their regression is above the 97.5% or below the 2.5% quantile.
     df <- df %>%
       mutate(res = GPP_NT_VUT_REF - GPP_DT_VUT_REF)
-
+    
     q025 <- stats::quantile( df$res, probs = 0.025, na.rm=TRUE )
     q975 <- stats::quantile( df$res, probs = 0.975, na.rm=TRUE )
     
@@ -1167,14 +1180,14 @@ clean_fluxnet_gpp <- function(
         GPP_DT_VUT_REF = replace_with_na_res(GPP_DT_VUT_REF, res, q025, q975)
       )
   }
-
+  
   ## remove outliers
   df <- df %>%
     mutate(
       GPP_NT_VUT_REF = remove_outliers(GPP_NT_VUT_REF, coef = 1.5),
       GPP_DT_VUT_REF = remove_outliers(GPP_DT_VUT_REF, coef = 1.5)
     )
-
+  
   ## remove negative GPP
   if (remove_neg){
     df <- df %>%
@@ -1182,9 +1195,8 @@ clean_fluxnet_gpp <- function(
         GPP_NT_VUT_REF = replace_with_na_neg(GPP_NT_VUT_REF),
         GPP_DT_VUT_REF = replace_with_na_neg(GPP_DT_VUT_REF)
       )
-  }
-
-
+  }  
+  
   return(df)
 }
 
