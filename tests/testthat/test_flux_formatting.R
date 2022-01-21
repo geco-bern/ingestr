@@ -2,8 +2,6 @@
 test_that("test HH data", {
   skip_on_cran()
   
-  library(tidyverse)
-  
   siteinfo <- ingestr::siteinfo_fluxnet2015 %>%
     filter(sitename == "FR-Pue")
   
@@ -32,8 +30,6 @@ test_that("test HH data", {
 
 test_that("test Daily data", {
   skip_on_cran()
-  
-  library(tidyverse)
   
   siteinfo <- ingestr::siteinfo_fluxnet2015 %>%
     filter(sitename == "FR-Pue")

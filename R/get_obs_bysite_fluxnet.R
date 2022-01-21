@@ -1116,7 +1116,7 @@ clean_fluxnet_gpp <- function(
   
   # define variables
   GPP_NT_VUT_REF <- NEE_VUT_REF_NIGHT_QC <- GPP_DT_VUT_REF <-
-    NEE_VUT_REF_DAY_QC <- res <- NULL
+    NEE_VUT_REF_DAY_QC <- NEE_VUT_REF_QC <- res <- NULL
   
   ##--------------------------------------------------------------------
   ## Cleans daily data using criteria 1-4 as documented in Tramontana et al., 2016

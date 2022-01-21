@@ -7,6 +7,7 @@
 #'
 #' @param site fluxnet site name
 #' @param path path with plumber2 data (both flux and meteo data files)
+#' @param meta_data return meta-data TRUE/FALSE
 #'
 #' @return data frame with merged meteo and flux data
 #' @export

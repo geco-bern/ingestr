@@ -59,13 +59,13 @@ ingest <- function(
   ){
 
   # CRAN compliance, declaring unstated variables
-  # sitename <- lon <- lat <- date_start <- date_end <- problem <-
-  # year_start_tmp <- x <- y <- lat_orig <- success <- elv <- patm <-
-  # patm_base <-patm_mean <- month <- tavg <-temp <- temp_fine <-
-  # tmax <- tmax_fine <- tmin <- tmin_fine <- prec <- prec_fine <-
-  # days_in_month <- rain <- snow <- srad <- srad_fine <- ppfd <-
-  # ppfd_fine <- wind <- wind_fine <- qair <- vap <- vapr <- vapr_fine <-
-  # ilon <- data <- yy <- mm <- co2_avg <- year <- . <- bias <- NULL
+  sitename <- lon <- lat <- date_start <- date_end <- problem <-
+  year_start_tmp <- x <- y <- lat_orig <- success <- elv <- patm <-
+  patm_base <-patm_mean <- month <- tavg <-temp <- temp_fine <-
+  tmax <- tmax_fine <- tmin <- tmin_fine <- prec <- prec_fine <-
+  days_in_month <- rain <- snow <- srad <- srad_fine <- ppfd <-
+  ppfd_fine <- wind <- wind_fine <- qair <- vap <- vapr <- vapr_fine <-
+  ilon <- data <- yy <- mm <- co2_avg <- year <- . <- bias <- NULL
   
   ## Check: all sites are distinct wrt name, lon and lat
   if (nrow(siteinfo) != nrow(dplyr::distinct(siteinfo, sitename, lon, lat))){
