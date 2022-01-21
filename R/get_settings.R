@@ -46,7 +46,8 @@ get_settings_gee <- function(
   if (bundle == "modis_fpar") {
     ##--------------------------------------------------------------------
     ## MODIS FPAR, 500 m, 4-daily
-    ## Info see here: https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H
+    ## Info see here: 
+    ## https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H
     ##--------------------------------------------------------------------
     out <- list(
       band_var = "Fpar",
@@ -63,15 +64,16 @@ get_settings_gee <- function(
   } else if (bundle == "modis_evi") {
     ##--------------------------------------------------------------------
     ## EVI
-    ## See info here: https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMOD13Q1
+    ## See info here: 
+    ## https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMOD13Q1
     ##--------------------------------------------------------------------
     out <- list(
-      band_var   = "EVI",                # string defining the variable name in Google Earth Engine
-      band_qc    = "SummaryQA",          # string defining the quality flag variable name in Google Earth Engine
-      prod       = "MODIS/006/MOD13Q1",  # string defining the "ImageCollection ID" on Google Earth Engine
-      prod_suffix = "MOD13Q1",           # string to be used here for defining product source (must correspond to part after last / in 'prod')
-      varnam     = "fapar",                # string to be used here for defining variable
-      productnam = "MODIS_EVI_MOD13Q1_gee",        # string to be used here for defining product source
+      band_var   = "EVI",               
+      band_qc    = "SummaryQA",         
+      prod       = "MODIS/006/MOD13Q1", 
+      prod_suffix = "MOD13Q1",          
+      varnam     = "fapar",             
+      productnam = "MODIS_EVI_MOD13Q1_gee",
       scale_factor = 0.0001,
       period = 16,
       asfaparinput = TRUE
@@ -82,29 +84,320 @@ get_settings_gee <- function(
     ## LAI
     ##--------------------------------------------------------------------
     out <- list(
-      band_var = "Lai_1km",
+      band_var = "Lai_500m",
       band_qc  = "FparLai_QC",
-      prod     = "MOD15A2",
-      varnam   = "lai",
-      productnam = "lai"
-      )
+      prod       = "MODIS/006/MOD15A2H",
+      prod_suffix = "MOD15A2H",         
+      varnam     = "lai",            
+      productnam = "MODIS_LAI",
+      scale_factor = 0.1,
+      asfaparinput = FALSE
+    )
 
   } else if (bundle == "modis_gpp") {
     ##--------------------------------------------------------------------
     ## GPP (kg C m-2), 500 m, 8-daily
     ##--------------------------------------------------------------------
     out <- list(
-      band_var = "Gpp",                 # string defining the variable name in Google Earth Engine
-      band_qc  = "Psn_QC",              # string defining the quality flag variable name in Google Earth Engine
-      prod     = "MODIS/006/MOD17A2H",  # string defining the "ImageCollection ID" on Google Earth Engine
-      prod_suffix = "MOD17A2H",         # string to be used here for defining product source (must correspond to part after last / in 'prod')
-      varnam   = "gpp",                 # string to be used here for defining variable
-      productnam = "MODIS_GPP",         # string to be used here for defining product source
+      band_var = "Gpp",               
+      band_qc  = "Psn_QC",            
+      prod     = "MODIS/006/MOD17A2H",
+      prod_suffix = "MOD17A2H",       
+      varnam   = "gpp",               
+      productnam = "MODIS_GPP",       
       scale_factor = 0.0001,
       period = 8,
       asfaparinput = FALSE
       )
 
+  } else if (bundle == "modis_lst_aqua") {
+    ##--------------------------------------------------------------------
+    ## LST (Kelvin), 1000 m, daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "LST_Day_1km",
+      band_qc  = "QC_Day",
+      prod     = "MODIS/006/MYD11A1", 
+      prod_suffix = "MYD11A1",        
+      varnam   = "lst_aqua",          
+      productnam = "MODIS_LST_AQUA",  
+      scale_factor = 0.02,
+      period = 1,
+      asfaparinput = FALSE
+    )  
+    
+  } else if (bundle == "modis_lst_terra") {
+    ##--------------------------------------------------------------------
+    ## LST (Kelvin), 1000 m, daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "LST_Day_1km",
+      band_qc  = "QC_Day",
+      prod     = "MODIS/006/MOD11A1", 
+      prod_suffix = "MOD11A1",  
+      varnam   = "lst_terra",   
+      productnam = "MODIS_LST_TERRA",   
+      scale_factor = 0.02,
+      period = 1,
+      asfaparinput = FALSE
+    )  
+  
+  } else if (bundle == "modis_refl_1") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band1",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band1",
+      prod     = "MODIS/006/MCD43A4", 
+      prod_suffix = "MCD43A4",
+      varnam   = "refl_band_1",
+      productnam = "MODIS_REFL",  
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_2") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band2",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band2",
+      prod     = "MODIS/006/MCD43A4", 
+      prod_suffix = "MCD43A4",        
+      varnam   = "refl_band_2",                
+      productnam = "MODIS_REFL",        
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )   
+  
+  } else if (bundle == "modis_refl_3") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band3",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band3",
+      prod     = "MODIS/006/MCD43A4", 
+      prod_suffix = "MCD43A4",        
+      varnam   = "refl_band_3",                
+      productnam = "MODIS_REFL",        
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )   
+    
+  } else if (bundle == "modis_refl_4") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band4",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band4",
+      prod     = "MODIS/006/MCD43A4",  
+      prod_suffix = "MCD43A4",         
+      varnam   = "refl_band_4",                
+      productnam = "MODIS_REFL",        
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )   
+  
+  } else if (bundle == "modis_refl_5") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band5",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band5",
+      prod     = "MODIS/006/MCD43A4", 
+      prod_suffix = "MCD43A4",        
+      varnam   = "refl_band_5",            
+      productnam = "MODIS_REFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )   
+    
+  } else if (bundle == "modis_refl_6") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band6",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band6",
+      prod     = "MODIS/006/MCD43A4", 
+      prod_suffix = "MCD43A4",        
+      varnam   = "refl_band_6",            
+      productnam = "MODIS_REFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )   
+  
+  } else if (bundle == "modis_refl_7") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band7",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band7",
+      prod     = "MODIS/006/MCD43A4", 
+      prod_suffix = "MCD43A4",        
+      varnam   = "refl_band_7",            
+      productnam = "MODIS_REFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_8") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b08",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_8",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_9") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b09",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_9",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_10") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b10",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_10",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_11") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b11",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_11",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+  
+  } else if (bundle == "modis_refl_12") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b12",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_12",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+  
+  } else if (bundle == "modis_refl_13") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b13",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_13",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_14") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b14",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_14",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_15") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b15",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_15",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+  
+  } else if (bundle == "modis_refl_16") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b16",
+      band_qc  = "QC_b16_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_16",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+      
   } else {
     rlang::abort("get_settings_gee(): Could not identify required argument 'bundle'.")
   }

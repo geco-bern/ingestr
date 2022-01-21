@@ -4,17 +4,21 @@
 \alias{read_plumber}
 \title{Reads plumber2 netcdf data}
 \usage{
-read_plumber(site = "AT-Neu", path)
+read_plumber(site = "AT-Neu", path, meta_data = FALSE)
 }
 \arguments{
 \item{site}{fluxnet site name}
 
 \item{path}{path with plumber2 data (both flux and meteo data files)}
+
+\item{meta_data}{return meta-data TRUE/FALSE}
 }
 \value{
 data frame with merged meteo and flux data
 }
 \description{
 Reads data in a given directory
-by (fluxnet) site name
+by (fluxnet) site name, optionally
+only returns the meta-data of the
+site data
 }

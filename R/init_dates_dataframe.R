@@ -99,7 +99,6 @@ init_dates_dataframe <- function(
     ddf <- tibble(date = NA)
   } else {
     ddf <-  tibble( date = seq( from = startdate, to = enddate, by = freq ) )
-    
     if (noleap) ddf <- ddf %>%
         dplyr::filter(
           !(lubridate::month(date) == 2 & lubridate::mday(date) == 29)

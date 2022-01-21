@@ -80,7 +80,6 @@ ingest_bysite <- function(
       noleap = TRUE,
       timescale = timescale
       )
-      # dplyr::select(-year_dec)
 
     if (timescale=="m"){
       df <- df %>%
@@ -106,7 +105,8 @@ ingest_bysite <- function(
       settings <- fill_settings_with_default(element, settings, settings_default)
     }
 
-    df_tmp <- get_obs_bysite_fluxnet(sitename,
+    df_tmp <- get_obs_bysite_fluxnet(
+       sitename,
        dir             = dir,
        dir_hh          = settings$dir_hh,
        dir_hr          = settings$dir_hr,
@@ -134,9 +134,11 @@ ingest_bysite <- function(
     source == "ndep" ||
     source == "wfde5"
     ){
+    
     #-----------------------------------------------------------
     # Get data from global fields and one single site
     #-----------------------------------------------------------
+    
     siteinfo <- tibble(
         sitename = sitename,
         lon = lon,
@@ -163,21 +165,28 @@ ingest_bysite <- function(
         year_end_wc <- 2000
         
         if (source == "watch_wfdei"){
-          message("Beware: WorldClim data is for years 1970-2000. Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
+          message(
+            "Beware: WorldClim data is for years 1970-2000.
+            Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
           year_start_wc <- 1979  # no earlier years available
           siteinfo <- siteinfo %>% 
-            mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
-                   year_end = ifelse(year_end > year_end_wc, year_end, year_end_wc))
+            mutate(
+              year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
+              year_end = ifelse(year_end > year_end_wc, year_end, year_end_wc))
         } else if (source == "wfde5"){
-          rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WFDE5 data is ingested for 1979-(at least) 2000.")
+          message(
+            "Beware: WorldClim data is for years 1970-2000.
+            Therefore WFDE5 data is ingested for 1979-(at least) 2000.")
           year_start_wc <- 1979  # no earlier years available
           siteinfo <- siteinfo %>% 
-            mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
-                   year_end = ifelse(year_end > year_end_wc, year_end, year_end_wc))
+            mutate(
+              year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
+              year_end = ifelse(year_end > year_end_wc, year_end, year_end_wc))
         } else if (source == "cru"){
           siteinfo <- siteinfo %>% 
-            mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
-                   year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
+            mutate(
+              year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
+              year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
         }
       }
     }

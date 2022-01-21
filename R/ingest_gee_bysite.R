@@ -62,10 +62,18 @@ ingest_gee_bysite <- function(
   dirnam_daily_csv <- data_path
   dirnam_raw_csv <- paste0(data_path, "/raw/")  #paste0( dirnam_nice_csv, "/raw/" )
 
-  if (!dir.exists(dirnam_daily_csv)) system( paste( "mkdir -p ", dirnam_daily_csv ) )
-  if (!dir.exists(dirnam_raw_csv)) system( paste( "mkdir -p ", dirnam_raw_csv ) )
+  if (!dir.exists(dirnam_daily_csv)){
+    dir.create(dirnam_daily_csv)
+  }
+  
+  if (!dir.exists(dirnam_raw_csv)) {
+    dir.create(dirnam_raw_csv)
+  }
 
-  filnam_daily_csv <- paste0( dirnam_daily_csv, "/fapar_daily_", sitename, ".csv" )
+  # create a new prod suffix
+  prod_suffix <- paste(prod_suffix,band_var,band_qc, sep = "_")
+  
+  filnam_daily_csv <- paste0( dirnam_daily_csv, "/",varnam,"_", sitename, ".csv" )
   filnam_raw_csv <- paste0( dirnam_raw_csv, sitename, "_", prod_suffix, "_gee_subset.csv" )
 
   do_continue <- TRUE
@@ -86,7 +94,13 @@ ingest_gee_bysite <- function(
       ## Download via Google Earth Engine using the python function
       ##---------------------------------------------
       path_info <- paste0(dirnam_raw_csv, "info_lonlat.csv")
-      utils::write.csv( dplyr::select( df_siteinfo, site = sitename, latitude = lat, longitude = lon), file=path_info, row.names=FALSE )
+      utils::write.csv( dplyr::select(
+        df_siteinfo,
+        site = sitename,
+        latitude = lat,
+        longitude = lon),
+        file=path_info,
+        row.names=FALSE )
 
       start = Sys.time()
       system(sprintf("%s %s/gee_subset.py -p %s -b %s %s -s %s -e %s -f %s -d %s -sc 30",
@@ -118,7 +132,7 @@ ingest_gee_bysite <- function(
     if (file.exists(filnam_raw_csv)){
 
       df <- readr::read_csv( filnam_raw_csv ) %>%   #, col_types = cols()
-        dplyr::mutate(  date = ymd(date) ) %>%
+        dplyr::mutate(  date = lubridate::ymd(date) ) %>%
         dplyr::select( -longitude, -latitude, -product )
 
       ## Apply scale factor, specific for each product
@@ -156,7 +170,7 @@ ingest_gee_bysite <- function(
       ##---------------------------------------------
       ## save cleaned and interpolated data to file
       ##---------------------------------------------
-      readr::write_csv( ddf, path=filnam_daily_csv )
+      readr::write_csv( ddf, file = filnam_daily_csv )
 
     } else {
 
@@ -209,7 +223,7 @@ gapfill_interpol_gee <- function(
   ##--------------------------------------
   ## CLEAN AND GAP-FILL
   ##--------------------------------------
-  if (prod=="MOD13Q1"){
+  if (prod == "MOD13Q1"){
     ##--------------------------------------
     ## This is for MOD13Q1 Vegetation indeces (NDVI, EVI) data downloaded from Google Earth Engine
     ##--------------------------------------
@@ -354,7 +368,10 @@ gapfill_interpol_gee <- function(
       ## 011 3 Main (RT) method failed due to problems other than geometry, empirical algorithm used
       ## 100 4 Pixel not produced at all, value couldn???t be retrieved (possible reasons: bad L1B data, unusable MOD09GA data)
       mutate(qc_bit4 = substr( qc_bitname, start=1, stop=3 )) %>%
-      mutate(SCF_QC = ifelse( qc_bit4=="000", 0, ifelse( qc_bit4=="001", 1, ifelse( qc_bit4=="010", 2, ifelse( qc_bit4=="011", 3, 4 ) ) ) )) %>%
+      mutate(SCF_QC = ifelse(
+        qc_bit4=="000",
+        0, ifelse( qc_bit4=="001",
+         1, ifelse( qc_bit4=="010", 2, ifelse( qc_bit4=="011", 3, 4 ) ) ) )) %>%
 
       ## Actually do the filtering
       mutate(modisvar_filtered = ifelse( CloudState %in% c(0), modisvar_filtered, NA )) %>%
@@ -369,7 +386,8 @@ gapfill_interpol_gee <- function(
     ## Contains MODIS GPP
     ## quality bitmap interpreted based on https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod17a2
 
-    df$qc_bitname <- sapply( seq(nrow(df)), function(x) as.integer( intToBits( df$Psn_QC[x] )[1:8] ) %>% rev() %>% as.character() %>% paste( collapse="" )  )
+    df$qc_bitname <- sapply( seq(nrow(df)), function(x) as.integer( intToBits( df$Psn_QC[x] )[1:8] ) %>%
+                               rev() %>% as.character() %>% paste( collapse="" )  )
 
     ## MODLAND_QC bits
     ## 0: Good  quality (main algorithm with  or without saturation)
@@ -548,33 +566,33 @@ gapfill_interpol_gee <- function(
     }
   }
 
-  ##--------------------------------------
-  ## Define 'fapar'
-  ##--------------------------------------
-  if (method_interpol == "loess"){
-    ddf$modisvar_filled <- ddf$loess
-  } else if (method_interpol == "spline"){
-    ddf$modisvar_filled <- ddf$spline
-  } else if (method_interpol == "linear"){
-    ddf$modisvar_filled <- ddf$linear
-  } else if (method_interpol == "sgfilter"){
-    ddf$modisvar_filled <- ddf$sgfilter
-  }
-  
-  ## limit to within 0 and 1 (loess spline sometimes "explodes")
-  ddf <- ddf %>%
-    dplyr::mutate(
-      modisvar_filled = replace( modisvar_filled, modisvar_filled<0, 0)
-      ) %>%
-    dplyr::mutate(
-      modisvar_filled = replace( modisvar_filled, modisvar_filled>1, 1)
-      )
-
-  ## extrapolate missing values at head and tail again
-  ##--------------------------------------
-  ddf$modisvar_filled <- extrapolate_missing_headtail(
-    dplyr::select(ddf, var = modisvar_filled)
-    )
+  # ##--------------------------------------
+  # ## Define 'fapar'
+  # ##--------------------------------------
+  # if (method_interpol == "loess"){
+  #   ddf$modisvar_filled <- ddf$loess
+  # } else if (method_interpol == "spline"){
+  #   ddf$modisvar_filled <- ddf$spline
+  # } else if (method_interpol == "linear"){
+  #   ddf$modisvar_filled <- ddf$linear
+  # } else if (method_interpol == "sgfilter"){
+  #   ddf$modisvar_filled <- ddf$sgfilter
+  # }
+  # 
+  # ## limit to within 0 and 1 (loess spline sometimes "explodes")
+  # ddf <- ddf %>%
+  #   dplyr::mutate(
+  #     modisvar_filled = replace( modisvar_filled, modisvar_filled<0, 0)
+  #     ) %>%
+  #   dplyr::mutate(
+  #     modisvar_filled = replace( modisvar_filled, modisvar_filled>1, 1)
+  #     )
+  # 
+  # ## extrapolate missing values at head and tail again
+  # ##--------------------------------------
+  # ddf$modisvar_filled <- extrapolate_missing_headtail(
+  #   dplyr::select(ddf, var = modisvar_filled)
+  #   )
 
   return( ddf )
 
