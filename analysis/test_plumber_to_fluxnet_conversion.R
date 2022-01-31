@@ -11,7 +11,8 @@ df <- read_plumber(
   site = "AR-SLu",
   path = "~/Desktop/flux_data/",
   fluxnet_format = TRUE,
-  meta_data = FALSE
+  meta_data = FALSE,
+  out_path = "~/Desktop/flux_data/"
 )
 
 print(str(df))

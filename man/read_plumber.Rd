@@ -4,14 +4,25 @@
 \alias{read_plumber}
 \title{Reads plumber2 netcdf data}
 \usage{
-read_plumber(site = "AT-Neu", path, meta_data = FALSE)
+read_plumber(
+  site = "AT-Neu",
+  path,
+  fluxnet_format = FALSE,
+  meta_data = FALSE,
+  out_path
+)
 }
 \arguments{
 \item{site}{fluxnet site name}
 
 \item{path}{path with plumber2 data (both flux and meteo data files)}
 
+\item{fluxnet_format}{convert to fluxnet formatting (TRUE/FALSE)}
+
 \item{meta_data}{return meta-data TRUE/FALSE}
+
+\item{out_path}{where to store the converted data if converted to
+fluxnet formatting}
 }
 \value{
 data frame with merged meteo and flux data

@@ -9,6 +9,8 @@
 #' @param path path with plumber2 data (both flux and meteo data files)
 #' @param fluxnet_format convert to fluxnet formatting (TRUE/FALSE)
 #' @param meta_data return meta-data TRUE/FALSE
+#' @param out_path where to store the converted data if converted to
+#'  fluxnet formatting
 #'
 #' @return data frame with merged meteo and flux data
 #' @export
@@ -17,7 +19,8 @@ read_plumber <- function(
   site = "AT-Neu",
   path,
   fluxnet_format = FALSE,
-  meta_data = FALSE
+  meta_data = FALSE,
+  out_path
 ){
   
   # CRAN settings
@@ -114,6 +117,9 @@ read_plumber <- function(
     # convert time, and only return
     # FLUXNET formatted columns
     
+    start_year <- format(min(all$time), "%Y")
+    end_year <- format(max(all$time), "%Y")
+    
     all <- all %>%
       mutate(
         TIMESTAMP_START = format(time, "%Y%m%d%H%M"),
@@ -181,9 +187,45 @@ read_plumber <- function(
       P = P * 60 * 30, # mm/s to mm
       TA_F = TA_F - 273.15, # K to C
       PA_F = PA_F / 1000, # Pa to kPa
-      CO2_F = CO2_F # ppm to umolCO2 mol-1
+      CO2_F = CO2_F, # ppm to umolCO2 mol-1
+      
+      # adding missing data required by ingestr
+      # VPD
+      VPD_F_QC = 0,
+      VPD_F_MDS = NA,
+      VPD_F_MDS_QC = NA,
+      VPD_ERA = NA,
+      
+      # Temperature
+      TA_F_QC = 0,
+      TA_F_MDS = NA,
+      TA_F_MDS_QC = NA,
+      TA_ERA = NA
     )
+  }
   
+  # save data to file, using FLUXNET formatting
+  if (fluxnet_format && !missing(out_path)) {
+    
+    message("writing datat to file")
+    filename <- sprintf("FLX_%s_FLUXNET2015_FULLSET_HH_%s_%s_2-3.csv",
+                       site,
+                       start_year,
+                       end_year
+                       )
+    
+    filename <- file.path(
+      out_path,
+      filename
+    )
+    
+    write.table(
+      all,
+      file = filename,
+      quote = FALSE,
+      col.names = TRUE,
+      sep = ","
+    )
   }
   
   # return the merged file
