@@ -72,22 +72,13 @@ get_vpd_day_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
       stop(paste("Half-hourly file does not exist:", filename_hh))
     } 
     
-    # else if (length(filename_hh)>1){
-    #   warning("Reading only largest file available")
-    #   file.info_getsize <- function(filn){
-    #     file.info(filn)$size
-    #   }
-    #   size_vec <- purrr::map_dbl(as.list(filename_hh), ~file.info_getsize(.))
-    #   filename_hh <- filename_hh[which.max(size_vec)]
-    # }
-    
     df <- readr::read_csv(filename_hh) %>% 
       dplyr::mutate( date_start = lubridate::ymd_hm( TIMESTAMP_START ),
                      date_end   = lubridate::ymd_hm( TIMESTAMP_END ) ) %>%
       dplyr::mutate( date = date_start ) %>% 
       
       ## retain only daytime data = when incoming shortwave radiation is positive
-      dplyr::filter(SW_IN_F>0) %>% 
+      dplyr::filter(SW_IN_F > 0) %>% 
       
       ## take mean over daytime values
       dplyr::mutate(date_day = lubridate::as_date(date_start)) %>% 
