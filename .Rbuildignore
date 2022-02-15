@@ -7,6 +7,7 @@
 ^vignettes_add$
 ^data-raw$
 ^manuscript$
+^analysis$
 
 # R-markdown files in the root folder.
 ^LICENSE$

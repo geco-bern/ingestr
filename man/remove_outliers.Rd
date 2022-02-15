@@ -23,5 +23,4 @@ The function uses the command \code{boxplot.stats()} which uses the Tukey's meth
 vec <- remove_outliers( vec, coef=3 ) 
 }
 
-
 }

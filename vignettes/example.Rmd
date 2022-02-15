@@ -220,7 +220,7 @@ Looks sweet.
 
 Let's have a look at the hourly climate data from the [WFDE5 dataset](https://doi.org/10.5194/essd-12-2097-2020). Again, let's extract meth data for the location corresponding to FLUXNET site 'FR-Pue' (lon = 8.365, lat = 47.4781). All input arguments work the same way as described above for WATCH-WFDEI and CRU TS. Note that we are setting `timescale = "h"` here to obtain an hourly dataframe. Available variables are: `"temp", "ppfd", "vpd", "patm", "prec", "wind", "swin", "lwin"`.
 
-```{r message=FALSE, echo = T, results = 'hide'}
+```{r message=FALSE, echo = T, results = 'hide', eval = FALSE}
 df_wfde5 <- ingest_bysite(
   sitename  = "FR-Pue",
   source    = "wfde5",
@@ -246,6 +246,7 @@ This uses the [MODISTools](https://docs.ropensci.org/MODISTools/) R package maki
 -   `"modis_evi"`: MODIS collection 6, MOD13Q1, band `250m_16_days_EVI`
 -   `"modis_ndvi"`: MODIS collection 6, MOD13Q1, band `250m_16_days_NDVI`
 -   `"modis_refl"`: MODIS/Terra+Aqua Nadir BRDF-Adjusted Reflectance (NBAR) Daily L3 Global 500 m SIN Grid, all bands
+-   `"modis_lst"`: MODIS/Terra Land Surface Temperature/Emissivity 8-Day L3 Global 1 km SIN Grid (MOD11A2 v006)
 
 The filtering criteria are hard-coded specifically for each product, using its respective quality control information (see function `gapfill_interpol()` in `R/ingest_modis_bysite.R`). For more information on the settings do `?get_settings_modis`.
 
@@ -288,6 +289,8 @@ plot_fapar_ingestr_bysite(
   df_modis_fpar, 
   settings_modis)
 ```
+
+
 
 ## Google Earth Engine
 

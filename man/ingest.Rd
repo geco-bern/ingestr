@@ -7,48 +7,60 @@
 ingest(
   siteinfo,
   source,
-  getvars,
+  getvars = c(),
   dir = NULL,
   settings = NULL,
   timescale = "d",
   parallel = FALSE,
   ncores = NULL,
+  find_closest = FALSE,
   verbose = FALSE
 )
 }
 \arguments{
-\item{siteinfo}{A data frame containing site meta info. Required columns are: \code{"sitename", "date_start", "date_end", "lon", "lat", "elv"}.}
+\item{siteinfo}{A data frame containing site meta info. Required columns are:
+\code{"sitename", "date_start", "date_end", "lon", "lat", "elv"}.}
 
 \item{source}{A character used as identifiyer for the type of data source
-(e.g., \code{"fluxnet"}). See vignette for a full description of available options.}
+(e.g., \code{"fluxnet"}). See vignette for a full description of available 
+options.}
 
 \item{getvars}{A named list of characters specifying the variable names in
-the source dataset corresponding to standard names \code{"temp"} for temperature,
-\code{"prec"} for precipitation, \code{"patm"} for atmospheric pressure,
-\code{"vpd"} for vapour pressure deficit, \code{"netrad"} for net radiation,
-\code{"swin"} for shortwave incoming radiation, \code{"lwin"} for longwave incoming radiation,
-\code{"wind"} for wind.}
+the source dataset corresponding to standard names \code{"temp"}
+for temperature, \code{"prec"} for precipitation, \code{"patm"} for 
+atmospheric pressure, \code{"vpd"} for vapour pressure deficit,
+\code{"netrad"} for net radiation, \code{"swin"} for shortwave incoming 
+radiation, \code{"lwin"} for longwave incoming radiation, \code{"wind"} 
+for wind.}
 
 \item{dir}{A character specifying the directory where data is located.}
 
 \item{settings}{A list of additional settings used for reading original files.}
 
-\item{timescale}{A character or vector of characters, specifying the time scale of data used from
-the respective source (if multiple time scales are available, otherwise is disregarded).}
+\item{timescale}{A character or vector of characters, specifying the time 
+scale of data used from the respective source (if multiple time scales are
+available, otherwise is disregarded).}
 
-\item{parallel}{A logical specifying whether ingest is run as parallel jobs for each site. This option is
-only available for \code{source = "modis"} and requires argument \code{ncores} to be set.}
+\item{parallel}{A logical specifying whether ingest is run as parallel jobs
+for each site. This option is only available for \code{source = "modis"}
+and requires argument \code{ncores} to be set.}
 
-\item{ncores}{An integer specifying the number of cores for parallel runs of ingest per site. Required only
-if \code{parallel = TRUE}}
+\item{ncores}{An integer specifying the number of cores for parallel runs of
+ingest per site. Required only if \code{parallel = TRUE}}
+
+\item{find_closest}{A logical specifying whether to extract data from the
+closest gridcell with data if no data is available for the specified
+location. Defaults to \code{FALSE}.}
 
 \item{verbose}{if \code{TRUE}, additional messages are printed.}
 }
 \value{
-A named list of data frames (tibbles) containing input data for each site is returned.
+A named list of data frames (tibbles) containing input data for each
+ site is returned.
 }
 \description{
-Ingests data for site scale simulations with rsofun (or any other Dynamic Vegetation Model).
+Ingests data for site scale simulations with rsofun (or any other Dynamic 
+Vegetation Model).
 }
 \examples{
 \dontrun{

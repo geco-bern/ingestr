@@ -126,7 +126,7 @@ ingest_globalfields <- function(
     
     ## remove spurious myvar columns
     df_out <- df_out %>%
-      select(-starts_with("myvar"))
+      dplyr::select(-starts_with("myvar"))
     
     if (timescale=="m"){
       stop("ingest_globalfields(): aggregating WATCH-WFDEI to monthly not implemented yet.")
@@ -218,7 +218,7 @@ ingest_globalfields <- function(
     
     ## remove spurious myvar columns
     df_out <- df_out %>%
-      select(-starts_with("myvar"))
+      dplyr::select(-starts_with("myvar"))
     
     if (timescale=="m"){
       rlang::abort("ingest_globalfields(): aggregating WATCH-WFDEI to monthly not implemented yet.")
@@ -674,7 +674,10 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
   return( ddf )
 }
 
-ingest_globalfields_wfde5_byvar <- function( ddf, siteinfo, dir, varnam ){
+ingest_globalfields_wfde5_byvar <- function(ddf, siteinfo, dir, varnam) {
+  
+  yr <- mo  <- filename <- . <- data <- sitename <- dom <- hod <- 
+    myvar <- doy <- drop_na <- data_pre <- NULL
   
   dirn <- paste0( dir, "/", varnam, "/" )
   
@@ -727,16 +730,21 @@ ingest_globalfields_wfde5_byvar <- function( ddf, siteinfo, dir, varnam ){
   df <- 
     expand.grid(allmonths, allyears) %>%
     dplyr::as_tibble() %>%
-    setNames(c("mo", "yr")) %>%
+    stats::setNames(c("mo", "yr")) %>%
     rowwise() %>%
-    dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), endstring, ".nc" )) %>%
+    dplyr::mutate(
+      filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ),
+                         sprintf( "%02d", mo ), endstring, ".nc" )) %>%
     ungroup() %>%
-    dplyr::mutate(data = purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat, get_time = FALSE ) ))
+    dplyr::mutate(
+      data = purrr::map(
+        filename,
+        ~extract_pointdata_allsites(., df_lonlat, get_time = FALSE ) ))
   
   ## rearrange to a daily data frame
   complement_df <- function(df){
     df <- df %>%
-      setNames(., c("myvar")) %>%
+      stats::setNames(., c("myvar")) %>%
       mutate(row = 1:nrow(.),
              hod = rep(0:23, nrow(.)/24),
              dom = ceiling(row/24))
@@ -748,13 +756,25 @@ ingest_globalfields_wfde5_byvar <- function( ddf, siteinfo, dir, varnam ){
     dplyr::mutate(data = purrr::map(data, ~complement_df(.))) %>%
     tidyr::unnest(data) %>%
     dplyr::select(sitename, mo, yr, dom, hod, myvar) %>%
-    dplyr::mutate(date = lubridate::ymd_h(paste0(as.character(yr), "-", sprintf( "%02d", mo), "-", sprintf( "%02d", dom), " ", sprintf( "%02d", hod))) ) %>%
+    dplyr::mutate(
+      date = lubridate::ymd_h(
+        paste0(as.character(yr),
+               "-", sprintf( "%02d", mo),
+               "-", sprintf( "%02d", dom),
+               " ", sprintf( "%02d", hod)))
+      ) %>%
     dplyr::select(-mo, -yr, -dom, -hod)
   
-  ## create data frame containing all dates, using mean annual cycle (of 1980-1989) for all years before 1980
+  # create data frame containing all dates, using mean annual cycle
+  # (of 1980-1989) for all years before 1980
   if (pre_data){
-    rlang::inform("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1989) for all years before 1979.")
-    rlang::inform("NCDF file on Euler lacks first seven hours of 1979-01-01. Thus, only cycle from 1980-1989 is taken.")
+    message("
+      Data for years before 1979 requested.
+      Taking mean annual cycle of 10 years (1979-1989)
+      for all years before 1979.")
+    message("
+      NCDF file on Euler lacks first seven hours of 1979-01-01.
+      Thus, only cycle from 1980-1989 is taken.")
     
     ## get mean seasonal cycle, averaged over 1980:1989
     ddf_mean <- ddf %>% 
@@ -783,26 +803,21 @@ ingest_globalfields_wfde5_byvar <- function( ddf, siteinfo, dir, varnam ){
       left_join(ddf_mean, by = c("sitename", "doy", "hod")) %>%
       dplyr::select(-doy, -hod)
     
-    # ddf_pre <- init_dates_dataframe(year_start, min(1978, year_end)) %>% 
-    #   mutate(doy = lubridate::yday(date)) %>% 
-    #   left_join(ddf_pre, by = "doy") %>% 
-    #   dplyr::select(-doy)
-    
     ## combine the two along rows
     ddf <- left_join(
       ddf %>% 
         ungroup() %>% 
         group_by(sitename) %>% 
-        nest(),
+        tidyr::nest(),
       ddf_pre %>% 
         ungroup() %>% 
         group_by(sitename) %>% 
-        nest() %>% 
+        tidyr::nest() %>% 
         rename(data_pre = data),
       by = "sitename") %>% 
       mutate(data = purrr::map2(data_pre, data, ~bind_rows(.x, .y))) %>% 
       dplyr::select(-data_pre) %>% 
-      unnest(data) %>% 
+      tidyr::unnest(data) %>% 
       arrange(date) %>%   # to make sure
       distinct() # out of desperation
   }
@@ -827,10 +842,19 @@ ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
   )
   
   ## extract the data
-  filename <- list.files( dir, paste0("ndep_", varnam, "_lamarque11cc_historical_halfdeg.nc") )
-  df <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = TRUE) %>%
-    dplyr::mutate(data = purrr::map(data, ~stats::setNames(., c(varnam, "year")))) %>% 
-    dplyr::mutate(data = purrr::map(data, ~mutate(., date = lubridate::ymd(paste0(as.character(year), "-01-01")))))
+  filename <- list.files(
+    dir, paste0("ndep_", varnam, "_lamarque11cc_historical_halfdeg.nc") )
+  df <- extract_pointdata_allsites(
+    paste0(dir, filename), df_lonlat, get_time = TRUE) %>%
+    dplyr::mutate(
+      data = purrr::map(data, ~stats::setNames(., c(varnam, "year")))
+      ) %>% 
+    dplyr::mutate(
+      data = purrr::map(
+        data,
+        ~mutate(., date = lubridate::ymd(paste0(as.character(year), "-01-01")))
+        )
+      )
   
   adf <- df %>%
     tidyr::unnest(data)
@@ -861,8 +885,9 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   df <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = TRUE ) %>%
     dplyr::mutate(data = purrr::map(data, ~stats::setNames(., c("myvar", "date"))))
   
-  ## rearrange to a monthly data frame. Necesary work-around with date, because unnest() seems to have a bug
-  ## when unnesting a dataframe that contains a lubridate ymd objet.
+  # rearrange to a monthly data frame. Necesary work-around with date,
+  # because unnest() seems to have a bug
+  # when unnesting a dataframe that contains a lubridate ymd objet.
   get_month_year <- function(df){
     df %>%
       mutate(year = lubridate::year(date),
@@ -932,7 +957,15 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
     }
     
     ddf <- init_dates_dataframe( yr, yr ) %>%
-      mutate( temp = monthly2daily( mtemp, "polynom", mtemp_pvy[nmonth], mtemp_nxt[1], leapyear = lubridate::leap_year(yr) ) ) %>%
+      mutate(
+        temp = monthly2daily(
+          mtemp,
+          "polynom",
+          mtemp_pvy[nmonth],
+          mtemp_nxt[1],
+          leapyear = lubridate::leap_year(yr) 
+          ) 
+        ) %>%
       right_join( ddf, by = c("date") )
   }
   
@@ -1279,15 +1312,21 @@ get_daily_prec <- function( mval_prec, mval_wet, set_seed=FALSE, leapyear=FALSE 
 
 #' Interpolates monthly to daily values
 #'
-#' Implements different methods to interpolate from monthly to daily values, including fitting a polynomial.
+#' Implements different methods to interpolate from monthly to daily values,
+#' including fitting a polynomial.
 #'
 #' @param mval A vector of twelve numeric values for monthly values.
-#' @param method A character string specifying the method for interpolation. Defaults to \code{"polynom"} for using a polynomial.
-#' @param mval_prev The monthly value of the month before the twelve months for which values are provided by argument \code{mval}.
-#' @param mval_next The monthly value of the month after the twelve months for which values are provided by argument \code{mval}.
-#' @param leapyear A logical specifying whether interpolation is done for a leap year (with 366 days).
+#' @param method A character string specifying the method for interpolation. 
+#'  Defaults to \code{"polynom"} for using a polynomial.
+#' @param mval_prev The monthly value of the month before the twelve months for 
+#'  which values are provided by argument \code{mval}.
+#' @param mval_next The monthly value of the month after the twelve months for 
+#'  which values are provided by argument \code{mval}.
+#' @param leapyear A logical specifying whether interpolation is done for a 
+#'  leap year (with 366 days).
 #'
-#' @return A named list of data frames (tibbles) containing input data for each site is returned.
+#' @return A named list of data frames (tibbles) containing 
+#'  input data for each site is returned.
 #'
 monthly2daily <- function(
   mval,
@@ -1339,7 +1378,8 @@ monthly2daily <- function(
       d2t <- endt^2.0 - startt^2.0
       d3t <- endt^3.0 - startt^3.0
       
-      # Take a sheet of paper and try solve the polynom, well here is the outcome
+      # Take a sheet of paper and try solve the polynom,
+      # well here is the outcome
       polya <- (mval[month]*dt - deltatemp*d2t/dt/2.0 - 
                   starttemp*dt + deltatemp*startt) / 
         (d3t/3.0 - d2t^2.0/dt/2.0 - dt*startt^2.0 + startt*d2t)
@@ -1354,7 +1394,8 @@ monthly2daily <- function(
       lastmonthtemp <- mval[month]
     }
     
-    # calculate monthly means after interpolation - not absolutely identical to input
+    # calculate monthly means after interpolation - 
+    # not absolutely identical to input
     mtempint <- rep(NA,nmonth)
     day <- 0
     for (m in 1:nmonth){
@@ -1377,9 +1418,9 @@ monthly2daily <- function(
   
 }
 
-
 ##-----------------------------------------------------------
-## fills gaps (NAs) by (1.) linear interpolation, (2.) extending first/last to head/tail
+## fills gaps (NAs) by (1.) linear interpolation, (2.) 
+## extending first/last to head/tail
 ##-----------------------------------------------------------
 fill_gaps <- function( vec, is.prec = FALSE ){
   

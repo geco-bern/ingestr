@@ -1,27 +1,37 @@
 #' Data ingest
 #'
-#' Ingests data for site scale simulations with rsofun (or any other Dynamic Vegetation Model).
+#' Ingests data for site scale simulations with rsofun (or any other Dynamic 
+#' Vegetation Model).
 #'
-#' @param siteinfo A data frame containing site meta info. Required columns are: \code{"sitename", "date_start", "date_end", "lon", "lat", "elv"}.
+#' @param siteinfo A data frame containing site meta info. Required columns are:
+#'  \code{"sitename", "date_start", "date_end", "lon", "lat", "elv"}.
 #' @param source A character used as identifiyer for the type of data source
-#' (e.g., \code{"fluxnet"}). See vignette for a full description of available options.
+#'  (e.g., \code{"fluxnet"}). See vignette for a full description of available 
+#'  options.
 #' @param getvars A named list of characters specifying the variable names in
-#' the source dataset corresponding to standard names \code{"temp"} for temperature,
-#' \code{"prec"} for precipitation, \code{"patm"} for atmospheric pressure,
-#' \code{"vpd"} for vapour pressure deficit, \code{"netrad"} for net radiation,
-#' \code{"swin"} for shortwave incoming radiation, \code{"lwin"} for longwave incoming radiation,
-#' \code{"wind"} for wind.
+#'  the source dataset corresponding to standard names \code{"temp"}
+#'  for temperature, \code{"prec"} for precipitation, \code{"patm"} for 
+#'  atmospheric pressure, \code{"vpd"} for vapour pressure deficit,
+#'  \code{"netrad"} for net radiation, \code{"swin"} for shortwave incoming 
+#'  radiation, \code{"lwin"} for longwave incoming radiation, \code{"wind"} 
+#'  for wind.
 #' @param dir A character specifying the directory where data is located.
 #' @param settings A list of additional settings used for reading original files.
-#' @param timescale A character or vector of characters, specifying the time scale of data used from
-#' the respective source (if multiple time scales are available, otherwise is disregarded).
-#' @param parallel A logical specifying whether ingest is run as parallel jobs for each site. This option is
-#' only available for \code{source = "modis"} and requires argument \code{ncores} to be set.
-#' @param ncores An integer specifying the number of cores for parallel runs of ingest per site. Required only
-#' if \code{parallel = TRUE}
+#' @param timescale A character or vector of characters, specifying the time 
+#'  scale of data used from the respective source (if multiple time scales are
+#'  available, otherwise is disregarded).
+#' @param parallel A logical specifying whether ingest is run as parallel jobs
+#'  for each site. This option is only available for \code{source = "modis"}
+#'  and requires argument \code{ncores} to be set.
+#' @param ncores An integer specifying the number of cores for parallel runs of
+#'  ingest per site. Required only if \code{parallel = TRUE}
+#' @param find_closest A logical specifying whether to extract data from the
+#' closest gridcell with data if no data is available for the specified
+#' location. Defaults to \code{FALSE}.
 #' @param verbose if \code{TRUE}, additional messages are printed.
 #'
-#' @return A named list of data frames (tibbles) containing input data for each site is returned.
+#' @return A named list of data frames (tibbles) containing input data for each
+#'  site is returned.
 #' @import purrr dplyr
 #' @importFrom rlang :=
 #' @export
@@ -38,13 +48,14 @@
 ingest <- function(
 	siteinfo,
 	source,
-	getvars,
-	dir       = NULL,
-	settings  = NULL,
-	timescale = "d",
-	parallel  = FALSE,
-	ncores    = NULL,
-	verbose   = FALSE
+	getvars      = c(),
+	dir          = NULL,
+	settings     = NULL,
+	timescale    = "d",
+	parallel     = FALSE,
+	ncores       = NULL,
+	find_closest = FALSE,
+	verbose      = FALSE
   ){
 
   # CRAN compliance, declaring unstated variables
@@ -124,7 +135,8 @@ ingest <- function(
         mutate(problem = year_start > year_end) %>% 
         pull(problem) %>% 
         any()){
-      warning("At least one case found where year_start > year_end. The are exchanged now")
+      warning("At least one case found where year_start > year_end.
+              The are exchanged now")
       siteinfo <- siteinfo %>% 
         mutate(year_start_tmp = ifelse(year_start > year_end,
                                        year_end,
@@ -148,26 +160,32 @@ ingest <- function(
   }
 
 	if (source == "fluxnet"){
+	  
 	  #-----------------------------------------------------------
 	  # Get data from sources given by site
 	  #-----------------------------------------------------------
 	  ddf <- purrr::map(
 	    as.list(seq(nrow(siteinfo))),
-	    ~ingest_bysite( siteinfo$sitename[.],
-	     source = source,
-	     getvars = getvars,
-	     dir = dir,
-       settings = settings,
-       timescale = timescale,
-       year_start = lubridate::year(siteinfo$date_start[.]),
-       year_end = lubridate::year(siteinfo$date_end[.]),
-       verbose = verbose
+	    ~ingest_bysite(
+	      siteinfo$sitename[.],
+	      source = source,
+	      getvars = getvars,
+	      dir = dir,
+	      settings = settings,
+	      timescale = timescale,
+	      year_start = lubridate::year(siteinfo$date_start[.]),
+	      year_end = lubridate::year(siteinfo$date_end[.]),
+	      verbose = verbose
 	    )
 	  ) %>%
 	    bind_rows()
-	  
 
-	} else if (source == "cru" || source == "watch_wfdei" || source == "ndep" || source == "wfde5"){
+	} else if (
+	  source == "cru" ||
+	  source == "watch_wfdei" ||
+	  source == "ndep" ||
+	  source == "wfde5"
+	  ) {
 	  #-----------------------------------------------------------
 	  # Get data from global fields
 	  #-----------------------------------------------------------
@@ -200,7 +218,9 @@ ingest <- function(
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
                    year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
         } else if (source == "wfde5"){
-          rlang::inform("Beware: WorldClim data is for years 1970-2000. Therefore WFDE5 data is ingested for 1979-(at least) 2000.")
+          message(
+            "Beware: WorldClim data is for years 1970-2000.
+            Therefore WFDE5 data is ingested for 1979-(at least) 2000.")
           year_start_wc <- 1979  # no earlier years available
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
@@ -226,80 +246,85 @@ ingest <- function(
                                getvars = getvars,
                                timescale = timescale,
                                verbose = FALSE)
-
-    ## check if data was extracted for all sites (may be located over ocean)
-    sites_missing <- ddf %>%
-      group_by(sitename) %>%
-      summarise(across(tidyselect::vars_select_helpers$where(is.double),
-                       ~sum(!is.na(.x)))) %>%
-      dplyr::filter(across(c(-sitename, -date), ~ .x == 0)) %>%
-      pull(sitename)
-
-    if (length(sites_missing) > 0 & !identical(NULL, settings$correct_bias)){
-      ## determine closest cell with non-NA
-      if (source == "watch_wfdei"){
-        path <- paste0(dir, "/WFDEI-elevation.nc")
-      } else if (source == "cru"){
-        path <- paste0(dir, "/elv_cru_halfdeg.nc")
-      }
-      if (!file.exists(path)) {
-        stop(paste0("Looking for elevation file for determining 
+    
+    
+    if (find_closest){
+      ## check if data was extracted for all sites (may be located over ocean)
+      sites_missing <- ddf %>%
+        group_by(sitename) %>%
+        summarise(across(tidyselect::vars_select_helpers$where(is.double),
+                         ~sum(!is.na(.x)))) %>%
+        dplyr::filter(across(c(-sitename, -date), ~ .x == 0)) %>%
+        pull(sitename)
+      
+      if (length(sites_missing) > 0 & !identical(NULL, settings$correct_bias)){
+        ## determine closest cell with non-NA
+        if (source == "watch_wfdei"){
+          path <- paste0(dir, "/WFDEI-elevation.nc")
+        } else if (source == "cru"){
+          path <- paste0(dir, "/elv_cru_halfdeg.nc")
+        }
+        if (!file.exists(path)) {
+          stop(paste0("Looking for elevation file for determining 
                     closest land cell, but not found under ", path))
-      }
-      rasta <- raster::raster(path)
-      siteinfo_missing <- siteinfo %>%
-        dplyr::filter(sitename %in% sites_missing)
-      siteinfo_missing <- siteinfo_missing %>%
-        dplyr::select(x = lon, y = lat) %>%
-        mutate(
-          lon = raster::xFromCell(
-            rasta,
-            which.min(replace(raster::distanceFromPoints(rasta, .),
-                              is.na(rasta), NA))[1]),
-          lat = raster::yFromCell(
-            rasta, which.min(replace(raster::distanceFromPoints(rasta, .),
-                                     is.na(rasta), NA))[1])) %>%
-        rename(lon_orig = x, lat_orig = y) %>%
-        bind_cols(siteinfo_missing %>% dplyr::select(-lon, -lat)) %>%
-        mutate(success = ifelse(abs(lat-lat_orig)>1.0, FALSE, TRUE))
-
-      ## extract again for sites with missing data
-      ddf_missing <- ingest_globalfields(siteinfo_missing,
-                                         source = source,
-                                         dir = dir,
-                                         getvars = getvars,
-                                         timescale = timescale,
-                                         verbose = FALSE)
-
-      if (sum(!siteinfo_missing$success)>0){
-        warning(
-        "No land found within 1 degree latitude for the following sites:
+        }
+        rasta <- raster::raster(path)
+        siteinfo_missing <- siteinfo %>%
+          dplyr::filter(sitename %in% sites_missing)
+        siteinfo_missing <- siteinfo_missing %>%
+          dplyr::select(x = lon, y = lat) %>%
+          mutate(
+            lon = raster::xFromCell(
+              rasta,
+              which.min(replace(raster::distanceFromPoints(rasta, .),
+                                is.na(rasta), NA))[1]),
+            lat = raster::yFromCell(
+              rasta, which.min(replace(raster::distanceFromPoints(rasta, .),
+                                       is.na(rasta), NA))[1])) %>%
+          rename(lon_orig = x, lat_orig = y) %>%
+          bind_cols(siteinfo_missing %>% dplyr::select(-lon, -lat)) %>%
+          mutate(success = ifelse(abs(lat-lat_orig)>1.0, FALSE, TRUE))
+        
+        ## extract again for sites with missing data
+        ddf_missing <- ingest_globalfields(siteinfo_missing,
+                                           source = source,
+                                           dir = dir,
+                                           getvars = getvars,
+                                           timescale = timescale,
+                                           verbose = FALSE)
+        
+        if (sum(!siteinfo_missing$success)>0){
+          warning(
+            "No land found within 1 degree latitude for the following sites:
         Consider excluding them.")
-        print(siteinfo_missing %>% dplyr::filter(!success))
+          print(siteinfo_missing %>% dplyr::filter(!success))
+        }
+        
+        ## replace site with adjusted location
+        ddf <- ddf %>%
+          dplyr::filter(!(sitename %in% sites_missing)) %>%
+          bind_rows(ddf_missing)
       }
-
-      ## replace site with adjusted location
-      ddf <- ddf %>%
-        dplyr::filter(!(sitename %in% sites_missing)) %>%
-        bind_rows(ddf_missing)
     }
 
     ## bias-correct atmospheric pressure - per default
-    if ("patm" %in% getvars){
-
-      df_patm_base <- siteinfo %>%
-      	dplyr::select(sitename, elv) %>%
-      	mutate(patm_base = calc_patm(elv))
-
-      ddf <- ddf %>%
-      	group_by(sitename) %>%
-        summarise(patm_mean = mean(patm, na.rm = TRUE)) %>%
-        left_join(df_patm_base, by = "sitename") %>%
-        mutate(scale = patm_base / patm_mean) %>%
-        right_join(ddf, by = "sitename") %>%
-        mutate(patm = patm * scale) %>%
-        dplyr::select(-patm_base, -elv, -patm_mean, -scale)
-
+    if (!is.null(getvars)){
+      if ("patm" %in% getvars){
+        
+        df_patm_base <- siteinfo %>%
+          dplyr::select(sitename, elv) %>%
+          mutate(patm_base = calc_patm(elv))
+        
+        ddf <- ddf %>%
+          group_by(sitename) %>%
+          summarise(patm_mean = mean(patm, na.rm = TRUE)) %>%
+          left_join(df_patm_base, by = "sitename") %>%
+          mutate(scale = patm_base / patm_mean) %>%
+          right_join(ddf, by = "sitename") %>%
+          mutate(patm = patm * scale) %>%
+          dplyr::select(-patm_base, -elv, -patm_mean, -scale)
+        
+      }
     }
 
     if (!identical(NULL, settings$correct_bias)){
@@ -544,7 +569,6 @@ ingest <- function(
               rowwise() %>% 
               dplyr::mutate(
                 vapr = calc_vp(qair = qair,
-                               tc = temp,
                                patm = patm)
                 ) %>% 
               ungroup()
@@ -597,7 +621,6 @@ ingest <- function(
               dplyr::mutate(
                 vapr = calc_vp(
                   qair = qair,
-                  tc = temp,
                   patm = patm
                   ),
                 vpd = calc_vpd(eact = vapr, tc = temp)) %>% 
@@ -633,7 +656,7 @@ ingest <- function(
           ddf <- ddf %>%
             rowwise() %>%
             dplyr::mutate(
-              vapr = calc_vp(qair = qair, tc = temp, patm = patm),
+              vapr = calc_vp(qair = qair, patm = patm),
               vpd = calc_vpd(eact = vapr, tc = temp)
               ) %>% 
             ungroup()
@@ -747,7 +770,8 @@ ingest <- function(
 	          "MODISTools",
 	          "tidyr"))
 
-		  ## distribute to cores, making sure all data from a specific site is sent to the same core
+		  ## distribute to cores, making sure all data from 
+		  ## a specific site is sent to the same core
 		  ddf <- tibble(ilon = seq(nrow(siteinfo))) %>%
 		    multidplyr::partition(cl) %>%
 		    dplyr::mutate(data = purrr::map( ilon,
@@ -867,13 +891,13 @@ ingest <- function(
 	  #-----------------------------------------------------------
 	  
 	  # TODO replace with {hwsdr} call
-	  con <- rhwsd::get_hwsd_con()
-	  ddf <- rhwsd::get_hwsd_siteset(
-	    x = dplyr::select(siteinfo, sitename, lon, lat),
-	    con = con, hwsd.bil = settings$fil ) %>%
-	    dplyr::ungroup() %>%
-	    dplyr::select(sitename, data) %>%
-	    tidyr::unnest(data)
+	  # con <- rhwsd::get_hwsd_con()
+	  # ddf <- rhwsd::get_hwsd_siteset(
+	  #   x = dplyr::select(siteinfo, sitename, lon, lat),
+	  #   con = con, hwsd.bil = settings$fil ) %>%
+	  #   dplyr::ungroup() %>%
+	  #   dplyr::select(sitename, data) %>%
+	  #   tidyr::unnest(data)
 
 	} else if (source == "wwf"){
 	  #-----------------------------------------------------------
@@ -943,8 +967,10 @@ ingest <- function(
 	 } else {
 
 	  rlang::warn(paste("you selected source =", source))
-	  stop("ingest(): Argument 'source' could not be identified. Use one of 'fluxnet', 'cru', 'watch_wfdei', 'wfde5', co2_mlo', 'etopo1', or 'gee'.")
-
+	  stop(
+	    "ingest(): Argument 'source' could not be identified. 
+	     Use one of 'fluxnet', 'cru', 'watch_wfdei', 'wfde5',
+	     co2_mlo', 'etopo1', or 'gee'.")
 	}
 
   ddf <- ddf %>%

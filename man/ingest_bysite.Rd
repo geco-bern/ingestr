@@ -7,14 +7,14 @@
 ingest_bysite(
   sitename,
   source,
-  getvars,
+  getvars = c(),
   dir = NULL,
   settings = NULL,
   timescale = "d",
   year_start = NA,
   year_end = NA,
-  lon = ifelse(source == "fluxnet", NA),
-  lat = ifelse(source == "fluxnet", NA),
+  lon = NA,
+  lat = NA,
   elv = NA,
   verbose = FALSE
 )
@@ -65,7 +65,8 @@ is bias-corrected by elevation using  the adiabatic lapse rate (implemented by \
 A data frame (tibble) containing the time series of ingested data.
 }
 \description{
-Ingests data for a single site and one specific data type, specified by argument \code{source}.
+Ingests data for a single site and one specific data type,
+specified by argument \code{source}.
 }
 \examples{
 \dontrun{inputdata <- ingest_bysite()}

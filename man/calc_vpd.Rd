@@ -34,5 +34,6 @@ for calculating it based on standard sea level pressure)}
 vapor pressure deficit (Pa)
 }
 \description{
-xxx
+Follows Abtew and Meleese (2013), Ch. 5 Vapor Pressure Calculation Methods,
+in Evaporation and Evapotranspiration
 }

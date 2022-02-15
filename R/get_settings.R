@@ -4,21 +4,28 @@
 #' for a pre-defined set of "bundles" (\code{c("modis_fpar",
 #' "modis_evi", "modis_lai", "modis_gpp")}).
 #'
-#' @param bundle A character string specifying which dataset (bundle) to download.
-#' Defaults to \code{"modis_fpar"}. Available are: \code{c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")}.
-#' @param python_path A character string specifying the local path to the python executable
-#' @param gee_path A character string specifying the local path to the \code{gee_subseet} library.
+#' @param bundle A character string specifying which dataset (bundle) 
+#'  to download. Defaults to \code{"modis_fpar"}. Available are:
+#'  \code{c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")}.
+#' @param python_path A character string specifying the local path to the 
+#'  python executable
+#' @param gee_path A character string specifying the local path to the
+#'  \code{gee_subseet} library.
 #' Defaults to \code{"."} (present working directory).
-#' @param data_path A character string specifying the path of where the data should be downloaded to.
+#' @param data_path A character string specifying the path of where the data
+#'  should be downloaded to.
 #' Defaults to \code{"."} (present working directory).
-#' @param method_interpol A character string specifying which interpolation method to use. Defaults to linear interpolation (\code{"linear"}).
-#' Alternatives are
-#' @param keep A logical specifying whether to keep all intermediate data (before filtering, and before imputing mean seasonal cycle),
-#' and all alternative interpolation results. Defaults to \code{FALSE}.
-#' @param overwrite_raw A logical specifying whether raw data as downloaded from GEE is to be overwritten. Defaults to \code{FALSE},
-#' i.e. data is read from exisitng file if available.
-#' @param overwrite_interpol A logical specifying whether processed (interpolated) data, is to be overwritten. Defaults to \code{FALSE},
-#' i.e. data is read from exisitng file if available.
+#' @param method_interpol A character string specifying which interpolation
+#'  method to use. Defaults to linear interpolation (\code{"linear"}).
+#' @param keep A logical specifying whether to keep all intermediate data
+#'  (before filtering, and before imputing mean seasonal cycle),
+#'  and all alternative interpolation results. Defaults to \code{FALSE}.
+#' @param overwrite_raw A logical specifying whether raw data as downloaded
+#'  from GEE is to be overwritten. Defaults to \code{FALSE},
+#'  i.e. data is read from exisitng file if available.
+#' @param overwrite_interpol A logical specifying whether processed 
+#'  (interpolated) data, is to be overwritten. Defaults to \code{FALSE},
+#'  i.e. data is read from exisitng file if available.
 #' @return A named list containing information required for download from Google
 #' Earth Engine.
 #' @export
@@ -39,7 +46,8 @@ get_settings_gee <- function(
   if (bundle == "modis_fpar") {
     ##--------------------------------------------------------------------
     ## MODIS FPAR, 500 m, 4-daily
-    ## Info see here: https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H
+    ## Info see here: 
+    ## https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H
     ##--------------------------------------------------------------------
     out <- list(
       band_var = "Fpar",
@@ -56,15 +64,16 @@ get_settings_gee <- function(
   } else if (bundle == "modis_evi") {
     ##--------------------------------------------------------------------
     ## EVI
-    ## See info here: https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMOD13Q1
+    ## See info here: 
+    ## https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMOD13Q1
     ##--------------------------------------------------------------------
     out <- list(
-      band_var   = "EVI",                # string defining the variable name in Google Earth Engine
-      band_qc    = "SummaryQA",          # string defining the quality flag variable name in Google Earth Engine
-      prod       = "MODIS/006/MOD13Q1",  # string defining the "ImageCollection ID" on Google Earth Engine
-      prod_suffix = "MOD13Q1",           # string to be used here for defining product source (must correspond to part after last / in 'prod')
-      varnam     = "fapar",                # string to be used here for defining variable
-      productnam = "MODIS_EVI_MOD13Q1_gee",        # string to be used here for defining product source
+      band_var   = "EVI",               
+      band_qc    = "SummaryQA",         
+      prod       = "MODIS/006/MOD13Q1", 
+      prod_suffix = "MOD13Q1",          
+      varnam     = "fapar",             
+      productnam = "MODIS_EVI_MOD13Q1_gee",
       scale_factor = 0.0001,
       period = 16,
       asfaparinput = TRUE
@@ -75,29 +84,320 @@ get_settings_gee <- function(
     ## LAI
     ##--------------------------------------------------------------------
     out <- list(
-      band_var = "Lai_1km",
+      band_var = "Lai_500m",
       band_qc  = "FparLai_QC",
-      prod     = "MOD15A2",
-      varnam   = "lai",
-      productnam = "lai"
-      )
+      prod       = "MODIS/006/MOD15A2H",
+      prod_suffix = "MOD15A2H",         
+      varnam     = "lai",            
+      productnam = "MODIS_LAI",
+      scale_factor = 0.1,
+      asfaparinput = FALSE
+    )
 
   } else if (bundle == "modis_gpp") {
     ##--------------------------------------------------------------------
     ## GPP (kg C m-2), 500 m, 8-daily
     ##--------------------------------------------------------------------
     out <- list(
-      band_var = "Gpp",                 # string defining the variable name in Google Earth Engine
-      band_qc  = "Psn_QC",              # string defining the quality flag variable name in Google Earth Engine
-      prod     = "MODIS/006/MOD17A2H",  # string defining the "ImageCollection ID" on Google Earth Engine
-      prod_suffix = "MOD17A2H",         # string to be used here for defining product source (must correspond to part after last / in 'prod')
-      varnam   = "gpp",                 # string to be used here for defining variable
-      productnam = "MODIS_GPP",         # string to be used here for defining product source
+      band_var = "Gpp",               
+      band_qc  = "Psn_QC",            
+      prod     = "MODIS/006/MOD17A2H",
+      prod_suffix = "MOD17A2H",       
+      varnam   = "gpp",               
+      productnam = "MODIS_GPP",       
       scale_factor = 0.0001,
       period = 8,
       asfaparinput = FALSE
       )
 
+  } else if (bundle == "modis_lst_aqua") {
+    ##--------------------------------------------------------------------
+    ## LST (Kelvin), 1000 m, daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "LST_Day_1km",
+      band_qc  = "QC_Day",
+      prod     = "MODIS/006/MYD11A1", 
+      prod_suffix = "MYD11A1",        
+      varnam   = "lst_aqua",          
+      productnam = "MODIS_LST_AQUA",  
+      scale_factor = 0.02,
+      period = 1,
+      asfaparinput = FALSE
+    )  
+    
+  } else if (bundle == "modis_lst_terra") {
+    ##--------------------------------------------------------------------
+    ## LST (Kelvin), 1000 m, daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "LST_Day_1km",
+      band_qc  = "QC_Day",
+      prod     = "MODIS/006/MOD11A1", 
+      prod_suffix = "MOD11A1",  
+      varnam   = "lst_terra",   
+      productnam = "MODIS_LST_TERRA",   
+      scale_factor = 0.02,
+      period = 1,
+      asfaparinput = FALSE
+    )  
+  
+  } else if (bundle == "modis_refl_1") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band1",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band1",
+      prod     = "MODIS/006/MCD43A4", 
+      prod_suffix = "MCD43A4",
+      varnam   = "refl_band_1",
+      productnam = "MODIS_REFL",  
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_2") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band2",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band2",
+      prod     = "MODIS/006/MCD43A4", 
+      prod_suffix = "MCD43A4",        
+      varnam   = "refl_band_2",                
+      productnam = "MODIS_REFL",        
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )   
+  
+  } else if (bundle == "modis_refl_3") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band3",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band3",
+      prod     = "MODIS/006/MCD43A4", 
+      prod_suffix = "MCD43A4",        
+      varnam   = "refl_band_3",                
+      productnam = "MODIS_REFL",        
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )   
+    
+  } else if (bundle == "modis_refl_4") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band4",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band4",
+      prod     = "MODIS/006/MCD43A4",  
+      prod_suffix = "MCD43A4",         
+      varnam   = "refl_band_4",                
+      productnam = "MODIS_REFL",        
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )   
+  
+  } else if (bundle == "modis_refl_5") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band5",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band5",
+      prod     = "MODIS/006/MCD43A4", 
+      prod_suffix = "MCD43A4",        
+      varnam   = "refl_band_5",            
+      productnam = "MODIS_REFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )   
+    
+  } else if (bundle == "modis_refl_6") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band6",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band6",
+      prod     = "MODIS/006/MCD43A4", 
+      prod_suffix = "MCD43A4",        
+      varnam   = "refl_band_6",            
+      productnam = "MODIS_REFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )   
+  
+  } else if (bundle == "modis_refl_7") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 500 m, 8-daily
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "Nadir_Reflectance_Band7",
+      band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band7",
+      prod     = "MODIS/006/MCD43A4", 
+      prod_suffix = "MCD43A4",        
+      varnam   = "refl_band_7",            
+      productnam = "MODIS_REFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_8") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b08",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_8",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_9") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b09",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_9",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_10") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b10",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_10",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_11") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b11",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_11",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+  
+  } else if (bundle == "modis_refl_12") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b12",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_12",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+  
+  } else if (bundle == "modis_refl_13") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b13",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_13",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_14") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b14",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_14",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+    
+  } else if (bundle == "modis_refl_15") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b15",
+      band_qc  = "QC_b8_15_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_15",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+  
+  } else if (bundle == "modis_refl_16") {
+    ##--------------------------------------------------------------------
+    ## Reflectance, 1000 m, daily, Ocean product
+    ##--------------------------------------------------------------------
+    out <- list(
+      band_var = "sur_refl_b16",
+      band_qc  = "QC_b16_1km",
+      prod     = "MODIS/006/MODOCGA", 
+      prod_suffix = "MODOCGA",        
+      varnam   = "refl_band_16",            
+      productnam = "MODIS_OREFL",      
+      scale_factor = 0.0001,
+      period = 1,
+      asfaparinput = FALSE
+    )
+      
   } else {
     rlang::abort("get_settings_gee(): Could not identify required argument 'bundle'.")
   }
@@ -121,9 +421,9 @@ get_settings_gee <- function(
 #' for a pre-defined set of "bundles" (\code{c("modis_fpar",
 #' "modis_evi", "modis_lai", "modis_gpp")}).
 #'
-#' @param bundle A character string specifying which dataset (bundle) to download.
-#' Defaults to \code{"modis_fpar"}. Available are: \code{c("modis_fpar",
-#'  "modis_evi", "modis_lai", "modis_gpp")}.
+#' @param bundle A character string specifying which dataset (bundle) to
+#'  download.Defaults to \code{"modis_fpar"}. 
+#'  Available: \code{c("modis_fpar", "modis_evi", "modis_lai", "modis_gpp")}.
 #' @param data_path A character string specifying the path of where the data
 #' should be downloaded to. Defaults to \code{"."} (present working directory).
 #' @param method_interpol A character string specifying which interpolation
@@ -170,31 +470,21 @@ get_settings_modis <- function(
       period   = 4,
       prod_suffix = "MCD15A3H",
       productnam = "MODIS_FPAR_MCD15A3H",
-      network = network
+      network = network,
+      interpol = TRUE
       )
-
-  } else if (bundle == "modis_lst") { ## 8 day average
-    out <- list(
-      prod     = "MYD21A2",
-      band_var = "LST_Day_1KM",
-      band_qc  = "QC_Day",
-      varnam   = "lst",
-      period   = 4,
-      prod_suffix = "MYD21A2",
-      productnam = "MODIS_LST_MYD21A2",
-      network = network
-    )
     
-  } else if (bundle == "modis_lst_daily") { ## daily average
+  } else if (bundle == "modis_lst") { ## daily average
     out <- list(
-      prod     = "MOD11A1",
-      band_var = "LST_Day_1KM",
+      prod     = "MOD11A2",
+      band_var = "LST_Day_1km",
       band_qc  = "QC_Day",
       varnam   = "lst",
       period   = 4,
-      prod_suffix = "MOD11A1",
-      productnam = "MODIS_LST_MOD11A1",
-      network = network
+      prod_suffix = "MOD11A2",
+      productnam = "MODIS_LST_MOD11A2",
+      network = network,
+      interpol = FALSE
     )
     
   } else if (bundle == "modis_lai") {
@@ -206,7 +496,8 @@ get_settings_modis <- function(
       period   = 4,
       prod_suffix = "MCD15A3H",
       productnam = "MODIS_LAI_MCD15A3H",
-      network = network
+      network = network,
+      interpol = TRUE
     )
 
   } else if (bundle == "modis_evi") {
@@ -218,7 +509,8 @@ get_settings_modis <- function(
       period   = 16,
       prod_suffix = "MOD13Q1",
       productnam = "MODIS_EVI_MOD13Q1",
-      network = network
+      network = network,
+      interpol = TRUE
       )
 
   } else if (bundle == "modis_ndvi") {
@@ -230,7 +522,8 @@ get_settings_modis <- function(
       period   = 16,
       prod_suffix = "MOD13Q1",
       productnam = "MODIS_NDVI_MOD13Q1",
-      network = network
+      network = network,
+      interpol = TRUE
     )
     
   }  else if (bundle == "modis_refl"){
@@ -254,11 +547,14 @@ get_settings_modis <- function(
       period   = 1,
       prod_suffix = "MCD43A4",
       productnam = "MODIS_refl_MCD43A4",
-      network = NA
+      network = NA,
+      interpol = TRUE
       )
     
   } else {
-    rlang::abort("get_settings_modis(): Could not identify required argument 'bundle'.")
+    stop(
+      "get_settings_modis(): Could not identify required argument 'bundle'."
+      )
   }
   
   out$data_path          <- data_path
@@ -358,17 +654,19 @@ get_settings_modis <- function(
 #' monthly, and annual data and 0 [measured], 1 [good quality gapfill], 2 [
 #' medium], 3 [poor] for half-hourly data. Defaults to \code{threshold_GPP=0}
 #' meaning no data is excluded.
-#' @param filter_ntdt A logical specifying whether agreement of daytime and nighttime-
-#' based GPP estimates is to be used as a filter. Data points are removed
-#' where their difference is below the the 97.5% and above the 2.5% quantile of all
-#' difference values per site. Defaults to \code{FALSE}.
+#' @param filter_ntdt A logical specifying whether agreement of daytime 
+#' and nighttime based GPP estimates is to be used as a filter. 
+#' Data points are removed where their difference is below the the 97.5% and 
+#' above the 2.5% quantile of all difference values per site.
+#' Defaults to \code{FALSE}.
 #' @param return_qc A logical specifying whether quality control variables
 #' should be returned. Defaults to \code{FALSE}.
 #' @param remove_neg A logical specifying whether negative GPP values are to
 #' be removed (replaces with NA). Defaults to \code{FALSE}.
+#' @param verbose verbose output
 #'
-#' @return A named list containing information required for read data from standard
-#' FLUXNET data files (CSV files).
+#' @return A named list containing information required for read data from 
+#' standard FLUXNET data files (CSV files).
 #' @export
 #'
 #' @examples \dontrun{settings_gee <- get_settings_fluxnet()}
@@ -415,33 +713,48 @@ get_settings_fluxnet <- function(
 
 #' Defines settings for settings for SoilGrids ingest
 #'
-#' Defines settings for settings for SoilGrids ingest. Handles the specification of the required layer identifier.
+#' Defines settings for settings for SoilGrids ingest. Handles the
+#' specification of the required layer identifier.
 #'
 #' @param varnam A charachter string specifying the variable of interest.
 #' See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for naming conventions.
 #' @param layer An integer or vector of integers specifying the soil layers.
 #' See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for available layers.
 #' Defaults to \code{"0-5cm"}.
-#' @param agg A character string specifying the aggregation statistic for depth layer-specific values. Defaults to
+#' @param agg A character string specifying the aggregation statistic for depth
+#'  layer-specific values. Defaults to
 #' \code{"mean"}. See \url{https://www.isric.org/explore/soilgrids/faq-soilgrids#What_do_the_filename_codes_mean} for
 #' available statistics.
-#' @return A named list containing information required for download from SoilGrids
+#' @return A named list containing information required for download 
+#'  from SoilGrids
 #' @export
 #'
 #' @examples \dontrun{settings <- get_settings_soilgrids("soc")}
 #'
-get_settings_soilgrids <- function(varnam, layer = 1, agg = "mean"){
+get_settings_soilgrids <- function(
+  varnam,
+  layer = 1,
+  agg = "mean"
+  ){
 
+  code <- data_layer <- NULL
+  
   ## for association of layer character codes
-  df_layer_code <- tibble(layer = 1:6, code = c("0-5cm", "5-15cm", "15-30cm", "30-60cm", "60-100cm", "100-200cm"))
+  df_layer_code <- tibble(
+    layer = 1:6,
+    code = c("0-5cm", "5-15cm", "15-30cm", "30-60cm", "60-100cm", "100-200cm")
+    )
 
   ## for association of conversion factors
-  df_conversion <- tibble(varnam = c("bdod", "cec", "cfvo", "clay", "nitrogen", "phh2o", "sand", "silt", "soc", "ocd", "ocs"),
-                          factor = c(100, 10 , 10 , 10 , 100, 10 , 10 , 10 , 10 , 10 , 10))
+  df_conversion <- tibble(
+    varnam = c("bdod", "cec", "cfvo", "clay", "nitrogen",
+               "phh2o", "sand", "silt", "soc", "ocd", "ocs"),
+    factor = c(100, 10 , 10 , 10 , 100, 10 , 10 , 10 , 10 , 10 , 10)
+    )
   
   ## specify layer of interest
   df_voi_layer <- expand.grid(varnam, layer) %>% 
-    setNames(c("varnam", "layer")) %>% 
+    stats::setNames(c("varnam", "layer")) %>% 
     as_tibble() %>% 
     left_join(df_layer_code, by = "layer") %>% 
     mutate(data_layer = paste(varnam, code, agg, sep = "_")) %>% 
@@ -461,18 +774,20 @@ get_settings_soilgrids <- function(varnam, layer = 1, agg = "mean"){
 
 #' Defines settings for settings for WISE30sec ingest
 #'
-#' Defines settings for settings for WISE30sec ingest. Handles the specification of the required layer identifier.
+#' Defines settings for settings for WISE30sec ingest. Handles the specification
+#' of the required layer identifier.
 #'
 #' @param varnam A charachter string specifying the variable of interest.
 #' See \url{https://www.isric.org/documents/document-type/isric-report-201501-world-soil-property-estimates-broad-scale-modelling} for naming conventions.
 #' @param layer An integer specifying soil layer.
 #' See \url{https://www.isric.org/documents/document-type/isric-report-201501-world-soil-property-estimates-broad-scale-modelling} for available layers.
 #' Defaults to \code{1}.
-#' @return A named list containing information required for download from WISE30sec
+#' @return A named list containing information required for download from 
+#' WISE30sec
 #' @export
 #'
 #' @examples \dontrun{settings <- get_settings_wise("CNrt")}
-#'
+
 get_settings_wise <- function(varnam, layer = 1){
   
   out <- list()
