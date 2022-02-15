@@ -61,9 +61,11 @@ init_dates_dataframe <- function(
   }
 
   if (freq=="days"){
-    startdate <- lubridate::ymd(
-      paste0( as.character(yrstart), "-", sprintf( "%02d", startmoy), "-01" ) )
-    + lubridate::days( startdoy - 1 )
+    startdate <- lubridate::ymd(paste0(as.character(yrstart), "-", as.character(startmoy), "-01")) + 
+      lubridate::days( startdoy - 1 )
+    # startdate <- lubridate::ymd(
+    #   paste0( as.character(yrstart), "-", sprintf( "%02d", startmoy), "-01" ) )
+    # + lubridate::days( startdoy - 1 )
     enddate   <- lubridate::ymd(
       paste0( as.character(yrend  ), "-", sprintf( "%02d", endmoy  ), "-",
               sprintf( "%02d", enddom  ) ) )
@@ -96,9 +98,9 @@ init_dates_dataframe <- function(
   }
   
   if (startdate > enddate){
-    ddf <- tibble(date = NA)
+    ddf <- dplyr::tibble(date = NA)
   } else {
-    ddf <-  tibble( date = seq( from = startdate, to = enddate, by = freq ) )
+    ddf <-  dplyr::tibble( date = seq( from = startdate, to = enddate, by = freq ) )
     
     if (noleap) ddf <- ddf %>%
         dplyr::filter(

@@ -181,7 +181,15 @@ get_obs_bysite_fluxnet <- function(
       added <- c(added, toadd)
     }
   }
-
+  if (any(grepl("LE_", getvars))) {
+    if ("LE_F_MDS" %in% getvars) {
+      toadd <- "LE_F_MDS_QC"
+      getvars <- c(getvars, toadd) %>%
+        unique()
+      added <- c(added, toadd)
+    }
+  }
+  
   ## Take only file for this site
   if (timescale == "d") {
     ## Daily
@@ -764,14 +772,14 @@ get_obs_bysite_fluxnet <- function(
     df <- df %>% clean_fluxnet_byvar(ivar, threshold_NETRAD)
   }
 
-  energyvars <- df %>%
-    dplyr::select(starts_with("LE_"), starts_with("H_")) %>%
-    dplyr::select(-ends_with("_QC")) %>%
-    names()
-
-  df <- df %>%
-    ## Unit conversion for sensible and latent heat flux: W m-2 -> J m-2 d-1
-    dplyr::mutate_at( vars(one_of(energyvars)), convert_energy_fluxnet2015)
+  ## no longer convert energy quantities
+  # energyvars <- df %>%
+  #   dplyr::select(starts_with("LE_"), starts_with("H_")) %>%
+  #   dplyr::select(-ends_with("_QC")) %>%
+  #   names()
+  # df <- df %>%
+  #   ## Unit conversion for sensible and latent heat flux: W m-2 -> J m-2 d-1
+  #   dplyr::mutate_at( vars(one_of(energyvars)), convert_energy_fluxnet2015)
 
   ## clean GPP data
   if (any(grepl("GPP_", getvars))){
@@ -783,7 +791,7 @@ get_obs_bysite_fluxnet <- function(
   ## clean energy data (sensible and latent heat flux) data - often has spuriously equal values
   if (any(grepl("LE_", getvars))){
     if (any( !(c("LE_F_MDS", "LE_F_MDS_QC") %in% getvars) )) stop("Not all variables read from file that are needed for data cleaning.")
-    df$LE_F_MDS <- clean_fluxnet_energy( df$LE_F_MDS, df$LE_F_MDS_QC, threshold=threshold_LE )
+    df$LE_F_MDS <- clean_fluxnet_energy( df$LE_F_MDS, df$LE_F_MDS_QC, threshold = threshold_LE )
   }
   if (any(grepl("H_", getvars))){
     if (any( !(c("H_F_MDS", "H_F_MDS_QC") %in% getvars) )) stop("Not all variables read from file that are needed for data cleaning.")
@@ -1061,12 +1069,13 @@ get_obs_fluxnet2015_raw <- function( sitename, path, freq="d" ){
 
 # }
 
-## Converts units of latent energy (LE) variables from FLUXNET to SOFUN standard
-convert_energy_fluxnet2015 <- function( le ){
-  ## W m-2 -> J m-2 d-1
-  le_converted <- as.numeric(le) * 60 * 60 * 24
-  return(le_converted)
-}
+## The standard has changed to mean, no longer cumulative quantities!
+# ## Converts units of latent energy (LE) variables from FLUXNET to SOFUN standard
+# convert_energy_fluxnet2015 <- function( le ){
+#   ## W m-2 -> J m-2 d-1
+#   le_converted <- as.numeric(le) * 60 * 60 * 24
+#   return(le_converted)
+# }
 
 clean_fluxnet_gpp <- function(
   df,

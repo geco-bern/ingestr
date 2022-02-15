@@ -53,7 +53,7 @@ ingest_bysite <- function(
   ){
 
   # CRAN compliance, declaring unstated variables
-  sitename <- lon <- lat <- date_start <- date_end <- problem <-
+  lon <- lat <- date_start <- date_end <- problem <-
     year_start_tmp <- x <- y <- lat_orig <- success <- elv <- patm <-
     patm_base <-patm_mean <- month <- tavg <-temp <- temp_fine <-
     tmax <- tmax_fine <- tmin <- tmin_fine <- prec <- prec_fine <-
