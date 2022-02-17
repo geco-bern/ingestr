@@ -224,6 +224,7 @@ read_plumber <- function(
       file = filename,
       quote = FALSE,
       col.names = TRUE,
+      row.names = FALSE,
       sep = ","
     )
   }
