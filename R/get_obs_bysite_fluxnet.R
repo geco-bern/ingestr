@@ -779,24 +779,25 @@ get_obs_bysite_fluxnet <- function(
     df <- df %>% clean_fluxnet_byvar(ivar, threshold_NETRAD)
   }
 
-  ## no longer convert energy quantities
-  # energyvars <- df %>%
-  #   dplyr::select(starts_with("LE_"), starts_with("H_")) %>%
-  #   dplyr::select(-ends_with("_QC")) %>%
-  #   names()
-  # df <- df %>%
-  #   ## Unit conversion for sensible and latent heat flux: W m-2 -> J m-2 d-1
-  #   dplyr::mutate_at( vars(one_of(energyvars)), convert_energy_fluxnet2015)
-
   ## clean GPP data
   if (any(grepl("GPP_", getvars))){
-    df <- df %>%
-      clean_fluxnet_gpp(
-        threshold = threshold_GPP,
-        remove_neg = remove_neg,
-        filter_ntdt = filter_ntdt,
-        freq = timescale) %>%
-      dplyr::select(-res)
+    error <- try(
+      df <- df %>%
+        clean_fluxnet_gpp(
+          threshold = threshold_GPP,
+          remove_neg = remove_neg,
+          filter_ntdt = filter_ntdt,
+          freq = timescale) %>%
+        dplyr::select(-res),
+      silent = TRUE
+    )
+    
+    if(inherits(error, "try-error")) {
+      message("
+              Missing nighttime/ daytime QC data.
+              Data is not screened.
+              Is this plumber2 data converted by read_plumber()?")
+    }
   }
 
   ## clean energy data (sensible and latent heat flux) data - often has spuriously equal values
