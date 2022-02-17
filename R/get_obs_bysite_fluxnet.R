@@ -675,12 +675,12 @@ get_obs_bysite_fluxnet <- function(
     
     if (merge_df_tmax_dd){
       
-      if (timescale=="d"){
+      if (timescale == "d"){
         
         # daily
         df <- df %>% dplyr::left_join(df_tmax_dd, by="date")
         
-      } else if (timescale=="w"){
+      } else if (timescale == "w"){
         
         # weekly
         df <- df_tmax_dd %>%
@@ -727,10 +727,7 @@ get_obs_bysite_fluxnet <- function(
     
   }
 
-    
-  ##----------------------------------------------------------
-  ## Reduce data to getvars
-  ##----------------------------------------------------------
+  #---- Reduce data to getvars ----
   ## retain all getvars, plus soil moisture if required
   if (getswc){
     df <- df %>%
@@ -740,31 +737,28 @@ get_obs_bysite_fluxnet <- function(
     df <- df %>% dplyr::select( ., date, one_of(getvars) )
   }
 
-  ##----------------------------------------------------------
-  ## Filter / clean data
-  ##----------------------------------------------------------
-  ## air temperature
+  #---- Filter / clean data ----
   TA_vars <- getvars[which(grepl("TA_", getvars))]
   TA_vars <- TA_vars[-which(grepl("_QC", TA_vars))]
   for (ivar in TA_vars){
     df <- df %>% clean_fluxnet_byvar(ivar, threshold_T)
   }
 
-  ## wind speed
+  # wind speed
   WS_vars <- getvars[which(grepl("WS_", getvars))]
   WS_vars <- WS_vars[-which(grepl("_QC", WS_vars))]
   for (ivar in WS_vars){
     df <- df %>% clean_fluxnet_byvar(ivar, threshold_WS)
   }
 
-  ## u-star
+  # u-star
   USTAR_vars <- getvars[which(grepl("USTAR_", getvars))]
   USTAR_vars <- USTAR_vars[-which(grepl("_QC", USTAR_vars))]
   for (ivar in USTAR_vars){
     df <- df %>% clean_fluxnet_byvar(ivar, threshold_USTAR)
   }
 
-  ## net radiation
+  # net radiation
   NETRAD_vars <- getvars[which(grepl("NETRAD", getvars))]
   NETRAD_vars <- NETRAD_vars[-which(grepl("_QC", NETRAD_vars))]
   for (ivar in NETRAD_vars){
@@ -777,21 +771,31 @@ get_obs_bysite_fluxnet <- function(
     names()
 
   df <- df %>%
-    ## Unit conversion for sensible and latent heat flux: W m-2 -> J m-2 d-1
+    # Unit conversion for sensible and latent heat flux: W m-2 -> J m-2 d-1
     dplyr::mutate_at( vars(one_of(energyvars)), convert_energy_fluxnet2015)
 
-  ## clean GPP data
+  # clean GPP data
   if (any(grepl("GPP_", getvars))){
-    df <- df %>%
+    error <- try(
+      df <- df %>%
       clean_fluxnet_gpp(
         threshold = threshold_GPP,
         remove_neg = remove_neg,
         filter_ntdt = filter_ntdt,
         freq = timescale) %>%
-      dplyr::select(-res)
+      dplyr::select(-res),
+      silent = TRUE
+    )
+    
+    if(inherits(error, "try-error")) {
+      message("
+              Missing nighttime/ daytime QC data.
+              Data is not screened.
+              Is this plumber2 data converted by read_plumber()?")
+    }
   }
 
-  ## clean energy data (sensible and latent heat flux) data - often has spuriously equal values
+  # clean energy data (sensible and latent heat flux) data - often has spuriously equal values
   if (any(grepl("LE_", getvars))){
     if (any( !(c("LE_F_MDS", "LE_F_MDS_QC") %in% getvars) )) stop("Not all variables read from file that are needed for data cleaning.")
     df$LE_F_MDS <- clean_fluxnet_energy( df$LE_F_MDS, df$LE_F_MDS_QC, threshold=threshold_LE )
@@ -801,10 +805,9 @@ get_obs_bysite_fluxnet <- function(
     df$H_F_MDS  <- clean_fluxnet_energy( df$H_F_MDS, df$H_F_MDS_QC,   threshold=threshold_H )
   }
 
-  ##----------------------------------------------------------
-  ## Process soil moisture data
-  ##----------------------------------------------------------
-  ## Soil moisture related stuff for daily data
+  #---- Process soil moisture data ----
+
+  # Soil moisture related stuff for daily data
   if (timescale=="d" && getswc){
     tmp <- df %>% dplyr::select( starts_with("SWC") )
     if (ncol(tmp)>0){
@@ -831,7 +834,7 @@ get_obs_bysite_fluxnet <- function(
 
   }
 
-  ## check if anything is missing
+  #---- check if anything is missing ----
   if (any(!(getvars %in% names(df)))){
     warning(
       paste("Not all getvars were found in file. Missing variable: ",
@@ -843,12 +846,11 @@ get_obs_bysite_fluxnet <- function(
     df <- df %>% dplyr::select(-ends_with("_QC"))
   }
 
-  ## Make unit conversions and shorter names
+  #---- Make unit conversions and shorter names ----
   outgetvars <- c()
 
-  ##----------------------------------------------------------
-  ## Rename variables to names provided by argument 'getvars'
-  ##----------------------------------------------------------
+  
+  #---- Rename variables to names provided by argument 'getvars' ----
   rename_byvar <- function(df, list_var, verbose){
     name_in  <- list_var %>% unlist() %>% unname()
     name_out <- list_var %>% names()
@@ -862,10 +864,8 @@ get_obs_bysite_fluxnet <- function(
   }
 
 
-  ##----------------------------------------------------------
-  ## Convert units to ingestr-standards
-  ##----------------------------------------------------------
-  ## conversion factor from SPLASH: flux to energy conversion, umol/J (Meek et al., 1984)
+  #---- Convert units to ingestr-standards ----
+  # conversion factor from SPLASH: flux to energy conversion, umol/J (Meek et al., 1984)
   kfFEC <- 2.04
 
   if ("vpd_day" %in% names(df)){
@@ -897,25 +897,6 @@ get_obs_bysite_fluxnet <- function(
     }
   }
   
-
-  ## GPP
-  # if ("gpp" %in% names(getvars_orig)){
-  #   if (getvars_orig$gpp == "GPP_NT_VUT_REF"){
-  #     df <- df %>% rename(gpp = GPP_NT_VUT_REF)
-  #   }
-  #   if (getvars_orig$gpp == "GPP_DT_VUT_REF"){
-  #     df <- df %>% rename(gpp = GPP_DT_VUT_REF)
-  #   }
-  # }
-  # if ("gpp_unc" %in% names(getvars_orig)){
-  #   if (getvars_orig$gpp_unc == "GPP_NT_VUT_SE"){
-  #     df <- df %>% rename(gpp_unc = GPP_NT_VUT_SE)
-  #   }
-  #   if (getvars_orig$gpp_unc == "GPP_DT_VUT_SE"){
-  #     df <- df %>% rename(gpp_unc = GPP_DT_VUT_SE)
-  #   }
-  # }
-  
   df <- df %>%
     select(-one_of(added))
 
@@ -945,10 +926,14 @@ clean_fluxnet_byvar <- function(df, varnam, threshold){
   return(df)
 }
 
-##----------------------------------------------------------------------
-## Function for reading observational GPP data from FLUXNET dataset
-##----------------------------------------------------------------------
-get_obs_bysite_wcont_fluxnet2015 <- function( sitename, dir, timescale ){
+
+#---- Function for reading observational GPP data from FLUXNET dataset ----
+
+get_obs_bysite_wcont_fluxnet2015 <- function(
+  sitename,
+  dir,
+  timescale
+  ){
 
   getvars <- "SWC"
 
@@ -1017,17 +1002,15 @@ get_obs_bysite_wcont_fluxnet2015 <- function( sitename, dir, timescale ){
 
 }
 
+# Function returns a dataframe containing all the data of the FLUXNET
+# 2015 data file of respective temporal resolution.
+# Returns data in units given in the fluxnet dataset
 
 get_obs_fluxnet2015_raw <- function(
   sitename,
   path,
   freq = "d"
   ) {
-  ##--------------------------------------------------------------------
-  ## Function returns a dataframe containing all the data of the FLUXNET
-  ## 2015 data file of respective temporal resolution.
-  ## Returns data in units given in the fluxnet dataset
-  ##--------------------------------------------------------------------
   
   # CRAN compliance, define variables
   TIMESTAMP <- TIMESTAMP_START <- TIMESTAMP_END <- date_start <-
