@@ -59,14 +59,14 @@ get_tmax_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
     stringr::str_replace(".csv", "_TMAX.csv")
   
   if (file.exists(filename_dd_tmax)){
-    ## Daytime tmax file is already available, reading from file
+    # Daytime tmax file is already available, reading from file
     # print(paste("Reading daytime tmax from:", filename_dd_tmax))
     message(paste("Reading file with calculated daily tmax:", filename_dd_tmax))
     df <- readr::read_csv(filename_dd_tmax)
     
   } else {
-    ## Get daytime tmax from half-hourly data
-    ## read half-hourly data
+    # Get daytime tmax from half-hourly data
+    # read half-hourly data
     if (!file.exists(filename_hh)){
       stop(paste("Half-hourly file does not exist:", filename_hh))
     } 
@@ -76,7 +76,7 @@ get_tmax_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
                      date_end   = lubridate::ymd_hm( TIMESTAMP_END ) ) %>%
       dplyr::mutate( date = date_start ) %>% 
       
-      ## take mean over daytime values
+      # take mean over daytime values
       dplyr::mutate(date_day = lubridate::as_date(date_start)) %>% 
       dplyr::group_by(date_day) %>%
       dplyr::summarise(TMAX_F = max(TA_F, na.rm=TRUE),
@@ -86,7 +86,7 @@ get_tmax_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
                        TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
       dplyr::rename(date = date_day)
     
-    ## write to csv file  
+    # write to csv file  
     if (write){
       message(paste("Writing file with maximum temperature as:", filename_dd_tmax))
       readr::write_csv(df, path = filename_dd_tmax)

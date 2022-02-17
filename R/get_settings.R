@@ -44,11 +44,11 @@ get_settings_gee <- function(
   ) {
   
   if (bundle == "modis_fpar") {
-    ##--------------------------------------------------------------------
-    ## MODIS FPAR, 500 m, 4-daily
-    ## Info see here: 
-    ## https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H
-    ##--------------------------------------------------------------------
+    
+    # MODIS FPAR, 500 m, 4-daily
+    # Info see here: 
+    # https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H
+    
     out <- list(
       band_var = "Fpar",
       band_qc  = "FparLai_QC",
@@ -62,11 +62,11 @@ get_settings_gee <- function(
       )
 
   } else if (bundle == "modis_evi") {
-    ##--------------------------------------------------------------------
-    ## EVI
-    ## See info here: 
-    ## https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMOD13Q1
-    ##--------------------------------------------------------------------
+    
+    # EVI
+    # See info here: 
+    # https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMOD13Q1
+    
     out <- list(
       band_var   = "EVI",               
       band_qc    = "SummaryQA",         
@@ -80,9 +80,9 @@ get_settings_gee <- function(
       )
 
   } else if (bundle == "modis_lai") {
-    ##--------------------------------------------------------------------
-    ## LAI
-    ##--------------------------------------------------------------------
+    
+    # LAI
+    
     out <- list(
       band_var = "Lai_500m",
       band_qc  = "FparLai_QC",
@@ -95,9 +95,9 @@ get_settings_gee <- function(
     )
 
   } else if (bundle == "modis_gpp") {
-    ##--------------------------------------------------------------------
-    ## GPP (kg C m-2), 500 m, 8-daily
-    ##--------------------------------------------------------------------
+    
+    # GPP (kg C m-2), 500 m, 8-daily
+    
     out <- list(
       band_var = "Gpp",               
       band_qc  = "Psn_QC",            
@@ -111,9 +111,9 @@ get_settings_gee <- function(
       )
 
   } else if (bundle == "modis_lst_aqua") {
-    ##--------------------------------------------------------------------
-    ## LST (Kelvin), 1000 m, daily
-    ##--------------------------------------------------------------------
+    
+    # LST (Kelvin), 1000 m, daily
+    
     out <- list(
       band_var = "LST_Day_1km",
       band_qc  = "QC_Day",
@@ -127,9 +127,9 @@ get_settings_gee <- function(
     )  
     
   } else if (bundle == "modis_lst_terra") {
-    ##--------------------------------------------------------------------
-    ## LST (Kelvin), 1000 m, daily
-    ##--------------------------------------------------------------------
+    
+    # LST (Kelvin), 1000 m, daily
+    
     out <- list(
       band_var = "LST_Day_1km",
       band_qc  = "QC_Day",
@@ -143,9 +143,9 @@ get_settings_gee <- function(
     )  
   
   } else if (bundle == "modis_refl_1") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 500 m, 8-daily
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 500 m, 8-daily
+    
     out <- list(
       band_var = "Nadir_Reflectance_Band1",
       band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band1",
@@ -159,9 +159,9 @@ get_settings_gee <- function(
     )
     
   } else if (bundle == "modis_refl_2") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 500 m, 8-daily
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 500 m, 8-daily
+    
     out <- list(
       band_var = "Nadir_Reflectance_Band2",
       band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band2",
@@ -175,9 +175,9 @@ get_settings_gee <- function(
     )   
   
   } else if (bundle == "modis_refl_3") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 500 m, 8-daily
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 500 m, 8-daily
+    
     out <- list(
       band_var = "Nadir_Reflectance_Band3",
       band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band3",
@@ -191,9 +191,9 @@ get_settings_gee <- function(
     )   
     
   } else if (bundle == "modis_refl_4") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 500 m, 8-daily
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 500 m, 8-daily
+    
     out <- list(
       band_var = "Nadir_Reflectance_Band4",
       band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band4",
@@ -207,9 +207,9 @@ get_settings_gee <- function(
     )   
   
   } else if (bundle == "modis_refl_5") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 500 m, 8-daily
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 500 m, 8-daily
+    
     out <- list(
       band_var = "Nadir_Reflectance_Band5",
       band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band5",
@@ -223,9 +223,9 @@ get_settings_gee <- function(
     )   
     
   } else if (bundle == "modis_refl_6") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 500 m, 8-daily
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 500 m, 8-daily
+    
     out <- list(
       band_var = "Nadir_Reflectance_Band6",
       band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band6",
@@ -239,9 +239,9 @@ get_settings_gee <- function(
     )   
   
   } else if (bundle == "modis_refl_7") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 500 m, 8-daily
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 500 m, 8-daily
+    
     out <- list(
       band_var = "Nadir_Reflectance_Band7",
       band_qc  = "BRDF_Albedo_Band_Mandatory_Quality_Band7",
@@ -255,9 +255,9 @@ get_settings_gee <- function(
     )
     
   } else if (bundle == "modis_refl_8") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 1000 m, daily, Ocean product
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 1000 m, daily, Ocean product
+    
     out <- list(
       band_var = "sur_refl_b08",
       band_qc  = "QC_b8_15_1km",
@@ -271,9 +271,9 @@ get_settings_gee <- function(
     )
     
   } else if (bundle == "modis_refl_9") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 1000 m, daily, Ocean product
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 1000 m, daily, Ocean product
+    
     out <- list(
       band_var = "sur_refl_b09",
       band_qc  = "QC_b8_15_1km",
@@ -287,9 +287,9 @@ get_settings_gee <- function(
     )
     
   } else if (bundle == "modis_refl_10") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 1000 m, daily, Ocean product
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 1000 m, daily, Ocean product
+    
     out <- list(
       band_var = "sur_refl_b10",
       band_qc  = "QC_b8_15_1km",
@@ -303,9 +303,9 @@ get_settings_gee <- function(
     )
     
   } else if (bundle == "modis_refl_11") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 1000 m, daily, Ocean product
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 1000 m, daily, Ocean product
+    
     out <- list(
       band_var = "sur_refl_b11",
       band_qc  = "QC_b8_15_1km",
@@ -319,9 +319,9 @@ get_settings_gee <- function(
     )
   
   } else if (bundle == "modis_refl_12") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 1000 m, daily, Ocean product
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 1000 m, daily, Ocean product
+    
     out <- list(
       band_var = "sur_refl_b12",
       band_qc  = "QC_b8_15_1km",
@@ -335,9 +335,9 @@ get_settings_gee <- function(
     )
   
   } else if (bundle == "modis_refl_13") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 1000 m, daily, Ocean product
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 1000 m, daily, Ocean product
+    
     out <- list(
       band_var = "sur_refl_b13",
       band_qc  = "QC_b8_15_1km",
@@ -351,9 +351,9 @@ get_settings_gee <- function(
     )
     
   } else if (bundle == "modis_refl_14") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 1000 m, daily, Ocean product
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 1000 m, daily, Ocean product
+    
     out <- list(
       band_var = "sur_refl_b14",
       band_qc  = "QC_b8_15_1km",
@@ -367,9 +367,9 @@ get_settings_gee <- function(
     )
     
   } else if (bundle == "modis_refl_15") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 1000 m, daily, Ocean product
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 1000 m, daily, Ocean product
+    
     out <- list(
       band_var = "sur_refl_b15",
       band_qc  = "QC_b8_15_1km",
@@ -383,9 +383,9 @@ get_settings_gee <- function(
     )
   
   } else if (bundle == "modis_refl_16") {
-    ##--------------------------------------------------------------------
-    ## Reflectance, 1000 m, daily, Ocean product
-    ##--------------------------------------------------------------------
+    
+    # Reflectance, 1000 m, daily, Ocean product
+    
     out <- list(
       band_var = "sur_refl_b16",
       band_qc  = "QC_b16_1km",
@@ -474,7 +474,7 @@ get_settings_modis <- function(
       interpol = TRUE
       )
     
-  } else if (bundle == "modis_lst") { ## daily average
+  } else if (bundle == "modis_lst") { # daily average
     out <- list(
       prod     = "MOD11A2",
       band_var = "LST_Day_1km",
@@ -739,20 +739,20 @@ get_settings_soilgrids <- function(
 
   code <- data_layer <- NULL
   
-  ## for association of layer character codes
+  # for association of layer character codes
   df_layer_code <- tibble(
     layer = 1:6,
     code = c("0-5cm", "5-15cm", "15-30cm", "30-60cm", "60-100cm", "100-200cm")
     )
 
-  ## for association of conversion factors
+  # for association of conversion factors
   df_conversion <- tibble(
     varnam = c("bdod", "cec", "cfvo", "clay", "nitrogen",
                "phh2o", "sand", "silt", "soc", "ocd", "ocs"),
     factor = c(100, 10 , 10 , 10 , 100, 10 , 10 , 10 , 10 , 10 , 10)
     )
   
-  ## specify layer of interest
+  # specify layer of interest
   df_voi_layer <- expand.grid(varnam, layer) %>% 
     stats::setNames(c("varnam", "layer")) %>% 
     as_tibble() %>% 
@@ -766,7 +766,7 @@ get_settings_soilgrids <- function(
   out$factor <- df_voi_layer %>% pull(factor)
   out$layer <- df_voi_layer %>% pull(layer)
   
-  ## set other variables necessary for the WCS call for all kinds of requests
+  # set other variables necessary for the WCS call for all kinds of requests
   out$webdav_path = '/vsicurl?max_retry=3&retry_delay=1&list_dir=no&url=https://files.isric.org/soilgrids/latest/data/'
 
   return(out)
@@ -794,7 +794,7 @@ get_settings_wise <- function(varnam, layer = 1){
   
   out$varnam <- varnam
   
-  ## specify layer of interest
+  # specify layer of interest
   out$layer <- layer
   
   return(out)

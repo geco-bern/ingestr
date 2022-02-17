@@ -1,12 +1,13 @@
-long_to_wide_fluxnet2015 <- function( sitename, long ){
+long_to_wide_fluxnet2015 <- function(sitename, long) {
   
   # define variables
   SITE_ID <- VARIABLE_GROUP <- VARIABLE <- GROUP_ID <- 
     DATAVALUE <- NULL
   
-  sub <- long %>% dplyr::filter( SITE_ID==sitename )
+  sub <- long %>%
+    dplyr::filter( SITE_ID==sitename )
   
-  ## remove variable groups that have lots of duplicates w.r.t. variable
+  # remove variable groups that have lots of duplicates w.r.t. variable
   sub <- sub %>% 
     dplyr::filter(
       VARIABLE_GROUP!="GRP_TEAM_MEMBER",
@@ -27,46 +28,100 @@ long_to_wide_fluxnet2015 <- function( sitename, long ){
   ##  treat duplicates
   ## Use only first entry for 'reference paper'
   if (nrow(df_nduplicates)>0){
-    if ("REFERENCE_PAPER" %in% df_nduplicates$VARIABLE %>% as.character()){
+    if ("REFERENCE_PAPER" %in% df_nduplicates$VARIABLE %>%
+        as.character()
+        ){
       varname <- "REFERENCE_PAPER"
-      groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
-      sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
+      groupid <- sub %>%
+        filter( VARIABLE == varname ) %>%
+        dplyr::select( GROUP_ID ) %>%
+        slice(1)
+      
+      sub <- sub %>%
+        filter(
+          !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID)
+          )
     }
     
     ## Use only first entry for 'reference usage'
-    df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
+    df_nduplicates <- sub %>% 
+      group_by( SITE_ID, VARIABLE ) %>%
+      summarize( n = n()) %>%
+      filter( n>1 )
+    
     if (nrow(df_nduplicates)>0){
       if ("REFERENCE_USAGE" %in% df_nduplicates$VARIABLE %>% as.character()){
         varname <- "REFERENCE_USAGE"
-        groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
-        sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
+        groupid <- sub %>%
+          filter( VARIABLE == varname ) %>%
+          dplyr::select( GROUP_ID ) %>%
+          slice(1)
+        
+        sub <- sub %>%
+          filter(
+            !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID)
+            )
       }
       
       ## Use only first entry for 'reference usage'
-      df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
+      df_nduplicates <- sub %>%
+        group_by( SITE_ID, VARIABLE ) %>%
+        summarize( n = n()) %>%
+        filter( n>1 )
+      
       if (nrow(df_nduplicates)>0){
         if ("REFERENCE_DOI" %in% df_nduplicates$VARIABLE %>% as.character()){
           varname <- "REFERENCE_DOI"
-          groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
-          sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
+          
+          groupid <- sub %>%
+            filter( VARIABLE == varname ) %>%
+            dplyr::select( GROUP_ID ) %>%
+            slice(1)
+          
+          sub <- sub %>%
+            filter(
+              !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID)
+            )
         }
         
         ## Use only first entry for 'reference usage'
-        df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
+        df_nduplicates <- sub %>%
+          group_by( SITE_ID, VARIABLE ) %>%
+          summarize( n = n()) %>%
+          filter( n>1 )
+        
         if (nrow(df_nduplicates)>0){
           if ("REFERENCE_COMMENT" %in% df_nduplicates$VARIABLE %>% as.character()){
             varname <- "REFERENCE_COMMENT"
-            groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
-            sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
+            groupid <- sub %>%
+              filter( VARIABLE == varname ) %>%
+              dplyr::select( GROUP_ID ) %>%
+              slice(1)
+            
+            sub <- sub %>%
+              filter(
+                !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )
+              )
           }          
           
           ## Use only first entry for 'DOM_DIST_MGMT'
-          df_nduplicates <- sub %>% group_by( SITE_ID, VARIABLE ) %>% summarize( n = n()) %>% filter( n>1 )
+          df_nduplicates <- sub %>%
+            group_by( SITE_ID, VARIABLE ) %>%
+            summarize( n = n()) %>%
+            filter( n>1 )
+          
           if (nrow(df_nduplicates)>0){
             if ("DOM_DIST_MGMT" %in% df_nduplicates$VARIABLE %>% as.character()){
               varname <- "DOM_DIST_MGMT"
-              groupid <- sub %>% filter( VARIABLE == varname ) %>% dplyr::select( GROUP_ID ) %>% slice(1)
-              sub <- sub %>% filter( !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID )  )
+              groupid <- sub %>%
+                filter( VARIABLE == varname ) %>%
+                dplyr::select( GROUP_ID ) %>%
+                slice(1)
+              
+              sub <- sub %>%
+                filter(
+                  !(VARIABLE == varname & GROUP_ID!=groupid$GROUP_ID)
+                  )
             }
             
             ## Use only first entry for 'DM_COMMENT'

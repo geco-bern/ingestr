@@ -52,10 +52,10 @@ ingest_gee_bysite <- function(
   # CRAN compliance, define variables
   lat <- lon <- ymd <- longitude <- latitude <- product <- NULL
   
-  ##---------------------------------------------
-  ## Define names
-  ##---------------------------------------------
-  ## this function is hacked to only do one site at a time
+  
+  # Define names
+  
+  # this function is hacked to only do one site at a time
   sitename <- df_siteinfo$sitename[1]
   df_siteinfo <- slice(df_siteinfo, 1)
 
@@ -78,21 +78,21 @@ ingest_gee_bysite <- function(
 
   do_continue <- TRUE
 
-  ## Save error code (0: no error, 1: error: file downloaded bu all data is NA, 2: file not downloaded)
+  # Save error code (0: no error, 1: error: file downloaded bu all data is NA, 2: file not downloaded)
   df_error <- tibble()
 
   if (file.exists(filnam_daily_csv) && !overwrite_interpol){
-    ##---------------------------------------------
-    ## Read daily interpolated and gapfilled
-    ##---------------------------------------------
+    
+    # Read daily interpolated and gapfilled
+    
     ddf <- readr::read_csv( filnam_daily_csv )
 
   } else {
 
     if (!file.exists(filnam_raw_csv) || overwrite_raw){
-      ##---------------------------------------------
-      ## Download via Google Earth Engine using the python function
-      ##---------------------------------------------
+      
+      # Download via Google Earth Engine using the python function
+      
       path_info <- paste0(dirnam_raw_csv, "info_lonlat.csv")
       utils::write.csv( dplyr::select(
         df_siteinfo,
@@ -119,23 +119,22 @@ ingest_gee_bysite <- function(
       proc_time = as.vector(end - start)
       message( paste( "... completed in", format( proc_time, digits = 3), "sec" ) )
 
-      ## Raw downloaded data is saved to file
+      # Raw downloaded data is saved to file
       message( paste( "raw data file written:", filnam_raw_csv ) )
     }
 
-    ##--------------------------------------------------------------------
-    ## Read raw data and create a data frame holding the complete time series
-    ## Note: 'date', 'doy', 'dom', etc. refer to the date, centered within
-    ## each N-day period. 'date_start' refers to the beginning of each
-    ## N-day period.
-    ##--------------------------------------------------------------------
+    # Read raw data and create a data frame holding the complete time series
+    # Note: 'date', 'doy', 'dom', etc. refer to the date, centered within
+    # each N-day period. 'date_start' refers to the beginning of each
+    # N-day period.
+    
     if (file.exists(filnam_raw_csv)){
 
       df <- readr::read_csv( filnam_raw_csv ) %>%   #, col_types = cols()
         dplyr::mutate(  date = lubridate::ymd(date) ) %>%
         dplyr::select( -longitude, -latitude, -product )
 
-      ## Apply scale factor, specific for each product
+      # Apply scale factor, specific for each product
       if (any(!is.na(df[[band_var]]))){
         df[[band_var]] <- df[[band_var]] * scale_factor
       } else {
@@ -152,9 +151,9 @@ ingest_gee_bysite <- function(
     }
 
     if (do_continue){
-      ##---------------------------------------------
-      ## Clean (gapfill and interpolate) full time series data to 8-days, daily, and monthly
-      ##--------------------------------------------------------------------
+      
+      # Clean (gapfill and interpolate) full time series data to 8-days, daily, and monthly
+      
       ddf <- gapfill_interpol_gee(
         df,
         sitename,
@@ -167,9 +166,9 @@ ingest_gee_bysite <- function(
         keep = keep
       )
 
-      ##---------------------------------------------
-      ## save cleaned and interpolated data to file
-      ##---------------------------------------------
+      
+      # save cleaned and interpolated data to file
+      
       readr::write_csv( ddf, file = filnam_daily_csv )
 
     } else {
@@ -205,12 +204,11 @@ gapfill_interpol_gee <- function(
   keep
   ) {
   
-  ##--------------------------------------
-  ## Returns data frame containing data
-  ## (and year, moy, doy) for all available
-  ## months. Interpolated to mid-months
-  ## from original 16-daily data.
-  ##--------------------------------------
+
+  # Returns data frame containing data
+  # (and year, moy, doy) for all available
+  # months. Interpolated to mid-months
+  # from original 16-daily data.
 
   # CRAN compliance, predefine internal variables
   value <- modisvar <- qc <- qc_bitname <- vi_useful <- aerosol <- 
@@ -220,204 +218,203 @@ gapfill_interpol_gee <- function(
     settings_modis <- approx <- prevdate <- modisvar_filled <- 
     Psn_QC <- Gpp <- outlier <-  NULL
 
-  ##--------------------------------------
-  ## CLEAN AND GAP-FILL
-  ##--------------------------------------
+  # CLEAN AND GAP-FILL
+
   if (prod == "MOD13Q1"){
-    ##--------------------------------------
-    ## This is for MOD13Q1 Vegetation indeces (NDVI, EVI) data downloaded from Google Earth Engine
-    ##--------------------------------------
-    ## QC interpreted according to https://vip.arizona.edu/documents/MODIS/MODIS_VI_UsersGuide_June_2015_C6.pdf
+
+    # This is for MOD13Q1 Vegetation indeces (NDVI, EVI) data downloaded from Google Earth Engine
+
+    # QC interpreted according to https://vip.arizona.edu/documents/MODIS/MODIS_VI_UsersGuide_June_2015_C6.pdf
     df <- df %>%
       dplyr::rename(modisvar = value) %>%
       dplyr::mutate(modisvar_filtered = modisvar) %>%
 
-      ## separate into bits
+      # separate into bits
       rowwise() %>%
       mutate(qc_bitname = intToBits( qc ) %>%
                as.character() %>%
                paste(collapse = "")
              ) %>%
 
-      ## Bits 0-1: VI Quality
-      ##   00 VI produced with good quality
-      ##   01 VI produced, but check other QA
+      # Bits 0-1: VI Quality
+      #   00 VI produced with good quality
+      #   01 VI produced, but check other QA
       mutate(vi_quality = substr( qc_bitname, start=1, stop=2 )) %>%
 
-      ## Bits 2-5: VI Usefulness
-      ##   0000 Highest quality
-      ##   0001 Lower quality
-      ##   0010 Decreasing quality
-      ##   0100 Decreasing quality
-      ##   1000 Decreasing quality
-      ##   1001 Decreasing quality
-      ##   1010 Decreasing quality
-      ##   1100 Lowest quality
-      ##   1101 Quality so low that it is not useful
-      ##   1110 L1B data faulty
-      ##   1111 Not useful for any other reason/not processed
+      # Bits 2-5: VI Usefulness
+      #   0000 Highest quality
+      #   0001 Lower quality
+      #   0010 Decreasing quality
+      #   0100 Decreasing quality
+      #   1000 Decreasing quality
+      #   1001 Decreasing quality
+      #   1010 Decreasing quality
+      #   1100 Lowest quality
+      #   1101 Quality so low that it is not useful
+      #   1110 L1B data faulty
+      #   1111 Not useful for any other reason/not processed
       mutate(vi_useful = substr( qc_bitname, start=3, stop=6 )) %>%
       dplyr::mutate(
         modisvar_filtered = ifelse(
           vi_useful %in% c("0000", "0001", "0010", "0100",
                            "1000", "1001", "1010", "1100"), modisvar, NA)) %>%
 
-      ## Bits 6-7: Aerosol Quantity
-      ##  00 Climatology
-      ##  01 Low
-      ##  10 Intermediate
-      ##  11 High
+      # Bits 6-7: Aerosol Quantity
+      #  00 Climatology
+      #  01 Low
+      #  10 Intermediate
+      #  11 High
       mutate(aerosol = substr( qc_bitname, start=7, stop=8 )) %>%
       dplyr::mutate(modisvar_filtered = ifelse(aerosol %in% c("00", "01", "10"),
                                                modisvar, NA)) %>%
 
-      ## Bit 8: Adjacent cloud detected
-      ##  0 No
-      ##  1 Yes
+      # Bit 8: Adjacent cloud detected
+      #  0 No
+      #  1 Yes
       mutate(adjcloud = substr( qc_bitname, start=9, stop=9 )) %>%
       dplyr::mutate(modisvar_filtered = ifelse(adjcloud %in% c("0"),
                                                modisvar, NA)) %>%
 
-      ## Bits 9: Atmosphere BRDF Correction
-      ##   0 No
-      ##   1 Yes
+      # Bits 9: Atmosphere BRDF Correction
+      #   0 No
+      #   1 Yes
       mutate(brdf_corr = substr( qc_bitname, start=10, stop=10 )) %>%
       dplyr::mutate(modisvar_filtered = ifelse(brdf_corr %in% c("1"),
                                                modisvar, NA)) %>%
 
-      ## Bits 10: Mixed Clouds
-      ##   0 No
-      ##   1 Yes
+      # Bits 10: Mixed Clouds
+      #   0 No
+      #   1 Yes
       mutate(mixcloud = substr( qc_bitname, start=11, stop=11 )) %>%
       dplyr::mutate(modisvar_filtered = ifelse(mixcloud %in% c("0"),
                                                modisvar, NA)) %>%
 
-      ## Bits 11-13: Land/Water Mask
-      ##  000 Shallow ocean
-      ##  001 Land (Nothing else but land)
-      ##  010 Ocean coastlines and lake shorelines
-      ##  011 Shallow inland water
-      ##  100 Ephemeral water
-      ##  101 Deep inland water
-      ##  110 Moderate or continental ocean
-      ##  111 Deep ocean
+      # Bits 11-13: Land/Water Mask
+      #  000 Shallow ocean
+      #  001 Land (Nothing else but land)
+      #  010 Ocean coastlines and lake shorelines
+      #  011 Shallow inland water
+      #  100 Ephemeral water
+      #  101 Deep inland water
+      #  110 Moderate or continental ocean
+      #  111 Deep ocean
       mutate(mask = substr( qc_bitname, start=12, stop=14 )) %>%
 
-      ## Bits 14: Possible snow/ice
-      ##  0 No
-      ##  1 Yes
+      # Bits 14: Possible snow/ice
+      #  0 No
+      #  1 Yes
       mutate(snowice = substr( qc_bitname, start=15, stop=15 )) %>%
       dplyr::mutate(modisvar_filtered = ifelse(snowice %in% c("0"), modisvar, NA)) %>%
 
-      ## Bits 15: Possible shadow
-      ##  0 No
-      ##  1 Yes
+      # Bits 15: Possible shadow
+      #  0 No
+      #  1 Yes
       mutate(shadow = substr( qc_bitname, start=16, stop=16 )) %>%
       dplyr::mutate(modisvar_filtered = ifelse(shadow %in% c("0"), modisvar, NA)) %>%
 
-      ## drop it
+      # drop it
       dplyr::select(-qc_bitname)
 
   } else if (prod=="MCD15A3H"){
 
-    ## QC interpreted according to https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H:
+    # QC interpreted according to https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H:
 
-    ## This is interpreted according to https://lpdaac.usgs.gov/documents/2/mod15_user_guide.pdf, p.9
+    # This is interpreted according to https://lpdaac.usgs.gov/documents/2/mod15_user_guide.pdf, p.9
     df <- df %>%
 
       dplyr::rename(modisvar = !!var_name) %>%
       dplyr::mutate(modisvar_filtered = modisvar) %>%
 
-      ## separate into bits
+      # separate into bits
       rowwise() %>%
       mutate(qc_bitname = intToBits( !!qc_name )[1:8] %>%
                rev() %>% as.character() %>% paste(collapse = "")) %>%
 
-      ## MODLAND_QC bits
-      ## 0: Good  quality (main algorithm with or without saturation)
-      ## 1: Other quality (backup  algorithm or fill values)
+      # MODLAND_QC bits
+      # 0: Good  quality (main algorithm with or without saturation)
+      # 1: Other quality (backup  algorithm or fill values)
       mutate(qc_bit0 = substr( qc_bitname, start=8, stop=8 )) %>%
       mutate(good_quality = ifelse( qc_bit0=="0", TRUE, FALSE )) %>%
 
-      ## Sensor
-      ## 0: Terra
-      ## 1: Aqua
+      # Sensor
+      # 0: Terra
+      # 1: Aqua
       mutate(qc_bit1 = substr( qc_bitname, start=7, stop=7 )) %>%
       mutate(terra = ifelse( qc_bit1=="0", TRUE, FALSE )) %>%
 
-      ## Dead detector
-      ## 0: Detectors apparently  fine  for up  to  50% of  channels  1,  2
-      ## 1: Dead  detectors caused  >50%  adjacent  detector  retrieval
+      # Dead detector
+      # 0: Detectors apparently  fine  for up  to  50% of  channels  1,  2
+      # 1: Dead  detectors caused  >50%  adjacent  detector  retrieval
       mutate(qc_bit2 = substr( qc_bitname, start=6, stop=6 )) %>%
       mutate(dead_detector = ifelse( qc_bit2=="1", TRUE, FALSE )) %>%
 
-      ## CloudState
-      ## 00 0  Significant clouds  NOT present (clear)
-      ## 01 1  Significant clouds  WERE  present
-      ## 10 2  Mixed cloud present in  pixel
-      ## 11 3  Cloud state not defined,  assumed clear
+      # CloudState
+      # 00 0  Significant clouds  NOT present (clear)
+      # 01 1  Significant clouds  WERE  present
+      # 10 2  Mixed cloud present in  pixel
+      # 11 3  Cloud state not defined,  assumed clear
       mutate(qc_bit3 = substr( qc_bitname, start=4, stop=5 )) %>%
       mutate(CloudState = ifelse( qc_bit3=="00", 0,
                                   ifelse( qc_bit3=="01",
                                     1, ifelse( qc_bit3=="10", 2, 3 ) ) )) %>%
 
-      ## SCF_QC (five level confidence score)
-      ## 000 0 Main (RT) method used, best result possible (no saturation)
-      ## 001 1 Main (RT) method used with saturation. Good, very usable
-      ## 010 2 Main (RT) method failed due to bad geometry, empirical algorithm used
-      ## 011 3 Main (RT) method failed due to problems other than geometry, empirical algorithm used
-      ## 100 4 Pixel not produced at all, value couldn???t be retrieved (possible reasons: bad L1B data, unusable MOD09GA data)
+      # SCF_QC (five level confidence score)
+      # 000 0 Main (RT) method used, best result possible (no saturation)
+      # 001 1 Main (RT) method used with saturation. Good, very usable
+      # 010 2 Main (RT) method failed due to bad geometry, empirical algorithm used
+      # 011 3 Main (RT) method failed due to problems other than geometry, empirical algorithm used
+      # 100 4 Pixel not produced at all, value couldn???t be retrieved (possible reasons: bad L1B data, unusable MOD09GA data)
       mutate(qc_bit4 = substr( qc_bitname, start=1, stop=3 )) %>%
       mutate(SCF_QC = ifelse(
         qc_bit4=="000",
         0, ifelse( qc_bit4=="001",
          1, ifelse( qc_bit4=="010", 2, ifelse( qc_bit4=="011", 3, 4 ) ) ) )) %>%
 
-      ## Actually do the filtering
+      # Actually do the filtering
       mutate(modisvar_filtered = ifelse( CloudState %in% c(0), modisvar_filtered, NA )) %>%
       mutate(modisvar_filtered = ifelse( good_quality, modisvar_filtered, NA )) %>%
 
-      ## new addition 5.1.2021
+      # new addition 5.1.2021
       # mutate(modisvar_filtered = ifelse( !dead_detector, modisvar_filtered, NA )) %>%
       mutate(modisvar_filtered = ifelse( SCF_QC %in% c(0,1), modisvar_filtered, NA ))
 
 
   } else if (prod=="MOD17A2H"){
-    ## Contains MODIS GPP
-    ## quality bitmap interpreted based on https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod17a2
+    # Contains MODIS GPP
+    # quality bitmap interpreted based on https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod17a2
 
     df$qc_bitname <- sapply( seq(nrow(df)), function(x) as.integer( intToBits( df$Psn_QC[x] )[1:8] ) %>%
                                rev() %>% as.character() %>% paste( collapse="" )  )
 
-    ## MODLAND_QC bits
-    ## 0: Good  quality (main algorithm with  or without saturation)
-    ## 1: Other quality (backup  algorithm or  fill  values)
+    # MODLAND_QC bits
+    # 0: Good  quality (main algorithm with  or without saturation)
+    # 1: Other quality (backup  algorithm or  fill  values)
     df$qc_bit0 <- substr( df$qc_bitname, start=8, stop=8 )
 
-    ## Sensor
-    ## 0: Terra
-    ## 1: Aqua
+    # Sensor
+    # 0: Terra
+    # 1: Aqua
     df$qc_bit1 <- substr( df$qc_bitname, start=7, stop=7 )
 
-    ## Dead detector
-    ## 0: Detectors apparently  fine  for up  to  50% of  channels  1,  2
-    ## 1: Dead  detectors caused  >50%  adjacent  detector  retrieval
+    # Dead detector
+    # 0: Detectors apparently  fine  for up  to  50% of  channels  1,  2
+    # 1: Dead  detectors caused  >50%  adjacent  detector  retrieval
     df$qc_bit2 <- substr( df$qc_bitname, start=6, stop=6 )
 
-    ## CloudState
-    ## 00 0  Significant clouds  NOT present (clear)
-    ## 01 1  Significant clouds  WERE  present
-    ## 10 2  Mixed cloud present in  pixel
-    ## 11 3  Cloud state not defined,  assumed clear
+    # CloudState
+    # 00 0  Significant clouds  NOT present (clear)
+    # 01 1  Significant clouds  WERE  present
+    # 10 2  Mixed cloud present in  pixel
+    # 11 3  Cloud state not defined,  assumed clear
     df$qc_bit3 <- substr( df$qc_bitname, start=4, stop=5 )
 
-    ## SCF_QC (five level confidence score)
-    ## 000 0 Very best possible
-    ## 001 1 Good, very usable, but not the best (saturation in FPAR/LAI has occurred)
-    ## 010 2 Substandard due to geometry problems ??? use with caution
-    ## 011 3 Substandard due to other than geometry problems ??? use with caution
-    ## 100 4  Couldn't retrieve pixel (NOT PRODUCED AT ALL ??? non-terrestrial biome)
-    ## 111 7  Fill Value
+    # SCF_QC (five level confidence score)
+    # 000 0 Very best possible
+    # 001 1 Good, very usable, but not the best (saturation in FPAR/LAI has occurred)
+    # 010 2 Substandard due to geometry problems ??? use with caution
+    # 011 3 Substandard due to other than geometry problems ??? use with caution
+    # 100 4  Couldn't retrieve pixel (NOT PRODUCED AT ALL ??? non-terrestrial biome)
+    # 111 7  Fill Value
     df$qc_bit4 <- substr( df$qc_bitname, start=1, stop=3 )
 
     df <- df %>%  dplyr::mutate(
@@ -453,49 +450,48 @@ gapfill_interpol_gee <- function(
         ) %>%
       dplyr::rename( modisvar = Gpp ) %>%
 
-      ## Identify outliers, i.e. whether value is exceedingly high, 
-      ## i.e. if the distance of the value to the median is more than 5 times
-      ##  the distance of the distance of the 75% quantile to the median
+      # Identify outliers, i.e. whether value is exceedingly high, 
+      # i.e. if the distance of the value to the median is more than 5 times
+      #  the distance of the distance of the 75% quantile to the median
       dplyr::mutate(
         outlier = ifelse(
           modisvar - stats::median( modisvar, na.rm=TRUE ) > 5 * 
           ( stats::quantile( modisvar, probs=0.75, na.rm=TRUE  ) - 
               stats::median( modisvar, na.rm=TRUE ) ), TRUE, FALSE ) ) %>%
 
-      ## Filter, i.e. replacing by NA in order to keep all dates
+      # Filter, i.e. replacing by NA in order to keep all dates
       dplyr::mutate( 
           modisvar_filtered = ifelse( ( !outlier ), modisvar, NA ) 
         ) %>%
 
-      ## no replacement with mean seasonal cycle here
+      # no replacement with mean seasonal cycle here
       dplyr::mutate( modisvar_filled = modisvar_filtered )
 
   }
 
-  ##--------------------------------------
-  ## Create daily dataframe
-  ##--------------------------------------
+  # Create daily dataframe
+
   ddf <- init_dates_dataframe( year_start, year_end ) %>%
 
-      ## decimal date
+      # decimal date
       mutate(year_dec = lubridate::decimal_date(date))
 
 
-  ##--------------------------------------
-  ## merge N-day dataframe into daily one.
-  ## Warning: here, 'date' must be centered within 4-day period - 
-  ## thus not equal to start date but (start date + 2)
-  ##--------------------------------------
+
+  # merge N-day dataframe into daily one.
+  # Warning: here, 'date' must be centered within 4-day period - 
+  # thus not equal to start date but (start date + 2)
+
   ddf <- ddf %>%
     left_join( df, by="date" )
 
   if (method_interpol == "loess" || keep){
-    ##--------------------------------------
-    ## get LOESS spline model for predicting daily values (used below)
-    ##--------------------------------------
+
+    # get LOESS spline model for predicting daily values (used below)
+
     message("loess...")
 
-    ## determine periodicity
+    # determine periodicity
     period <- ddf %>%
       filter(!is.na(modisvar_filtered)) %>%
       mutate(prevdate = lag(date)) %>%
@@ -503,9 +499,9 @@ gapfill_interpol_gee <- function(
       pull(period) %>%
       min(na.rm = TRUE)
 
-    ## take a three-weeks window for locally weighted regression (loess)
-    ## good explanation: 
-    ## https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
+    # take a three-weeks window for locally weighted regression (loess)
+    # good explanation: 
+    # https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
     ndays_tot <- lubridate::time_length(diff(range(ddf$date)), unit = "day")
     span <- 100/ndays_tot 
 
@@ -513,7 +509,7 @@ gapfill_interpol_gee <- function(
     myloess <- try(stats::loess(modisvar_filtered ~ year_dec,
                                 data = ddf[idxs,], span = span))
 
-    ## predict stats::loess to all dates with missing data
+    # predict stats::loess to all dates with missing data
     tmp <- try(stats::predict( myloess, newdata = ddf ) )
     if (class(tmp)!="try-error"){
       ddf$loess <- tmp
@@ -523,9 +519,9 @@ gapfill_interpol_gee <- function(
   }
 
   if (method_interpol == "spline" || keep){
-    ##--------------------------------------
-    ## get SPLINE model for predicting daily values (used below)
-    ##--------------------------------------
+
+    # get SPLINE model for predicting daily values (used below)
+
     message("spline...")
     idxs   <- which(!is.na(ddf$modisvar_filtered))
     spline <- try(
@@ -533,7 +529,7 @@ gapfill_interpol_gee <- function(
           stats::smooth.spline(year_dec[idxs],
                         modisvar_filtered[idxs], spar = 0.01)))
 
-    ## predict SPLINE
+    # predict SPLINE
     tmp <- try( with( ddf, stats::predict( spline, year_dec ) )$y)
     if (class(tmp)!="try-error"){
       ddf$spline <- tmp
@@ -544,9 +540,9 @@ gapfill_interpol_gee <- function(
   }
 
   if (method_interpol == "linear" || keep){
-    ##--------------------------------------
-    ## LINEAR INTERPOLATION
-    ##--------------------------------------
+
+    # LINEAR INTERPOLATION
+    
     message("linear ...")
     ddf$linear <- stats::approx(ddf$year_dec,
                                 ddf$modisvar_filtered,
@@ -554,9 +550,9 @@ gapfill_interpol_gee <- function(
   }
 
   if (method_interpol == "sgfilter" || keep){
-    ##--------------------------------------
-    ## SAVITZKY GOLAY FILTER
-    ##--------------------------------------
+    
+    # SAVITZKY GOLAY FILTER
+    
     message("sgfilter ...")
     ddf$sgfilter <- rep( NA, nrow(ddf) )
     idxs <- which(!is.na(ddf$modisvar_filtered))
@@ -566,9 +562,9 @@ gapfill_interpol_gee <- function(
     }
   }
 
-  # ##--------------------------------------
-  # ## Define 'fapar'
-  # ##--------------------------------------
+  
+  # # Define 'fapar'
+  
   # if (method_interpol == "loess"){
   #   ddf$modisvar_filled <- ddf$loess
   # } else if (method_interpol == "spline"){
@@ -579,7 +575,7 @@ gapfill_interpol_gee <- function(
   #   ddf$modisvar_filled <- ddf$sgfilter
   # }
   # 
-  # ## limit to within 0 and 1 (loess spline sometimes "explodes")
+  # # limit to within 0 and 1 (loess spline sometimes "explodes")
   # ddf <- ddf %>%
   #   dplyr::mutate(
   #     modisvar_filled = replace( modisvar_filled, modisvar_filled<0, 0)
@@ -588,8 +584,8 @@ gapfill_interpol_gee <- function(
   #     modisvar_filled = replace( modisvar_filled, modisvar_filled>1, 1)
   #     )
   # 
-  # ## extrapolate missing values at head and tail again
-  # ##--------------------------------------
+  # # extrapolate missing values at head and tail again
+  
   # ddf$modisvar_filled <- extrapolate_missing_headtail(
   #   dplyr::select(ddf, var = modisvar_filled)
   #   )
@@ -598,14 +594,14 @@ gapfill_interpol_gee <- function(
 
 }
 
-extrapolate_missing_headtail <- function(ddf){
-  ## extrapolate to missing values at head and tail using mean seasonal cycle
-  ##--------------------------------------
+# extrapolate to missing values at head and tail using mean seasonal cycle
 
+extrapolate_missing_headtail <- function(ddf){
+  
   # define variables
   var <- NULL
   
-  ## new: fill gaps at head
+  # new: fill gaps at head
   idxs <- findna_head( ddf$var )
   if (length(idxs)>0){
     warning("Filling values with last available data point at head")
@@ -613,7 +609,7 @@ extrapolate_missing_headtail <- function(ddf){
   
   ddf$var[idxs] <- ddf$var[max(idxs)+1]
 
-  ## new: fill gaps at tail
+  # new: fill gaps at tail
   idxs <- findna_tail( ddf$var )
   if (length(idxs)>0){
     warning("Filling values with last available data point at tail.")

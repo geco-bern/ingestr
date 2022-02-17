@@ -1,7 +1,8 @@
 #' SoilGrids point ingest
 #'
 #' SoilGrids point data ingest
-#' This follows code outlined here: \url{https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md}
+#' This follows code outlined here: 
+#' \url{https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md}
 #'
 #' @param siteinfo A character string specifying the site name (ID)
 #' @param settings A list returned by a call to \link{get_settings_soilgrids}
@@ -21,7 +22,11 @@ ingest_soilgrids <- function(siteinfo, settings){
                   longitude = lon,
                   latitude = lat)
   
-  spdata <- sf::st_as_sf(siteinfo, coords = c("longitude", "latitude"), crs = 4326)
+  spdata <- sf::st_as_sf(
+    siteinfo,
+    coords = c("longitude", "latitude"),
+    crs = 4326
+    )
   
   igh <- '+proj=igh +lat_0=0 +lon_0=0 +datum=WGS84 +units=m +no_defs'
   spdata_igh <- sf::st_transform(spdata, igh)
@@ -29,8 +34,6 @@ ingest_soilgrids <- function(siteinfo, settings){
   data_igh <- data.frame(sf::st_coordinates(spdata_igh), id = spdata_igh$id)
   
   fun_pixel_values  <- function(data, VOI, VOI_LYR, factor){
-    
-    
     
     out <- try(gdalUtils::gdallocationinfo(
       srcfile = paste0(settings$webdav_path, "/", VOI, "/", VOI_LYR, ".vrt"),
@@ -56,7 +59,14 @@ ingest_soilgrids <- function(siteinfo, settings){
   df_layer_depth <- tibble(
     layer = 1:6, 
     depth = c(5, 10, 15, 30, 40, 100),
-    soillayer = c("0-5cm_mean", "5-15cm_mean", "15-30cm_mean", "30-60cm_mean", "60-100cm_mean", "100-200cm_mean")
+    soillayer = c(
+      "0-5cm_mean",
+      "5-15cm_mean",
+      "15-30cm_mean",
+      "30-60cm_mean",
+      "60-100cm_mean",
+      "100-200cm_mean"
+      )
   )
   
   z_tot_use <- df_layer_depth %>%
@@ -67,7 +77,8 @@ ingest_soilgrids <- function(siteinfo, settings){
   ## extracting only for single site (data_igh has one row)
   df <- purrr::map(
     as.list(seq(length(settings$voi_layer))), 
-    ~fun_pixel_values(data_igh, settings$voi[.], settings$voi_layer[.], settings$factor[.])) %>% 
+    ~fun_pixel_values(data_igh, settings$voi[.],
+                      settings$voi_layer[.], settings$factor[.])) %>% 
     bind_rows() %>% 
     as_tibble() %>% 
     dplyr::select(-X, -Y) %>% 

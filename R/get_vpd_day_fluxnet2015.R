@@ -18,7 +18,7 @@
 #' 
 get_vpd_day_fluxnet2015 <- function(dir){
   
-  ## loop over all HH files in the directory 'dir'
+  # loop over all HH files in the directory 'dir'
   out <- purrr::map( as.list(list.files(dir, pattern = "HH")),
               ~get_vpd_day_fluxnet2015_byfile(paste0(dir, .)))
   
@@ -60,14 +60,14 @@ get_vpd_day_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
     stringr::str_replace(".csv", "_VPD_DAY.csv")
   
   if (file.exists(filename_dd_vpd)){
-    ## Daytime VPD file is already available, reading from file
+    # Daytime VPD file is already available, reading from file
     # print(paste("Reading daytime VPD from:", filename_dd_vpd))
     message(paste("Reading file with calculated daytime VPD:", filename_dd_vpd))
     df <- readr::read_csv(filename_dd_vpd)
     
   } else {
-    ## Get daytime VPD from half-hourly data
-    ## read half-hourly data
+    # Get daytime VPD from half-hourly data
+    # read half-hourly data
     if (!file.exists(filename_hh)){
       stop(paste("Half-hourly file does not exist:", filename_hh))
     } 
@@ -77,10 +77,10 @@ get_vpd_day_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
                      date_end   = lubridate::ymd_hm( TIMESTAMP_END ) ) %>%
       dplyr::mutate( date = date_start ) %>% 
       
-      ## retain only daytime data = when incoming shortwave radiation is positive
+      # retain only daytime data = when incoming shortwave radiation is positive
       dplyr::filter(SW_IN_F > 0) %>% 
       
-      ## take mean over daytime values
+      # take mean over daytime values
       dplyr::mutate(date_day = lubridate::as_date(date_start)) %>% 
       dplyr::group_by(date_day) %>%
       dplyr::summarise(VPD_F_DAY = mean(VPD_F, na.rm=TRUE),
@@ -90,7 +90,7 @@ get_vpd_day_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
                        VPD_DAY_ERA = mean(VPD_ERA, na.rm=TRUE) ) %>% 
       dplyr::rename(date = date_day)
     
-    ## write to csv file  
+    # write to csv file  
     if (write){
       message(paste("Writing file with daytime VPD as:", filename_dd_vpd))
       readr::write_csv(df, path = filename_dd_vpd)

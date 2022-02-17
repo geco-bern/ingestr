@@ -61,7 +61,8 @@ init_dates_dataframe <- function(
   }
 
   if (freq=="days"){
-    startdate <- lubridate::ymd(paste0(as.character(yrstart), "-", as.character(startmoy), "-01")) + 
+    startdate <- lubridate::ymd(paste0(as.character(yrstart),
+                                       "-", as.character(startmoy), "-01")) + 
       lubridate::days( startdoy - 1 )
     # startdate <- lubridate::ymd(
     #   paste0( as.character(yrstart), "-", sprintf( "%02d", startmoy), "-01" ) )

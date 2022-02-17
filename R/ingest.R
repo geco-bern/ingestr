@@ -67,12 +67,12 @@ ingest <- function(
   ppfd_fine <- wind <- wind_fine <- qair <- vap <- vapr <- vapr_fine <-
   ilon <- data <- yy <- mm <- co2_avg <- year <- . <- bias <- NULL
   
-  ## Check: all sites are distinct wrt name, lon and lat
+  # Check: all sites are distinct wrt name, lon and lat
   if (nrow(siteinfo) != nrow(dplyr::distinct(siteinfo, sitename, lon, lat))){
     stop("Non-distinct sites present w.r.t. name, lon, and lat.")
   }
 
-  ## Check dates and years for time series types
+  # Check dates and years for time series types
   if (!(source %in% c(
     "hwsd",
     "etopo1",
@@ -83,7 +83,7 @@ ingest <- function(
     "worldclim"))
     ) {
     
-    ## complement dates information
+    # complement dates information
     if (!("year_start" %in% names(siteinfo))){
       if ("date_start" %in% names(siteinfo)){
         siteinfo <- siteinfo %>%
@@ -130,7 +130,7 @@ ingest <- function(
       }
     }
     
-    ## check start < end
+    # check start < end
     if (siteinfo %>% 
         mutate(problem = year_start > year_end) %>% 
         pull(problem) %>% 
@@ -161,9 +161,9 @@ ingest <- function(
 
 	if (source == "fluxnet"){
 	  
-	  #-----------------------------------------------------------
+	  
 	  # Get data from sources given by site
-	  #-----------------------------------------------------------
+	  
 	  ddf <- purrr::map(
 	    as.list(seq(nrow(siteinfo))),
 	    ~ingest_bysite(
@@ -186,9 +186,9 @@ ingest <- function(
 	  source == "ndep" ||
 	  source == "wfde5"
 	  ) {
-	  #-----------------------------------------------------------
+	  
 	  # Get data from global fields
-	  #-----------------------------------------------------------
+	  
 	  # special treatment of dates when bias correction is applied
 	  if (!identical(NULL, settings$correct_bias)){
 	    if (settings$correct_bias == "worldclim"){
@@ -239,7 +239,7 @@ ingest <- function(
 	    }
 	  }
 
-		## this returns a flat data frame with data from all sites
+		# this returns a flat data frame with data from all sites
     ddf <- ingest_globalfields(siteinfo,
                                source = source,
                                dir = dir,
@@ -249,7 +249,7 @@ ingest <- function(
     
     
     if (find_closest){
-      ## check if data was extracted for all sites (may be located over ocean)
+      # check if data was extracted for all sites (may be located over ocean)
       sites_missing <- ddf %>%
         group_by(sitename) %>%
         summarise(across(tidyselect::vars_select_helpers$where(is.double),
@@ -258,7 +258,7 @@ ingest <- function(
         pull(sitename)
       
       if (length(sites_missing) > 0 & !identical(NULL, settings$correct_bias)){
-        ## determine closest cell with non-NA
+        # determine closest cell with non-NA
         if (source == "watch_wfdei"){
           path <- paste0(dir, "/WFDEI-elevation.nc")
         } else if (source == "cru"){
@@ -285,7 +285,7 @@ ingest <- function(
           bind_cols(siteinfo_missing %>% dplyr::select(-lon, -lat)) %>%
           mutate(success = ifelse(abs(lat-lat_orig)>1.0, FALSE, TRUE))
         
-        ## extract again for sites with missing data
+        # extract again for sites with missing data
         ddf_missing <- ingest_globalfields(siteinfo_missing,
                                            source = source,
                                            dir = dir,
@@ -300,14 +300,14 @@ ingest <- function(
           print(siteinfo_missing %>% dplyr::filter(!success))
         }
         
-        ## replace site with adjusted location
+        # replace site with adjusted location
         ddf <- ddf %>%
           dplyr::filter(!(sitename %in% sites_missing)) %>%
           bind_rows(ddf_missing)
       }
     }
 
-    ## bias-correct atmospheric pressure - per default
+    # bias-correct atmospheric pressure - per default
     if (!is.null(getvars)){
       if ("patm" %in% getvars){
         
@@ -329,9 +329,9 @@ ingest <- function(
 
     if (!identical(NULL, settings$correct_bias)){
       if (settings$correct_bias == "worldclim"){
-        #-----------------------------------------------------------
+        
         # Bias correction using WorldClim data
-        #-----------------------------------------------------------
+        
         getvars_wc <- c()
         if ("temp" %in% getvars){getvars_wc <- c(getvars_wc, "tavg")}
         if ("tmin" %in% getvars){getvars_wc <- c(getvars_wc, "tmin")}
@@ -351,7 +351,7 @@ ingest <- function(
                                        verbose = FALSE,
                                        layer = unique(getvars_wc))
 
-        ## Bias correction for temperature: subtract difference
+        # Bias correction for temperature: subtract difference
         if ("tavg" %in% getvars_wc){
           df_bias <- df_fine %>%
             dplyr::select(sitename, starts_with("tavg_")) %>%
@@ -373,7 +373,7 @@ ingest <- function(
             mutate(bias = temp - temp_fine) %>%
             dplyr::select(-temp, -temp_fine)
 
-          ## correct bias by month
+          # correct bias by month
           ddf <- ddf %>%
             mutate(month = lubridate::month(date)) %>%
             left_join(df_bias %>% dplyr::select(sitename, month, bias),
@@ -383,7 +383,7 @@ ingest <- function(
             dplyr::select(-bias, -month)
         }
 
-        ## Bias correction for temperature: subtract difference
+        # Bias correction for temperature: subtract difference
         if ("tmin" %in% getvars_wc){
           if (source == "cru"){ # no tmin or tmax in wwfd
             df_bias <- df_fine %>%
@@ -406,7 +406,7 @@ ingest <- function(
               mutate(bias = tmin - tmin_fine) %>%
               dplyr::select(-tmin, -tmin_fine)
             
-            ## correct bias by month
+            # correct bias by month
             ddf <- ddf %>%
               mutate(month = lubridate::month(date)) %>%
               left_join(
@@ -419,7 +419,7 @@ ingest <- function(
         }    
 
 
-        ## Bias correction for temperature: subtract difference
+        # Bias correction for temperature: subtract difference
         if ("tmax" %in% getvars_wc){
           if (source == "cru"){ # no tmin or tmax in wwfd
             df_bias <- df_fine %>%
@@ -442,7 +442,7 @@ ingest <- function(
               mutate(bias = tmax - tmax_fine) %>%
               dplyr::select(-tmax, -tmax_fine)
   
-            ## correct bias by month
+            # correct bias by month
             ddf <- ddf %>%
               mutate(month = lubridate::month(date)) %>%
               left_join(
@@ -455,7 +455,7 @@ ingest <- function(
           }
         }            
 
-        ## Bias correction for precipitation: scale by ratio (snow and rain equally)
+        # Bias correction for precipitation: scale by ratio (snow and rain equally)
         if ("prec" %in% getvars_wc){
           df_bias <- df_fine %>%
             dplyr::select(sitename, starts_with("prec_")) %>%
@@ -473,7 +473,7 @@ ingest <- function(
             mutate(scale = prec_fine / prec) %>%
             dplyr::select(sitename, month, scale)
 
-          ## correct bias by month
+          # correct bias by month
           if (source == "watch_wfdei" || source == "wfde5"){
             ddf <- ddf %>%
               mutate(month = lubridate::month(date)) %>%
@@ -498,7 +498,7 @@ ingest <- function(
 
         }
 
-        ## Bias correction for shortwave radiation: scale by ratio
+        # Bias correction for shortwave radiation: scale by ratio
         if ("srad" %in% getvars_wc){
           kfFEC <- 2.04
           df_bias <- df_fine %>%
@@ -516,7 +516,7 @@ ingest <- function(
             mutate(scale = ppfd_fine / ppfd) %>%
             dplyr::select(sitename, month, scale)
 
-          ## correct bias by month
+          # correct bias by month
           ddf <- ddf %>%
             mutate(month = lubridate::month(date)) %>%
             left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>%
@@ -526,7 +526,7 @@ ingest <- function(
             dplyr::select(-scale, -month)
         }
 
-        ## Bias correction for atmospheric pressure: scale by ratio
+        # Bias correction for atmospheric pressure: scale by ratio
         if ("wind" %in% getvars_wc){
           df_bias <- df_fine %>%
             dplyr::select(sitename, starts_with("wind_")) %>%
@@ -547,7 +547,7 @@ ingest <- function(
             mutate(scale = wind_fine / wind) %>%
             dplyr::select(sitename, month, scale)
 
-          ## correct bias by month
+          # correct bias by month
           ddf <- ddf %>%
             mutate(month = lubridate::month(date)) %>%
             left_join(df_bias %>% dplyr::select(sitename, month, scale),
@@ -559,12 +559,12 @@ ingest <- function(
 
         }
 
-        ## Bias correction for relative humidity (actually vapour pressure): scale
+        # Bias correction for relative humidity (actually vapour pressure): scale
         if ("vapr" %in% getvars_wc){
 
-          ## calculate vapour pressure from specific humidity - needed for bias correction with worldclim data
+          # calculate vapour pressure from specific humidity - needed for bias correction with worldclim data
           if (source == "watch_wfdei" || source == "wfde5"){
-            ## specific humidity (qair, g g-1) is read, convert to vapour pressure (vapr, Pa)
+            # specific humidity (qair, g g-1) is read, convert to vapour pressure (vapr, Pa)
             ddf <- ddf %>% 
               rowwise() %>% 
               dplyr::mutate(
@@ -574,7 +574,7 @@ ingest <- function(
               ungroup()
             
           } else if (source == "cru"){
-            ## vapour pressure is read from file, convert from hPa to Pa
+            # vapour pressure is read from file, convert from hPa to Pa
             ddf <- ddf %>% 
               dplyr::mutate(vapr = 1e2 * vap) %>% 
               dplyr::select(-vap)
@@ -600,7 +600,7 @@ ingest <- function(
             mutate(scale = vapr_fine / vapr) %>%
             dplyr::select(sitename, month, scale)
 
-          ## correct bias by month
+          # correct bias by month
           ddf <- ddf %>%
             mutate(month = lubridate::month(date)) %>%
             left_join(df_bias %>% dplyr::select(sitename, month, scale), by = c("sitename", "month")) %>%
@@ -611,11 +611,11 @@ ingest <- function(
 
         }
 
-        ## Calculate vapour pressure deficit from specific humidity
+        # Calculate vapour pressure deficit from specific humidity
         if ("vpd" %in% getvars){
           
           if (source == "watch_wfdei" || source == "wfde5"){
-            ## use daily mean temperature
+            # use daily mean temperature
             ddf <- ddf %>%
               rowwise() %>%
               dplyr::mutate(
@@ -627,7 +627,7 @@ ingest <- function(
               ungroup()
             
           } else if (source == "cru"){
-            ## use daily minimum and maximum temperatures
+            # use daily minimum and maximum temperatures
             ddf <- ddf %>%
               rowwise() %>%
               dplyr::mutate(
@@ -637,7 +637,7 @@ ingest <- function(
           }
         }
 
-        ## keep only required dates
+        # keep only required dates
         ddf <- ddf %>%
           right_join(ddf_dates, by = c("sitename", "date"))
 
@@ -652,7 +652,7 @@ ingest <- function(
       if ("vpd" %in% getvars){
 
         if (source == "watch_wfdei" || source == "wfde5"){
-          ## use daily mean temperature
+          # use daily mean temperature
           ddf <- ddf %>%
             rowwise() %>%
             dplyr::mutate(
@@ -662,7 +662,7 @@ ingest <- function(
             ungroup()
           
         } else if (source == "cru"){
-          ## use daily minimum and maximum temperatures
+          # use daily minimum and maximum temperatures
           ddf <- ddf %>%
             rowwise() %>%
             dplyr::mutate(
@@ -676,11 +676,11 @@ ingest <- function(
     }
 
 	} else if (source == "gee"){
-	  #-----------------------------------------------------------
+	  
 	  # Get data from the remote server
-	  #-----------------------------------------------------------
-	  ## Define years covered based on site meta info:
-	  ## take all years used for at least one site.
+	  
+	  # Define years covered based on site meta info:
+	  # take all years used for at least one site.
 	  year_start <- siteinfo %>%
 	    pull(year_start) %>%
 	    min()
@@ -714,9 +714,9 @@ ingest <- function(
 	  )
 
 	} else if (source == "modis"){
-	  #-----------------------------------------------------------
+	  
 	  # Get data from the remote server
-	  #-----------------------------------------------------------
+	  
 	  # if (settings$batch){
 	  #   
 	  #   siteinfo <- siteinfo %>% 
@@ -724,7 +724,7 @@ ingest <- function(
 	  #       "site_name" = "sitename") %>%
 	  #     data.frame()
 	  # 
-	  #   ## get all available dates for batch modis download (should be the same for all lon and lat)
+	  #   # get all available dates for batch modis download (should be the same for all lon and lat)
 	  #   dates <- MODISTools::mt_dates(product = settings$prod, lat = siteinfo$lat[1], lon = siteinfo$lon[1]) %>% 
 	  #     pull(calendar_date)
 	  #   
@@ -770,8 +770,8 @@ ingest <- function(
 	          "MODISTools",
 	          "tidyr"))
 
-		  ## distribute to cores, making sure all data from 
-		  ## a specific site is sent to the same core
+		  # distribute to cores, making sure all data from 
+		  # a specific site is sent to the same core
 		  ddf <- tibble(ilon = seq(nrow(siteinfo))) %>%
 		    multidplyr::partition(cl) %>%
 		    dplyr::mutate(data = purrr::map( ilon,
@@ -795,10 +795,10 @@ ingest <- function(
 
 
 	} else if (source == "co2_mlo"){
-	  #-----------------------------------------------------------
+	  
 	  # Get CO2 data year, independent of site
-	  #-----------------------------------------------------------
-	  ## if 'dir' is provided, try reading from existing file, otherwise download
+	  
+	  # if 'dir' is provided, try reading from existing file, otherwise download
 	  path <- paste0(dir, "/df_co2_mlo.csv")
 	  if (!identical(NULL, dir)){
 	    if (file.exists(path)){
@@ -813,12 +813,12 @@ ingest <- function(
 	      dplyr::select(year = yy, month = mm, co2_avg)
 	  }
 
-	  ## aggregate to annual means
+	  # aggregate to annual means
 	  df_co2 <- df_co2 %>%
 	    group_by(year) %>%
 	    summarise(co2 = mean(co2_avg, na.rm = TRUE))
 
-	  ## expand to data frame for each site
+	  # expand to data frame for each site
 	  ddf <- purrr::map(
 	    as.list(seq(nrow(siteinfo))),
 	    ~expand_co2_bysite(
@@ -832,10 +832,10 @@ ingest <- function(
 
 
 	} else if (source == "co2_cmip"){
-	  #-----------------------------------------------------------
+	  
 	  # Get CO2 data year, independent of site
-	  #-----------------------------------------------------------
-	  ## if 'dir' is provided, try reading from existing file, otherwise download
+	  
+	  # if 'dir' is provided, try reading from existing file, otherwise download
 	  path <- paste0(dir, "/cCO2_rcp85_const850-1765.csv")
 	  if (file.exists(path)){
 	    df_co2 <- readr::read_csv(path)
@@ -846,7 +846,7 @@ ingest <- function(
 	      )
 	  }
 
-	  ## expand to data frame for each site
+	  # expand to data frame for each site
 	  ddf <- purrr::map(
 	    as.list(seq(nrow(siteinfo))),
 	    ~expand_co2_bysite(
@@ -859,9 +859,9 @@ ingest <- function(
 	  )
 
 	} else if (source == "fapar_unity"){
-	  #-----------------------------------------------------------
+	  
 	  # Assume fapar = 1 for all dates
-	  #-----------------------------------------------------------
+	  
 	  ddf <- purrr::map(
 	    as.list(seq(nrow(siteinfo))),
 	    ~expand_bysite(
@@ -874,9 +874,9 @@ ingest <- function(
 	  )
 
 	} else if (source == "etopo1"){
-	  #-----------------------------------------------------------
+	  
 	  # Get ETOPO1 elevation data. year_start and year_end not required
-	  #-----------------------------------------------------------
+	  
 	  ddf <- ingest_globalfields(siteinfo,
 	                             source = source,
 	                             dir = dir,
@@ -886,9 +886,9 @@ ingest <- function(
 	  )
 
 	} else if (source == "hwsd"){
-	  #-----------------------------------------------------------
+	  
 	  # Get HWSD soil data. year_start and year_end not required
-	  #-----------------------------------------------------------
+	  
 	  
 	  # TODO replace with {hwsdr} call
 	  # con <- rhwsd::get_hwsd_con()
@@ -900,9 +900,9 @@ ingest <- function(
 	  #   tidyr::unnest(data)
 
 	} else if (source == "wwf"){
-	  #-----------------------------------------------------------
+	  
 	  # Get WWF ecoregion data. year_start and year_end not required
-	  #-----------------------------------------------------------
+	  
 	  ddf <- ingest_globalfields(siteinfo,
 	                             source = source,
 	                             dir = dir,
@@ -913,16 +913,16 @@ ingest <- function(
 	  )
 
 	} else if (source == "soilgrids"){
-	  #-----------------------------------------------------------
+	  
 	  # Get SoilGrids soil data. year_start and year_end not required
 	  # Code from https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md
-	  #-----------------------------------------------------------
+	  
 	  ddf <- ingest_soilgrids(siteinfo, settings)
 
 	} else if (source == "wise"){
-	  #-----------------------------------------------------------
+	  
 	  # Get WISE30secs soil data. year_start and year_end not required
-	  #-----------------------------------------------------------
+	  
 	  ddf <- purrr::map(as.list(settings$varnam),
 	                    ~ingest_wise_byvar(.,
 	                                       siteinfo,
@@ -934,9 +934,9 @@ ingest <- function(
 	    dplyr::select(-lon, -lat)
 
 	} else if (source == "gsde"){
-	  #-----------------------------------------------------------
+	  
 	  # Get GSDE soil data from tif files (2 files, for bottom and top layers)
-	  #-----------------------------------------------------------
+	  
 	  ddf <- purrr::map(
 	    as.list(settings$varnam),
 	    ~ingest_globalfields(siteinfo,
@@ -952,9 +952,9 @@ ingest <- function(
 	    purrr::reduce(left_join, by = "sitename")
 
 	 }  else if (source == "worldclim"){
-	   #-----------------------------------------------------------
+	   
 	   # Get WorldClim data from global raster file
-	   #-----------------------------------------------------------
+	   
 	   ddf <- ingest_globalfields(siteinfo,
 	                              source = source,
 	                              dir = dir,
@@ -982,7 +982,7 @@ ingest <- function(
 
 }
 
-## give each site and day within year the same co2 value
+# give each site and day within year the same co2 value
 expand_co2_bysite <- function(df, sitename, year_start, year_end, timescale){
 
   ddf <- init_dates_dataframe( year_start, year_end, timescale = timescale) %>%
@@ -1045,7 +1045,7 @@ aggregate_layers_gsde <- function(df, varnam, use_layer){
       rename(!!varnam := var)
   }
   
-  ## fill missing values with next available value from layer above
+  # fill missing values with next available value from layer above
   df <- df %>% 
     group_by(sitename) %>% 
     tidyr::nest() %>% 
@@ -1065,7 +1065,7 @@ aggregate_layers_gsde <- function(df, varnam, use_layer){
     summarise(depth_tot_cm = sum(depth)) %>%
     pull(depth_tot_cm)
   
-  ## weighted sum, weighting by layer depth
+  # weighted sum, weighting by layer depth
   df %>%
     left_join(df_layers, by = "layer") %>%
     rename(var = !!varnam) %>%

@@ -145,14 +145,14 @@ get_obs_bysite_fluxnet <- function(
   
   if (verbose) print(paste("Getting FLUXNET data for", sitename, "..."))
 
-  ##-----------------------------------------------------------------
-  ## Define what exactly is to be read
-  ##-----------------------------------------------------------------
-  ## make a vector
+  
+  # Define what exactly is to be read
+  
+  # make a vector
   getvars_orig <- getvars
   getvars <- getvars %>% unlist() %>% unname()
 
-  ## complement getvars if necessary, i.e. when filter_ntdt is TRUE
+  # complement getvars if necessary, i.e. when filter_ntdt is TRUE
   added <- c("")
   if (is.null(filter_ntdt)) filter_ntdt <- FALSE
   if (filter_ntdt){
@@ -192,40 +192,40 @@ get_obs_bysite_fluxnet <- function(
     }
   }
   
-  ## Take only file for this site
+  # Take only file for this site
   if (timescale == "d") {
-    ## Daily
+    # Daily
     filn <- list.files(dir,
       pattern = paste0("FLX_", sitename, ".*_FLUXNET2015_FULLSET_DD.*.csv"),
       recursive = TRUE
       )
   } else  if (timescale == "w") {
-    ## Weekly
+    # Weekly
     filn <- list.files(dir,
       pattern = paste0("FLX_", sitename, ".*_FLUXNET2015_FULLSET_WW.*.csv"),
       recursive = TRUE
       )
   } else  if (timescale == "m") {
-    ## Monthly
+    # Monthly
     filn <- list.files(dir,
       pattern = paste0("FLX_", sitename, ".*_FLUXNET2015_FULLSET_MM.*.csv"),
       recursive = TRUE
       )
   } else  if (timescale=="y" || timescale == "a") {
-    ## Annual
+    # Annual
     filn <- list.files(dir,
       pattern = paste0("FLX_", sitename, ".*_FLUXNET2015_FULLSET_YY.*.csv"),
       recursive = TRUE
       )
   } else  if (timescale == "hh") {
-    ## half-hourly
+    # half-hourly
     filn <- list.files( dir,
       pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
       recursive = TRUE
       )
   }
 
-  # ## Use also quality flag data for each variable in 'getvars'
+  # # Use also quality flag data for each variable in 'getvars'
   # obsvars <- tibble( getvars = getvars ) %>%
   #   dplyr::filter(!(stringr::str_detect(., "UNC"))) %>%
   #   dplyr::pull(getvars)
@@ -259,10 +259,9 @@ get_obs_bysite_fluxnet <- function(
   #  timescale, " in sub-directories of ", dir, ". Taking only ", filn ) )
   # }
 
-  ##-----------------------------------------------------------------
-  ## Actually read data
-  ##-----------------------------------------------------------------
-  ## This returns a data frame with columns (date, temp, prec, nrad, ppfd, vpd, ccov)
+  #---- Actually read data ----
+  # This returns a data frame with columns 
+  # (date, temp, prec, nrad, ppfd, vpd, ccov)
 
   df <- get_obs_fluxnet2015_raw(
     sitename,
@@ -270,33 +269,26 @@ get_obs_bysite_fluxnet <- function(
     freq = timescale
     )
   
-  ## For some sites, the NETRAD column is missing.
+  # For some sites, the NETRAD column is missing.
   if ("NETRAD" %in% getvars && !("NETRAD" %in% names(df))) {
     df <- df %>% mutate(NETRAD = NA, NETRAD_QC = 0.0)
   }
 
-  ##-----------------------------------------------------------------
-  ## Get daytime VPD
-  ##-----------------------------------------------------------------
+  # Get daytime VPD
   merge_df_vpd_day_dd <- FALSE
   if ("VPD_F_DAY" %in% getvars && !(timescale == "hh")) {
 
-    ## 1. Check whether daily file for daytime VPD is already available
-    ##-----------------------------------------------------------------
-    ## get file name(s) of file containing daily daytime VPD derived from half-hourly data
+    # 1. Check whether daily file for daytime VPD is already available
+    # get file name(s) of file containing daily daytime VPD derived from half-hourly data
     filename_dd_vpd <- list.files(
       dir,
       pattern = paste0("FLX_", sitename, ".*_VPD_DAY.csv"),
       recursive = FALSE
       )
 
-    # filename_dd_vpd <- filn_hh %>%
-    #   stringr::str_replace("HH", "DD") %>%
-    #   stringr::str_replace(".csv", "_VPD_DAY.csv")
-
     if (length(filename_dd_vpd)>0){
-      ## Read available file
-      ##-----------------------------------------------------------------
+      
+      # Read available file
       if (length(filename_dd_vpd)>1){
         file.info_getsize <- function(filn){
           file.info(filn)$size
@@ -308,25 +300,30 @@ get_obs_bysite_fluxnet <- function(
         filename_dd_vpd <- basename(path_dd_vpd)
       }
 
-      ## read directly
-      if (verbose) print(paste("Reading daytime VPD directly from:", paste0(dir_hh, filename_dd_vpd)))
+      # read directly
+      if (verbose) print(paste("Reading daytime VPD directly from:",
+                               paste0(dir_hh, filename_dd_vpd)))
       df_vpd_day_dd <- readr::read_csv(paste0(dir, filename_dd_vpd))
       merge_df_vpd_day_dd <- TRUE
 
     } else {
-      ## Create new daily daytime-VPD file from half-hourly data
-      ##-----------------------------------------------------------------
+      
+      # Create new daily daytime-VPD file from half-hourly data
       if (is.null(dir_hh)){
 
-        warning("Argument dir_hh is not provided. Daytime VPD could not be calculated.")
+        warning("
+          Argument dir_hh is not provided.
+          Daytime VPD could not be calculated.
+          ")
 
       } else {
 
-        ## get half-hourly file name(s)
-        filn_hh <- list.files( dir_hh,
-                               pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
-                               recursive = TRUE
-                              )
+        # get half-hourly file name(s)
+        filn_hh <- list.files(
+          dir_hh,
+          pattern = paste0("FLX_",sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
+          recursive = TRUE
+          )
 
         if (length(filn_hh)>0){
 
@@ -347,13 +344,23 @@ get_obs_bysite_fluxnet <- function(
 
         } else {
 
-          warning(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
+          warning(
+            paste0(
+              "No half-hourly data found in ",
+              dir_hh,
+              ". Looking for hourly data in ",
+              dir_hr, "...")
+            )
 
-          ## get hourly file name(s)
-          filn_hr <- list.files( dir_hr,
-                                 pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HR.*.csv" ),
-                                 recursive = TRUE
-                                )
+          # get hourly file name(s)
+          filn_hr <- list.files(
+            dir_hr,
+            pattern = paste0( "FLX_",
+                              sitename,
+                              ".*_FLUXNET2015_FULLSET_HR.*.csv" ),
+            recursive = TRUE
+          )
+          
           if (length(filn_hr)>0){
 
             path_hr <- paste0(dir_hr, filn_hr)
@@ -368,7 +375,10 @@ get_obs_bysite_fluxnet <- function(
             }
 
             message("Reading hourly data to calculate daytime VPD ...")
-            df_vpd_day_dd <- get_vpd_day_fluxnet2015_byfile(path_hr, write = TRUE)
+            df_vpd_day_dd <- get_vpd_day_fluxnet2015_byfile(
+              path_hr,
+              write = TRUE
+              )
             merge_df_vpd_day_dd <- TRUE
 
           }
@@ -430,15 +440,14 @@ get_obs_bysite_fluxnet <- function(
 
   }
 
-  ##-----------------------------------------------------------------
-  ## Get minimum temperature
-  ##-----------------------------------------------------------------
+  
+  #---- Get minimum temperature ----
+  
   merge_df_tmin_dd <- FALSE
   if ("TMIN_F" %in% getvars && !(timescale == "hh")) {
     
-    ## 1. Check whether daily file for daily mimimum temperature is already available
-    ##-----------------------------------------------------------------
-    ## get file name(s) of file containing daily daytime VPD derived from half-hourly data
+    # 1. Check whether daily file for daily mimimum temperature is already available
+    # get file name(s) of file containing daily daytime VPD derived from half-hourly data
     filename_dd_tmin <- list.files(
       dir,
       pattern = paste0("FLX_", sitename, ".*_TMIN.csv"),
@@ -446,8 +455,8 @@ get_obs_bysite_fluxnet <- function(
     )
     
     if (length(filename_dd_tmin)>0){
-      ## Read available file
-      ##-----------------------------------------------------------------
+      # Read available file
+      
       if (length(filename_dd_tmin)>1){
         file.info_getsize <- function(filn){
           file.info(filn)$size
@@ -459,21 +468,21 @@ get_obs_bysite_fluxnet <- function(
         filename_dd_tmin <- basename(path_dd_tmin)
       }
       
-      ## read directly
+      # read directly
       if (verbose) print(paste("Reading daytime tmin directly from:", paste0(dir_hh, filename_dd_tmin)))
       df_tmin_dd <- readr::read_csv(paste0(dir, filename_dd_tmin))
       merge_df_tmin_dd <- TRUE
       
     } else {
-      ## Create new daily tmin file from half-hourly data
-      ##-----------------------------------------------------------------
+      # Create new daily tmin file from half-hourly data
+      
       if (is.null(dir_hh)){
         
         warning("Argument dir_hh is not provided. Daytime tmin could not be calculated.")
         
       } else {
         
-        ## get half-hourly file name(s)
+        # get half-hourly file name(s)
         filn_hh <- list.files( dir_hh,
                                pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
                                recursive = TRUE
@@ -500,7 +509,7 @@ get_obs_bysite_fluxnet <- function(
           
           warning(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
           
-          ## get hourly file name(s)
+          # get hourly file name(s)
           filn_hr <- list.files( dir_hr,
                                  pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HR.*.csv" ),
                                  recursive = TRUE
@@ -581,15 +590,14 @@ get_obs_bysite_fluxnet <- function(
     
   }
 
-  ##-----------------------------------------------------------------
-  ## Get maximum temperature
-  ##-----------------------------------------------------------------
+  
+  #---- Get maximum temperature ----
+  
   merge_df_tmax_dd <- FALSE
   if ("TMAX_F" %in% getvars && !(timescale == "hh")) {
     
-    ## 1. Check whether daily file for daily mimimum temperature is already available
-    ##-----------------------------------------------------------------
-    ## get file name(s) of file containing daily daytime VPD derived from half-hourly data
+    # 1. Check whether daily file for daily mimimum temperature is already available
+    # get file name(s) of file containing daily daytime VPD derived from half-hourly data
     filename_dd_tmax <- list.files(
       dir,
       pattern = paste0("FLX_", sitename, ".*_TMAX.csv"),
@@ -597,8 +605,8 @@ get_obs_bysite_fluxnet <- function(
     )
     
     if (length(filename_dd_tmax)>0){
-      ## Read available file
-      ##-----------------------------------------------------------------
+      # Read available file
+      
       if (length(filename_dd_tmax)>1){
         file.info_getsize <- function(filn){
           file.info(filn)$size
@@ -610,14 +618,14 @@ get_obs_bysite_fluxnet <- function(
         filename_dd_tmax <- basename(path_dd_tmax)
       }
       
-      ## read directly
+      # read directly
       if (verbose) print(paste("Reading daytime tmax directly from:", paste0(dir_hh, filename_dd_tmax)))
       df_tmax_dd <- readr::read_csv(paste0(dir, filename_dd_tmax))
       merge_df_tmax_dd <- TRUE
       
     } else {
-      ## Create new daily tmax file from half-hourly data
-      ##-----------------------------------------------------------------
+      # Create new daily tmax file from half-hourly data
+      
       if (is.null(dir_hh)){
         
         warning(
@@ -627,7 +635,7 @@ get_obs_bysite_fluxnet <- function(
         
       } else {
         
-        ## get half-hourly file name(s)
+        # get half-hourly file name(s)
         filn_hh <- list.files( dir_hh,
                                pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
                                recursive = TRUE
@@ -654,7 +662,7 @@ get_obs_bysite_fluxnet <- function(
           
           warning(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
           
-          ## get hourly file name(s)
+          # get hourly file name(s)
           filn_hr <- list.files( dir_hr,
                                  pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HR.*.csv" ),
                                  recursive = TRUE
@@ -736,10 +744,10 @@ get_obs_bysite_fluxnet <- function(
   }
 
     
-  ##----------------------------------------------------------
-  ## Reduce data to getvars
-  ##----------------------------------------------------------
-  ## retain all getvars, plus soil moisture if required
+
+  # Reduce data to getvars
+
+  # retain all getvars, plus soil moisture if required
   if (getswc){
     df <- df %>%
       dplyr::select( ., date, one_of(getvars), starts_with("SWC_") )
@@ -748,38 +756,38 @@ get_obs_bysite_fluxnet <- function(
     df <- df %>% dplyr::select( ., date, one_of(getvars) )
   }
 
-  ##----------------------------------------------------------
-  ## Filter / clean data
-  ##----------------------------------------------------------
-  ## air temperature
+
+  # Filter / clean data
+
+  # air temperature
   TA_vars <- getvars[which(grepl("TA_", getvars))]
   TA_vars <- TA_vars[-which(grepl("_QC", TA_vars))]
   for (ivar in TA_vars){
     df <- df %>% clean_fluxnet_byvar(ivar, threshold_T)
   }
 
-  ## wind speed
+  # wind speed
   WS_vars <- getvars[which(grepl("WS_", getvars))]
   WS_vars <- WS_vars[-which(grepl("_QC", WS_vars))]
   for (ivar in WS_vars){
     df <- df %>% clean_fluxnet_byvar(ivar, threshold_WS)
   }
 
-  ## u-star
+  # u-star
   USTAR_vars <- getvars[which(grepl("USTAR_", getvars))]
   USTAR_vars <- USTAR_vars[-which(grepl("_QC", USTAR_vars))]
   for (ivar in USTAR_vars){
     df <- df %>% clean_fluxnet_byvar(ivar, threshold_USTAR)
   }
 
-  ## net radiation
+  # net radiation
   NETRAD_vars <- getvars[which(grepl("NETRAD", getvars))]
   NETRAD_vars <- NETRAD_vars[-which(grepl("_QC", NETRAD_vars))]
   for (ivar in NETRAD_vars){
     df <- df %>% clean_fluxnet_byvar(ivar, threshold_NETRAD)
   }
 
-  ## clean GPP data
+  # clean GPP data
   if (any(grepl("GPP_", getvars))){
     error <- try(
       df <- df %>%
@@ -800,7 +808,7 @@ get_obs_bysite_fluxnet <- function(
     }
   }
 
-  ## clean energy data (sensible and latent heat flux) data - often has spuriously equal values
+  # clean energy data (sensible and latent heat flux) data - often has spuriously equal values
   if (any(grepl("LE_", getvars))){
     if (any( !(c("LE_F_MDS", "LE_F_MDS_QC") %in% getvars) )) stop("Not all variables read from file that are needed for data cleaning.")
     df$LE_F_MDS <- clean_fluxnet_energy( df$LE_F_MDS, df$LE_F_MDS_QC, threshold = threshold_LE )
@@ -810,10 +818,10 @@ get_obs_bysite_fluxnet <- function(
     df$H_F_MDS  <- clean_fluxnet_energy( df$H_F_MDS, df$H_F_MDS_QC,   threshold=threshold_H )
   }
 
-  ##----------------------------------------------------------
-  ## Process soil moisture data
-  ##----------------------------------------------------------
-  ## Soil moisture related stuff for daily data
+
+  # Process soil moisture data
+
+  # Soil moisture related stuff for daily data
   if (timescale=="d" && getswc){
     tmp <- df %>% dplyr::select( starts_with("SWC") )
     if (ncol(tmp)>0){
@@ -828,10 +836,10 @@ get_obs_bysite_fluxnet <- function(
       }
 
       df <- df %>%
-        ## Normalise mean observational soil moisture to within minimum (=0) and maximum (=1), and
+        # Normalise mean observational soil moisture to within minimum (=0) and maximum (=1), and
         dplyr::mutate_at( vars(one_of(swcvars)), list(~norm_to_max(.)) ) %>%
 
-        ## get mean observational soil moisture across different depths (if available)
+        # get mean observational soil moisture across different depths (if available)
         dplyr::mutate( soilm_obs_mean = apply( dplyr::select( ., one_of(swcvars) ), 1, FUN = mean, na.rm = TRUE ) ) %>%
         dplyr::mutate( soilm_obs_mean = ifelse( is.nan(soilm_obs_mean), NA, soilm_obs_mean ) )
       if (verbose) warning("Converting: soilm_obs_mean = mean across different soil depths (SWC_F_MDS), with na.rm = TRUE" )
@@ -840,7 +848,7 @@ get_obs_bysite_fluxnet <- function(
 
   }
 
-  ## check if anything is missing
+  # check if anything is missing
   if (any(!(getvars %in% names(df)))){
     warning(
       paste("Not all getvars were found in file. Missing variable: ",
@@ -852,12 +860,12 @@ get_obs_bysite_fluxnet <- function(
     df <- df %>% dplyr::select(-ends_with("_QC"))
   }
 
-  ## Make unit conversions and shorter names
+  # Make unit conversions and shorter names
   outgetvars <- c()
 
-  ##----------------------------------------------------------
-  ## Rename variables to names provided by argument 'getvars'
-  ##----------------------------------------------------------
+
+  # Rename variables to names provided by argument 'getvars'
+
   rename_byvar <- function(df, list_var, verbose){
     name_in  <- list_var %>% unlist() %>% unname()
     name_out <- list_var %>% names()
@@ -871,10 +879,10 @@ get_obs_bysite_fluxnet <- function(
   }
 
 
-  ##----------------------------------------------------------
-  ## Convert units to ingestr-standards
-  ##----------------------------------------------------------
-  ## conversion factor from SPLASH: flux to energy conversion, umol/J (Meek et al., 1984)
+
+  # Convert units to ingestr-standards
+
+  # conversion factor from SPLASH: flux to energy conversion, umol/J (Meek et al., 1984)
   kfFEC <- 2.04
 
   if ("vpd_day" %in% names(df)){
@@ -896,18 +904,18 @@ get_obs_bysite_fluxnet <- function(
 
   if ("prec" %in% names(df)){
     if (timescale=="d"){
-      ## Daily
+      # Daily
       if (verbose) warning("Converting: prec = prec / (60 * 60 * 24) (convert from total mm to mm/s \n")
       df <- df %>% dplyr::mutate( prec = prec / (60 * 60 * 24) )
     } else  if (timescale=="hh"){
-      ## half-hourly
+      # half-hourly
       if (verbose) warning("Converting: prec = prec / (60 * 60 * 24) (convert from total mm to mm/s \n")
       df <- df %>% dplyr::mutate( prec = prec / (60 * 30) )
     }
   }
   
 
-  ## GPP
+  # GPP
   # if ("gpp" %in% names(getvars_orig)){
   #   if (getvars_orig$gpp == "GPP_NT_VUT_REF"){
   #     df <- df %>% rename(gpp = GPP_NT_VUT_REF)
@@ -954,34 +962,34 @@ clean_fluxnet_byvar <- function(df, varnam, threshold){
   return(df)
 }
 
-##----------------------------------------------------------------------
-## Function for reading observational GPP data from FLUXNET dataset
-##----------------------------------------------------------------------
+
+# Function for reading observational GPP data from FLUXNET dataset
+
 get_obs_bysite_wcont_fluxnet2015 <- function( sitename, dir, timescale ){
 
   getvars <- "SWC"
 
-  ## Take only file for this site
+  # Take only file for this site
   if (timescale=="d"){
-    ## Daily
+    # Daily
     filn <- list.files( dir,
       pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_DD.*.csv" ),
       recursive = TRUE
       )
   } else  if (timescale=="w"){
-    ## Weekly
+    # Weekly
     filn <- list.files( dir,
       pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_WW.*.csv" ),
       recursive = TRUE
       )
   } else  if (timescale=="m"){
-    ## Monthly
+    # Monthly
     filn <- list.files( dir,
       pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_MM.*.csv" ),
       recursive = TRUE
       )
   } else  if (timescale=="y"){
-    ## Annual
+    # Annual
     filn <- list.files( dir,
       pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_YY.*.csv" ),
       recursive = TRUE
@@ -995,13 +1003,13 @@ get_obs_bysite_wcont_fluxnet2015 <- function( sitename, dir, timescale ){
       )
   }
 
-  ## This returns a data frame with columns (date, temp, prec, nrad, ppfd, vpd, ccov)
+  # This returns a data frame with columns (date, temp, prec, nrad, ppfd, vpd, ccov)
   ddf <- get_obs_fluxnet2015_raw( sitename,
     path = paste0(dir, filn),
     freq = "d"
     )
 
-  ## convert to numeric (weirdly isn't always) and subset (select)
+  # convert to numeric (weirdly isn't always) and subset (select)
   if ( identical( getvars , "SWC" ) ){
     df <- df %>% dplyr::mutate_at( vars(starts_with(getvars)), list(name = ~as.numeric)) %>%
                  dplyr::select( date, starts_with(getvars) )
@@ -1032,23 +1040,23 @@ get_obs_fluxnet2015_raw <- function(
   path,
   freq = "d"
   ) {
-  ##--------------------------------------------------------------------
-  ## Function returns a dataframe containing all the data of the FLUXNET
-  ## 2015 data file of respective temporal resolution.
-  ## Returns data in units given in the fluxnet dataset
-  ##--------------------------------------------------------------------
+  
+  # Function returns a dataframe containing all the data of the FLUXNET
+  # 2015 data file of respective temporal resolution.
+  # Returns data in units given in the fluxnet dataset
+  
   
   # CRAN compliance, define variables
   TIMESTAMP <- TIMESTAMP_START <- TIMESTAMP_END <- date_start <-
     month <- year <-  NULL
   
-  ## get data
+  # get data
   df <-  data.table::fread(path) %>% 
     dplyr::mutate_all(
       ~dplyr::na_if(.,"-9999")
       )
   
-  ## get dates, their format differs slightly between temporal resolution
+  # get dates, their format differs slightly between temporal resolution
   if (freq == "y") {
     
     df <- df %>%
@@ -1099,7 +1107,7 @@ get_obs_fluxnet2015_raw <- function(
 
 }
 
-# ## Converts units of GPP variables from FLUXNET to SOFUN standard
+# # Converts units of GPP variables from FLUXNET to SOFUN standard
 # convert_gpp_fluxnet2015 <- function( gpp ){
 #   # in FLUXNET given in umolCO2 m-2 s-1. converted to gC m-2 d-1
 #   c_molmass <- 12.0107  # molar mass of C
@@ -1108,10 +1116,10 @@ get_obs_fluxnet2015_raw <- function(
 
 # }
 
-## The standard has changed to mean, no longer cumulative quantities!
-# ## Converts units of latent energy (LE) variables from FLUXNET to SOFUN standard
+# The standard has changed to mean, no longer cumulative quantities!
+# # Converts units of latent energy (LE) variables from FLUXNET to SOFUN standard
 # convert_energy_fluxnet2015 <- function( le ){
-#   ## W m-2 -> J m-2 d-1
+#   # W m-2 -> J m-2 d-1
 #   le_converted <- as.numeric(le) * 60 * 60 * 24
 #   return(le_converted)
 # }
@@ -1128,11 +1136,10 @@ clean_fluxnet_gpp <- function(
   GPP_NT_VUT_REF <- NEE_VUT_REF_NIGHT_QC <- GPP_DT_VUT_REF <-
     NEE_VUT_REF_DAY_QC <- NEE_VUT_REF_QC <- res <- NULL
   
-  ##--------------------------------------------------------------------
-  ## Cleans daily data using criteria 1-4 as documented in Tramontana et al., 2016
-  ## gpp_nt: based on nighttime flux decomposition ("NT")
-  ## gpp_dt: based on daytime flux decomposition ("DT")
-  ##--------------------------------------------------------------------
+  # Cleans daily data using criteria 1-4 as documented in Tramontana et al., 2016
+  # gpp_nt: based on nighttime flux decomposition ("NT")
+  # gpp_dt: based on daytime flux decomposition ("DT")
+  
   replace_with_na_qc <- function(gpp, qc, threshold){
     gpp[which(qc < threshold)] <- NA
     return(gpp)
@@ -1175,15 +1182,15 @@ clean_fluxnet_gpp <- function(
   }
   
   if (filter_ntdt){
-    ## Remove data points where the two flux decompositions are inconsistent,
-    ## i.e. where the residual of their regression is above the 97.5% or below the 2.5% quantile.
+    # Remove data points where the two flux decompositions are inconsistent,
+    # i.e. where the residual of their regression is above the 97.5% or below the 2.5% quantile.
     df <- df %>%
       mutate(res = GPP_NT_VUT_REF - GPP_DT_VUT_REF)
     
     q025 <- stats::quantile( df$res, probs = 0.025, na.rm=TRUE )
     q975 <- stats::quantile( df$res, probs = 0.975, na.rm=TRUE )
     
-    ## remove data outside the quartiles of the residuals between the DT and NT estimates
+    # remove data outside the quartiles of the residuals between the DT and NT estimates
     df <- df %>%
       mutate(
         GPP_NT_VUT_REF = replace_with_na_res(GPP_NT_VUT_REF, res, q025, q975),
@@ -1191,14 +1198,14 @@ clean_fluxnet_gpp <- function(
       )
   }
   
-  ## remove outliers
+  # remove outliers
   df <- df %>%
     mutate(
       GPP_NT_VUT_REF = remove_outliers(GPP_NT_VUT_REF, coef = 1.5),
       GPP_DT_VUT_REF = remove_outliers(GPP_DT_VUT_REF, coef = 1.5)
     )
   
-  ## remove negative GPP
+  # remove negative GPP
   if (remove_neg){
     df <- df %>%
       mutate(
@@ -1211,10 +1218,9 @@ clean_fluxnet_gpp <- function(
 }
 
 clean_fluxnet_energy <- function( energyflux, qflag_energyflux, threshold ){
-  ##--------------------------------------------------------------------
-  ##--------------------------------------------------------------------
-  ## Remove data points that are based on too much gap-filled data in the underlying half-hourly data
-  # frac_data_thresh <- 0.2  ## fraction of data based on gap-filled half-hourly
+  
+  # Remove data points that are based on too much gap-filled data in the underlying half-hourly data
+  # frac_data_thresh <- 0.2  # fraction of data based on gap-filled half-hourly
   energyflux[ qflag_energyflux < threshold ] <- NA
 
   if ( any(!is.na(qflag_energyflux)) ){ energyflux[ is.na(qflag_energyflux) ] <- NA }
@@ -1226,10 +1232,10 @@ clean_fluxnet_energy <- function( energyflux, qflag_energyflux, threshold ){
 
 
 clean_fluxnet_swc <- function( swc, qflag_swc, frac_data_thresh=1.0 ){
-  ##--------------------------------------------------------------------
-  ## frac_data_thresh: fraction of data based on gap-filled half-hourly
-  ##--------------------------------------------------------------------
-  ## Remove data points that are based on too much gap-filled data in the underlying half-hourly data
+  
+  # frac_data_thresh: fraction of data based on gap-filled half-hourly
+  
+  # Remove data points that are based on too much gap-filled data in the underlying half-hourly data
   swc[ which( qflag_swc < frac_data_thresh ) ] <- NA
   swc <- as.numeric( swc )
 
@@ -1249,20 +1255,20 @@ identify_pattern <- function( vec ){
 
   vec <- as.numeric(as.character(vec))
 
-  ## identify all numbers that appear more than once (already suspicious)
+  # identify all numbers that appear more than once (already suspicious)
   counts <- as.data.frame( table( vec ) )
   counts <- counts[ order(-counts$Freq),  ]
   counts <- counts[ which(counts$Freq>3), ]
 
-  ## convert factors to numeric
+  # convert factors to numeric
   counts$vec  <- as.numeric(levels(counts$vec))[counts$vec]
 
   for (idx in 1:nrow(counts)){
 
-    ## find where this value appears
+    # find where this value appears
     pos <- which( abs(vec-counts$vec[idx])<eps )
 
-    ## replace all numbers that appear more than twice with NA (assuming they are suspicious/wrong)
+    # replace all numbers that appear more than twice with NA (assuming they are suspicious/wrong)
     vec[ pos ] <- NA
 
   }

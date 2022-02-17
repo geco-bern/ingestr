@@ -60,14 +60,14 @@ get_tmin_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
     stringr::str_replace(".csv", "_TMIN.csv")
   
   if (file.exists(filename_dd_tmin)){
-    ## Daytime tmin file is already available, reading from file
+    # Daytime tmin file is already available, reading from file
     # print(paste("Reading daytime tmin from:", filename_dd_tmin))
     message(paste("Reading file with calculated daily TMIN:", filename_dd_tmin))
     df <- readr::read_csv(filename_dd_tmin)
     
   } else {
-    ## Get daytime tmin from half-hourly data
-    ## read half-hourly data
+    # Get daytime tmin from half-hourly data
+    # read half-hourly data
     if (!file.exists(filename_hh)){
       stop(paste("Half-hourly file does not exist:", filename_hh))
     } 
@@ -77,7 +77,7 @@ get_tmin_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
                      date_end   = lubridate::ymd_hm( TIMESTAMP_END ) ) %>%
       dplyr::mutate( date = date_start ) %>% 
       
-      ## take mean over daytime values
+      # take mean over daytime values
       dplyr::mutate(date_day = lubridate::as_date(date_start)) %>% 
       dplyr::group_by(date_day) %>%
       dplyr::summarise(TMIN_F = min(TA_F, na.rm=TRUE),
@@ -87,7 +87,7 @@ get_tmin_fluxnet2015_byfile <- function(filename_hh, write=FALSE){
                        TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
       dplyr::rename(date = date_day)
     
-    ## write to csv file  
+    # write to csv file  
     if (write){
       message(paste("Writing file with minimum temperature as:", filename_dd_tmin))
       readr::write_csv(df, path = filename_dd_tmin)

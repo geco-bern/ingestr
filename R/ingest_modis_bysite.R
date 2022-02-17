@@ -24,10 +24,10 @@ ingest_modis_bysite <- function(
 
   calendar_date <- pixels <- band <- pixel <- value <- NULL
   
-  ##---------------------------------------------
-  ## Define names
-  ##---------------------------------------------
-  ## this function is hacked to only do one site at a time
+  
+  # Define names
+  
+  # this function is hacked to only do one site at a time
   sitename <- siteinfo$sitename[1]
   siteinfo <- slice(siteinfo, 1)
 
@@ -90,29 +90,29 @@ ingest_modis_bysite <- function(
 
   do_continue <- TRUE
 
-  ## Save error code (0: no error, 1: error: file downloaded bu all data is NA,
-  ##  2: file not downloaded)
+  # Save error code (0: no error, 1: error: file downloaded bu all data is NA,
+  #  2: file not downloaded)
   df_error <- tibble()
 
   if (file.exists(filnam_daily_csv) && !settings$overwrite_interpol){
-    ##---------------------------------------------
-    ## Read daily interpolated and gapfilled
-    ##---------------------------------------------
+    
+    # Read daily interpolated and gapfilled
+    
     ddf <- readr::read_csv( filnam_daily_csv )
 
   } else {
 
     if (!file.exists(filnam_raw_csv) || settings$overwrite_raw){
-      ##---------------------------------------------
-      ## Download from MODIS DAAC server
-      ##---------------------------------------------
+      
+      # Download from MODIS DAAC server
+      
       if (is.na(settings$network)){
         
         part_of_network <- FALSE
         
       } else {
-        ## check if site is available. 
-        ## see alse here: https://modis.ornl.gov/sites/
+        # check if site is available. 
+        # see alse here: https://modis.ornl.gov/sites/
         sites_avl <- try(
           do.call("rbind",
                   lapply(
@@ -180,7 +180,7 @@ ingest_modis_bysite <- function(
             )
           )
           
-          ## repeat if failed until it works
+          # repeat if failed until it works
           while (class(df) == "try-error"){
             Sys.sleep(3)                    
             rlang::warn("re-trying...")
@@ -206,7 +206,7 @@ ingest_modis_bysite <- function(
 
         try_mt_subset <- function(x, siteinfo, settings){
 
-          ## initial try
+          # initial try
           message(paste("Initial try for band", x))
           
           # calculate the first date of the product queried
@@ -234,7 +234,7 @@ ingest_modis_bysite <- function(
             )
           )
           
-          ## repeat if failed until it works
+          # repeat if failed until it works
           while (class(df) == "try-error"){
             Sys.sleep(3)                       
             warning("re-trying...")
@@ -257,21 +257,21 @@ ingest_modis_bysite <- function(
         }
       }
 
-      ## download for each band as a separate call - safer!
+      # download for each band as a separate call - safer!
       df <- purrr::map(
         as.list(c(settings$band_var, settings$band_qc)),
         ~try_mt_subset(., siteinfo, settings)) %>%
         bind_rows() %>%
         as_tibble()
       
-      ## Raw downloaded data is saved to file
+      # Raw downloaded data is saved to file
       rlang::inform( paste( "raw data file written:", filnam_raw_csv ) )
       data.table::fwrite(df, file = filnam_raw_csv, sep = ",")
       # readr::write_csv(df, path = filnam_raw_csv)
 
     } else {
 
-      ## read from file, faster with fread()
+      # read from file, faster with fread()
       # df <- readr::read_csv( filnam_raw_csv )
       df <- data.table::fread( filnam_raw_csv, sep = "," ) %>%
         as_tibble() %>%
@@ -281,9 +281,9 @@ ingest_modis_bysite <- function(
     }
 
 
-    #--------------------------------------------------------------------
+    
     # Reformat raw data
-    #--------------------------------------------------------------------
+    
     df <- df %>%
       
       # convert date
@@ -293,7 +293,7 @@ ingest_modis_bysite <- function(
       dplyr::select(pixel, date, band, value) %>%
       tidyr::pivot_wider(values_from = value, names_from = band)
 
-    ## Determine scale factor from band info and scale values
+    # Determine scale factor from band info and scale values
     bands <- MODISTools::mt_bands(product = settings$prod) %>%
       as_tibble()
     scale_factor <- bands %>%
@@ -311,15 +311,15 @@ ingest_modis_bysite <- function(
         # mutate(value = scale_factor * value)
     }
 
-    ## rename to standard variable name unless is sur_refl_b*
+    # rename to standard variable name unless is sur_refl_b*
     if (settings$varnam != "srefl"){
       df <- df %>%
         rename(value = !!settings$band_var, qc = !!settings$band_qc)
     }
     
-    ##--------------------------------------------------------------------
-    ## Clean (gapfill and interpolate) full time series data to daily
-    ##--------------------------------------------------------------------
+    -----------------------
+    # Clean (gapfill and interpolate) full time series data to daily
+    -----------------------
     ddf <- gapfill_interpol(
       df,
       sitename,
@@ -328,9 +328,9 @@ ingest_modis_bysite <- function(
       settings = settings
     )
     
-    ##---------------------------------------------
-    ## save cleaned and interpolated data to file
-    ##---------------------------------------------
+    
+    # save cleaned and interpolated data to file
+    
     readr::write_csv(ddf, file = filnam_daily_csv )
   }
 

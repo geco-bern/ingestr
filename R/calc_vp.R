@@ -15,18 +15,18 @@ calc_vp <- function(
   patm = NA,
   elv = NA
 ) {
-  ##-----------------------------------------------------------------------
-  ## Ref:      Eq. 5.1, Abtew and Meleese (2013), Ch. 5 Vapor Pressure 
-  ##           Calculation Methods, in Evaporation and Evapotranspiration: 
-  ##           Measurements and Estimations, Springer, London.
-  ##             vpd = 0.611*exp[ (17.27 tc)/(tc + 237.3) ] - ea
-  ##             where:
-  ##                 tc = average daily air temperature, deg C
-  ##                 eact  = actual vapor pressure, Pa
-  ##-----------------------------------------------------------------------
+  
+  # Ref:      Eq. 5.1, Abtew and Meleese (2013), Ch. 5 Vapor Pressure 
+  #           Calculation Methods, in Evaporation and Evapotranspiration: 
+  #           Measurements and Estimations, Springer, London.
+  #             vpd = 0.611*exp[ (17.27 tc)/(tc + 237.3) ] - ea
+  #             where:
+  #                 tc = average daily air temperature, deg C
+  #                 eact  = actual vapor pressure, Pa
+  
 
-  ## calculate atmopheric pressure (Pa) assuming standard 
-  ## conditions at sea level (elv=0)
+  # calculate atmopheric pressure (Pa) assuming standard 
+  # conditions at sea level (elv=0)
   if (is.na(elv) && is.na(patm)){
     
     warning(
@@ -42,7 +42,7 @@ calc_vp <- function(
                    calc_patm(elv),
                    patm)
     
-    ## Calculate VP.
+    # Calculate VP.
     vp <- calc_vp_inst(qair = qair, patm = patm)
   }
   return( vp )
@@ -64,24 +64,22 @@ calc_vp_inst <- function(
   patm
 ){
   
-  ##-----------------------------------------------------------------------
-  ## Ref:      Eq. 5.1, Abtew and Meleese (2013), Ch. 5 Vapor Pressure 
-  ##           Calculation Methods, in Evaporation and Evapotranspiration: 
-  ##           Measurements and Estimations, Springer, London.
-  ##             vpd = 0.611*exp[ (17.27 tc)/(tc + 237.3) ] - ea
-  ##             where:
-  ##                 tc = average daily air temperature, deg C
-  ##                 ea  = actual vapor pressure, Pa
-  ##-----------------------------------------------------------------------
+  # Ref:      Eq. 5.1, Abtew and Meleese (2013), Ch. 5 Vapor Pressure 
+  #           Calculation Methods, in Evaporation and Evapotranspiration: 
+  #           Measurements and Estimations, Springer, London.
+  #             vpd = 0.611*exp[ (17.27 tc)/(tc + 237.3) ] - ea
+  #             where:
+  #                 tc = average daily air temperature, deg C
+  #                 ea  = actual vapor pressure, Pa
   
   kR  = 8.3143   # universal gas constant, J/mol/K (Allen, 1973)
   kMv = 18.02    # molecular weight of water vapor, g/mol (Tsilingiris, 2008)
   kMa = 28.963   # molecular weight of dry air, g/mol (Tsilingiris, 2008)
   
-  ## calculate the mass mixing ratio of water vapor to dry air (dimensionless)
+  # calculate the mass mixing ratio of water vapor to dry air (dimensionless)
   wair <- qair / (1 - qair)
   
-  ## calculate water vapor pressure 
+  # calculate water vapor pressure 
   rv <- kR / kMv
   rd <- kR / kMa
   eact = patm * wair * rv / (rd + wair * rv)

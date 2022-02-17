@@ -3,17 +3,16 @@ extrapolate_missing_headtail <- function(
   ddf
 ){
   
-  ## extrapolate to missing values at head and tail using mean seasonal cycle
-  ##--------------------------------------
+  # extrapolate to missing values at head and tail using mean seasonal cycle
   
-  ## new: fill gaps at head
+  # new: fill gaps at head
   idxs <- findna_head( ddf$var )
   if (length(idxs)>0){
     rlang::warn("Filling values with last available data point at head")
   }
   ddf$var[idxs] <- ddf$var[max(idxs)+1]
   
-  ## new: fill gaps at tail
+  # new: fill gaps at tail
   idxs <- findna_tail( ddf$var )
   if (length(idxs)>0){
     rlang::warn("Filling values with last available data point at tail.")
@@ -28,8 +27,8 @@ extrapolate_missing_headtail <- function(
 
 findna_headtail <- function(vec) {
   
-  ## Remove (cut) NAs from the head and tail of a vector.
-  ## Returns the indexes to be dropped from a vector
+  # Remove (cut) NAs from the head and tail of a vector.
+  # Returns the indexes to be dropped from a vector
   
   idxs <- c(findna_head(vec), findna_tail(vec))
   
@@ -39,10 +38,10 @@ findna_headtail <- function(vec) {
 
 findna_head <- function(vec) {
   
-  ## Remove (cut) NAs from the head and tail of a vector.
-  ## Returns the indexes to be dropped from a vector
+  # Remove (cut) NAs from the head and tail of a vector.
+  # Returns the indexes to be dropped from a vector
   
-  ## Get indeces of consecutive NAs at head
+  # Get indeces of consecutive NAs at head
   if (is.na(vec[1])){
     idx <- 0
     cuthead <- 1
@@ -50,7 +49,7 @@ findna_head <- function(vec) {
       idx <- idx + 1
       test <- utils::head( vec, idx )
       if (any(!is.na(test))){
-        ## first non-NA found at position idx
+        # first non-NA found at position idx
         cuthead <- idx - 1
         break
       }
@@ -65,10 +64,10 @@ findna_head <- function(vec) {
 
 findna_tail <- function( vec ){
   
-  ## Remove (cut) NAs from the head and tail of a vector.
-  ## Returns the indexes to be dropped from a vector
+  # Remove (cut) NAs from the head and tail of a vector.
+  # Returns the indexes to be dropped from a vector
   
-  ## Get indeces of consecutive NAs at tail
+  # Get indeces of consecutive NAs at tail
   if (is.na(vec[length(vec)])){
     idx <- 0
     cuttail <- 1
@@ -76,7 +75,7 @@ findna_tail <- function( vec ){
       idx <- idx + 1
       test <- utils::tail( vec, idx )
       if (any(!is.na(test))){
-        ## first non-NA found at position idx, counting from tail
+        # first non-NA found at position idx, counting from tail
         cuttail <- idx - 1
         break
       }
