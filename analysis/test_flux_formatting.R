@@ -16,7 +16,8 @@ df <- ingest(
   siteinfo,
   source    = "fluxnet",
   getvars   = list(
-    gpp = "GPP_NT_VUT_REF"),
+    gpp = "GPP_NT_VUT_REF"
+    ),
   dir       = "~/Desktop/flux_data/", 
   settings  = settings_fluxnet,
   timescale = "hh",

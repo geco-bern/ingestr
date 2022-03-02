@@ -200,7 +200,21 @@ read_plumber <- function(
       TA_F_QC = 0,
       TA_F_MDS = NA,
       TA_F_MDS_QC = NA,
-      TA_ERA = NA
+      TA_ERA = NA,
+      
+      TMIN_F_QC = 0,
+      TMIN_F_MDS = NA,
+      TMIN_F_MDS_QC = NA,
+      TMIN_ERA = NA,
+      
+      TMAX_F_QC = 0,
+      TMAX_F_MDS = NA,
+      TMAX_F_MDS_QC = NA,
+      TMAX_ERA = NA,
+      
+      #QA/QC
+      NEE_VUT_REF_QC = 1,
+      GPP_VUT_REF_QC = 1
     )
   }
   
