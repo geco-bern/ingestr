@@ -1,6 +1,8 @@
 library(tidyverse)
 library(ingestr)
 
+rm(df)
+
 settings_fluxnet <- list(
   getswc       = FALSE,
   filter_ntdt  = TRUE,
@@ -10,7 +12,7 @@ settings_fluxnet <- list(
 )
 
 siteinfo <- ingestr::siteinfo_fluxnet2015 %>%
-  filter(sitename == "AU-Rob")
+  filter(sitename == "AR-SLu")
 
 df <- ingest(
   siteinfo,
