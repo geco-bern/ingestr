@@ -24,7 +24,8 @@ read_plumber <- function(
 ){
   
   # CRAN settings
-  IGBP_veg_long <- NULL
+  IGBP_veg_long <- time <- TIMESTAMP_START <-
+    TIMESTAMP_END <- P <- TA_F <- PA_F <- CO2_F <- NULL
   
   # list all files
   files <- list.files(
@@ -233,7 +234,7 @@ read_plumber <- function(
       filename
     )
     
-    write.table(
+    utils::write.table(
       all,
       file = filename,
       quote = FALSE,
