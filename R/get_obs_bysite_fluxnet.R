@@ -123,19 +123,19 @@ get_obs_bysite_fluxnet <- function(
   timescale,
   getvars,
   getswc = TRUE,
-  threshold_GPP=0.0,
-  threshold_LE=0.0,
-  threshold_H=0.0,
-  threshold_SWC=0.0,
-  threshold_WS=0.0,
-  threshold_USTAR=0.0,
-  threshold_T=0.0,
-  threshold_NETRAD=0.0,
+  threshold_GPP = 0.0,
+  threshold_LE = 0.0,
+  threshold_H = 0.0,
+  threshold_SWC = 0.0,
+  threshold_WS = 0.0,
+  threshold_USTAR = 0.0,
+  threshold_T = 0.0,
+  threshold_NETRAD = 0.0,
   filter_ntdt = FALSE,
-  return_qc=FALSE,
+  return_qc = FALSE,
   remove_neg = FALSE,
-  verbose=TRUE 
-  ){
+  verbose = TRUE 
+){
   
   # CRAN compliance, define variables
   year <- week <- VPD_F <- VPD_F_QC <- VPD_F_MDS <- VPD_ERA <-
@@ -150,7 +150,9 @@ get_obs_bysite_fluxnet <- function(
   
   # make a vector
   getvars_orig <- getvars
-  getvars <- getvars %>% unlist() %>% unname()
+  getvars <- getvars %>%
+    unlist() %>%
+    unname()
 
   # complement getvars if necessary, i.e. when filter_ntdt is TRUE
   added <- c("")
@@ -271,7 +273,11 @@ get_obs_bysite_fluxnet <- function(
   
   # For some sites, the NETRAD column is missing.
   if ("NETRAD" %in% getvars && !("NETRAD" %in% names(df))) {
-    df <- df %>% mutate(NETRAD = NA, NETRAD_QC = 0.0)
+    df <- df %>%
+      mutate(
+        NETRAD = NA,
+        NETRAD_QC = 0.0
+        )
   }
 
   # Get daytime VPD
@@ -784,14 +790,14 @@ get_obs_bysite_fluxnet <- function(
     df <- df %>% clean_fluxnet_byvar(ivar, threshold_NETRAD)
   }
 
-  energyvars <- df %>%
-    dplyr::select(starts_with("LE_"), starts_with("H_")) %>%
-    dplyr::select(-ends_with("_QC")) %>%
-    names()
-
-  df <- df %>%
-    # Unit conversion for sensible and latent heat flux: W m-2 -> J m-2 d-1
-    dplyr::mutate_at( vars(one_of(energyvars)), convert_energy_fluxnet2015)
+  # energyvars <- df %>%
+  #   dplyr::select(starts_with("LE_"), starts_with("H_")) %>%
+  #   dplyr::select(-ends_with("_QC")) %>%
+  #   names()
+  # 
+  # df <- df %>%
+  #   # Unit conversion for sensible and latent heat flux: W m-2 -> J m-2 d-1
+  #   dplyr::mutate_at( vars(one_of(energyvars)), convert_energy_fluxnet2015)
 
 
   # clean GPP data
@@ -832,24 +838,46 @@ get_obs_bysite_fluxnet <- function(
   if (timescale=="d" && getswc){
     tmp <- df %>% dplyr::select( starts_with("SWC") )
     if (ncol(tmp)>0){
-      swcvars   <- tmp %>% dplyr::select( -ends_with("QC") ) %>% names()
-      swcqcvars <- tmp %>% dplyr::select(  ends_with("QC") ) %>% names()
+      swcvars   <- tmp %>%
+        dplyr::select( -ends_with("QC") ) %>%
+        names()
+      
+      swcqcvars <- tmp %>%
+        dplyr::select(  ends_with("QC") ) %>%
+        names()
 
-      # map( as.list(seq(length(swcvars))), ~clean_fluxnet_swc( df[[ swcvars[.] ]], df[[ swcqcvars[.] ]]) )
       if (length(swcvars)>0){
         for (ivar in 1:length(swcvars)){
-          df[[ swcvars[ivar] ]] <- clean_fluxnet_swc( df[[ swcvars[ivar] ]], df[[ swcqcvars[ivar] ]], frac_data_thresh = threshold_SWC )
+          df[[ swcvars[ivar] ]] <- clean_fluxnet_swc(
+            df[[ swcvars[ivar] ]],
+            df[[ swcqcvars[ivar] ]],
+            frac_data_thresh = threshold_SWC
+            )
         }
       }
 
       df <- df %>%
-        # Normalise mean observational soil moisture to within minimum (=0) and maximum (=1), and
-        dplyr::mutate_at( vars(one_of(swcvars)), list(~norm_to_max(.)) ) %>%
-
-        # get mean observational soil moisture across different depths (if available)
-        dplyr::mutate( soilm_obs_mean = apply( dplyr::select( ., one_of(swcvars) ), 1, FUN = mean, na.rm = TRUE ) ) %>%
-        dplyr::mutate( soilm_obs_mean = ifelse( is.nan(soilm_obs_mean), NA, soilm_obs_mean ) )
-      if (verbose) warning("Converting: soilm_obs_mean = mean across different soil depths (SWC_F_MDS), with na.rm = TRUE" )
+        # Normalise mean observational soil moisture to
+        # within minimum (=0) and maximum (=1), and
+        dplyr::mutate_at(
+          vars(one_of(swcvars)),
+          list(~norm_to_max(.))
+          ) %>%
+        # get mean observational soil moisture across
+        # different depths (if available)
+        dplyr::mutate(
+          soilm_obs_mean = apply(
+            dplyr::select( ., one_of(swcvars) ),
+            1, FUN = mean, na.rm = TRUE )
+          ) %>%
+        dplyr::mutate(
+          soilm_obs_mean = ifelse(is.nan(soilm_obs_mean), NA, soilm_obs_mean )
+          )
+      if (verbose){
+        message(
+          "Converting: soilm_obs_mean = 
+          mean across different soil depths (SWC_F_MDS), with na.rm = TRUE" )
+        }
 
     }
 
@@ -858,14 +886,17 @@ get_obs_bysite_fluxnet <- function(
   #---- check if anything is missing ----
 
   if (any(!(getvars %in% names(df)))){
-    warning(
+    message(
       paste("Not all getvars were found in file. Missing variable: ",
                paste(getvars[which(!(getvars %in% names(df)))], collapse = ", "),
                "for site: ", sitename))
   }
 
   if (!return_qc){
-    df <- df %>% dplyr::select(-ends_with("_QC"))
+    df <- df %>%
+      dplyr::select(
+        -ends_with("_QC")
+        )
   }
 
   #---- Make unit conversions and shorter names ----
@@ -877,11 +908,18 @@ get_obs_bysite_fluxnet <- function(
     name_out <- list_var %>% names()
     if (verbose) warning(paste0("Renaming: ", name_out, " = ", name_in, " \n"))
     df %>%
-      dplyr::rename_at( vars(matches({{name_in}})), list(~stringr::str_replace(., {{name_in}}, {{name_out}})) )
+      dplyr::rename_at(
+        vars(matches({{name_in}})),
+        list(~stringr::str_replace(., {{name_in}}, {{name_out}}))
+        )
   }
 
   for (ivar in seq(length(getvars_orig))){
-    df <- df %>% rename_byvar(getvars_orig[ivar], verbose = verbose)
+    df <- df %>%
+      rename_byvar(
+        getvars_orig[ivar],
+        verbose = verbose
+        )
   }
 
 
