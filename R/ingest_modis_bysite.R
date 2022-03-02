@@ -279,11 +279,8 @@ ingest_modis_bysite <- function(
         mutate(scale = as.numeric(scale))
 
     }
-
-
     
     # Reformat raw data
-    
     df <- df %>%
       
       # convert date
@@ -317,9 +314,7 @@ ingest_modis_bysite <- function(
         rename(value = !!settings$band_var, qc = !!settings$band_qc)
     }
     
-    -----------------------
     # Clean (gapfill and interpolate) full time series data to daily
-    -----------------------
     ddf <- gapfill_interpol(
       df,
       sitename,
@@ -328,9 +323,7 @@ ingest_modis_bysite <- function(
       settings = settings
     )
     
-    
-    # save cleaned and interpolated data to file
-    
+    # save cleaned and interpolated data to fill
     readr::write_csv(ddf, file = filnam_daily_csv )
   }
 

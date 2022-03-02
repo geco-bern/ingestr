@@ -544,9 +544,10 @@ gapfill_interpol_gee <- function(
     # LINEAR INTERPOLATION
     
     message("linear ...")
-    ddf$linear <- stats::approx(ddf$year_dec,
-                                ddf$modisvar_filtered,
-                                xout=ddf$year_dec )$y
+    ddf$linear <- stats::approx(
+      ddf$year_dec,
+      ddf$modisvar_filtered,
+      xout=ddf$year_dec )$y
   }
 
   if (method_interpol == "sgfilter" || keep){

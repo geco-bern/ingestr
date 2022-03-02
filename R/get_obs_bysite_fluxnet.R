@@ -113,7 +113,9 @@
 #' named and in units corresponding to rsofun standard.
 #' @export
 #'
-#' @examples \dontrun{df <- get_obs_bysite_fluxnet}
+#' @examples \dontrun{
+#' df <- get_obs_bysite_fluxnet
+#' }
 #'
 get_obs_bysite_fluxnet <- function(
   sitename,
@@ -227,15 +229,6 @@ get_obs_bysite_fluxnet <- function(
       )
   }
 
-  # # Use also quality flag data for each variable in 'getvars'
-  # obsvars <- tibble( getvars = getvars ) %>%
-  #   dplyr::filter(!(stringr::str_detect(., "UNC"))) %>%
-  #   dplyr::pull(getvars)
-  # uncvars <- tibble( getvars = getvars ) %>%
-  #   dplyr::filter(stringr::str_detect(., "UNC")) %>%
-  #   dplyr::pull(getvars)
-  # getvars <- c(obsvars, paste0(obsvars, "_QC"), uncvars)
-
   if (length(filn) == 0) {
     stop(
       paste0("No files found for timescale ",
@@ -254,12 +247,6 @@ get_obs_bysite_fluxnet <- function(
     path_dd <- path_dd[which.max(size_vec)]
     filn <- basename(path_dd)
   }
-
-  # if (length(filn)>1){
-  #   filn <- filn[which(grepl("3.csv", filn))]
-  #    warning(paste0("Multiple files found for timsescale ",
-  #  timescale, " in sub-directories of ", dir, ". Taking only ", filn ) )
-  # }
 
   #---- Actually read data ----
   # This returns a data frame with columns 
@@ -523,7 +510,11 @@ get_obs_bysite_fluxnet <- function(
           
         } else {
           
-          warning(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
+          warning(
+            paste0("No half-hourly data found in ",
+                   dir_hh,
+                   ". Looking for hourly data in ",  dir_hr, "...")
+          )
           
           # get hourly file name(s)
           filn_hr <- list.files( dir_hr,
@@ -566,11 +557,12 @@ get_obs_bysite_fluxnet <- function(
           dplyr::mutate(year = lubridate::year(date),
                         week = lubridate::week(date)) %>%
           dplyr::group_by(sitename, year, week) %>%
-          dplyr::summarise(TMIN_F = min(TA_F, na.rm=TRUE),
-                           TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
-                           TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
-                           TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
-                           TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::summarise(
+            TMIN_F = min(TA_F, na.rm=TRUE),
+            TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+            TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
+            TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+            TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
           dplyr::right_join(df, by="date")
         
       } else if (timescale=="m"){
@@ -580,11 +572,12 @@ get_obs_bysite_fluxnet <- function(
           dplyr::mutate(year = lubridate::year(date),
                         moy = lubridate::month(date)) %>%
           dplyr::group_by(sitename, year, moy) %>%
-          dplyr::summarise(TMIN_F = min(TA_F, na.rm=TRUE),
-                           TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
-                           TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
-                           TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
-                           TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::summarise(
+            TMIN_F = min(TA_F, na.rm=TRUE),
+            TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+            TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
+            TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+            TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
           dplyr::right_join(df, by="date")
         
       } else if (timescale=="y"){
@@ -593,11 +586,12 @@ get_obs_bysite_fluxnet <- function(
         df <- df_tmin_dd %>%
           dplyr::mutate(year = lubridate::year(date)) %>%
           dplyr::group_by(sitename, year) %>%
-          dplyr::summarise(TMIN_F = min(TA_F, na.rm=TRUE),
-                           TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
-                           TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
-                           TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
-                           TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::summarise(
+            TMIN_F = min(TA_F, na.rm=TRUE),
+            TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+            TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
+            TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+            TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
           dplyr::right_join(df, by="date")
         
       }
@@ -728,11 +722,12 @@ get_obs_bysite_fluxnet <- function(
           dplyr::mutate(year = lubridate::year(date),
                         week = lubridate::week(date)) %>%
           dplyr::group_by(sitename, year, week) %>%
-          dplyr::summarise(TMAX_F = max(TA_F, na.rm=TRUE),
-                           TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
-                           TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
-                           TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
-                           TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::summarise(
+            TMAX_F = max(TA_F, na.rm=TRUE),
+            TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+            TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
+            TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+            TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
           dplyr::right_join(df, by="date")
         
       } else if (timescale=="m"){
@@ -742,11 +737,12 @@ get_obs_bysite_fluxnet <- function(
           dplyr::mutate(year = lubridate::year(date),
                         moy = lubridate::month(date)) %>%
           dplyr::group_by(sitename, year, moy) %>%
-          dplyr::summarise(TMAX_F = max(TA_F, na.rm=TRUE),
-                           TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
-                           TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
-                           TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
-                           TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::summarise(
+            TMAX_F = max(TA_F, na.rm=TRUE),
+            TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+            TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
+            TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+            TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
           dplyr::right_join(df, by="date")
         
       } else if (timescale=="y"){
@@ -755,11 +751,12 @@ get_obs_bysite_fluxnet <- function(
         df <- df_tmax_dd %>%
           dplyr::mutate(year = lubridate::year(date)) %>%
           dplyr::group_by(sitename, year) %>%
-          dplyr::summarise(TMAX_F = max(TA_F, na.rm=TRUE),
-                           TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
-                           TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
-                           TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
-                           TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::summarise(
+            TMAX_F = max(TA_F, na.rm=TRUE),
+            TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+            TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
+            TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+            TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
           dplyr::right_join(df, by="date")
         
       }
@@ -854,10 +851,12 @@ get_obs_bysite_fluxnet <- function(
     )
     
     if(inherits(error, "try-error")) {
-      message("
-              Missing nighttime/ daytime QC data.
-              Data is not screened.
-              Is this plumber2 data converted by read_plumber()?")
+      message(
+        "
+        Missing nighttime/ daytime QC data.
+        Data is not screened - taken as is.
+        Is this plumber2 data converted by read_plumber()?"
+      )
     }
   }
 
@@ -956,9 +955,16 @@ get_obs_bysite_fluxnet <- function(
   
   #---- Rename variables to names provided by argument 'getvars' ----
   rename_byvar <- function(df, list_var, verbose){
-    name_in  <- list_var %>% unlist() %>% unname()
-    name_out <- list_var %>% names()
-    if (verbose) warning(paste0("Renaming: ", name_out, " = ", name_in, " \n"))
+    name_in  <- list_var %>%
+      unlist() %>%
+      unname()
+    name_out <- list_var %>%
+      names()
+    
+    if (verbose){
+      message(paste0("Renaming: ", name_out, " = ", name_in, " \n"))
+    }
+    
     df %>%
       dplyr::rename_at(
         vars(matches({{name_in}})),

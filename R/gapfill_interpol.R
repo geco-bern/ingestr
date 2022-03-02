@@ -17,20 +17,19 @@ gapfill_interpol <- function(
   settings
 ){
   
-  # split out variables for readability
-  prod <- settings$prod
-  method_interpol <- settings$method_interpol
-  keep <- settings$keep
-  n_focal <- settings$n_focal
-  varnam <- settings$varnam
-  
   value <- modisvar <- qc <- qc_bitname <- vi_useful <- aerosol <-
     adjcloud <- brdf_corr <- mixcloud <- snowice <- shadow <-
     qc_bit0 <- qc_bit1 <- qc_bit2 <- qc_bit3 <- qc_bit4 <- modisvar_filtered <- 
     good_quality <- SCF_QC <- modland_qc <- pixel_quality <- data_quality <-
     prevdate <- CloudState <- sur_refl_qc_500m <- pixel <- NULL
   
-  
+  # split out variables for readability
+  prod <- settings$prod
+  method_interpol <- settings$method_interpol
+  keep <- settings$keep
+  n_focal <- settings$n_focal
+  varnam <- settings$varnam
+
   # Returns data frame containing data
   # (and year, moy, doy) for all available
   # months. Interpolated to mid-months
@@ -272,25 +271,19 @@ gapfill_interpol <- function(
       dplyr::select(-ends_with("_qc"), -ends_with("_qc_binary"))
     
   } else if (prod == "MOD11A2"){
-    --
+    
     # Filter available landsurface temperature data for daily-means
-    --
     # QC interpreted according to 
     # https://lpdaac.usgs.gov/documents/118/MOD11_User_Guide_V6.pdf
     df <- df %>%
       dplyr::rename(modisvar = value) %>%
       dplyr::mutate(modisvar_filtered = modisvar) %>%
-      
       mutate(
         
         qc_bitname = intToBits( qc )[1:8] %>%
           rev() %>%
           as.character() %>%
           paste(collapse = "")
-          # 
-          # qc_bitname = intToBits( qc ) %>%
-          #    as.integer() %>%
-          #    paste(collapse = "")
       ) %>%
       
     # Bits 0-1: Pixel Quality
@@ -339,8 +332,10 @@ gapfill_interpol <- function(
   
   
   # Average across pixels by date
-  
-  npixels <- df %>% pull(pixel) %>% unique() %>% length()
+  npixels <- df %>%
+    pull(pixel) %>%
+    unique() %>%
+    length()
   n_side <- sqrt(npixels)
   
   # determine across which pixels to average
