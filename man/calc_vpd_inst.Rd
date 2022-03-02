@@ -19,7 +19,7 @@ calc_vpd_inst(qair = NA, eact = NA, tc = NA, patm = NA, elv = NA)
 for calculating it based on standard sea level pressure)}
 }
 \value{
-
+instantenous VPD from ambient conditions
 }
 \description{
 Follows Abtew and Meleese (2013), Ch. 5 Vapor Pressure Calculation Methods,

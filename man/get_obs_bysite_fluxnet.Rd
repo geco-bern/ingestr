@@ -158,6 +158,8 @@ Function for reading observational GPP data from FLUXNET dataset
 and defining calibration target (which flux decomposition method etc.)
 }
 \examples{
-\dontrun{df <- get_obs_bysite_fluxnet}
+\dontrun{
+df <- get_obs_bysite_fluxnet
+}
 
 }
