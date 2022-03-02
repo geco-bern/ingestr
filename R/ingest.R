@@ -161,7 +161,6 @@ ingest <- function(
 
 	if (source == "fluxnet"){
 	  
-	  
 	  # Get data from sources given by site
 	  
 	  ddf <- purrr::map(
@@ -240,12 +239,14 @@ ingest <- function(
 	  }
 
 		# this returns a flat data frame with data from all sites
-    ddf <- ingest_globalfields(siteinfo,
-                               source = source,
-                               dir = dir,
-                               getvars = getvars,
-                               timescale = timescale,
-                               verbose = FALSE)
+    ddf <- ingest_globalfields(
+      siteinfo,
+      source = source,
+      dir = dir,
+      getvars = getvars,
+      timescale = timescale,
+      verbose = FALSE
+      )
     
     
     if (find_closest){
@@ -716,42 +717,6 @@ ingest <- function(
 	} else if (source == "modis"){
 	  
 	  # Get data from the remote server
-	  
-	  # if (settings$batch){
-	  #   
-	  #   siteinfo <- siteinfo %>% 
-	  #     dplyr::rename(
-	  #       "site_name" = "sitename") %>%
-	  #     data.frame()
-	  # 
-	  #   # get all available dates for batch modis download (should be the same for all lon and lat)
-	  #   dates <- MODISTools::mt_dates(product = settings$prod, lat = siteinfo$lat[1], lon = siteinfo$lon[1]) %>% 
-	  #     pull(calendar_date)
-	  #   
-	  #   df <- MODISTools::mt_batch_subset(
-	  #     df = siteinfo,
-	  #     product = settings$prod,
-	  #     band = c(settings$band_var, settings$band_qc),
-	  #     km_lr = 1.0,
-	  #     km_ab = 1.0,
-	  #     start = min(dates),
-	  #     end = max(dates),
-	  #     internal = TRUE,
-	  #     ncores = 2  # don't use more otherwise trouble
-	  #     )
-	  #   
-	  # } else {
-	  #   
-	  #   ddf <- purrr::map(
-	  #     as.list(seq(nrow(siteinfo))),
-	  #     ~ingest_modis_bysite(
-	  #       slice(siteinfo, .),
-	  #       settings
-	  #     )
-	  #   )
-	  #   
-	  # }
-	  
 		if (parallel){
 
 			if (is.null(ncores)){
@@ -902,14 +867,14 @@ ingest <- function(
 	} else if (source == "wwf"){
 	  
 	  # Get WWF ecoregion data. year_start and year_end not required
-	  
-	  ddf <- ingest_globalfields(siteinfo,
-	                             source = source,
-	                             dir = dir,
-	                             getvars = NULL,
-	                             timescale = NULL,
-	                             verbose = FALSE,
-	                             layer = settings$layer
+	  ddf <- ingest_globalfields(
+	    siteinfo,
+	    source = source,
+	    dir = dir,
+	    getvars = NULL,
+	    timescale = NULL,
+	    verbose = FALSE,
+	    layer = settings$layer
 	  )
 
 	} else if (source == "soilgrids"){
@@ -922,7 +887,6 @@ ingest <- function(
 	} else if (source == "wise"){
 	  
 	  # Get WISE30secs soil data. year_start and year_end not required
-	  
 	  ddf <- purrr::map(as.list(settings$varnam),
 	                    ~ingest_wise_byvar(.,
 	                                       siteinfo,
@@ -936,16 +900,16 @@ ingest <- function(
 	} else if (source == "gsde"){
 	  
 	  # Get GSDE soil data from tif files (2 files, for bottom and top layers)
-	  
 	  ddf <- purrr::map(
 	    as.list(settings$varnam),
-	    ~ingest_globalfields(siteinfo,
-	                         source = source,
-	                         getvars = NULL,
-	                         dir = dir,
-	                         timescale = NULL,
-	                         verbose = FALSE,
-	                         layer = .
+	    ~ingest_globalfields(
+	      siteinfo,
+	      source = source,
+	      getvars = NULL,
+	      dir = dir,
+	      timescale = NULL,
+	      verbose = FALSE,
+	      layer = .
 	    )) %>%
 	    map2(as.list(settings$varnam),
 	         ~aggregate_layers_gsde(.x, .y, settings$layer)) %>%
@@ -955,13 +919,14 @@ ingest <- function(
 	   
 	   # Get WorldClim data from global raster file
 	   
-	   ddf <- ingest_globalfields(siteinfo,
-	                              source = source,
-	                              dir = dir,
-	                              getvars = NULL,
-	                              timescale = NULL,
-	                              verbose = FALSE,
-	                              layer = settings$varnam
+	   ddf <- ingest_globalfields(
+	     siteinfo,
+	     source = source,
+	     dir = dir,
+	     getvars = NULL,
+	     timescale = NULL,
+	     verbose = FALSE,
+	     layer = settings$varnam
 	   )
 
 	 } else {
@@ -975,6 +940,7 @@ ingest <- function(
 
   ddf <- ddf %>%
     bind_rows() %>%
+    filter(!is.na(sitename)) %>%
     group_by(sitename) %>%
     tidyr::nest()
   
