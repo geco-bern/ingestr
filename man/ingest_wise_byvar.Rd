@@ -7,22 +7,26 @@
 ingest_wise_byvar(var, df_lonlat, layer = 1, dir)
 }
 \arguments{
-\item{var}{A character string specifying the variable name (WISE30sec standard)}
+\item{var}{A character string specifying the variable name
+(WISE30sec standard)}
 
-\item{df_lonlat}{A data frame containing columns \code{lon} and \code{lat} specifying points for extraction.}
+\item{df_lonlat}{A data frame containing columns \code{lon} and
+\code{lat} specifying points for extraction.}
 
 \item{layer}{An integer specifying soil layer.
 See \url{https://www.isric.org/documents/document-type/isric-report-201501-world-soil-property-estimates-broad-scale-modelling} for available layers.
 Defaults to \code{1}.}
 
-\item{dir}{A character string specifying the path to the local directory containing WISE30sec data.}
+\item{dir}{A character string specifying the path to the local directory
+containing WISE30sec data.}
 }
 \value{
 A data frame with ingested data
 }
 \description{
 Ingests WISE30sec data.
-This follows code outlined here: \url{https://gis.stackexchange.com/questions/246476/link-raster-tiff-with-attribute-table-txt-in-qgis-or-r}
+This follows code outlined here:
+ \url{https://gis.stackexchange.com/questions/246476/link-raster-tiff-with-attribute-table-txt-in-qgis-or-r}
 }
 \examples{
 \dontrun{settings <- ingest_wise_byvar("CNrt")}
