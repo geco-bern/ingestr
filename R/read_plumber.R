@@ -223,7 +223,7 @@ read_plumber <- function(
   if (fluxnet_format && !missing(out_path)) {
     
     message("writing datat to file")
-    filename <- sprintf("FLX_%s_FLUXNET2015_FULLSET_HH_%s_%s_2-3.csv",
+    filename <- sprintf("FLX_%s_PLUMBER_FULLSET_HH_%s_%s_2-3.csv",
                        site,
                        start_year,
                        end_year
