@@ -129,7 +129,7 @@ read_plumber <- function(
     
     keys <- c(
       # MICROMET
-      P = "Precip", # in mm -s
+      P_F = "Precip", # in mm -s
       TA_F = "Tair",
       SW_IN_F = "SWdown",
       LW_IN_F = "LWdown",
