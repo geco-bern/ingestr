@@ -185,7 +185,7 @@ read_plumber <- function(
   # https://github.com/aukkola/FluxnetLSM/blob/a256ffc894ed8182f9399afa1d83dea43ac36a95/R/Conversions.R
   all <- all %>%
     mutate(
-      P = P * 60 * 30, # mm/s to mm
+      P_F = P_F * 60 * 30, # mm/s to mm
       TA_F = TA_F - 273.15, # K to C
       PA_F = PA_F / 1000, # Pa to kPa
       CO2_F = CO2_F, # ppm to umolCO2 mol-1
