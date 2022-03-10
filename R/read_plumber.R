@@ -25,7 +25,7 @@ read_plumber <- function(
   
   # CRAN settings
   IGBP_veg_long <- time <- TIMESTAMP_START <-
-    TIMESTAMP_END <- P <- TA_F <- PA_F <- CO2_F <- NULL
+    TIMESTAMP_END <- P <- TA_F <- PA_F <- CO2_F <- P_F <- NULL
   
   # list all files
   files <- list.files(
@@ -205,7 +205,6 @@ read_plumber <- function(
       TA_F_MDS = NA,
       TA_F_MDS_QC = NA,
       TA_ERA = NA,
-      LE_CORR = "Qle_cor",
       
       TMIN_F_QC = 0,
       TMIN_F_MDS = NA,
