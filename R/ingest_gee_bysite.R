@@ -76,7 +76,11 @@ ingest_gee_bysite <- function(
   filnam_daily_csv <- paste0( dirnam_daily_csv, "/",varnam,"_", sitename, ".csv" )
   filnam_raw_csv <- paste0( dirnam_raw_csv, sitename, "_", prod_suffix, "_gee_subset.csv" )
 
-  do_continue <- TRUE
+  if(method_interpol == "none"){
+    do_continue <- FALSE
+  } else{
+    do_continue <- TRUE  
+  }
 
   # Save error code (0: no error, 1: error: file downloaded bu all data is NA, 2: file not downloaded)
   df_error <- tibble()
