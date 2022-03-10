@@ -136,7 +136,7 @@ read_plumber <- function(
       VPD_F_MDS = "VPD",
       WS_F = "Wind",
       PA_F = "Psurf",
-      CO2_F = "CO2air",
+      CO2_F_MDS = "CO2air",
       # FLUXES
       NETRAD = "Rnet",
       USTAR = "Ustar",
@@ -189,20 +189,18 @@ read_plumber <- function(
   all <- all %>%
     mutate(
       P_F = P_F * 60 * 30, # mm/s to mm
-      TA_F = TA_F - 273.15, # K to C
+      TA_F_MDS = TA_F_MDS - 273.15, # K to C
       PA_F = PA_F / 1000, # Pa to kPa
-      CO2_F = CO2_F, # ppm to umolCO2 mol-1
+      CO2_F_MDS = CO2_F_MDS, # ppm to umolCO2 mol-1
       
       # adding missing data required by ingestr
       # VPD
       VPD_F_QC = 0,
-      VPD_F_MDS = NA,
       VPD_F_MDS_QC = NA,
       VPD_ERA = NA,
       
       # Temperature
       TA_F_QC = 0,
-      TA_F_MDS = NA,
       TA_F_MDS_QC = NA,
       TA_ERA = NA,
       
