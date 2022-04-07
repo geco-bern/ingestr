@@ -5,72 +5,82 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculate daytime VPD • ingestr</title>
+<title>Derived fluxnet variables • ingestr</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="/apple-touch-icon.png">
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
-<script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Calculate daytime VPD">
+<script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.1/css/all.min.css" integrity="sha256-PbSmjxuVAzJ6FPvNYsrXygfGhNJYyZ2GktDbkMBqQZg=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.1/css/v4-shims.min.css" integrity="sha256-A6jcAdwFD48VMjlI3GDxUd+eCQa7/KWy6G9oe/ovaPA=" crossorigin="anonymous">
+<!-- Fonts --><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,300;0,400;0,700;1,300;1,400&amp;display=swap" rel="stylesheet">
+<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
+<script src="../pkgdown.js"></script><!-- ropensci --><link href="../ceslabs.css" rel="stylesheet">
+<meta property="og:title" content="Derived fluxnet variables">
 <meta property="og:description" content="ingestr">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<meta name="twitter:card" content="summary">
+<!-- Mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js" async integrity="sha256-nlrDrBTHxJJlDDX22AS33xYI1OJHnGMDhiYMSe2U0e0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/config/TeX-AMS-MML_HTMLorMML.js" async integrity="sha256-4zys9A4hMQmtq2EUL+JRoXc0NZi8jVJMzb8onewOaSQ=" crossorigin="anonymous"></script>
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
+
     <div class="navbar-header">
+
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
         <span class="sr-only">Toggle navigation</span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">ingestr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3</span>
-      </span>
+
+      <div class="navbar-brand-container">
+        <a class="external-link hidden-sm hidden-xs" href="https://computationales.ethz.ch/">
+          <img src="https://raw.githubusercontent.com/computationales/CES_template/main/ces_logo.png" id="hexlogo" alt="bluegreen labs"></a>
+        <a class="external-link hidden-md hidden-lg" href="https://computationales.ethz.ch/">
+          <img src="https://raw.githubusercontent.com/computationales/CES_template/main/ces_logo.png" id="hexlogo" alt="bluegreen labs"></a>
+        <a class="navbar-brand" href="../index.html">
+           <i>ingestr <small>v1.4</small></i>
+        </a>
+      </div>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-<li>
-  <a href="../index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
+      <ul class="nav navbar-nav navbar-right">
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/calc_daytime_vpd.html">Calculate daytime VPD</a>
+      <a href="../articles/calc_daytime_vpd.html">Derived fluxnet variables</a>
     </li>
     <li>
-      <a href="../articles/example.html">Examples for ingestr</a>
+      <a href="../articles/example.html">ingestr example</a>
     </li>
     <li>
-      <a href="../articles/ingest_cru_rsofun.html">CRU climate forcing ingest</a>
+      <a href="../articles/get_evi_gee.html">Getting MODIS EVI data from Google Earth Engine</a>
+    </li>
+    <li>
+      <a href="../articles/ingest_cru_rsofun.html">ingest CRU</a>
     </li>
   </ul>
 </li>
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
-      </ul>
-<ul class="nav navbar-nav navbar-right">
-<li>
-  <a href="https://github.com/computationales/ingestr/">
+        <li>
+  <a href="https://github.com/computationales/ingestr/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -85,74 +95,159 @@
 
       
 
-      </header><script src="calc_daytime_vpd_files/header-attrs-2.7/header-attrs.js"></script><div class="row">
+      </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Calculate daytime VPD</h1>
+      <h1 data-toc-skip>Derived fluxnet variables</h1>
+                        <h4 data-toc-skip class="author">Koen
+Hufkens</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/computationales/ingestr/blob/master/vignettes/calc_daytime_vpd.Rmd"><code>vignettes/calc_daytime_vpd.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/computationales/ingestr/blob/HEAD/vignettes/calc_daytime_vpd.Rmd" class="external-link"><code>vignettes/calc_daytime_vpd.Rmd</code></a></small>
       <div class="hidden name"><code>calc_daytime_vpd.Rmd</code></div>
 
     </div>
 
     
     
-<p>Daytime VPD is not provided in the daily FLUXNET2015 data files. Instead, we can derive it based on the half-hourly data, averaging half-hourly VPD of time steps where the shortwave incoming radiation <code>"SW_IN_F"</code> is greater than zero (i.e., during the day). To do this, we can set the <code>getvars</code> argment to <code><a href="https://rdrr.io/r/base/list.html">list(vpd  = "VPD_F_DAY")</a></code> and additionally provide the directory where half-hourly files are located locally through the argument <code>settings</code>. We do this just for one year here (only year 2000 data is provided as external data in this package).</p>
+<div class="section level2">
+<h2 id="daytime-vpd">Daytime VPD<a class="anchor" aria-label="anchor" href="#daytime-vpd"></a>
+</h2>
+<p>Daytime VPD is not provided in the daily FLUXNET2015 data files.
+Instead, we can derive it based on the half-hourly data, averaging
+half-hourly VPD of time steps where the shortwave incoming radiation
+<code>"SW_IN_F"</code> is greater than zero (i.e., during the day). To
+do this, we can set the <code>getvars</code> argment to
+<code>list(vpd  = "VPD_F_DAY")</code> and additionally provide the
+directory where half-hourly files are located locally through the
+argument <code>settings</code>. We do this just for one year here (only
+year 2000 data is provided as external data in this package).</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">settings_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>dir_hh <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/find.package.html">path.package</a></span><span class="op">(</span><span class="st">"ingestr"</span><span class="op">)</span>, <span class="st">"/extdata/"</span><span class="op">)</span>, getswc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">settings_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dir_hh <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/find.package.html" class="external-link">path.package</a></span><span class="op">(</span><span class="st">"ingestr"</span><span class="op">)</span>, <span class="st">"/extdata/"</span><span class="op">)</span>, getswc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
 
 <span class="va">df_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
   sitename <span class="op">=</span> <span class="st">"FR-Pue"</span>,
   source <span class="op">=</span> <span class="st">"fluxnet"</span>,
-  getvars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>vpd  <span class="op">=</span> <span class="st">"VPD_F_DAY"</span><span class="op">)</span>,
-  dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/find.package.html">path.package</a></span><span class="op">(</span><span class="st">"ingestr"</span><span class="op">)</span>, <span class="st">"/extdata/"</span><span class="op">)</span>,
+  getvars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>vpd  <span class="op">=</span> <span class="st">"VPD_F_DAY"</span><span class="op">)</span>,
+  dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/find.package.html" class="external-link">path.package</a></span><span class="op">(</span><span class="st">"ingestr"</span><span class="op">)</span>, <span class="st">"/extdata/"</span><span class="op">)</span>,
   settings <span class="op">=</span> <span class="va">settings_fluxnet</span>,
   timescale <span class="op">=</span> <span class="st">"d"</span>,
   year_start <span class="op">=</span> <span class="fl">2007</span>,
   year_end <span class="op">=</span> <span class="fl">2007</span>,
   verbose <span class="op">=</span> <span class="cn">FALSE</span>
-  <span class="op">)</span></code></pre></div>
-<pre><code>## Warning: The `path` argument of `write_csv()` is deprecated as of readr 1.4.0.
-## Please use the `file` argument instead.</code></pre>
-<pre><code>## Warning: Unknown columns: ``</code></pre>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">df_fluxnet</span></code></pre></div>
-<pre><code>##            date      vpd sitename
-##   1: 2007-01-01 183.0143   FR-Pue
-##   2: 2007-01-02 417.4900   FR-Pue
-##   3: 2007-01-03 565.7895   FR-Pue
-##   4: 2007-01-04 375.4750   FR-Pue
-##   5: 2007-01-05 508.4105   FR-Pue
-##  ---                             
-## 361: 2007-12-27 503.7526   FR-Pue
-## 362: 2007-12-28 313.5263   FR-Pue
-## 363: 2007-12-29 174.2684   FR-Pue
-## 364: 2007-12-30 529.1158   FR-Pue
-## 365: 2007-12-31 540.6579   FR-Pue</code></pre>
+  <span class="op">)</span>
+<span class="va">df_fluxnet</span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="daily-minimum-temperature">Daily minimum temperature<a class="anchor" aria-label="anchor" href="#daily-minimum-temperature"></a>
+</h2>
+<p>Daily minimum temperature is not provided in the daily FLUXNET2015
+data files. Instead, we can derive it based on the half-hourly data. To
+do this, we can set the <code>getvars</code> argument to
+<code>list(tmin  = "TMIN_F")</code> and additionally provide the
+directory where half-hourly files are located locally through the
+argument <code>settings</code>. We do this just for one year here (only
+year 2000 data is provided as external data in this package).</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">settings_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dir_hh <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/find.package.html" class="external-link">path.package</a></span><span class="op">(</span><span class="st">"ingestr"</span><span class="op">)</span>, <span class="st">"/extdata/"</span><span class="op">)</span>, getswc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+
+<span class="va">df_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
+  sitename <span class="op">=</span> <span class="st">"FR-Pue"</span>,
+  source <span class="op">=</span> <span class="st">"fluxnet"</span>,
+  getvars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>tmin  <span class="op">=</span> <span class="st">"TMIN_F"</span><span class="op">)</span>,
+  dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/find.package.html" class="external-link">path.package</a></span><span class="op">(</span><span class="st">"ingestr"</span><span class="op">)</span>, <span class="st">"/extdata/"</span><span class="op">)</span>,
+  settings <span class="op">=</span> <span class="va">settings_fluxnet</span>,
+  timescale <span class="op">=</span> <span class="st">"d"</span>,
+  year_start <span class="op">=</span> <span class="fl">2007</span>,
+  year_end <span class="op">=</span> <span class="fl">2007</span>,
+  verbose <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span>
+<span class="va">df_fluxnet</span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="daily-maximum-temperature">Daily maximum temperature<a class="anchor" aria-label="anchor" href="#daily-maximum-temperature"></a>
+</h2>
+<p>Daily maximum temperature is not provided in the daily FLUXNET2015
+data files. Instead, we can derive it based on the half-hourly data. To
+do this, we can set the <code>getvars</code> argument to
+<code>list(tmin  = "TMIN_F")</code> and additionally provide the
+directory where half-hourly files are located locally through the
+argument <code>settings</code>. We do this just for one year here (only
+year 2000 data is provided as external data in this package).</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">settings_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dir_hh <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/find.package.html" class="external-link">path.package</a></span><span class="op">(</span><span class="st">"ingestr"</span><span class="op">)</span>, <span class="st">"/extdata/"</span><span class="op">)</span>, getswc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+
+<span class="va">df_fluxnet</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span>
+  sitename <span class="op">=</span> <span class="st">"FR-Pue"</span>,
+  source <span class="op">=</span> <span class="st">"fluxnet"</span>,
+  getvars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>tmax  <span class="op">=</span> <span class="st">"TMAX_F"</span><span class="op">)</span>,
+  dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/find.package.html" class="external-link">path.package</a></span><span class="op">(</span><span class="st">"ingestr"</span><span class="op">)</span>, <span class="st">"/extdata/"</span><span class="op">)</span>,
+  settings <span class="op">=</span> <span class="va">settings_fluxnet</span>,
+  timescale <span class="op">=</span> <span class="st">"d"</span>,
+  year_start <span class="op">=</span> <span class="fl">2007</span>,
+  year_end <span class="op">=</span> <span class="fl">2007</span>,
+  verbose <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span>
+<span class="va">df_fluxnet</span></code></pre></div>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
 
-      </div>
+        <nav id="toc" data-toggle="toc"><h2 data-toc-skip>Contents</h2>
+    </nav>
+</div>
 
 </div>
 
 
 
-      <footer><div class="copyright">
-  <p>Developed by Benjamin Stocker.</p>
+      <footer><!-- begin footer --><div class="footer">
+    <div class="container">
+        <div class="row start bottom-8">
+            <div class="col-xs-10">
+                <div class="row">
+                    <div class="col-md-4 col-xs-6">
+                        <a href="https://github.com/computationales" target="_blank" class="external-link">
+                          <div class="icon fab fa-github"></div></a>
+                        <a href="https://computationales.ethz.ch/" target="_blank" class="external-link">
+                          <div class="icon fa fa-flask"></div></a>
+                        <a href="http://twitter.com/stineb/" target="_blank" class="external-link">
+                          <div class="icon fab fa-twitter"></div></a>
+                    </div>
+                </div>
+                <div class="row top-4">
+                    <div class="col-md-2 col-sm-4">
+                        <ul>
+<h5 class="bottom-2">About</h5>
+                            <li><a href="https://computationales.ethz.ch/" class="external-link">Computationales</a></li>
+                            <li><a href="https://computationales.ethz.ch/" class="external-link">Our Team</a></li>
+                            <li><a href="https://computationales.ethz.ch/" class="external-link">Contact Us</a></li>
+                        </ul>
+</div>
+                    <div class="col-md-2 col-sm-4">
+                        <ul>
+<h5 class="bottom-2">Resources</h5>
+                            <li><a href="https://github.com/computationales" class="external-link">Packages</a></li>
+                            <li><a href="https://computationales.ethz.ch/" class="external-link">Publications</a></li>
+                            <li><a href="https://computationales.ethz.ch/" class="external-link">Blog</a></li>
+                        </ul>
 </div>
 
-<div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+<!-- / end footer -->
 
       </footer>
 </div>
 
   
 
+
+  
 
   </body>
 </html>

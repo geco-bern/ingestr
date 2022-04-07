@@ -6,71 +6,82 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Environmental point data ingest • ingestr</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="/apple-touch-icon.png">
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="bootstrap-toc.css">
-<script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
-<script src="pkgdown.js"></script><meta property="og:title" content="Environmental point data ingest">
-<meta property="og:description" content="Ingest site-scale time series of environmental data from large files and remote repositories.">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.1/css/all.min.css" integrity="sha256-PbSmjxuVAzJ6FPvNYsrXygfGhNJYyZ2GktDbkMBqQZg=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.1/css/v4-shims.min.css" integrity="sha256-A6jcAdwFD48VMjlI3GDxUd+eCQa7/KWy6G9oe/ovaPA=" crossorigin="anonymous">
+<!-- Fonts --><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,300;0,400;0,700;1,300;1,400&amp;display=swap" rel="stylesheet">
+<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
+<script src="pkgdown.js"></script><!-- ropensci --><link href="ceslabs.css" rel="stylesheet">
+<meta property="og:title" content="Environmental point data ingest">
+<meta property="og:description" content="Ingest site-scale time series of environmental data from large 
+ files and remote repositories.">
+<meta name="twitter:card" content="summary">
+<!-- Mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js" async integrity="sha256-nlrDrBTHxJJlDDX22AS33xYI1OJHnGMDhiYMSe2U0e0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/config/TeX-AMS-MML_HTMLorMML.js" async integrity="sha256-4zys9A4hMQmtq2EUL+JRoXc0NZi8jVJMzb8onewOaSQ=" crossorigin="anonymous"></script>
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-home">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
+
     <div class="navbar-header">
+
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
         <span class="sr-only">Toggle navigation</span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <span class="navbar-brand">
-        <a class="navbar-link" href="index.html">ingestr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3</span>
-      </span>
+
+      <div class="navbar-brand-container">
+        <a class="external-link hidden-sm hidden-xs" href="https://computationales.ethz.ch/">
+          <img src="https://raw.githubusercontent.com/computationales/CES_template/main/ces_logo.png" id="hexlogo" alt="bluegreen labs"></a>
+        <a class="external-link hidden-md hidden-lg" href="https://computationales.ethz.ch/">
+          <img src="https://raw.githubusercontent.com/computationales/CES_template/main/ces_logo.png" id="hexlogo" alt="bluegreen labs"></a>
+        <a class="navbar-brand" href="index.html">
+           <i>ingestr <small>v1.4</small></i>
+        </a>
+      </div>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-<li>
-  <a href="index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
+      <ul class="nav navbar-nav navbar-right">
 <li>
   <a href="reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/calc_daytime_vpd.html">Calculate daytime VPD</a>
+      <a href="articles/calc_daytime_vpd.html">Derived fluxnet variables</a>
     </li>
     <li>
-      <a href="articles/example.html">Examples for ingestr</a>
+      <a href="articles/example.html">ingestr example</a>
     </li>
     <li>
-      <a href="articles/ingest_cru_rsofun.html">CRU climate forcing ingest</a>
+      <a href="articles/get_evi_gee.html">Getting MODIS EVI data from Google Earth Engine</a>
+    </li>
+    <li>
+      <a href="articles/ingest_cru_rsofun.html">ingest CRU</a>
     </li>
   </ul>
 </li>
 <li>
   <a href="news/index.html">Changelog</a>
 </li>
-      </ul>
-<ul class="nav navbar-nav navbar-right">
-<li>
-  <a href="https://github.com/computationales/ingestr/">
+        <li>
+  <a href="https://github.com/computationales/ingestr/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -87,17 +98,45 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-<div id="ingestr" class="section level1">
-<div class="page-header"><h1 class="hasAnchor">
-<a href="#ingestr" class="anchor"></a>ingestr</h1></div>
-<p>The package <code>ingestr</code> provides functions to extract (ingest) environmental point data (given longitude, latitude, and required dates) from large global files or remote data servers and create time series at user-specified temporal resolution (currently, just daily implemented). The main functionalities are:</p>
+
+
+<div class="section level1">
+<div class="page-header"><h1 id="ingestr">ingestr<a class="anchor" aria-label="anchor" href="#ingestr"></a>
+</h1></div>
+<p>The package <code>ingestr</code> provides functions to extract
+(ingest) environmental point data (given longitude, latitude, and
+required dates) from large global files or remote data servers and
+create time series at user-specified temporal resolution (currently,
+just daily implemented). The main functionalities are:</p>
 <ul>
 <li>Temporal downscaling from montly to daily resolution</li>
-<li>Quality filtering, temporal interpolation and smoothing of remote sensing data</li>
-<li>Handling of different APIs and file formats, returning ingested data in <em>tidy</em> format.</li>
+<li>Quality filtering, temporal interpolation and smoothing of remote
+sensing data</li>
+<li>Handling of different APIs and file formats, returning ingested data
+in <em>tidy</em> format.</li>
 </ul>
-<p>This is to make your life simpler when downloading and reading site-scale data, using a common interface with a single function for single-site and multi-site ingest, respectively, and a common and tidy format of ingested data across a variety of data <em>sources</em> and formats of original files. <em>Sources</em>, refers to both data sets hosted remotely and accessed through an API and local data sets. ingestr is particularly suited for preparing model forcing and offers a set of functionalities to transform original data into common standardized formats and units. This includes interpolation methods for converting monthly climate data (CRU TS currently) to daily time steps.</p>
-<p>The key functions are <code><a href="reference/ingest_bysite.html">ingest_bysite()</a></code> and <code><a href="reference/ingest.html">ingest()</a></code> for a single-site data ingest and a multi-site data ingest, respectively. For the multi-site data ingest, site meta information is provided through the argument <code>siteinfo</code> which takes a data frame with columns <code>lon</code> for longitude, <code>lat</code> for latitude, and (for time series downloads) <code>year_start</code> and <code>year_end</code>, specifying required dates (including all days of respective years). Sites are organised along rows. An example site meta info data frame is provided as part of this package for sites included in the FLUXNET2015 Tier 1 data set (<code>siteinfo_fluxnet2015</code>, additional columns are not required by <code><a href="reference/ingest_bysite.html">ingest_bysite()</a></code> and <code><a href="reference/ingest.html">ingest()</a></code>).</p>
+<p>This is to make your life simpler when downloading and reading
+site-scale data, using a common interface with a single function for
+single-site and multi-site ingest, respectively, and a common and tidy
+format of ingested data across a variety of data <em>sources</em> and
+formats of original files. <em>Sources</em>, refers to both data sets
+hosted remotely and accessed through an API and local data sets. ingestr
+is particularly suited for preparing model forcing and offers a set of
+functionalities to transform original data into common standardized
+formats and units. This includes interpolation methods for converting
+monthly climate data (CRU TS currently) to daily time steps.</p>
+<p>The key functions are <code><a href="reference/ingest_bysite.html">ingest_bysite()</a></code> and
+<code><a href="reference/ingest.html">ingest()</a></code> for a single-site data ingest and a multi-site
+data ingest, respectively. For the multi-site data ingest, site meta
+information is provided through the argument <code>siteinfo</code> which
+takes a data frame with columns <code>lon</code> for longitude,
+<code>lat</code> for latitude, and (for time series downloads)
+<code>year_start</code> and <code>year_end</code>, specifying required
+dates (including all days of respective years). Sites are organised
+along rows. An example site meta info data frame is provided as part of
+this package for sites included in the FLUXNET2015 Tier 1 data set
+(<code>siteinfo_fluxnet2015</code>, additional columns are not required
+by <code><a href="reference/ingest_bysite.html">ingest_bysite()</a></code> and <code><a href="reference/ingest.html">ingest()</a></code>).</p>
 <p>The following <em>sources</em> can be handled currently:</p>
 <table class="table">
 <colgroup>
@@ -118,7 +157,7 @@
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><a href="https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/">FLUXNET</a></td>
+<td><a href="https://fluxnet.fluxdata.org/data/fluxnet2015-dataset/" class="external-link">FLUXNET</a></td>
 <td>time series by site</td>
 <td>site</td>
 <td><code>fluxnet</code></td>
@@ -126,7 +165,7 @@
 <td>Extraction by site name</td>
 </tr>
 <tr class="even">
-<td><a href="http://www.eu-watch.org/data_availability">WATCH-WFDEI</a></td>
+<td><a href="http://www.eu-watch.org/data_availability" class="external-link">WATCH-WFDEI</a></td>
 <td>time series raster map</td>
 <td>global</td>
 <td><code>watch_wfdei</code></td>
@@ -134,110 +173,139 @@
 <td></td>
 </tr>
 <tr class="odd">
-<td><a href="https://crudata.uea.ac.uk/cru/data/hrg/">CRU</a></td>
+<td><a href="https://cds.climate.copernicus.eu/cdsapp#!/dataset/10.24381/cds.20d54e34?tab=overview" class="external-link">WFDE5</a></td>
+<td>time series raster map</td>
+<td>global</td>
+<td><code>wfde5</code></td>
+<td>local files</td>
+<td><a href="https://essd.copernicus.org/articles/12/2097/2020/" class="external-link">Cucchi
+et al. (2020)</a></td>
+</tr>
+<tr class="even">
+<td><a href="https://crudata.uea.ac.uk/cru/data/hrg/" class="external-link">CRU</a></td>
 <td>time series raster map</td>
 <td>global</td>
 <td><code>cru</code></td>
 <td>local files</td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>MODIS LP DAAC</td>
 <td>time series raster map</td>
 <td>global</td>
 <td><code>modis</code></td>
 <td>remote server</td>
-<td>using <a href="https://docs.ropensci.org/MODISTools/">MODISTools</a>
+<td>using <a href="https://docs.ropensci.org/MODISTools/" class="external-link">MODISTools</a>
 </td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Google Earth Engine</td>
 <td>time series raster map</td>
 <td>global</td>
 <td><code>gee</code></td>
 <td>remote server</td>
-<td>using Koen Hufken’s <a href="https://khufkens.github.io/gee_subset/">gee_suset</a> library</td>
+<td>using Koen Hufken’s <a href="https://khufkens.github.io/gee_subset/" class="external-link">gee_suset</a> library</td>
 </tr>
-<tr class="even">
-<td><a href="https://www.ngdc.noaa.gov/mgg/global/">ETOPO1</a></td>
+<tr class="odd">
+<td><a href="https://www.ngdc.noaa.gov/mgg/global/" class="external-link">ETOPO1</a></td>
 <td>raster map</td>
 <td>global</td>
 <td><code>etopo1</code></td>
 <td>local files</td>
 <td></td>
 </tr>
-<tr class="odd">
-<td><a href="https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html">Mauna Loa CO2</a></td>
+<tr class="even">
+<td><a href="https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html" class="external-link">Mauna
+Loa CO2</a></td>
 <td>time series</td>
 <td>site</td>
 <td><code>co2_mlo</code></td>
 <td>remote server</td>
-<td>using the <a href="https://github.com/bczernecki/climate">climate</a> R package</td>
+<td>using the <a href="https://github.com/bczernecki/climate" class="external-link">climate</a> R package</td>
 </tr>
-<tr class="even">
-<td><a href="https://webarchive.iiasa.ac.at/Research/LUC/External-World-soil-database/HTML/">HWSD</a></td>
+<tr class="odd">
+<td><a href="https://webarchive.iiasa.ac.at/Research/LUC/External-World-soil-database/HTML/" class="external-link">HWSD</a></td>
 <td>raster map, database</td>
 <td>global</td>
 <td><code>hwsd</code></td>
 <td>local files</td>
-<td>using an adaption of David Le Bauer’s <a href="https://github.com/dlebauer/rhwsd">rhwsd</a> R package</td>
+<td>using an adaption of David Le Bauer’s <a href="https://github.com/dlebauer/rhwsd" class="external-link">rhwsd</a> R package</td>
 </tr>
-<tr class="odd">
-<td><a href="https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c">WWF Ecoregions</a></td>
+<tr class="even">
+<td><a href="https://databasin.org/datasets/68635d7c77f1475f9b6c1d1dbe0a4c4c" class="external-link">WWF
+Ecoregions</a></td>
 <td>shapefile map</td>
 <td>global</td>
 <td><code>wwf</code></td>
 <td>local files</td>
 <td>Olsen et al. (2001)</td>
 </tr>
-<tr class="even">
-<td><a href="https://link.springer.com/article/10.1007%2Fs10584-011-0155-0">N deposition</a></td>
+<tr class="odd">
+<td><a href="https://link.springer.com/article/10.1007%2Fs10584-011-0155-0" class="external-link">N
+deposition</a></td>
 <td>time series raster map</td>
 <td>global</td>
 <td><code>ndep</code></td>
 <td>local files</td>
 <td>Lamarque et al. (2011)</td>
 </tr>
-<tr class="odd">
-<td><a href="https://www.isric.org/explore/soilgrids">SoilGrids</a></td>
+<tr class="even">
+<td><a href="https://www.isric.org/explore/soilgrids" class="external-link">SoilGrids</a></td>
 <td>raster map</td>
 <td>global</td>
 <td><code>soilgrids</code></td>
 <td>remote server</td>
 <td>Hengl et al. (2017)</td>
 </tr>
-<tr class="even">
-<td><a href="https://data.isric.org/geonetwork/srv/api/records/dc7b283a-8f19-45e1-aaed-e9bd515119bc">ISRIC WISE30sec</a></td>
+<tr class="odd">
+<td><a href="https://data.isric.org/geonetwork/srv/api/records/dc7b283a-8f19-45e1-aaed-e9bd515119bc" class="external-link">ISRIC
+WISE30sec</a></td>
 <td>raster map</td>
 <td>global</td>
 <td><code>wise</code></td>
 <td>local files</td>
-<td><a href="http://dx.doi.org/10.1016/j.geoderma.2016.01.034">Batjes (2016)</a></td>
-</tr>
-<tr class="odd">
-<td><a href="http://globalchange.bnu.edu.cn/research/soilwd.jsp">GSDE Soil</a></td>
-<td>raster map</td>
-<td>global</td>
-<td><code>gsde</code></td>
-<td>local files</td>
-<td><a href="https://doi.org/10.1002/2013MS000293">Shangguan et al. 2014</a></td>
+<td><a href="http://dx.doi.org/10.1016/j.geoderma.2016.01.034" class="external-link">Batjes
+(2016)</a></td>
 </tr>
 <tr class="even">
-<td><a href="https://www.worldclim.org/data/worldclim21.html">WorldClim</a></td>
+<td><a href="http://globalchange.bnu.edu.cn/research/soilwd.jsp" class="external-link">GSDE
+Soil</a></td>
 <td>raster map</td>
 <td>global</td>
 <td><code>gsde</code></td>
 <td>local files</td>
-<td><a href="https://doi.org/10.1002/joc.5086">Fick &amp; Hijmans, 2017</a></td>
+<td><a href="https://doi.org/10.1002/2013MS000293" class="external-link">Shangguan et
+al. 2014</a></td>
+</tr>
+<tr class="odd">
+<td><a href="https://www.worldclim.org/data/worldclim21.html" class="external-link">WorldClim</a></td>
+<td>raster map</td>
+<td>global</td>
+<td><code>gsde</code></td>
+<td>local files</td>
+<td><a href="https://doi.org/10.1002/joc.5086" class="external-link">Fick &amp; Hijmans,
+2017</a></td>
 </tr>
 </tbody>
 </table>
-<p>Examples to read data for a single site for each data type are given in Section ‘Examples for a single site’. Handling ingestion for multiple sites is described in Section ‘Example for a set of sites’. Unless remarked otherwise, extraction goes by longitude/latitude values. <strong>Note</strong> that this package does not provide the original data. Please follow links to data sources above where data is read from local files, and always cite original references.</p>
-<div id="variable-names-and-units" class="section level2">
-<h2 class="hasAnchor">
-<a href="#variable-names-and-units" class="anchor"></a>Variable names and units</h2>
-<p>All ingested data follows standardized variable naming and SI units. For example:</p>
+<p>Examples to read data for a single site for each data type are given
+in Section ‘Examples for a single site’. Handling ingestion for multiple
+sites is described in Section ‘Example for a set of sites’. Unless
+remarked otherwise, extraction goes by longitude/latitude values.
+<strong>Note</strong> that this package does not provide the original
+data. Please follow links to data sources above where data is read from
+local files, and always cite original references.</p>
+<div class="section level2">
+<h2 id="variable-names-and-units">Variable names and units<a class="anchor" aria-label="anchor" href="#variable-names-and-units"></a>
+</h2>
+<p>All ingested data follows standardized variable naming and SI units.
+For example:</p>
 <table class="table">
+<colgroup>
+<col width="42%">
+<col width="17%">
+<col width="39%">
+</colgroup>
 <thead><tr class="header">
 <th>Variable</th>
 <th>Variable name</th>
@@ -247,7 +315,7 @@
 <tr class="odd">
 <td>Gross primary production</td>
 <td><code>gpp</code></td>
-<td>g CO<span class="math inline"><sup> − 2</sup></span> m<span class="math inline"><sup> − 2</sup></span>
+<td>g CO<span class="math inline"><sup>−2</sup></span> m<span class="math inline"><sup>−2</sup></span>
 </td>
 </tr>
 <tr class="even">
@@ -271,7 +339,7 @@
 <tr class="odd">
 <td>Precipitation</td>
 <td><code>prec</code></td>
-<td>mm s<span class="math inline"><sup> − 1</sup></span>
+<td>mm s<span class="math inline"><sup>−1</sup></span>
 </td>
 </tr>
 <tr class="even">
@@ -287,13 +355,13 @@
 <tr class="even">
 <td>Net radiation</td>
 <td><code>netrad</code></td>
-<td>J m<span class="math inline"><sup> − 2</sup></span> s<span class="math inline"><sup> − 1</sup>=</span> W m<span class="math inline"><sup> − 2</sup></span>
+<td>J m<span class="math inline"><sup>−2</sup></span> s<span class="math inline"><sup>−1</sup>=</span> W m<span class="math inline"><sup>−2</sup></span>
 </td>
 </tr>
 <tr class="odd">
 <td>Photosynthetic photon flux density</td>
 <td><code>ppfd</code></td>
-<td>mol m<span class="math inline"><sup> − 2</sup></span> s<span class="math inline"><sup> − 1</sup></span>
+<td>mol m<span class="math inline"><sup>−2</sup></span> s<span class="math inline"><sup>−1</sup></span>
 </td>
 </tr>
 <tr class="even">
@@ -303,83 +371,137 @@
 </tr>
 </tbody>
 </table>
-<p>Use these variable names for specifying which variable names they correspond to in the original data source (see argument <code>getvars</code> to functions <code><a href="reference/ingest.html">ingest()</a></code> and <code><a href="reference/ingest_bysite.html">ingest_bysite()</a></code>). <code>gpp</code> is cumulative, corresponding to the time scale of the data. For example, if daily data is read, <code>gpp</code> is the total gross primary production per day (g CO<span class="math inline"><sup> − 2</sup></span> m<span class="math inline"><sup> − 2</sup></span> d<span class="math inline"><sup> − 1</sup></span>).</p>
+<p>Use these variable names for specifying which variable names they
+correspond to in the original data source (see argument
+<code>getvars</code> to functions <code><a href="reference/ingest.html">ingest()</a></code> and
+<code><a href="reference/ingest_bysite.html">ingest_bysite()</a></code>). <code>gpp</code> is cumulative,
+corresponding to the time scale of the data. For example, if daily data
+is read, <code>gpp</code> is the total gross primary production per day
+(g CO<span class="math inline"><sup>−2</sup></span> m<span class="math inline"><sup>−2</sup></span> d<span class="math inline"><sup>−1</sup></span>).</p>
 </div>
-<div id="installation" class="section level2">
-<h2 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h2>
-<p>To install and load the rsofun package using the latest release run the following command in your R terminal:</p>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p>To install and load the rsofun package using the latest release run
+the following command in your R terminal:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/">devtools</a></span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span>
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"stineb/ingestr"</span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/computationales/ingestr">ingestr</a></span><span class="op">)</span></code></pre></div>
-<div id="dependencies" class="section level3">
-<h3 class="hasAnchor">
-<a href="#dependencies" class="anchor"></a>Dependencies</h3>
-<p>The <code>ingestr</code> package relies heavily on the tidyverse. Dependencies are dplyr, purrr, lubridate, tidyr, raster, lubridate, stringi, stringr, sp, ncdf4, signal, climate. To install all required packages, do:</p>
+<code class="sourceCode R"><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/" class="external-link">devtools</a></span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/remote-reexports.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"computationales/ingestr"</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/computationales/ingestr" class="external-link">ingestr</a></span><span class="op">)</span></code></pre></div>
+<div class="section level3">
+<h3 id="dependencies">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies"></a>
+</h3>
+<p>The <code>ingestr</code> package relies heavily on the tidyverse.
+Dependencies are dplyr, purrr, lubridate, tidyr, raster, lubridate,
+stringi, stringr, sp, ncdf4, signal, climate. To install all required
+packages, do:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">list_pkgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"dplyr"</span>, <span class="st">"purrr"</span>, <span class="st">"lubridate"</span>, <span class="st">"tidyr"</span>, <span class="st">"raster"</span>, <span class="st">"lubridate"</span>, <span class="st">"stringi"</span>, <span class="st">"stringr"</span>, <span class="st">"sp"</span>, <span class="st">"ncdf4"</span>, <span class="st">"signal"</span>, <span class="st">"climate"</span>, <span class="st">"rgdal"</span><span class="op">)</span>
-<span class="va">new_pkgs</span> <span class="op">&lt;-</span> <span class="va">list_pkgs</span><span class="op">[</span><span class="op">!</span><span class="op">(</span><span class="va">list_pkgs</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>,<span class="st">"Package"</span><span class="op">]</span><span class="op">)</span><span class="op">]</span>
-<span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">new_pkgs</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="va">new_pkgs</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="va">list_pkgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dplyr"</span>, <span class="st">"purrr"</span>, <span class="st">"lubridate"</span>, <span class="st">"tidyr"</span>, <span class="st">"raster"</span>, <span class="st">"lubridate"</span>, <span class="st">"stringi"</span>, <span class="st">"stringr"</span>, <span class="st">"sp"</span>, <span class="st">"ncdf4"</span>, <span class="st">"signal"</span>, <span class="st">"climate"</span>, <span class="st">"rgdal"</span>, <span class="st">"hwsdr"</span>, <span class="st">"gdalUtils"</span>, <span class="st">"MODISTools"</span><span class="op">)</span>
+<span class="va">new_pkgs</span> <span class="op">&lt;-</span> <span class="va">list_pkgs</span><span class="op">[</span><span class="op">!</span><span class="op">(</span><span class="va">list_pkgs</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html" class="external-link">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>,<span class="st">"Package"</span><span class="op">]</span><span class="op">)</span><span class="op">]</span>
+<span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">new_pkgs</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="va">new_pkgs</span><span class="op">)</span></code></pre></div>
 </div>
 </div>
-<div id="example" class="section level2">
-<h2 class="hasAnchor">
-<a href="#example" class="anchor"></a>Example</h2>
-<p>Are described in vignette <code>example</code>, available <a href="https://rpubs.com/stineb/ingestr">here</a>.</p>
-<div id="usage-and-contribution" class="section level3">
-<h3 class="hasAnchor">
-<a href="#usage-and-contribution" class="anchor"></a>Usage and contribution</h3>
-<p>This package is designed to be extendible to ingesting other data types (sources). The developer (Beni Stocker) would appreciate if you made sure that your developments can be fed back to this repository. To do so, please use git. See <a href="http://rogerdudler.github.io/git-guide/">here</a> for a brief introduction to git.</p>
-<p>I recommend the following steps if you would just like to use this package (no development):</p>
+<div class="section level2">
+<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+</h2>
+<p>Are described in vignette <code>example</code>, available <a href="https://rpubs.com/stineb/ingestr" class="external-link">here</a>.</p>
+<div class="section level3">
+<h3 id="usage-and-contribution">Usage and contribution<a class="anchor" aria-label="anchor" href="#usage-and-contribution"></a>
+</h3>
+<p>This package is designed to be extendible to ingesting other data
+types (sources). The developer (Beni Stocker) would appreciate if you
+made sure that your developments can be fed back to this repository. To
+do so, please use git. See <a href="http://rogerdudler.github.io/git-guide/" class="external-link">here</a> for a brief
+introduction to git.</p>
+<p>I recommend the following steps if you would just like to use this
+package (no development):</p>
 <ul>
-<li>Directly install the package from the most up-to-date code on GitHub by</li>
+<li>Directly install the package from the most up-to-date code on GitHub
+by</li>
 </ul>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"stineb/ingestr"</span><span class="op">)</span></code></pre></div>
-<p>I recommend the following steps if you would like to use and further develop the package (even just for your own application - But keep in mind: others may benefit from your efforts too!):</p>
-<ol>
+<code class="sourceCode R"><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/remote-reexports.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"stineb/ingestr"</span><span class="op">)</span></code></pre></div>
+<p>I recommend the following steps if you would like to use and further
+develop the package (even just for your own application - But keep in
+mind: others may benefit from your efforts too!):</p>
+<ol style="list-style-type: decimal">
 <li>Make sure you have a Github account.</li>
-<li>Log on to Github, and go to <a href="https://github.com/stineb/ingestr" class="uri">https://github.com/stineb/ingestr</a> and click on ‘Fork’ in the upper right corner. This makes a copy of the repository that belongs to you, meaning that you can modify, commit, and push changes back to your forked repository as you please.</li>
-<li>Clone your fork to your local computer by entering in your terminal (here, it’s cloned to a subdirectory <code>ingestr</code> placed in your home directory):</li>
+<li>Log on to Github, and go to <a href="https://github.com/stineb/ingestr" class="external-link uri">https://github.com/stineb/ingestr</a> and click on ‘Fork’ in
+the upper right corner. This makes a copy of the repository that belongs
+to you, meaning that you can modify, commit, and push changes back to
+your forked repository as you please.</li>
+<li>Clone your fork to your local computer by entering in your terminal
+(here, it’s cloned to a subdirectory <code>ingestr</code> placed in your
+home directory):</li>
 </ol>
 <div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> home</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/<span class="op">&lt;</span>your_github_username<span class="op">&gt;</span>/ingestr.git</span></code></pre></div>
-<ol>
-<li>In RStudio, create a new project in your local directory <code>~/ingestr/</code>. This opens the repository in RStudio and you have access to the code where all ingestr-functions are implemented (see subdirectory <code>./R/</code>).</li>
-<li>In RStudio, after having edited code, select the ‘Build’ tab and click on ‘Install and Restart’ to build the package again. For quick edits and checks, you may simply source the edited files instead of re-building the whole package. If you like to add new functions, create new a source file in subdirectory <code>./R/</code>, write a nice roxygen header (see other source files as an example), then click on ‘Build’ -&gt; ‘More’ -&gt; ‘Document’, and then again on ‘Install and Restart’.</li>
-<li>If you’re happy with your new edits and additions to the package, you may want to have it fet back to the original repository. To do so, please create a new <em>pull request</em> in GitHub: Click on ‘New pull request’ on <a href="https://github.com/stineb/ingestr">the repository page</a> and follow the inuitive steps. Thanks!</li>
+<ol style="list-style-type: decimal">
+<li>In RStudio, create a new project in your local directory
+<code>~/ingestr/</code>. This opens the repository in RStudio and you
+have access to the code where all ingestr-functions are implemented (see
+subdirectory <code>./R/</code>).</li>
+<li>In RStudio, after having edited code, select the ‘Build’ tab and
+click on ‘Install and Restart’ to build the package again. For quick
+edits and checks, you may simply source the edited files instead of
+re-building the whole package. If you like to add new functions, create
+new a source file in subdirectory <code>./R/</code>, write a nice
+roxygen header (see other source files as an example), then click on
+‘Build’ -&gt; ‘More’ -&gt; ‘Document’, and then again on ‘Install and
+Restart’.</li>
+<li>If you’re happy with your new edits and additions to the package,
+you may want to have it fet back to the original repository. To do so,
+please create a new <em>pull request</em> in GitHub: Click on ‘New pull
+request’ on <a href="https://github.com/stineb/ingestr" class="external-link">the repository
+page</a> and follow the inuitive steps. Thanks!</li>
 </ol>
-<p>This package is still in its maturing phase. To stay up-to-date with the latest version, regularly re-install from GitHub (<code><a href="https://devtools.r-lib.org//reference/remote-reexports.html">devtools::install_github("stineb/ingestr")</a></code>), or - if you’re building from a locally (<em>git</em>) cloned repository - regularly do a <code>git pull</code> and re-install the package.</p>
+<p>This package is still in its maturing phase. To stay up-to-date with
+the latest version, regularly re-install from GitHub
+(<code>devtools::install_github("stineb/ingestr")</code>), or - if
+you’re building from a locally (<em>git</em>) cloned repository -
+regularly do a <code>git pull</code> and re-install the package.</p>
 </div>
 </div>
 </div>
+
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <div class="links">
-<h2>Links</h2>
+<h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li>Browse source code at <br><a href="https://github.com/computationales/ingestr/">https://​github.com/​computationales/​ingestr/​</a>
-</li>
+<li><a href="https://github.com/computationales/ingestr/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/computationales/ingestr/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
+
 <div class="license">
-<h2>License</h2>
+<h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li><a href="https://www.r-project.org/Licenses/GPL-3">GPL-3</a></li>
+<li><a href="https://www.r-project.org/Licenses/GPL-3" class="external-link">GPL-3</a></li>
 </ul>
 </div>
+
+
 <div class="citation">
-<h2>Citation</h2>
+<h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
-<li><a href="authors.html">Citing ingestr</a></li>
+<li><a href="authors.html#citation">Citing ingestr</a></li>
 </ul>
 </div>
+
 <div class="developers">
-<h2>Developers</h2>
+<h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Benjamin Stocker <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-2697-9096" target="orcid.widget" aria-label="ORCID"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Stocker Benjamin <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-5070-8109" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li><a href="authors.html">More about authors...</a></li>
+</ul>
+</div>
+
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/computationales/ingestr/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/computationales/ingestr/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 </ul>
 </div>
 
@@ -387,19 +509,52 @@
 </div>
 
 
-      <footer><div class="copyright">
-  <p>Developed by Benjamin Stocker.</p>
+      <footer><!-- begin footer --><div class="footer">
+    <div class="container">
+        <div class="row start bottom-8">
+            <div class="col-xs-10">
+                <div class="row">
+                    <div class="col-md-4 col-xs-6">
+                        <a href="https://github.com/computationales" target="_blank" class="external-link">
+                          <div class="icon fab fa-github"></div></a>
+                        <a href="https://computationales.ethz.ch/" target="_blank" class="external-link">
+                          <div class="icon fa fa-flask"></div></a>
+                        <a href="http://twitter.com/stineb/" target="_blank" class="external-link">
+                          <div class="icon fab fa-twitter"></div></a>
+                    </div>
+                </div>
+                <div class="row top-4">
+                    <div class="col-md-2 col-sm-4">
+                        <ul>
+<h5 class="bottom-2">About</h5>
+                            <li><a href="https://computationales.ethz.ch/" class="external-link">Computationales</a></li>
+                            <li><a href="https://computationales.ethz.ch/" class="external-link">Our Team</a></li>
+                            <li><a href="https://computationales.ethz.ch/" class="external-link">Contact Us</a></li>
+                        </ul>
+</div>
+                    <div class="col-md-2 col-sm-4">
+                        <ul>
+<h5 class="bottom-2">Resources</h5>
+                            <li><a href="https://github.com/computationales" class="external-link">Packages</a></li>
+                            <li><a href="https://computationales.ethz.ch/" class="external-link">Publications</a></li>
+                            <li><a href="https://computationales.ethz.ch/" class="external-link">Blog</a></li>
+                        </ul>
 </div>
 
-<div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+<!-- / end footer -->
 
       </footer>
 </div>
 
   
 
+
+  
 
   </body>
 </html>

@@ -1,9 +1,10 @@
-pandoc: 2.11.2
-pkgdown: 1.6.1
+pandoc: 2.17.1.1
+pkgdown: 2.0.2
 pkgdown_sha: ~
 articles:
   calc_daytime_vpd: calc_daytime_vpd.html
   example: example.html
+  get_evi_gee: get_evi_gee.html
   ingest_cru_rsofun: ingest_cru_rsofun.html
-last_built: 2021-10-27T13:14Z
+last_built: 2022-04-07T13:23Z
 
