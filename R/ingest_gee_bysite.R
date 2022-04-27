@@ -52,11 +52,11 @@ ingest_gee_bysite <- function(
   # CRAN compliance, define variables
   lat <- lon <- ymd <- longitude <- latitude <- product <- NULL
   
-  
   # Define names
   
   # this function is hacked to only do one site at a time
   sitename <- df_siteinfo$sitename[1]
+  
   df_siteinfo <- slice(df_siteinfo, 1)
 
   dirnam_daily_csv <- data_path
@@ -71,7 +71,7 @@ ingest_gee_bysite <- function(
   }
 
   # create a new prod suffix
-  prod_suffix <- paste(prod_suffix,band_var,band_qc, sep = "_")
+  prod_suffix <- paste(prod_suffix, band_var, band_qc, sep = "_")
   
   filnam_daily_csv <- paste0( dirnam_daily_csv, "/",varnam,"_", sitename, ".csv" )
   filnam_raw_csv <- paste0( dirnam_raw_csv, sitename, "_", prod_suffix, "_gee_subset.csv" )
@@ -160,7 +160,6 @@ ingest_gee_bysite <- function(
     if (do_continue){
       
       # Clean (gapfill and interpolate) full time series data to 8-days, daily, and monthly
-      
       ddf <- gapfill_interpol_gee(
         df,
         sitename,
@@ -323,20 +322,22 @@ gapfill_interpol_gee <- function(
       dplyr::select(-qc_bitname)
 
   } else if (grepl("MCD15A3H", prod)) {
-
+    
     # QC interpreted according to https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H:
-
     # This is interpreted according to https://lpdaac.usgs.gov/documents/2/mod15_user_guide.pdf, p.9
+    
     df <- df %>%
 
       dplyr::rename(modisvar = !!var_name) %>%
       dplyr::mutate(modisvar_filtered = modisvar) %>%
 
       # separate into bits
+      ungroup() %>%
       rowwise() %>%
-      mutate(qc_bitname = intToBits( !!qc_name )[1:8] %>%
-               rev() %>% as.character() %>% paste(collapse = "")) %>%
-
+      mutate(qc_bitname = paste(rev(intToBits( !!qc_name )[1:8]), collapse = ""))
+    
+    df <- df %>%
+      
       # MODLAND_QC bits
       # 0: Good  quality (main algorithm with or without saturation)
       # 1: Other quality (backup  algorithm or fill values)
@@ -347,7 +348,7 @@ gapfill_interpol_gee <- function(
       # 0: Terra
       # 1: Aqua
       mutate(qc_bit1 = substr( qc_bitname, start=7, stop=7 )) %>%
-      mutate(terra = ifelse( qc_bit1=="0", TRUE, FALSE )) %>%
+      mutate(terra = ifelse( qc_bit1 == "0", TRUE, FALSE )) %>%
 
       # Dead detector
       # 0: Detectors apparently  fine  for up  to  50% of  channels  1,  2
@@ -384,8 +385,7 @@ gapfill_interpol_gee <- function(
       # new addition 5.1.2021
       # mutate(modisvar_filtered = ifelse( !dead_detector, modisvar_filtered, NA )) %>%
       mutate(modisvar_filtered = ifelse( SCF_QC %in% c(0,1), modisvar_filtered, NA ))
-
-
+    
   } else if (grepl("MOD17A2H", prod)) {
     # Contains MODIS GPP
     # quality bitmap interpreted based on https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod17a2
@@ -474,6 +474,7 @@ gapfill_interpol_gee <- function(
       # no replacement with mean seasonal cycle here
       dplyr::mutate( modisvar_filled = modisvar_filtered )
 
+
   }
 
   # Create daily dataframe
@@ -488,10 +489,8 @@ gapfill_interpol_gee <- function(
   # thus not equal to start date but (start date + 2)
 
   ddf <- ddf %>%
-    left_join( df, by="date" )
+    left_join( df, by = "date" )
 
-  print(head(ddf))
-  
   if (method_interpol == "loess" || keep){
 
     # get LOESS spline model for predicting daily values (used below)
