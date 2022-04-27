@@ -82,7 +82,10 @@ ingest_gee_bysite <- function(
     do_continue <- TRUE  
   }
 
-  # Save error code (0: no error, 1: error: file downloaded bu all data is NA, 2: file not downloaded)
+  # Save error code
+  # 0: no error
+  # 1: error: file downloaded bu all data is NA,
+  # 2: file not downloaded
   df_error <- tibble()
 
   if (file.exists(filnam_daily_csv) && !overwrite_interpol){
@@ -224,7 +227,7 @@ gapfill_interpol_gee <- function(
 
   # CLEAN AND GAP-FILL
 
-  if (prod == "MOD13Q1"){
+  if (grepl("MOD13Q1", prod)) {
 
     # This is for MOD13Q1 Vegetation indeces (NDVI, EVI) data downloaded from Google Earth Engine
 
@@ -319,7 +322,7 @@ gapfill_interpol_gee <- function(
       # drop it
       dplyr::select(-qc_bitname)
 
-  } else if (prod=="MCD15A3H"){
+  } else if (grepl("MCD15A3H", prod)) {
 
     # QC interpreted according to https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H:
 
@@ -383,7 +386,7 @@ gapfill_interpol_gee <- function(
       mutate(modisvar_filtered = ifelse( SCF_QC %in% c(0,1), modisvar_filtered, NA ))
 
 
-  } else if (prod=="MOD17A2H"){
+  } else if (grepl("MOD17A2H", prod)) {
     # Contains MODIS GPP
     # quality bitmap interpreted based on https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod17a2
 
@@ -480,8 +483,6 @@ gapfill_interpol_gee <- function(
       # decimal date
       mutate(year_dec = lubridate::decimal_date(date))
 
-
-
   # merge N-day dataframe into daily one.
   # Warning: here, 'date' must be centered within 4-day period - 
   # thus not equal to start date but (start date + 2)
@@ -489,6 +490,8 @@ gapfill_interpol_gee <- function(
   ddf <- ddf %>%
     left_join( df, by="date" )
 
+  print(head(ddf))
+  
   if (method_interpol == "loess" || keep){
 
     # get LOESS spline model for predicting daily values (used below)
@@ -506,6 +509,7 @@ gapfill_interpol_gee <- function(
     # take a three-weeks window for locally weighted regression (loess)
     # good explanation: 
     # https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
+    
     ndays_tot <- lubridate::time_length(diff(range(ddf$date)), unit = "day")
     span <- 100/ndays_tot 
 
