@@ -160,6 +160,9 @@ get_obs_bysite_fluxnet <- function(
   added <- c("")
   if (is.null(filter_ntdt)) filter_ntdt <- FALSE
   if (filter_ntdt){
+    
+    # NEEDS DIFFERENT COLUMNS FOR HH OR DD
+    
     if ("GPP_NT_VUT_REF" %in% getvars){
       toadd <- c("GPP_DT_VUT_REF", "NEE_VUT_REF_DAY_QC", "NEE_VUT_REF_NIGHT_QC")
       getvars <- c(getvars, toadd) %>%
