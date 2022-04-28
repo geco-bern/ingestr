@@ -413,7 +413,11 @@ ingest_bysite <- function(
           }
           
           df_bias <- df_fine %>% 
-            tidyr::pivot_longer(cols = starts_with("vapr_"), names_to = "month", values_to = "vapr", names_prefix = "vapr_") %>% 
+            tidyr::pivot_longer(
+              cols = starts_with("vapr_"),
+              names_to = "month",
+              values_to = "vapr",
+              names_prefix = "vapr_") %>% 
             mutate(month = as.integer(month)) %>% 
             rename(vapr_fine = vapr) %>% 
             mutate(vapr_fine = vapr_fine * 1e3) %>%   # kPa -> Pa
