@@ -44,7 +44,6 @@ Imports:
     climate,
     rgdal,
     sf,
-    gdalUtils,
     MODISTools,
     data.table,
     ggplot2
