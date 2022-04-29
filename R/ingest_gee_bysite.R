@@ -332,9 +332,9 @@ gapfill_interpol_gee <- function(
       dplyr::mutate(modisvar_filtered = modisvar) %>%
 
       # separate into bits
-      ungroup() %>%
       rowwise() %>%
-      mutate(qc_bitname = paste(rev(intToBits( !!qc_name )[1:8]), collapse = ""))
+      mutate(qc_bitname = intToBits( !!qc_name )[1:8] %>%
+               rev() %>% as.character() %>% paste(collapse = ""))
     
     df <- df %>%
       
