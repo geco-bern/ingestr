@@ -174,7 +174,6 @@ ingest_gee_bysite <- function(
 
       
       # save cleaned and interpolated data to file
-      
       readr::write_csv( ddf, file = filnam_daily_csv )
 
     } else {
@@ -475,8 +474,159 @@ gapfill_interpol_gee <- function(
       dplyr::mutate( modisvar_filled = modisvar_filtered )
 
 
+  } else if (prod == "MOD09A1"){
+    
+    # Filter surface reflectance data
+    
+    # QC interpreted according to 
+    # https://modis-land.gsfc.nasa.gov/pdf/MOD09_UserGuide_v1.4.pdf,
+    # Section 3.2.2, Table 10 500 m, 1 km and Coarse Resolution Surface 
+    # Reflectance Band Quality Description (32-bit). Bit 0 is LSB.
+    clean_sur_refl <- function(x, qc_binary){
+      ifelse(qc_binary, x, NA)
+    }
+    
+    df <- df %>%
+      
+      # separate into bits
+      rowwise() %>%
+      mutate(qc_bitname = intToBits( sur_refl_qc_500m ) %>%
+               as.character() %>%
+               paste(collapse = "")
+      ) %>%
+      
+      # Bits 0-1: MODLAND QA bits
+      #   00 corrected product produced at ideal quality -- all bands
+      #   01 corrected product produced at less than ideal quality -- some or all bands
+      #   10 corrected product not produced due to cloud effects -- all bands
+      #   11 corrected product not produced for other reasons -- some or all bands, may be fill value (11) [Note that a value of (11) overrides a value of (01)].
+      mutate(
+        modland_qc = substr( qc_bitname, start=1, stop=2 )
+      ) %>%
+      mutate(
+        modland_qc_binary = ifelse(modland_qc %in% c("00"), TRUE, FALSE)
+      ) %>%   # false for removing data
+      mutate(across(starts_with("sur_refl_b"),
+                    ~clean_sur_refl(., modland_qc_binary))) %>%
+      
+      # drop it
+      dplyr::select(-ends_with("_qc"), -ends_with("_qc_binary"))
+    
+  } else if (prod == "MOD11A2"){
+    
+    # Filter available landsurface temperature data for daily-means
+    # QC interpreted according to 
+    # https://lpdaac.usgs.gov/documents/118/MOD11_User_Guide_V6.pdf
+    df <- df %>%
+      dplyr::rename(modisvar = value) %>%
+      dplyr::mutate(modisvar_filtered = modisvar) %>%
+      mutate(
+        
+        qc_bitname = intToBits( qc )[1:8] %>%
+          rev() %>%
+          as.character() %>%
+          paste(collapse = "")
+      ) %>%
+      
+      # Bits 0-1: Pixel Quality
+      #   00 Pixel produced with good quality
+      #   01 Pixel produced, but check other QA
+      dplyr::mutate(
+        pixel_quality = substr( qc_bitname, start = 1, stop = 2 )
+      ) %>%
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          pixel_quality %in% c("00", "01"),
+          modisvar_filtered, NA)
+      ) %>%
+      
+      # Bits 2-3: Data Quality
+      #   00 = Good data quality of L1B bands 29, 31, 32
+      #   01 = other quality data
+      #   10 = 11 = TBD
+      dplyr::mutate(
+        data_quality = substr( qc_bitname, start = 3, stop = 4 )
+      ) %>%
+      
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          data_quality %in% c("00", "01"),
+          modisvar_filtered, NA),
+        modisvar_filtered = ifelse(
+          modisvar_filtered <= 0, NA, modisvar_filtered)
+      ) %>%
+      
+      # drop it
+      dplyr::select(-qc_bitname)
+    
+  } else if (prod == "MCD43A4") {
+    
+    # MCD43A4 uses a simple binary quality control flag
+    # with 0 = good quality, 1 = incomplete inversion
+    
+    # NOT CORRECT, CHECK FLAGS!!!!!
+    df <- df %>%
+      dplyr::rename(modisvar = value) %>%
+      dplyr::mutate(modisvar_filtered = modisvar) %>%
+      mutate(
+        pixel_quality = contains("Quality_Band")
+      ) %>%
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          pixel_quality == 0,
+          modisvar_filtered, NA)
+      )
+    
+  } else if (prod == "MODOCGA") {
+    
+    if(names(df))
+    
+    ## NOT CORRECT YET, CHECK FLAG DETAILS!!!!!
+    df <- df %>%
+      dplyr::rename(modisvar = value) %>%
+      dplyr::mutate(modisvar_filtered = modisvar) %>%
+      mutate(
+        
+        qc_bitname = intToBits(qc) %>%
+          rev() %>%
+          as.character() %>%
+          paste(collapse = "")
+      ) %>%
+      
+      # Bits 0-1: Pixel Quality
+      #   00 Pixel produced with good quality
+      #   01 Pixel produced, but check other QA
+      dplyr::mutate(
+        pixel_quality = substr( qc_bitname, start = 1, stop = 2 )
+      ) %>%
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          pixel_quality %in% c("00", "01"),
+          modisvar_filtered, NA)
+      ) %>%
+      
+      # Bits 2-3: Data Quality
+      #   00 = Good data quality of L1B bands 29, 31, 32
+      #   01 = other quality data
+      #   10 = 11 = TBD
+      dplyr::mutate(
+        data_quality = substr( qc_bitname, start = 3, stop = 4 )
+      ) %>%
+      
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          data_quality %in% c("00", "01"),
+          modisvar_filtered, NA),
+        modisvar_filtered = ifelse(
+          modisvar_filtered <= 0, NA, modisvar_filtered)
+      ) %>%
+      
+      # drop it
+      dplyr::select(-qc_bitname)
+    
   }
 
+  
   # Create daily dataframe
 
   ddf <- init_dates_dataframe( year_start, year_end ) %>%
