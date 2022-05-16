@@ -136,6 +136,8 @@ ingest_gee_bysite <- function(
     # N-day period.
     
     if (file.exists(filnam_raw_csv)){
+      
+      message("file exists, reading in previously downloaded data...")
 
       df <- readr::read_csv( filnam_raw_csv ) %>%   #, col_types = cols()
         dplyr::mutate(  date = lubridate::ymd(date) ) %>%
@@ -158,6 +160,8 @@ ingest_gee_bysite <- function(
     }
 
     if (do_continue){
+      
+      message("interpolating data...")
       
       # Clean (gapfill and interpolate) full time series data to 8-days, daily, and monthly
       ddf <- gapfill_interpol_gee(
