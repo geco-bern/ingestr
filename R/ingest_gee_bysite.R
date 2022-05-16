@@ -137,9 +137,9 @@ ingest_gee_bysite <- function(
     
     if (file.exists(filnam_raw_csv)){
       
-      message("file exists, reading in previously downloaded data...")
+      message("- file exists, reading in previously downloaded data...")
 
-      df <- readr::read_csv( filnam_raw_csv ) %>%   #, col_types = cols()
+      df <- readr::read_csv( filnam_raw_csv) %>%   #, col_types = cols()
         dplyr::mutate(  date = lubridate::ymd(date) ) %>%
         dplyr::select( -longitude, -latitude, -product )
 
@@ -161,7 +161,7 @@ ingest_gee_bysite <- function(
 
     if (do_continue){
       
-      message("interpolating data...")
+      message("- interpolating data...")
       
       # Clean (gapfill and interpolate) full time series data to 8-days, daily, and monthly
       ddf <- gapfill_interpol_gee(
@@ -524,8 +524,8 @@ gapfill_interpol_gee <- function(
     df <- df %>%
       dplyr::rename(modisvar = value) %>%
       dplyr::mutate(modisvar_filtered = modisvar) %>%
+      rowwise() %>%
       mutate(
-        
         qc_bitname = intToBits( qc )[1:8] %>%
           rev() %>%
           as.character() %>%
