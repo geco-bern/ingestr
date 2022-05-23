@@ -176,6 +176,7 @@ ingest_gee_bysite <- function(
         keep = keep
       )
 
+      message("- writing data to file...")
       
       # save cleaned and interpolated data to file
       readr::write_csv( ddf, file = filnam_daily_csv )
@@ -326,6 +327,8 @@ gapfill_interpol_gee <- function(
 
   } else if (grepl("MCD15A3H", prod)) {
     
+    message("- processing fpar data")
+    
     # QC interpreted according to https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H:
     # This is interpreted according to https://lpdaac.usgs.gov/documents/2/mod15_user_guide.pdf, p.9
     
@@ -336,8 +339,13 @@ gapfill_interpol_gee <- function(
 
       # separate into bits
       rowwise() %>%
-      mutate(qc_bitname = intToBits( !!qc_name )[1:8] %>%
-               rev() %>% as.character() %>% paste(collapse = ""))
+      mutate(qc_bitname = intToBits( FparLai_QC )[1:8] %>%
+               rev() %>%
+               as.character() %>% 
+               paste(collapse = "")
+             )
+    
+    message("- extracted qc bits")
     
     df <- df %>%
       
@@ -393,8 +401,11 @@ gapfill_interpol_gee <- function(
     # Contains MODIS GPP
     # quality bitmap interpreted based on https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod17a2
 
-    df$qc_bitname <- sapply( seq(nrow(df)), function(x) as.integer( intToBits( df$Psn_QC[x] )[1:8] ) %>%
-                               rev() %>% as.character() %>% paste( collapse="" )  )
+    df$qc_bitname <- sapply(
+      seq(nrow(df)), function(x) as.integer( intToBits( df$Psn_QC[x] )[1:8] ) %>%
+        rev() %>%
+        as.character() %>%
+        paste( collapse="" )  )
 
     # MODLAND_QC bits
     # 0: Good  quality (main algorithm with  or without saturation)
@@ -632,7 +643,7 @@ gapfill_interpol_gee <- function(
 
   
   # Create daily dataframe
-
+  message("- generate daily values")
   ddf <- init_dates_dataframe( year_start, year_end ) %>%
 
       # decimal date
@@ -641,7 +652,7 @@ gapfill_interpol_gee <- function(
   # merge N-day dataframe into daily one.
   # Warning: here, 'date' must be centered within 4-day period - 
   # thus not equal to start date but (start date + 2)
-
+  message("- merging daily time series with original data")
   ddf <- ddf %>%
     left_join( df, by = "date" )
 
