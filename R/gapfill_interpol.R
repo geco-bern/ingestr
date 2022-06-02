@@ -319,7 +319,6 @@ gapfill_interpol <- function(
       
   }
   
-  
   # Create daily dataframe
   
   ddf <- init_dates_dataframe(

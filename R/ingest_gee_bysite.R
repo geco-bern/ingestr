@@ -71,10 +71,10 @@ ingest_gee_bysite <- function(
   }
 
   # create a new prod suffix
-  prod_suffix <- paste(prod_suffix, band_var, band_qc, sep = "_")
+  suffix <- paste(prod_suffix, band_var, band_qc, sep = "_")
   
   filnam_daily_csv <- paste0( dirnam_daily_csv, "/",varnam,"_", sitename, ".csv" )
-  filnam_raw_csv <- paste0( dirnam_raw_csv, sitename, "_", prod_suffix, "_gee_subset.csv" )
+  filnam_raw_csv <- paste0( dirnam_raw_csv, sitename, "_", suffix, "_gee_subset.csv" )
 
   if(method_interpol == "none"){
     do_continue <- FALSE
@@ -230,6 +230,8 @@ gapfill_interpol_gee <- function(
 
   # CLEAN AND GAP-FILL
 
+  print(prod)
+  
   if (grepl("MOD13Q1", prod)) {
 
     # This is for MOD13Q1 Vegetation indeces (NDVI, EVI) data downloaded from Google Earth Engine
@@ -578,8 +580,6 @@ gapfill_interpol_gee <- function(
     
     # MCD43A4 uses a simple binary quality control flag
     # with 0 = good quality, 1 = incomplete inversion
-    
-    # NOT CORRECT, CHECK FLAGS!!!!!
     df <- df %>%
       dplyr::rename(modisvar = value) %>%
       dplyr::mutate(modisvar_filtered = modisvar) %>%
@@ -594,9 +594,18 @@ gapfill_interpol_gee <- function(
     
   } else if (prod == "MODOCGA") {
     
-    if(names(df))
+    # dynamic filtering
+    band <- names(df)[3]
     
-    ## NOT CORRECT YET, CHECK FLAG DETAILS!!!!!
+    if (grepl("b08", band)){
+      bits <- c(0,3)
+    } if else (grepl("b09", band)) {
+      
+    } if else (grepl("b09", band)) {
+    
+      
+    }
+    
     df <- df %>%
       dplyr::rename(modisvar = value) %>%
       dplyr::mutate(modisvar_filtered = modisvar) %>%
@@ -618,22 +627,6 @@ gapfill_interpol_gee <- function(
         modisvar_filtered = ifelse(
           pixel_quality %in% c("00", "01"),
           modisvar_filtered, NA)
-      ) %>%
-      
-      # Bits 2-3: Data Quality
-      #   00 = Good data quality of L1B bands 29, 31, 32
-      #   01 = other quality data
-      #   10 = 11 = TBD
-      dplyr::mutate(
-        data_quality = substr( qc_bitname, start = 3, stop = 4 )
-      ) %>%
-      
-      dplyr::mutate(
-        modisvar_filtered = ifelse(
-          data_quality %in% c("00", "01"),
-          modisvar_filtered, NA),
-        modisvar_filtered = ifelse(
-          modisvar_filtered <= 0, NA, modisvar_filtered)
       ) %>%
       
       # drop it
