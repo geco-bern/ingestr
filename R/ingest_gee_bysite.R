@@ -593,68 +593,71 @@ gapfill_interpol_gee <- function(
       )
     
   } else if (prod == "MODOCGA") {
-    
-    # dynamic filtering
-    band <- names(df)[3]
-    
-    if (grepl("b08", band)){
-      bits <- c(0,3)
-    }
-    
-    if (grepl("b09", band)){
-      bits <- c(4,7)
-    }
-    
-    if (grepl("b10", band)){
-      bits <- c(8,11)
-    }
-    
-    if (grepl("b11", band)){
-      bits <- c(12,15)
-    }
-    
-    if (grepl("b12", band)){
-      bits <- c(16,19)
-    }
-    
-    if (grepl("b13", band)){
-      bits <- c(20,23)
-    }
-    
-    if (grepl("b14", band)){
-      bits <- c(24,27)
-    }
-    
-    if (grepl("b15", band)){
-      bits <- c(28,31)
-    }
-    
-    df <- df %>%
-      dplyr::rename(modisvar = value) %>%
-      dplyr::mutate(modisvar_filtered = modisvar) %>%
-      mutate(
-        
-        qc_bitname = intToBits(qc) %>%
-          rev() %>%
-          as.character() %>%
-          paste(collapse = "")
-        
-      ) %>%
       
-      # Bits 0-1: Pixel Quality
-      #   00 Pixel produced with good quality
-      #   01 Pixel produced, but check other QA
-      dplyr::mutate(
-        pixel_quality = substr( qc_bitname, start = bits[1], stop = bits[2] )
-      ) %>%
-      dplyr::mutate(
-        modisvar_filtered = ifelse(
-          pixel_quality == 0,
-          modisvar_filtered, NA)
-      ) %>%
+      # dynamic filtering depending
+      # on the band used
+      band <- names(df)[3]
       
-      # drop it
-      dplyr::select(-qc_bitname)
+      if (grepl("b08", band)){
+        bits <- c(0,3)
+      }
+      
+      if (grepl("b09", band)){
+        bits <- c(4,7)
+      }
+      
+      if (grepl("b10", band)){
+        bits <- c(8,11)
+      }
+      
+      if (grepl("b11", band)){
+        bits <- c(12,15)
+      }
+      
+      if (grepl("b12", band)){
+        bits <- c(16,19)
+      }
+      
+      if (grepl("b13", band)){
+        bits <- c(20,23)
+      }
+      
+      if (grepl("b14", band)){
+        bits <- c(24,27)
+      }
+      
+      if (grepl("b15", band)){
+        bits <- c(28,31)
+      }
+      
+      warning("MODOCGA QA/QC not resolved")
+      
+      df <- df %>%
+        dplyr::rename(modisvar = value) %>%
+        dplyr::mutate(modisvar_filtered = modisvar) %>%
+        mutate(
+          
+          qc_bitname = intToBits(qc) %>%
+            rev() %>%
+            as.character() %>%
+            paste(collapse = "")
+          
+        ) %>%
+        
+        # Bits 0-1: Pixel Quality
+        #   00 Pixel produced with good quality
+        #   01 Pixel produced, but check other QA
+        dplyr::mutate(
+          pixel_quality = substr( qc_bitname, start = bits[1], stop = bits[2] )
+        ) %>%
+        dplyr::mutate(
+          modisvar_filtered = ifelse(
+            pixel_quality == 0,
+            modisvar_filtered, NA)
+        ) %>%
+        
+        # drop it
+        dplyr::select(-qc_bitname)
     
   }
 
