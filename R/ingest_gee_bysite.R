@@ -201,6 +201,24 @@ ingest_gee_bysite <- function(
   return(ddf)
 }
 
+#' Gapfill GEE data products
+#' 
+#' Gap filling routine for remote
+#' sensing data downloaded using the
+#' GEE routine
+#'
+#' @param df GEE downloaded data frame
+#' @param sitename site name
+#' @param year_start start year
+#' @param year_end end year
+#' @param var_name variable
+#' @param qc_name quality control field
+#' @param prod product name
+#' @param method_interpol interpolation method
+#' @param keep keep (intermediate data??)
+#'
+#' @return gap filled remote sensing time series
+#' @export
 
 gapfill_interpol_gee <- function( 
   df,
@@ -226,12 +244,10 @@ gapfill_interpol_gee <- function(
     qc_bit1 <- qc_bit2 <- qc_bit3 <- qc_bit4 <- CloudState <- modisvar_filtered <- 
     good_quality <- SCF_QC <- sur_refl_qc_500m <- modland_qc <- pixel <- 
     settings_modis <- approx <- prevdate <- modisvar_filled <- 
-    Psn_QC <- Gpp <- outlier <-  NULL
+    Psn_QC <- Gpp <- outlier <- FparLai_QC <- pixel_quality <- data_quality <-  NULL
 
   # CLEAN AND GAP-FILL
 
-  print(prod)
-  
   if (grepl("MOD13Q1", prod)) {
 
     # This is for MOD13Q1 Vegetation indeces (NDVI, EVI) data downloaded from Google Earth Engine
@@ -628,6 +644,10 @@ gapfill_interpol_gee <- function(
       
       if (grepl("b15", band)){
         bits <- c(28,31)
+      }
+      
+      if (grepl("b16", band)){
+        bits <- c(4,7)
       }
       
       df <- df %>%
