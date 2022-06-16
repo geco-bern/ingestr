@@ -18,8 +18,6 @@
 #' \dontrun{
 #' vec <- remove_outliers( vec, coef=3 ) 
 #' }
-#' 
-
 remove_outliers <- function(vec, coef = 1.5) {
   # use the command boxplot.stats()$out which use the Tukey's method to 
   # identify the outliers ranged above and below the <coef`>*IQR.

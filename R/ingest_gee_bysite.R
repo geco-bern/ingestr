@@ -212,7 +212,7 @@ gapfill_interpol_gee <- function(
   prod,
   method_interpol,
   keep
-  ) {
+  ){
   
 
   # Returns data frame containing data
@@ -597,43 +597,71 @@ gapfill_interpol_gee <- function(
     # dynamic filtering
     band <- names(df)[3]
     
-    if (grepl("b08", band)){
-      bits <- c(0,3)
-    } if else (grepl("b09", band)) {
-      
-    } if else (grepl("b09", band)) {
+    ## XXX commented this out to be resolved XXX
     
-      
-    }
-    
-    df <- df %>%
-      dplyr::rename(modisvar = value) %>%
-      dplyr::mutate(modisvar_filtered = modisvar) %>%
-      mutate(
-        
-        qc_bitname = intToBits(qc) %>%
-          rev() %>%
-          as.character() %>%
-          paste(collapse = "")
-      ) %>%
-      
-      # Bits 0-1: Pixel Quality
-      #   00 Pixel produced with good quality
-      #   01 Pixel produced, but check other QA
-      dplyr::mutate(
-        pixel_quality = substr( qc_bitname, start = 1, stop = 2 )
-      ) %>%
-      dplyr::mutate(
-        modisvar_filtered = ifelse(
-          pixel_quality %in% c("00", "01"),
-          modisvar_filtered, NA)
-      ) %>%
-      
-      # drop it
-      dplyr::select(-qc_bitname)
-    
-  }
-
+  #   if (grepl("b08", band)){
+  #     
+  #     bits <- c(0,3)
+  #     
+  #   } else if (grepl("b09", band)) {
+  #     # do something here
+  #     df <- df %>%
+  #       dplyr::rename(modisvar = value) %>%
+  #       dplyr::mutate(modisvar_filtered = modisvar) %>%
+  #       mutate(
+  #         
+  #         qc_bitname = intToBits(qc) %>%
+  #           rev() %>%
+  #           as.character() %>%
+  #           paste(collapse = "")
+  #       ) %>%
+  #       
+  #       # Bits 0-1: Pixel Quality
+  #       #   00 Pixel produced with good quality
+  #       #   01 Pixel produced, but check other QA
+  #       dplyr::mutate(
+  #         pixel_quality = substr( qc_bitname, start = 1, stop = 2 )
+  #       ) %>%
+  #       dplyr::mutate(
+  #         modisvar_filtered = ifelse(
+  #           pixel_quality %in% c("00", "01"),
+  #           modisvar_filtered, NA)
+  #       ) %>%
+  #       
+  #       # drop it
+  #       dplyr::select(-qc_bitname)
+  #     
+  #   } else if (grepl("b09", band)) {
+  #     # do something different here (now the same is copied as above)
+  #     df <- df %>%
+  #       dplyr::rename(modisvar = value) %>%
+  #       dplyr::mutate(modisvar_filtered = modisvar) %>%
+  #       mutate(
+  #         
+  #         qc_bitname = intToBits(qc) %>%
+  #           rev() %>%
+  #           as.character() %>%
+  #           paste(collapse = "")
+  #       ) %>%
+  #       
+  #       # Bits 0-1: Pixel Quality
+  #       #   00 Pixel produced with good quality
+  #       #   01 Pixel produced, but check other QA
+  #       dplyr::mutate(
+  #         pixel_quality = substr( qc_bitname, start = 1, stop = 2 )
+  #       ) %>%
+  #       dplyr::mutate(
+  #         modisvar_filtered = ifelse(
+  #           pixel_quality %in% c("00", "01"),
+  #           modisvar_filtered, NA)
+  #       ) %>%
+  #       
+  #       # drop it
+  #       dplyr::select(-qc_bitname)
+  #     
+  #   }
+  #   
+  # }
   
   # Create daily dataframe
   message("- generate daily values")
