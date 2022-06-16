@@ -630,8 +630,6 @@ gapfill_interpol_gee <- function(
         bits <- c(28,31)
       }
       
-      warning("MODOCGA QA/QC not resolved")
-      
       df <- df %>%
         dplyr::rename(modisvar = value) %>%
         dplyr::mutate(modisvar_filtered = modisvar) %>%
@@ -648,7 +646,7 @@ gapfill_interpol_gee <- function(
         #   00 Pixel produced with good quality
         #   01 Pixel produced, but check other QA
         dplyr::mutate(
-          pixel_quality = substr( qc_bitname, start = bits[1], stop = bits[2] )
+          pixel_quality = as.numeric(substr(qc_bitname, start = bits[1], stop = bits[2]))
         ) %>%
         dplyr::mutate(
           modisvar_filtered = ifelse(
