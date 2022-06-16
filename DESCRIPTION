@@ -49,7 +49,7 @@ LazyData: true
 ByteCompile: true
 RoxygenNote: 7.2.0
 Suggests:
-    ggplot2
+    ggplot2,
     rmarkdown,
     covr,
     testthat,
