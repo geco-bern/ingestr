@@ -439,7 +439,7 @@ gapfill_interpol <- function(
         
         # predict LOESS to all dates with missing data
         tmp <- try(stats::predict( myloess, newdata = ddf ), silent = TRUE)
-        if (class(tmp)!="try-error"){
+        if (!inherits(tmp,"try-error")){
           ddf$loess <- tmp
         } else {
           ddf$loess <- rep( NA, nrow(ddf) )
