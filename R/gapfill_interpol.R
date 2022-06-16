@@ -461,7 +461,7 @@ gapfill_interpol <- function(
         
         # predict SPLINE
         tmp <- try( with( ddf, predict( spline, year_dec ) )$y)
-        if (class(tmp)!="try-error"){
+        if (!inherits(tmp,"try-error")){
           ddf$spline <- tmp
         } else {
           ddf$spline <- rep( NA, nrow(ddf) )
