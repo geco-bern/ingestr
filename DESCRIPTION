@@ -36,7 +36,6 @@ Imports:
     readr,
     hwsdr,
     raster,
-    stringi,
     stringr,
     sp,
     ncdf4,
@@ -45,12 +44,12 @@ Imports:
     rgdal,
     sf,
     MODISTools,
-    data.table,
-    ggplot2
+    data.table
 LazyData: true
 ByteCompile: true
 RoxygenNote: 7.2.0
 Suggests:
+    ggplot2
     rmarkdown,
     covr,
     testthat,
