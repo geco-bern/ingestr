@@ -773,6 +773,21 @@ ddf_fluxnet <- ingest(
   )
 ```
 
+Additional variables defined at a daily time scale can be derived from half-hourly data. For example daily minimum temperature can be obtained as follows:
+```{r}
+ddf_tmin <- ingest(
+  siteinfo  = siteinfo %>% slice(1:3),
+  source    = "fluxnet",
+  getvars   = list(tmin = "TMIN_F"),
+  dir       = "~/data/FLUXNET-2015_Tier1/20191024/DD/",  # adjust this with your local path
+  settings  = list(
+    dir_hh = "~/data/FLUXNET-2015_Tier1/20191024/HH/", # adjust this with your local path
+    getswc = FALSE),
+  timescale = "d",
+  verbose = TRUE
+  )
+```
+
 ### Flux data
 
 As described above for a single site, the same function can also be used to read in other FLUXNET variables (e.g., CO2 flux data) and conduct data filtering steps. Here, we're reading daily GPP and uncertainty (standard error), based on the nighttime flux decomposition method (`""GPP_NT_VUT_REF""`), keep only data where at least 80% is based on non-gapfilled half-hourly data (`threshold_GPP = 0.8`), and where the daytime and nighttime-based estimates are consistent, that is, where their difference is below the the 97.5% and above the 2.5% quantile (`filter_ntdt = TRUE`, see also `?get_obs_bysite_fluxnet2015`).
