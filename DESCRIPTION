@@ -40,11 +40,12 @@ Imports:
     sp,
     ncdf4,
     signal,
-    climate,
     rgdal,
     sf,
     MODISTools,
     data.table
+Remotes:
+    bczernecki/climate
 LazyData: true
 ByteCompile: true
 RoxygenNote: 7.2.0
