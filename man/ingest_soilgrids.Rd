@@ -16,7 +16,8 @@ A data frame with ingested data, nested in column data.
 }
 \description{
 SoilGrids point data ingest
-This follows code outlined here: \url{https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md}
+This follows code outlined here: 
+\url{https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md}
 }
 \examples{
 \dontrun{settings <- ingest_soilgrids("id1", lon = 100, lat = 50)}
