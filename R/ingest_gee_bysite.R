@@ -52,11 +52,11 @@ ingest_gee_bysite <- function(
   # CRAN compliance, define variables
   lat <- lon <- ymd <- longitude <- latitude <- product <- NULL
   
-  
   # Define names
   
   # this function is hacked to only do one site at a time
   sitename <- df_siteinfo$sitename[1]
+  
   df_siteinfo <- slice(df_siteinfo, 1)
 
   dirnam_daily_csv <- data_path
@@ -71,14 +71,21 @@ ingest_gee_bysite <- function(
   }
 
   # create a new prod suffix
-  prod_suffix <- paste(prod_suffix,band_var,band_qc, sep = "_")
+  suffix <- paste(prod_suffix, band_var, band_qc, sep = "_")
   
   filnam_daily_csv <- paste0( dirnam_daily_csv, "/",varnam,"_", sitename, ".csv" )
-  filnam_raw_csv <- paste0( dirnam_raw_csv, sitename, "_", prod_suffix, "_gee_subset.csv" )
+  filnam_raw_csv <- paste0( dirnam_raw_csv, sitename, "_", suffix, "_gee_subset.csv" )
 
-  do_continue <- TRUE
+  if(method_interpol == "none"){
+    do_continue <- FALSE
+  } else{
+    do_continue <- TRUE  
+  }
 
-  # Save error code (0: no error, 1: error: file downloaded bu all data is NA, 2: file not downloaded)
+  # Save error code
+  # 0: no error
+  # 1: error: file downloaded bu all data is NA,
+  # 2: file not downloaded
   df_error <- tibble()
 
   if (file.exists(filnam_daily_csv) && !overwrite_interpol){
@@ -129,8 +136,10 @@ ingest_gee_bysite <- function(
     # N-day period.
     
     if (file.exists(filnam_raw_csv)){
+      
+      message("- file exists, reading in previously downloaded data...")
 
-      df <- readr::read_csv( filnam_raw_csv ) %>%   #, col_types = cols()
+      df <- readr::read_csv( filnam_raw_csv) %>%   #, col_types = cols()
         dplyr::mutate(  date = lubridate::ymd(date) ) %>%
         dplyr::select( -longitude, -latitude, -product )
 
@@ -152,8 +161,9 @@ ingest_gee_bysite <- function(
 
     if (do_continue){
       
-      # Clean (gapfill and interpolate) full time series data to 8-days, daily, and monthly
+      message("- interpolating data...")
       
+      # Clean (gapfill and interpolate) full time series data to 8-days, daily, and monthly
       ddf <- gapfill_interpol_gee(
         df,
         sitename,
@@ -166,9 +176,9 @@ ingest_gee_bysite <- function(
         keep = keep
       )
 
+      message("- writing data to file...")
       
       # save cleaned and interpolated data to file
-      
       readr::write_csv( ddf, file = filnam_daily_csv )
 
     } else {
@@ -191,6 +201,24 @@ ingest_gee_bysite <- function(
   return(ddf)
 }
 
+#' Gapfill GEE data products
+#' 
+#' Gap filling routine for remote
+#' sensing data downloaded using the
+#' GEE routine
+#'
+#' @param df GEE downloaded data frame
+#' @param sitename site name
+#' @param year_start start year
+#' @param year_end end year
+#' @param var_name variable
+#' @param qc_name quality control field
+#' @param prod product name
+#' @param method_interpol interpolation method
+#' @param keep keep (intermediate data??)
+#'
+#' @return gap filled remote sensing time series
+#' @export
 
 gapfill_interpol_gee <- function( 
   df,
@@ -216,11 +244,11 @@ gapfill_interpol_gee <- function(
     qc_bit1 <- qc_bit2 <- qc_bit3 <- qc_bit4 <- CloudState <- modisvar_filtered <- 
     good_quality <- SCF_QC <- sur_refl_qc_500m <- modland_qc <- pixel <- 
     settings_modis <- approx <- prevdate <- modisvar_filled <- 
-    Psn_QC <- Gpp <- outlier <-  NULL
+    Psn_QC <- Gpp <- outlier <- FparLai_QC <- pixel_quality <- data_quality <-  NULL
 
   # CLEAN AND GAP-FILL
 
-  if (prod == "MOD13Q1"){
+  if (grepl("MOD13Q1", prod)) {
 
     # This is for MOD13Q1 Vegetation indeces (NDVI, EVI) data downloaded from Google Earth Engine
 
@@ -315,11 +343,13 @@ gapfill_interpol_gee <- function(
       # drop it
       dplyr::select(-qc_bitname)
 
-  } else if (prod=="MCD15A3H"){
-
+  } else if (grepl("MCD15A3H", prod)) {
+    
+    message("- processing fpar data")
+    
     # QC interpreted according to https://explorer.earthengine.google.com/#detail/MODIS%2F006%2FMCD15A3H:
-
     # This is interpreted according to https://lpdaac.usgs.gov/documents/2/mod15_user_guide.pdf, p.9
+    
     df <- df %>%
 
       dplyr::rename(modisvar = !!var_name) %>%
@@ -327,9 +357,16 @@ gapfill_interpol_gee <- function(
 
       # separate into bits
       rowwise() %>%
-      mutate(qc_bitname = intToBits( !!qc_name )[1:8] %>%
-               rev() %>% as.character() %>% paste(collapse = "")) %>%
-
+      mutate(qc_bitname = intToBits( FparLai_QC )[1:8] %>%
+               rev() %>%
+               as.character() %>% 
+               paste(collapse = "")
+             )
+    
+    message("- extracted qc bits")
+    
+    df <- df %>%
+      
       # MODLAND_QC bits
       # 0: Good  quality (main algorithm with or without saturation)
       # 1: Other quality (backup  algorithm or fill values)
@@ -340,7 +377,7 @@ gapfill_interpol_gee <- function(
       # 0: Terra
       # 1: Aqua
       mutate(qc_bit1 = substr( qc_bitname, start=7, stop=7 )) %>%
-      mutate(terra = ifelse( qc_bit1=="0", TRUE, FALSE )) %>%
+      mutate(terra = ifelse( qc_bit1 == "0", TRUE, FALSE )) %>%
 
       # Dead detector
       # 0: Detectors apparently  fine  for up  to  50% of  channels  1,  2
@@ -377,14 +414,16 @@ gapfill_interpol_gee <- function(
       # new addition 5.1.2021
       # mutate(modisvar_filtered = ifelse( !dead_detector, modisvar_filtered, NA )) %>%
       mutate(modisvar_filtered = ifelse( SCF_QC %in% c(0,1), modisvar_filtered, NA ))
-
-
-  } else if (prod=="MOD17A2H"){
+    
+  } else if (grepl("MOD17A2H", prod)) {
     # Contains MODIS GPP
     # quality bitmap interpreted based on https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod17a2
 
-    df$qc_bitname <- sapply( seq(nrow(df)), function(x) as.integer( intToBits( df$Psn_QC[x] )[1:8] ) %>%
-                               rev() %>% as.character() %>% paste( collapse="" )  )
+    df$qc_bitname <- sapply(
+      seq(nrow(df)), function(x) as.integer( intToBits( df$Psn_QC[x] )[1:8] ) %>%
+        rev() %>%
+        as.character() %>%
+        paste( collapse="" )  )
 
     # MODLAND_QC bits
     # 0: Good  quality (main algorithm with  or without saturation)
@@ -467,23 +506,193 @@ gapfill_interpol_gee <- function(
       # no replacement with mean seasonal cycle here
       dplyr::mutate( modisvar_filled = modisvar_filtered )
 
+
+  } else if (prod == "MOD09A1"){
+    
+    # Filter surface reflectance data
+    
+    # QC interpreted according to 
+    # https://modis-land.gsfc.nasa.gov/pdf/MOD09_UserGuide_v1.4.pdf,
+    # Section 3.2.2, Table 10 500 m, 1 km and Coarse Resolution Surface 
+    # Reflectance Band Quality Description (32-bit). Bit 0 is LSB.
+    clean_sur_refl <- function(x, qc_binary){
+      ifelse(qc_binary, x, NA)
+    }
+    
+    df <- df %>%
+      
+      # separate into bits
+      rowwise() %>%
+      mutate(qc_bitname = intToBits( sur_refl_qc_500m ) %>%
+               as.character() %>%
+               paste(collapse = "")
+      ) %>%
+      
+      # Bits 0-1: MODLAND QA bits
+      #   00 corrected product produced at ideal quality -- all bands
+      #   01 corrected product produced at less than ideal quality -- some or all bands
+      #   10 corrected product not produced due to cloud effects -- all bands
+      #   11 corrected product not produced for other reasons -- some or all bands, may be fill value (11) [Note that a value of (11) overrides a value of (01)].
+      mutate(
+        modland_qc = substr( qc_bitname, start=1, stop=2 )
+      ) %>%
+      mutate(
+        modland_qc_binary = ifelse(modland_qc %in% c("00"), TRUE, FALSE)
+      ) %>%   # false for removing data
+      mutate(across(starts_with("sur_refl_b"),
+                    ~clean_sur_refl(., modland_qc_binary))) %>%
+      
+      # drop it
+      dplyr::select(-ends_with("_qc"), -ends_with("_qc_binary"))
+    
+  } else if (prod == "MOD11A2"){
+    
+    # Filter available landsurface temperature data for daily-means
+    # QC interpreted according to 
+    # https://lpdaac.usgs.gov/documents/118/MOD11_User_Guide_V6.pdf
+    df <- df %>%
+      dplyr::rename(modisvar = value) %>%
+      dplyr::mutate(modisvar_filtered = modisvar) %>%
+      rowwise() %>%
+      mutate(
+        qc_bitname = intToBits( qc )[1:8] %>%
+          rev() %>%
+          as.character() %>%
+          paste(collapse = "")
+      ) %>%
+      
+      # Bits 0-1: Pixel Quality
+      #   00 Pixel produced with good quality
+      #   01 Pixel produced, but check other QA
+      dplyr::mutate(
+        pixel_quality = substr( qc_bitname, start = 1, stop = 2 )
+      ) %>%
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          pixel_quality %in% c("00", "01"),
+          modisvar_filtered, NA)
+      ) %>%
+      
+      # Bits 2-3: Data Quality
+      #   00 = Good data quality of L1B bands 29, 31, 32
+      #   01 = other quality data
+      #   10 = 11 = TBD
+      dplyr::mutate(
+        data_quality = substr( qc_bitname, start = 3, stop = 4 )
+      ) %>%
+      
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          data_quality %in% c("00", "01"),
+          modisvar_filtered, NA),
+        modisvar_filtered = ifelse(
+          modisvar_filtered <= 0, NA, modisvar_filtered)
+      ) %>%
+      
+      # drop it
+      dplyr::select(-qc_bitname)
+    
+  } else if (prod == "MCD43A4") {
+    
+    # MCD43A4 uses a simple binary quality control flag
+    # with 0 = good quality, 1 = incomplete inversion
+    df <- df %>%
+      dplyr::rename(modisvar = value) %>%
+      dplyr::mutate(modisvar_filtered = modisvar) %>%
+      mutate(
+        pixel_quality = contains("Quality_Band")
+      ) %>%
+      dplyr::mutate(
+        modisvar_filtered = ifelse(
+          pixel_quality == 0,
+          modisvar_filtered, NA)
+      )
+    
+  } else if (prod == "MODOCGA") {
+      
+      # dynamic filtering depending
+      # on the band used
+      band <- names(df)[3]
+      
+      if (grepl("b08", band)){
+        bits <- c(0,3)
+      }
+      
+      if (grepl("b09", band)){
+        bits <- c(4,7)
+      }
+      
+      if (grepl("b10", band)){
+        bits <- c(8,11)
+      }
+      
+      if (grepl("b11", band)){
+        bits <- c(12,15)
+      }
+      
+      if (grepl("b12", band)){
+        bits <- c(16,19)
+      }
+      
+      if (grepl("b13", band)){
+        bits <- c(20,23)
+      }
+      
+      if (grepl("b14", band)){
+        bits <- c(24,27)
+      }
+      
+      if (grepl("b15", band)){
+        bits <- c(28,31)
+      }
+      
+      if (grepl("b16", band)){
+        bits <- c(4,7)
+      }
+      
+      df <- df %>%
+        dplyr::rename(modisvar = value) %>%
+        dplyr::mutate(modisvar_filtered = modisvar) %>%
+        mutate(
+          
+          qc_bitname = intToBits(qc) %>%
+            rev() %>%
+            as.character() %>%
+            paste(collapse = "")
+          
+        ) %>%
+        
+        # Bits 0-1: Pixel Quality
+        #   00 Pixel produced with good quality
+        #   01 Pixel produced, but check other QA
+        dplyr::mutate(
+          pixel_quality = as.numeric(substr(qc_bitname, start = bits[1], stop = bits[2]))
+        ) %>%
+        dplyr::mutate(
+          modisvar_filtered = ifelse(
+            pixel_quality == 0,
+            modisvar_filtered, NA)
+        ) %>%
+        
+        # drop it
+        dplyr::select(-qc_bitname)
+    
   }
 
+  
   # Create daily dataframe
-
+  message("- generate daily values")
   ddf <- init_dates_dataframe( year_start, year_end ) %>%
 
       # decimal date
       mutate(year_dec = lubridate::decimal_date(date))
 
-
-
   # merge N-day dataframe into daily one.
   # Warning: here, 'date' must be centered within 4-day period - 
   # thus not equal to start date but (start date + 2)
-
+  message("- merging daily time series with original data")
   ddf <- ddf %>%
-    left_join( df, by="date" )
+    left_join( df, by = "date" )
 
   if (method_interpol == "loess" || keep){
 
@@ -502,6 +711,7 @@ gapfill_interpol_gee <- function(
     # take a three-weeks window for locally weighted regression (loess)
     # good explanation: 
     # https://rafalab.github.io/dsbook/smoothing.html#local-weighted-regression-loess
+    
     ndays_tot <- lubridate::time_length(diff(range(ddf$date)), unit = "day")
     span <- 100/ndays_tot 
 
@@ -544,9 +754,10 @@ gapfill_interpol_gee <- function(
     # LINEAR INTERPOLATION
     
     message("linear ...")
-    ddf$linear <- stats::approx(ddf$year_dec,
-                                ddf$modisvar_filtered,
-                                xout=ddf$year_dec )$y
+    ddf$linear <- stats::approx(
+      ddf$year_dec,
+      ddf$modisvar_filtered,
+      xout=ddf$year_dec )$y
   }
 
   if (method_interpol == "sgfilter" || keep){

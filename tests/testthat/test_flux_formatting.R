@@ -17,8 +17,8 @@ test_that("test HH data", {
     siteinfo,
     source    = "fluxnet",
     getvars   = list(
-      gpp = "GPP_NT_VUT_REF",
-      gpp_unc = "GPP_NT_VUT_SE"),
+      gpp = "GPP_VUT_REF"
+      ),
     dir       = paste0(path.package("ingestr"), "/extdata/"),
     settings  = settings_fluxnet,
     timescale = "hh",

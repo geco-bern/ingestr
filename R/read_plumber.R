@@ -24,7 +24,9 @@ read_plumber <- function(
 ){
   
   # CRAN settings
-  IGBP_veg_long <- NULL
+  IGBP_veg_long <- time <- TIMESTAMP_START <-
+    TIMESTAMP_END <- P <- TA_F <- PA_F <- CO2_F <- P_F <-
+    TA_F_MDS <- CO2_F_MDS <- NULL
   
   # list all files
   files <- list.files(
@@ -128,14 +130,14 @@ read_plumber <- function(
     
     keys <- c(
       # MICROMET
-      P = "Precip", # in mm -s
-      TA_F = "Tair",
-      SW_IN_F = "SWdown",
-      LW_IN_F = "LWdown",
-      VPD_F = "VPD",
+      P_F = "Precip", # in mm -s
+      TA_F_MDS = "Tair",
+      SW_IN_F_MDS = "SWdown",
+      LW_IN_F_MDS = "LWdown",
+      VPD_F_MDS = "VPD",
       WS_F = "Wind",
       PA_F = "Psurf",
-      CO2_F = "CO2air",
+      CO2_F_MDS = "CO2air",
       # FLUXES
       NETRAD = "Rnet",
       USTAR = "Ustar",
@@ -144,9 +146,12 @@ read_plumber <- function(
       LE_CORR = "Qle_cor",
       H_F_MDS = "Qh",
       H_CORR = "Qh_cor",
+      LE_CORR_JOINTUNC = 'Qle_cor_uc',
+      H_CORR_JOINTUNC = 'Qh_cor_uc',
       NEE_VUT_REF = "NEE",
-      GPP_VUT_REF = "GPP", # uncertain
-      GPP_VUT_REF_SE = "GPP_se", # uncertain
+      NEE_VUT_REF_JOINTUNC = "NEE_uc",
+      GPP_NT_VUT_REF = "GPP",
+      GPP_NT_VUT_SE = "GPP_se",
       GPP_DT_VUT_REF = "GPP_DT",
       GPP_DT_VUT_SE = "GPP_DT_se",
       RECO_NT_VUT_REF = "Resp",
@@ -184,23 +189,35 @@ read_plumber <- function(
   # https://github.com/aukkola/FluxnetLSM/blob/a256ffc894ed8182f9399afa1d83dea43ac36a95/R/Conversions.R
   all <- all %>%
     mutate(
-      P = P * 60 * 30, # mm/s to mm
-      TA_F = TA_F - 273.15, # K to C
+      P_F = P_F * 60 * 30, # mm/s to mm
+      TA_F_MDS = TA_F_MDS - 273.15, # K to C
       PA_F = PA_F / 1000, # Pa to kPa
-      CO2_F = CO2_F, # ppm to umolCO2 mol-1
+      CO2_F_MDS = CO2_F_MDS, # ppm to umolCO2 mol-1
       
       # adding missing data required by ingestr
       # VPD
       VPD_F_QC = 0,
-      VPD_F_MDS = NA,
       VPD_F_MDS_QC = NA,
       VPD_ERA = NA,
       
       # Temperature
       TA_F_QC = 0,
-      TA_F_MDS = NA,
       TA_F_MDS_QC = NA,
-      TA_ERA = NA
+      TA_ERA = NA,
+      
+      TMIN_F_QC = 0,
+      TMIN_F_MDS = NA,
+      TMIN_F_MDS_QC = NA,
+      TMIN_ERA = NA,
+      
+      TMAX_F_QC = 0,
+      TMAX_F_MDS = NA,
+      TMAX_F_MDS_QC = NA,
+      TMAX_ERA = NA,
+      
+      #QA/QC
+      NEE_VUT_REF_QC = 1,
+      GPP_VUT_REF_QC = 1
     )
   }
   
@@ -208,7 +225,7 @@ read_plumber <- function(
   if (fluxnet_format && !missing(out_path)) {
     
     message("writing datat to file")
-    filename <- sprintf("FLX_%s_FLUXNET2015_FULLSET_HH_%s_%s_2-3.csv",
+    filename <- sprintf("FLX_%s_PLUMBER_FULLSET_HH_%s_%s_2-3.csv",
                        site,
                        start_year,
                        end_year
@@ -219,7 +236,7 @@ read_plumber <- function(
       filename
     )
     
-    write.table(
+    utils::write.table(
       all,
       file = filename,
       quote = FALSE,

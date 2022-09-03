@@ -12,7 +12,7 @@ calc_vp_inst(qair, patm)
 \item{patm}{Atmospheric pressure (Pa)}
 }
 \value{
-
+Instantaneous vapour pressure
 }
 \description{
 Follows Abtew and Meleese (2013), Ch. 5 Vapor Pressure Calculation Methods

@@ -36,22 +36,21 @@ Imports:
     readr,
     hwsdr,
     raster,
-    stringi,
     stringr,
     sp,
     ncdf4,
     signal,
-    climate,
     rgdal,
     sf,
-    gdalUtils,
     MODISTools,
-    data.table,
-    ggplot2
+    data.table
+Remotes:
+    bczernecki/climate
 LazyData: true
 ByteCompile: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 Suggests:
+    ggplot2,
     rmarkdown,
     covr,
     testthat,

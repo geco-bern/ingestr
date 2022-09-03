@@ -56,7 +56,7 @@ calc_vp <- function(
 #' @param qair Air specific humidity (g g-1)
 #' @param patm Atmospheric pressure (Pa)
 #'
-#' @return
+#' @return Instantaneous vapour pressure
 #' @export
 
 calc_vp_inst <- function(

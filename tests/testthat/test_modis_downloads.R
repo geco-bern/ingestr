@@ -15,7 +15,7 @@ test_that("test MODIS LST download", {
   df <- ingest_bysite(
     sitename  = "CH-Lae",
     source    = "modis",
-    year_start= 2018,
+    year_start = 2018,
     year_end  = 2019,
     settings  = settings_modis,
     verbose   = FALSE

@@ -59,7 +59,7 @@ To install and load the rsofun package using the latest release run the followin
 
 ``` r
 if(!require(devtools)){install.packages(devtools)}
-devtools::install_github("stineb/ingestr")
+devtools::install_github("computationales/ingestr")
 library(ingestr)
 ```
 

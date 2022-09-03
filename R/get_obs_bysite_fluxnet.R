@@ -113,7 +113,9 @@
 #' named and in units corresponding to rsofun standard.
 #' @export
 #'
-#' @examples \dontrun{df <- get_obs_bysite_fluxnet}
+#' @examples \dontrun{
+#' df <- get_obs_bysite_fluxnet
+#' }
 #'
 get_obs_bysite_fluxnet <- function(
   sitename,
@@ -123,19 +125,19 @@ get_obs_bysite_fluxnet <- function(
   timescale,
   getvars,
   getswc = TRUE,
-  threshold_GPP=0.0,
-  threshold_LE=0.0,
-  threshold_H=0.0,
-  threshold_SWC=0.0,
-  threshold_WS=0.0,
-  threshold_USTAR=0.0,
-  threshold_T=0.0,
-  threshold_NETRAD=0.0,
+  threshold_GPP = 0.0,
+  threshold_LE = 0.0,
+  threshold_H = 0.0,
+  threshold_SWC = 0.0,
+  threshold_WS = 0.0,
+  threshold_USTAR = 0.0,
+  threshold_T = 0.0,
+  threshold_NETRAD = 0.0,
   filter_ntdt = FALSE,
-  return_qc=FALSE,
+  return_qc = FALSE,
   remove_neg = FALSE,
-  verbose=TRUE 
-  ){
+  verbose = TRUE 
+){
   
   # CRAN compliance, define variables
   year <- week <- VPD_F <- VPD_F_QC <- VPD_F_MDS <- VPD_ERA <-
@@ -150,12 +152,17 @@ get_obs_bysite_fluxnet <- function(
   
   # make a vector
   getvars_orig <- getvars
-  getvars <- getvars %>% unlist() %>% unname()
+  getvars <- getvars %>%
+    unlist() %>%
+    unname()
 
   # complement getvars if necessary, i.e. when filter_ntdt is TRUE
   added <- c("")
   if (is.null(filter_ntdt)) filter_ntdt <- FALSE
-  if (filter_ntdt){
+  if (filter_ntdt && timescale == "d"){
+    
+    # NEEDS DIFFERENT COLUMNS FOR HH OR DD
+    
     if ("GPP_NT_VUT_REF" %in% getvars){
       toadd <- c("GPP_DT_VUT_REF", "NEE_VUT_REF_DAY_QC", "NEE_VUT_REF_NIGHT_QC")
       getvars <- c(getvars, toadd) %>%
@@ -169,6 +176,7 @@ get_obs_bysite_fluxnet <- function(
       added <- c(added, toadd)
     }
   }
+  
   if (any(grepl("GPP_", getvars))) {
     if ("GPP_NT_VUT_REF" %in% getvars) {
       toadd <- c("NEE_VUT_REF_NIGHT_QC","NEE_VUT_REF_QC")
@@ -183,6 +191,7 @@ get_obs_bysite_fluxnet <- function(
       added <- c(added, toadd)
     }
   }
+  
   if (any(grepl("LE_", getvars))) {
     if ("LE_F_MDS" %in% getvars) {
       toadd <- "LE_F_MDS_QC"
@@ -196,43 +205,34 @@ get_obs_bysite_fluxnet <- function(
   if (timescale == "d") {
     # Daily
     filn <- list.files(dir,
-      pattern = paste0("FLX_", sitename, ".*_FLUXNET2015_FULLSET_DD.*.csv"),
+      pattern = paste0("FLX_", sitename, ".*_FULLSET_DD.*.csv"),
       recursive = TRUE
       )
   } else  if (timescale == "w") {
     # Weekly
     filn <- list.files(dir,
-      pattern = paste0("FLX_", sitename, ".*_FLUXNET2015_FULLSET_WW.*.csv"),
+      pattern = paste0("FLX_", sitename, ".*_FULLSET_WW.*.csv"),
       recursive = TRUE
       )
   } else  if (timescale == "m") {
     # Monthly
     filn <- list.files(dir,
-      pattern = paste0("FLX_", sitename, ".*_FLUXNET2015_FULLSET_MM.*.csv"),
+      pattern = paste0("FLX_", sitename, ".*_FULLSET_MM.*.csv"),
       recursive = TRUE
       )
   } else  if (timescale=="y" || timescale == "a") {
     # Annual
     filn <- list.files(dir,
-      pattern = paste0("FLX_", sitename, ".*_FLUXNET2015_FULLSET_YY.*.csv"),
+      pattern = paste0("FLX_", sitename, ".*_FULLSET_YY.*.csv"),
       recursive = TRUE
       )
   } else  if (timescale == "hh") {
     # half-hourly
     filn <- list.files( dir,
-      pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
+      pattern = paste0( "FLX_", sitename, ".*_FULLSET_HH.*.csv" ),
       recursive = TRUE
       )
   }
-
-  # # Use also quality flag data for each variable in 'getvars'
-  # obsvars <- tibble( getvars = getvars ) %>%
-  #   dplyr::filter(!(stringr::str_detect(., "UNC"))) %>%
-  #   dplyr::pull(getvars)
-  # uncvars <- tibble( getvars = getvars ) %>%
-  #   dplyr::filter(stringr::str_detect(., "UNC")) %>%
-  #   dplyr::pull(getvars)
-  # getvars <- c(obsvars, paste0(obsvars, "_QC"), uncvars)
 
   if (length(filn) == 0) {
     stop(
@@ -253,12 +253,6 @@ get_obs_bysite_fluxnet <- function(
     filn <- basename(path_dd)
   }
 
-  # if (length(filn)>1){
-  #   filn <- filn[which(grepl("3.csv", filn))]
-  #    warning(paste0("Multiple files found for timsescale ",
-  #  timescale, " in sub-directories of ", dir, ". Taking only ", filn ) )
-  # }
-
   #---- Actually read data ----
   # This returns a data frame with columns 
   # (date, temp, prec, nrad, ppfd, vpd, ccov)
@@ -271,7 +265,11 @@ get_obs_bysite_fluxnet <- function(
   
   # For some sites, the NETRAD column is missing.
   if ("NETRAD" %in% getvars && !("NETRAD" %in% names(df))) {
-    df <- df %>% mutate(NETRAD = NA, NETRAD_QC = 0.0)
+    df <- df %>%
+      mutate(
+        NETRAD = NA,
+        NETRAD_QC = 0.0
+        )
   }
 
   # Get daytime VPD
@@ -469,7 +467,13 @@ get_obs_bysite_fluxnet <- function(
       }
       
       # read directly
-      if (verbose) print(paste("Reading daytime tmin directly from:", paste0(dir_hh, filename_dd_tmin)))
+      if (verbose){
+        message(paste(
+            "Reading daytime tmin directly from:",
+            paste0(dir_hh, filename_dd_tmin)
+          )
+        )
+      } 
       df_tmin_dd <- readr::read_csv(paste0(dir, filename_dd_tmin))
       merge_df_tmin_dd <- TRUE
       
@@ -478,14 +482,18 @@ get_obs_bysite_fluxnet <- function(
       
       if (is.null(dir_hh)){
         
-        warning("Argument dir_hh is not provided. Daytime tmin could not be calculated.")
+        warning(
+          "Argument dir_hh is not provided.
+          Daytime tmin could not be calculated."
+          )
         
       } else {
         
         # get half-hourly file name(s)
-        filn_hh <- list.files( dir_hh,
-                               pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
-                               recursive = TRUE
+        filn_hh <- list.files(
+          dir_hh,
+          pattern = paste0( "FLX_", sitename, ".*_FULLSET_HH.*.csv" ),
+          recursive = TRUE
         )
         
         if (length(filn_hh)>0){
@@ -507,11 +515,15 @@ get_obs_bysite_fluxnet <- function(
           
         } else {
           
-          warning(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
+          warning(
+            paste0("No half-hourly data found in ",
+                   dir_hh,
+                   ". Looking for hourly data in ",  dir_hr, "...")
+          )
           
           # get hourly file name(s)
           filn_hr <- list.files( dir_hr,
-                                 pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HR.*.csv" ),
+                                 pattern = paste0( "FLX_", sitename, ".*_FULLSET_HR.*.csv" ),
                                  recursive = TRUE
           )
           if (length(filn_hr)>0){
@@ -550,11 +562,12 @@ get_obs_bysite_fluxnet <- function(
           dplyr::mutate(year = lubridate::year(date),
                         week = lubridate::week(date)) %>%
           dplyr::group_by(sitename, year, week) %>%
-          dplyr::summarise(TMIN_F = min(TA_F, na.rm=TRUE),
-                           TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
-                           TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
-                           TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
-                           TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::summarise(
+            TMIN_F = min(TA_F, na.rm=TRUE),
+            TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+            TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
+            TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+            TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
           dplyr::right_join(df, by="date")
         
       } else if (timescale=="m"){
@@ -564,11 +577,12 @@ get_obs_bysite_fluxnet <- function(
           dplyr::mutate(year = lubridate::year(date),
                         moy = lubridate::month(date)) %>%
           dplyr::group_by(sitename, year, moy) %>%
-          dplyr::summarise(TMIN_F = min(TA_F, na.rm=TRUE),
-                           TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
-                           TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
-                           TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
-                           TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::summarise(
+            TMIN_F = min(TA_F, na.rm=TRUE),
+            TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+            TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
+            TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+            TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
           dplyr::right_join(df, by="date")
         
       } else if (timescale=="y"){
@@ -577,11 +591,12 @@ get_obs_bysite_fluxnet <- function(
         df <- df_tmin_dd %>%
           dplyr::mutate(year = lubridate::year(date)) %>%
           dplyr::group_by(sitename, year) %>%
-          dplyr::summarise(TMIN_F = min(TA_F, na.rm=TRUE),
-                           TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
-                           TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
-                           TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
-                           TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::summarise(
+            TMIN_F = min(TA_F, na.rm=TRUE),
+            TMIN_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+            TMIN_F_MDS = min(TA_F_MDS, na.rm=TRUE),
+            TMIN_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+            TMIN_ERA = min(TA_ERA, na.rm=TRUE) ) %>% 
           dplyr::right_join(df, by="date")
         
       }
@@ -636,9 +651,10 @@ get_obs_bysite_fluxnet <- function(
       } else {
         
         # get half-hourly file name(s)
-        filn_hh <- list.files( dir_hh,
-                               pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HH.*.csv" ),
-                               recursive = TRUE
+        filn_hh <- list.files(
+          dir_hh,
+          pattern = paste0( "FLX_", sitename, ".*_FULLSET_HH.*.csv" ),
+          recursive = TRUE
         )
         
         if (length(filn_hh)>0){
@@ -660,12 +676,20 @@ get_obs_bysite_fluxnet <- function(
           
         } else {
           
-          warning(paste0("No half-hourly data found in ", dir_hh, ". Looking for hourly data in ",  dir_hr, "..."))
+          warning(
+            paste0(
+              "No half-hourly data found in ",
+              dir_hh,
+              ". Looking for hourly data in ",
+              dir_hr, "..."
+            )
+          )
           
           # get hourly file name(s)
-          filn_hr <- list.files( dir_hr,
-                                 pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_HR.*.csv" ),
-                                 recursive = TRUE
+          filn_hr <- list.files(
+            dir_hr,
+            pattern = paste0( "FLX_", sitename, ".*_FULLSET_HR.*.csv" ),
+            recursive = TRUE
           )
           if (length(filn_hr)>0){
             
@@ -691,23 +715,24 @@ get_obs_bysite_fluxnet <- function(
     
     if (merge_df_tmax_dd){
       
-      if (timescale=="d"){
+      if (timescale == "d"){
         
         # daily
         df <- df %>% dplyr::left_join(df_tmax_dd, by="date")
         
-      } else if (timescale=="w"){
+      } else if (timescale == "w"){
         
         # weekly
         df <- df_tmax_dd %>%
           dplyr::mutate(year = lubridate::year(date),
                         week = lubridate::week(date)) %>%
           dplyr::group_by(sitename, year, week) %>%
-          dplyr::summarise(TMAX_F = max(TA_F, na.rm=TRUE),
-                           TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
-                           TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
-                           TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
-                           TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::summarise(
+            TMAX_F = max(TA_F, na.rm=TRUE),
+            TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+            TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
+            TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+            TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
           dplyr::right_join(df, by="date")
         
       } else if (timescale=="m"){
@@ -717,11 +742,12 @@ get_obs_bysite_fluxnet <- function(
           dplyr::mutate(year = lubridate::year(date),
                         moy = lubridate::month(date)) %>%
           dplyr::group_by(sitename, year, moy) %>%
-          dplyr::summarise(TMAX_F = max(TA_F, na.rm=TRUE),
-                           TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
-                           TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
-                           TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
-                           TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::summarise(
+            TMAX_F = max(TA_F, na.rm=TRUE),
+            TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+            TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
+            TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+            TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
           dplyr::right_join(df, by="date")
         
       } else if (timescale=="y"){
@@ -730,11 +756,12 @@ get_obs_bysite_fluxnet <- function(
         df <- df_tmax_dd %>%
           dplyr::mutate(year = lubridate::year(date)) %>%
           dplyr::group_by(sitename, year) %>%
-          dplyr::summarise(TMAX_F = max(TA_F, na.rm=TRUE),
-                           TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
-                           TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
-                           TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
-                           TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
+          dplyr::summarise(
+            TMAX_F = max(TA_F, na.rm=TRUE),
+            TMAX_F_QC = sum(is.element(TA_F_QC, c(0,1)))/n(),
+            TMAX_F_MDS = max(TA_F_MDS, na.rm=TRUE),
+            TMAX_F_MDS_QC = sum(is.element(TA_F_MDS_QC, c(0,1)))/n(),
+            TMAX_ERA = max(TA_ERA, na.rm=TRUE) ) %>% 
           dplyr::right_join(df, by="date")
         
       }
@@ -743,11 +770,9 @@ get_obs_bysite_fluxnet <- function(
     
   }
 
-    
-
-  # Reduce data to getvars
-
+  #---- Reduce data to getvars ----
   # retain all getvars, plus soil moisture if required
+
   if (getswc){
     df <- df %>%
       dplyr::select( ., date, one_of(getvars), starts_with("SWC_") )
@@ -757,181 +782,294 @@ get_obs_bysite_fluxnet <- function(
   }
 
 
-  # Filter / clean data
+  #---- Filter / clean data ----
 
-  # air temperature
   TA_vars <- getvars[which(grepl("TA_", getvars))]
   TA_vars <- TA_vars[-which(grepl("_QC", TA_vars))]
+  
   for (ivar in TA_vars){
-    df <- df %>% clean_fluxnet_byvar(ivar, threshold_T)
+    df <- df %>%
+      clean_fluxnet_byvar(
+        ivar,
+        threshold_T
+      )
   }
 
   # wind speed
   WS_vars <- getvars[which(grepl("WS_", getvars))]
   WS_vars <- WS_vars[-which(grepl("_QC", WS_vars))]
+  
   for (ivar in WS_vars){
-    df <- df %>% clean_fluxnet_byvar(ivar, threshold_WS)
+    df <- df %>%
+      clean_fluxnet_byvar(
+        ivar,
+        threshold_WS
+      )
   }
 
   # u-star
   USTAR_vars <- getvars[which(grepl("USTAR_", getvars))]
   USTAR_vars <- USTAR_vars[-which(grepl("_QC", USTAR_vars))]
+  
   for (ivar in USTAR_vars){
-    df <- df %>% clean_fluxnet_byvar(ivar, threshold_USTAR)
+    df <- df %>%
+      clean_fluxnet_byvar(
+        ivar,
+        threshold_USTAR
+      )
   }
 
   # net radiation
   NETRAD_vars <- getvars[which(grepl("NETRAD", getvars))]
   NETRAD_vars <- NETRAD_vars[-which(grepl("_QC", NETRAD_vars))]
+  
   for (ivar in NETRAD_vars){
-    df <- df %>% clean_fluxnet_byvar(ivar, threshold_NETRAD)
+    df <- df %>% 
+      clean_fluxnet_byvar(
+        ivar,
+        threshold_NETRAD
+      )
   }
+
+  # energyvars <- df %>%
+  #   dplyr::select(starts_with("LE_"), starts_with("H_")) %>%
+  #   dplyr::select(-ends_with("_QC")) %>%
+  #   names()
+  # 
+  # df <- df %>%
+  #   # Unit conversion for sensible and latent heat flux: W m-2 -> J m-2 d-1
+  #   dplyr::mutate_at( vars(one_of(energyvars)), convert_energy_fluxnet2015)
+
 
   # clean GPP data
   if (any(grepl("GPP_", getvars))){
     error <- try(
       df <- df %>%
-        clean_fluxnet_gpp(
-          threshold = threshold_GPP,
-          remove_neg = remove_neg,
-          filter_ntdt = filter_ntdt,
-          freq = timescale) %>%
-        dplyr::select(-res),
+      clean_fluxnet_gpp(
+        threshold = threshold_GPP,
+        remove_neg = remove_neg,
+        filter_ntdt = filter_ntdt,
+        freq = timescale
+        ) %>%
+      dplyr::select(-res),
       silent = TRUE
     )
     
     if(inherits(error, "try-error")) {
-      message("
-              Missing nighttime/ daytime QC data.
-              Data is not screened.
-              Is this plumber2 data converted by read_plumber()?")
+      message(
+        "
+        Missing nighttime/ daytime QC data.
+        Data is not screened - taken as is.
+        Is this plumber2 data converted by read_plumber()?"
+      )
     }
   }
 
   # clean energy data (sensible and latent heat flux) data - often has spuriously equal values
   if (any(grepl("LE_", getvars))){
-    if (any( !(c("LE_F_MDS", "LE_F_MDS_QC") %in% getvars) )) stop("Not all variables read from file that are needed for data cleaning.")
-    df$LE_F_MDS <- clean_fluxnet_energy( df$LE_F_MDS, df$LE_F_MDS_QC, threshold = threshold_LE )
+    if (any( !(c("LE_F_MDS", "LE_F_MDS_QC") %in% getvars) )){
+      stop("Not all variables read from file that are needed for data cleaning.")
+    }
+    df$LE_F_MDS <- clean_fluxnet_energy(
+      df$LE_F_MDS,
+      df$LE_F_MDS_QC,
+      threshold = threshold_LE
+      )
   }
+  
   if (any(grepl("H_", getvars))){
-    if (any( !(c("H_F_MDS", "H_F_MDS_QC") %in% getvars) )) stop("Not all variables read from file that are needed for data cleaning.")
-    df$H_F_MDS  <- clean_fluxnet_energy( df$H_F_MDS, df$H_F_MDS_QC,   threshold=threshold_H )
+    if (any( !(c("H_F_MDS", "H_F_MDS_QC") %in% getvars) )){
+      stop("Not all variables read from file that are needed for data cleaning.")
+    } 
+    df$H_F_MDS  <- clean_fluxnet_energy(
+      df$H_F_MDS,
+      df$H_F_MDS_QC,
+      threshold=threshold_H
+    )
   }
 
-
-  # Process soil moisture data
+  #---- Process soil moisture data ----
 
   # Soil moisture related stuff for daily data
   if (timescale=="d" && getswc){
     tmp <- df %>% dplyr::select( starts_with("SWC") )
     if (ncol(tmp)>0){
-      swcvars   <- tmp %>% dplyr::select( -ends_with("QC") ) %>% names()
-      swcqcvars <- tmp %>% dplyr::select(  ends_with("QC") ) %>% names()
+      swcvars   <- tmp %>%
+        dplyr::select( -ends_with("QC") ) %>%
+        names()
+      
+      swcqcvars <- tmp %>%
+        dplyr::select(  ends_with("QC") ) %>%
+        names()
 
-      # map( as.list(seq(length(swcvars))), ~clean_fluxnet_swc( df[[ swcvars[.] ]], df[[ swcqcvars[.] ]]) )
       if (length(swcvars)>0){
         for (ivar in 1:length(swcvars)){
-          df[[ swcvars[ivar] ]] <- clean_fluxnet_swc( df[[ swcvars[ivar] ]], df[[ swcqcvars[ivar] ]], frac_data_thresh = threshold_SWC )
+          df[[ swcvars[ivar] ]] <- clean_fluxnet_swc(
+            df[[ swcvars[ivar] ]],
+            df[[ swcqcvars[ivar] ]],
+            frac_data_thresh = threshold_SWC
+            )
         }
       }
 
       df <- df %>%
-        # Normalise mean observational soil moisture to within minimum (=0) and maximum (=1), and
-        dplyr::mutate_at( vars(one_of(swcvars)), list(~norm_to_max(.)) ) %>%
-
-        # get mean observational soil moisture across different depths (if available)
-        dplyr::mutate( soilm_obs_mean = apply( dplyr::select( ., one_of(swcvars) ), 1, FUN = mean, na.rm = TRUE ) ) %>%
-        dplyr::mutate( soilm_obs_mean = ifelse( is.nan(soilm_obs_mean), NA, soilm_obs_mean ) )
-      if (verbose) warning("Converting: soilm_obs_mean = mean across different soil depths (SWC_F_MDS), with na.rm = TRUE" )
+        # Normalise mean observational soil moisture to
+        # within minimum (=0) and maximum (=1), and
+        dplyr::mutate_at(
+          vars(one_of(swcvars)),
+          list(~norm_to_max(.))
+          ) %>%
+        # get mean observational soil moisture across
+        # different depths (if available)
+        dplyr::mutate(
+          soilm_obs_mean = apply(
+            dplyr::select( ., one_of(swcvars) ),
+            1, FUN = mean, na.rm = TRUE )
+          ) %>%
+        dplyr::mutate(
+          soilm_obs_mean = ifelse(is.nan(soilm_obs_mean), NA, soilm_obs_mean )
+          )
+      if (verbose){
+        message(
+          "Converting: soilm_obs_mean = 
+          mean across different soil depths (SWC_F_MDS), with na.rm = TRUE" )
+        }
 
     }
 
   }
 
-  # check if anything is missing
+  #---- check if anything is missing ----
+
   if (any(!(getvars %in% names(df)))){
-    warning(
+    message(
       paste("Not all getvars were found in file. Missing variable: ",
                paste(getvars[which(!(getvars %in% names(df)))], collapse = ", "),
                "for site: ", sitename))
   }
 
   if (!return_qc){
-    df <- df %>% dplyr::select(-ends_with("_QC"))
+    df <- df %>%
+      dplyr::select(
+        -ends_with("_QC")
+        )
   }
 
-  # Make unit conversions and shorter names
+  #---- Make unit conversions and shorter names ----
   outgetvars <- c()
-
-
-  # Rename variables to names provided by argument 'getvars'
-
+  
+  #---- Rename variables to names provided by argument 'getvars' ----
   rename_byvar <- function(df, list_var, verbose){
-    name_in  <- list_var %>% unlist() %>% unname()
-    name_out <- list_var %>% names()
-    if (verbose) warning(paste0("Renaming: ", name_out, " = ", name_in, " \n"))
+    name_in  <- list_var %>%
+      unlist() %>%
+      unname()
+    name_out <- list_var %>%
+      names()
+    
+    if (verbose){
+      message(paste0("Renaming: ", name_out, " = ", name_in, " \n"))
+    }
+    
     df %>%
-      dplyr::rename_at( vars(matches({{name_in}})), list(~stringr::str_replace(., {{name_in}}, {{name_out}})) )
+      dplyr::rename_at(
+        vars(matches({{name_in}})),
+        list(~stringr::str_replace(., {{name_in}}, {{name_out}}))
+        )
   }
 
   for (ivar in seq(length(getvars_orig))){
-    df <- df %>% rename_byvar(getvars_orig[ivar], verbose = verbose)
+    df <- df %>%
+      rename_byvar(
+        getvars_orig[ivar],
+        verbose = verbose
+        )
   }
 
+  #---- Convert units to ingestr-standards ----
 
-
-  # Convert units to ingestr-standards
-
-  # conversion factor from SPLASH: flux to energy conversion, umol/J (Meek et al., 1984)
+  # conversion factor from SPLASH: flux to energy conversion,
+  # umol/J (Meek et al., 1984)
   kfFEC <- 2.04
 
   if ("vpd_day" %in% names(df)){
-    if (verbose) warning("Converting: vpd_day = vpd_day * 1e2 (given in hPa, required in Pa) \n")
-    df <- df %>% dplyr::mutate( vpd_day = vpd_day * 1e2 )
+    if (verbose){
+      message(
+        "Converting: vpd_day = vpd_day * 1e2 
+         (given in hPa, required in Pa)"
+        )
+    }
+    df <- df %>%
+      dplyr::mutate(
+        vpd_day = vpd_day * 1e2
+      )
   }
   if ("vpd" %in% names(df)){
-    if (verbose) warning("Converting: vpd = vpd * 1e2 (given in hPa, required in Pa) \n")
-    df <- df %>% dplyr::mutate( vpd = vpd * 1e2 )
+    if (verbose){
+      message(
+        "Converting: vpd = vpd * 1e2
+       (given in hPa, required in Pa)"
+       )
+    }
+    df <- df %>%
+      dplyr::mutate(
+        vpd = vpd * 1e2
+      )
   }
   if ("patm" %in% names(df)){
-    if (verbose) warning("Converting: patm = patm * 1e3 (given in kPa, required in Pa) \n")
-    df <- df %>% dplyr::mutate( patm = patm * 1e3 )
+    if (verbose){
+      message(
+        "Converting: patm = patm * 1e3
+        (given in kPa, required in Pa)"
+        )
+    } 
+    df <- df %>%
+      dplyr::mutate(
+        patm = patm * 1e3
+      )
   }
   if ("ppfd" %in% names(df)){
-    if (verbose) warning("Converting: ppfd = ppfd * kfFEC * 1.0e-6 (convert from J/m2/s to mol/m2/s; kfFEC = 2.04 is the flux-to-energy conversion, micro-mol/J (Meek et al., 1984)) \n")
-    df <- df %>% dplyr::mutate( ppfd = ppfd * kfFEC * 1.0e-6 )
+    if (verbose){
+      message(
+        "Converting: ppfd = ppfd * kfFEC * 1.0e-6
+        (convert from J/m2/s to mol/m2/s; 
+        kfFEC = 2.04 is the flux-to-energy conversion,
+        micro-mol/J (Meek et al., 1984))"
+        ) 
+    }
+    df <- df %>%
+      dplyr::mutate(
+        ppfd = ppfd * kfFEC * 1.0e-6
+      )
   }
 
   if ("prec" %in% names(df)){
     if (timescale=="d"){
       # Daily
-      if (verbose) warning("Converting: prec = prec / (60 * 60 * 24) (convert from total mm to mm/s \n")
-      df <- df %>% dplyr::mutate( prec = prec / (60 * 60 * 24) )
+      if (verbose){
+        message(
+          "Converting: prec = prec / (60 * 60 * 24)
+          (convert from total mm to mm/s"
+          )
+      } 
+      df <- df %>%
+        dplyr::mutate(
+          prec = prec / (60 * 60 * 24)
+        )
+      
     } else  if (timescale=="hh"){
       # half-hourly
-      if (verbose) warning("Converting: prec = prec / (60 * 60 * 24) (convert from total mm to mm/s \n")
-      df <- df %>% dplyr::mutate( prec = prec / (60 * 30) )
+      if (verbose) {
+        message(
+          "Converting: prec = prec / (60 * 60 * 24)
+          (convert from total mm to mm/s"
+        )
+      }
+      df <- df %>%
+        dplyr::mutate(
+          prec = prec / (60 * 30)
+        )
     }
   }
-  
-
-  # GPP
-  # if ("gpp" %in% names(getvars_orig)){
-  #   if (getvars_orig$gpp == "GPP_NT_VUT_REF"){
-  #     df <- df %>% rename(gpp = GPP_NT_VUT_REF)
-  #   }
-  #   if (getvars_orig$gpp == "GPP_DT_VUT_REF"){
-  #     df <- df %>% rename(gpp = GPP_DT_VUT_REF)
-  #   }
-  # }
-  # if ("gpp_unc" %in% names(getvars_orig)){
-  #   if (getvars_orig$gpp_unc == "GPP_NT_VUT_SE"){
-  #     df <- df %>% rename(gpp_unc = GPP_NT_VUT_SE)
-  #   }
-  #   if (getvars_orig$gpp_unc == "GPP_DT_VUT_SE"){
-  #     df <- df %>% rename(gpp_unc = GPP_DT_VUT_SE)
-  #   }
-  # }
   
   df <- df %>%
     select(-one_of(added))
@@ -963,9 +1101,13 @@ clean_fluxnet_byvar <- function(df, varnam, threshold){
 }
 
 
-# Function for reading observational GPP data from FLUXNET dataset
+#---- Function for reading observational GPP data from FLUXNET dataset ----
 
-get_obs_bysite_wcont_fluxnet2015 <- function( sitename, dir, timescale ){
+get_obs_bysite_wcont_fluxnet2015 <- function(
+  sitename,
+  dir,
+  timescale
+  ){
 
   getvars <- "SWC"
 
@@ -973,25 +1115,25 @@ get_obs_bysite_wcont_fluxnet2015 <- function( sitename, dir, timescale ){
   if (timescale=="d"){
     # Daily
     filn <- list.files( dir,
-      pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_DD.*.csv" ),
+      pattern = paste0( "FLX_", sitename, ".*_FULLSET_DD.*.csv" ),
       recursive = TRUE
       )
   } else  if (timescale=="w"){
     # Weekly
     filn <- list.files( dir,
-      pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_WW.*.csv" ),
+      pattern = paste0( "FLX_", sitename, ".*_FULLSET_WW.*.csv" ),
       recursive = TRUE
       )
   } else  if (timescale=="m"){
     # Monthly
     filn <- list.files( dir,
-      pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_MM.*.csv" ),
+      pattern = paste0( "FLX_", sitename, ".*_FULLSET_MM.*.csv" ),
       recursive = TRUE
       )
   } else  if (timescale=="y"){
     # Annual
     filn <- list.files( dir,
-      pattern = paste0( "FLX_", sitename, ".*_FLUXNET2015_FULLSET_YY.*.csv" ),
+      pattern = paste0( "FLX_", sitename, ".*_FULLSET_YY.*.csv" ),
       recursive = TRUE
       )
   }
@@ -1011,22 +1153,55 @@ get_obs_bysite_wcont_fluxnet2015 <- function( sitename, dir, timescale ){
 
   # convert to numeric (weirdly isn't always) and subset (select)
   if ( identical( getvars , "SWC" ) ){
-    df <- df %>% dplyr::mutate_at( vars(starts_with(getvars)), list(name = ~as.numeric)) %>%
-                 dplyr::select( date, starts_with(getvars) )
+    df <- df %>%
+      dplyr::mutate_at(
+        vars(starts_with(getvars)),
+        list(name = ~as.numeric)
+        ) %>%
+      dplyr::select(
+        date,
+        starts_with(getvars)
+      )
   } else {
-    df <- df %>%  dplyr::mutate_at( vars(one_of(getvars)), list(name = ~as.numeric)) %>%
-                  dplyr::select( date, one_of(getvars) )
+    df <- df %>%
+      dplyr::mutate_at(
+        vars(one_of(getvars)),
+        list(name = ~as.numeric)
+        ) %>%
+      dplyr::select(
+        date,
+        one_of(getvars)
+      )
   }
 
 
-  swcvars   <- dplyr::select( vars(ddf), starts_with("SWC") ) %>%
-    dplyr::select( vars(ddf), !ends_with("QC") ) %>% names()
-  swcqcvars <- dplyr::select( vars(ddf), starts_with("SWC") ) %>%
-    dplyr::select( vars(ddf),  ends_with("QC") ) %>% names()
+  swcvars <- dplyr::select(
+    vars(ddf),
+    starts_with("SWC")
+    ) %>%
+    dplyr::select(
+      vars(ddf),
+      !ends_with("QC")
+    ) %>%
+    names()
+  
+  swcqcvars <- dplyr::select(
+    vars(ddf),
+    starts_with("SWC")
+    ) %>%
+    dplyr::select(
+      vars(ddf),
+      ends_with("QC")
+    ) %>%
+    names()
 
   if (length(swcvars)>0){
     for (ivar in 1:length(swcvars)){
-      ddf[[ swcvars[ivar] ]] <- clean_fluxnet_swc( ddf[[ swcvars[ivar] ]], ddf[[ swcqcvars[ivar] ]], frac_data_thresh=0.5 )
+      ddf[[ swcvars[ivar] ]] <- clean_fluxnet_swc(
+        ddf[[ swcvars[ivar] ]],
+        ddf[[ swcqcvars[ivar] ]],
+        frac_data_thresh = 0.5
+      )
     }
   }
 
@@ -1034,17 +1209,15 @@ get_obs_bysite_wcont_fluxnet2015 <- function( sitename, dir, timescale ){
 
 }
 
+# Function returns a dataframe containing all the data of the FLUXNET
+# 2015 data file of respective temporal resolution.
+# Returns data in units given in the fluxnet dataset
 
 get_obs_fluxnet2015_raw <- function(
   sitename,
   path,
   freq = "d"
   ) {
-  
-  # Function returns a dataframe containing all the data of the FLUXNET
-  # 2015 data file of respective temporal resolution.
-  # Returns data in units given in the fluxnet dataset
-  
   
   # CRAN compliance, define variables
   TIMESTAMP <- TIMESTAMP_START <- TIMESTAMP_END <- date_start <-
@@ -1219,11 +1392,14 @@ clean_fluxnet_gpp <- function(
 
 clean_fluxnet_energy <- function( energyflux, qflag_energyflux, threshold ){
   
-  # Remove data points that are based on too much gap-filled data in the underlying half-hourly data
-  # frac_data_thresh <- 0.2  # fraction of data based on gap-filled half-hourly
+  # Remove data points that are based on too much gap-filled data in the
+  # underlying half-hourly data frac_data_thresh <- 0.2  
+  # fraction of data based on gap-filled half-hourly
   energyflux[ qflag_energyflux < threshold ] <- NA
 
-  if ( any(!is.na(qflag_energyflux)) ){ energyflux[ is.na(qflag_energyflux) ] <- NA }
+  if ( any(!is.na(qflag_energyflux)) ){
+    energyflux[ is.na(qflag_energyflux) ] <- NA
+    }
 
   energyflux <- identify_pattern( energyflux )
 
@@ -1234,8 +1410,8 @@ clean_fluxnet_energy <- function( energyflux, qflag_energyflux, threshold ){
 clean_fluxnet_swc <- function( swc, qflag_swc, frac_data_thresh=1.0 ){
   
   # frac_data_thresh: fraction of data based on gap-filled half-hourly
-  
-  # Remove data points that are based on too much gap-filled data in the underlying half-hourly data
+  # Remove data points that are based on too much gap-filled data in
+  # the underlying half-hourly data
   swc[ which( qflag_swc < frac_data_thresh ) ] <- NA
   swc <- as.numeric( swc )
 
@@ -1244,7 +1420,8 @@ clean_fluxnet_swc <- function( swc, qflag_swc, frac_data_thresh=1.0 ){
 
 
 norm_to_max <- function( vec ){
-  vec <- ( vec - min( vec, na.rm=TRUE ) ) / ( max( vec, na.rm=TRUE ) - min( vec, na.rm=TRUE ) )
+  vec <- ( vec - min( vec, na.rm=TRUE ) ) /
+    ( max( vec, na.rm=TRUE ) - min( vec, na.rm=TRUE ) )
   return( vec )
 }
 
@@ -1268,7 +1445,8 @@ identify_pattern <- function( vec ){
     # find where this value appears
     pos <- which( abs(vec-counts$vec[idx])<eps )
 
-    # replace all numbers that appear more than twice with NA (assuming they are suspicious/wrong)
+    # replace all numbers that appear more than twice with NA 
+    # (assuming they are suspicious/wrong)
     vec[ pos ] <- NA
 
   }

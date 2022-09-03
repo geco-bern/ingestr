@@ -73,7 +73,7 @@ calc_vpd <- function(
 #' @param elv Elevation above sea level (m) (Used only if \code{patm} is missing 
 #' for calculating it based on standard sea level pressure)
 #'
-#' @return
+#' @return instantenous VPD from ambient conditions
 #' @export
 
 calc_vpd_inst <- function(
