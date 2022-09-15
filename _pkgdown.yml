@@ -1,4 +1,4 @@
 template:
-  package: cestemplate
+  package: gecotemplate
   params:
    mathjax: true
