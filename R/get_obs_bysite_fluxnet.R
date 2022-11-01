@@ -247,7 +247,7 @@ get_obs_bysite_fluxnet <- function(
       file.info(filn)$size
     }
     warning("Reading only largest daily file available")
-    path_dd <- paste0(dir, filn)
+    path_dd <- file.path(dir, filn)
     size_vec <- purrr::map_dbl(as.list(path_dd), ~file.info_getsize(.))
     path_dd <- path_dd[which.max(size_vec)]
     filn <- basename(path_dd)
@@ -259,7 +259,7 @@ get_obs_bysite_fluxnet <- function(
 
   df <- get_obs_fluxnet2015_raw(
     sitename,
-    path = paste0(dir, filn),
+    path = file.path(dir, filn),
     freq = timescale
     )
   
@@ -292,7 +292,7 @@ get_obs_bysite_fluxnet <- function(
           file.info(filn)$size
         }
         warning("Reading only largest daily VPD file available")
-        path_dd_vpd <- paste0(dir_hh, filename_dd_vpd)
+        path_dd_vpd <- file.path(dir_hh, filename_dd_vpd)
         size_vec <- purrr::map_dbl(as.list(path_dd_vpd), ~file.info_getsize(.))
         path_dd_vpd <- path_dd_vpd[which.max(size_vec)]
         filename_dd_vpd <- basename(path_dd_vpd)
@@ -301,7 +301,7 @@ get_obs_bysite_fluxnet <- function(
       # read directly
       if (verbose) print(paste("Reading daytime VPD directly from:",
                                paste0(dir_hh, filename_dd_vpd)))
-      df_vpd_day_dd <- readr::read_csv(paste0(dir, filename_dd_vpd))
+      df_vpd_day_dd <- readr::read_csv(file.path(dir, filename_dd_vpd))
       merge_df_vpd_day_dd <- TRUE
 
     } else {
@@ -325,7 +325,7 @@ get_obs_bysite_fluxnet <- function(
 
         if (length(filn_hh)>0){
 
-          path_hh <- paste0(dir_hh, filn_hh)
+          path_hh <- file.path(dir_hh, filn_hh)
 
           if (length(filn_hh)>1){
             file.info_getsize <- function(filn){
@@ -1115,7 +1115,7 @@ get_obs_bysite_wcont_fluxnet2015 <- function(
   if (timescale=="d"){
     # Daily
     filn <- list.files( dir,
-      pattern = paste0( "FLX_", sitename, ".*_FULLSET_DD.*.csv" ),
+      pattern = glob2rx(paste0( "FLX_", sitename, "*_FULLSET_DD*csv" )),
       recursive = TRUE
       )
   } else  if (timescale=="w"){
