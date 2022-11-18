@@ -519,18 +519,22 @@ ingest_globalfields <- function(
       
       vec_filn <- list.files(dir, pattern = paste0(varnam, ".*.tif"))
       
-      df_out <- purrr::map2(
-        as.list(vec_filn),
-        as.list(stringr::str_remove(vec_filn,
-                                    paste0("wc2.1_30s_", varnam, "_")) %>%
-          stringr::str_remove(".tif")),
+      if (length(vec_filn) > 0){
+        df_out <- purrr::map2(
+          as.list(vec_filn),
+          as.list(stringr::str_remove(vec_filn,
+                                      paste0("wc2.1_30s_", varnam, "_")) %>%
+                    stringr::str_remove(".tif")),
           ~{extract_pointdata_allsites( paste0(dir, "/", .x),
                                         df_lonlat, get_time = FALSE ) %>%
-                  dplyr::select(-lon, -lat) %>%
-                  tidyr::unnest(data) %>%
-                  dplyr::rename(!!paste0(varnam, "_", .y) := V1) %>%
-                  dplyr::select(sitename, !!paste0(varnam, "_", .y))}) %>% 
-        purrr::reduce(left_join, by = "sitename")
+              dplyr::select(-lon, -lat) %>%
+              tidyr::unnest(data) %>%
+              dplyr::rename(!!paste0(varnam, "_", .y) := V1) %>%
+              dplyr::select(sitename, !!paste0(varnam, "_", .y))}) %>% 
+          purrr::reduce(left_join, by = "sitename")
+      } else {
+        df_out <- tibble()
+      }
       
       return(df_out)
     }

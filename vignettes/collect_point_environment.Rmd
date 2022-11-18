@@ -1,0 +1,105 @@
+---
+title: "Collect point-scale climate and soil information"
+author: "Beni Stocker"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{collect_point_environment}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+library(ingestr)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(ggplot2)
+```
+
+The package *ingestr* makes data collection for geographic locations easy and reproducible. This vignette provides an example for collecting climate and soil information for a set of variables which we typically consider in analyses of environment-vegetation relationships.
+
+This is done here for three example sites from the FLUXNET2015 network. To make this work, we must provide a data frame (here `df_sites`) containing columns `sitename, lon, lat` to the function `ingest()`.
+```{r}
+df_sites <- siteinfo_fluxnet2015 |> 
+  slice(1:3) |> 
+  select(sitename, lon, lat)
+```
+
+## Topography
+
+### Elevation
+
+```{r}
+df_etopo <- ingest(
+  df_sites,
+  source = "etopo1",
+  dir = "~/data/etopo/"  # adjust this with your local path
+  ) |> 
+  unnest(cols = data)  # to get a flat table
+```
+
+## Climate
+
+- Growing season mean temperature
+- Growing season length
+- Annual mean shortwave irradiance
+- Growing season mean VPD
+- Mean annual ratio of daily AET/PET
+
+Most can be derived from WorldClim data. The advantage of this is that it's provided at high resolution (30 sec = 1/120 degrees in longitude and latitude, ~833 m around the Equator).
+```{r}
+settings_worldclim <- list(varnam = c("tavg", "srad", "vapr", "prec"))
+
+df_worldclim <- ingest(
+  df_sites,
+  source    = "worldclim",
+  settings  = settings_worldclim,
+  dir       = "~/data/worldclim"
+  )
+```
+
+Vapour pressure (`vapr`) has to be converted to vapour pressure deficit, using temperature for caluclating the saturation vapour pressure.
+
+To get the mean annual ratio of daily AET/PET, we'd need to run SPLASH. Ideally, we'd run site-level simulations with (WorldClim-) downscaled forcing. Alternatively, we can extract it from a global simulation.
+
+## Soil
+
+### C:N
+
+```{r}
+settings_wise <- get_settings_wise(varnam = c("CNrt"), layer = 1:3)
+
+df_wise <- ingest(
+  df_sites,
+  source    = "wise",
+  settings  = settings_wise,
+  dir       = "~/data/soil/wise"
+  )
+```
+
+### pH
+
+Can be obtained from HWSD. How to use rhwsd package? Not as documented in ingestr [link](https://computationales.github.io/ingestr/articles/example.html#hwsd-1)?
+
+## Nutrient inputs
+
+### Atmospheric N deposition
+
+This requires start and end years to be specified. Let's get data from 1990 to 2009 and then calculate the mean annual total.
+
+```{r}
+df_ndep <- ingest(
+  df_sites |> 
+    mutate(year_start = 1990, year_end = 2009),
+  source    = "ndep",
+  timescale = "y",
+  dir       = "~/data/ndep_lamarque/",
+  verbose   = FALSE
+  ) |> 
+  unnest(cols = data) |> 
+  group_by(sitename) |> 
+  summarise(noy = mean(noy), nhx = mean(nhx)) |> 
+  mutate(ndep = noy + nhx) |> 
+  select(-noy, -nhx)
+```
+

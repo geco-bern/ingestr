@@ -27,5 +27,4 @@ outliers ranged above and below the \code{coef*}IQR.
 \dontrun{
 vec <- remove_outliers( vec, coef=3 ) 
 }
-
 }
