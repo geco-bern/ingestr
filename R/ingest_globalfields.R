@@ -47,6 +47,11 @@ ingest_globalfields <- function(
   vap <- tmin <- tmax <- prec <- days_in_month <- nhx <- noy <-
     lon <- lat <- data <- V1 <- elv <- varnam <- value <- fact <- NULL
   
+  if (any(is.na(siteinfo$sitename)) ||
+      any(is.null(siteinfo$sitename))){
+    stop("At least one entry for siteinfo$sitename is missing.")
+  }
+  
   if (!(source %in% c("etopo1", "wwf", "gsde", "worldclim"))){
     
     # get a daily (monthly) data frame with all dates for all sites
