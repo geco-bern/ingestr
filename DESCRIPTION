@@ -56,5 +56,5 @@ Suggests:
     testthat,
     knitr
 VignetteBuilder: knitr
-URL: https://github.com/computationales/ingestr
-BugReports: https://github.com/computationales/ingestr/issues
+URL: https://github.com/geco-bern/ingestr
+BugReports: https://github.com/geco-bern/ingestr/issues

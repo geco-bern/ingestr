@@ -1,4 +1,4 @@
-[![R-CMD-check](https://github.com/computationales/ingestr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/computationales/ingestr/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/geco-bern/ingestr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/geco-bern/ingestr/actions/workflows/R-CMD-check.yaml)
 
 # ingestr
 
@@ -59,7 +59,7 @@ To install and load the rsofun package using the latest release run the followin
 
 ``` r
 if(!require(devtools)){install.packages(devtools)}
-devtools::install_github("computationales/ingestr")
+devtools::install_github("geco-bern/ingestr")
 library(ingestr)
 ```
 

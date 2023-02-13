@@ -40,10 +40,10 @@
       </button>
 
       <div class="navbar-brand-container">
-        <a class="external-link hidden-sm hidden-xs" href="https://computationales.ethz.ch/">
-          <img src="https://raw.githubusercontent.com/computationales/GECO_template/main/geco_logo_small.png" id="hexlogo" alt="GECO"></a>
-        <a class="external-link hidden-md hidden-lg" href="https://computationales.ethz.ch/">
-          <img src="https://raw.githubusercontent.com/computationales/GECO_template/main/geco_logo_small.png" id="hexlogo" alt="GECO"></a>
+        <a class="external-link hidden-sm hidden-xs" href="https://geco-group.org/">
+          <img src="https://raw.githubusercontent.com/computationales/GECO_template/main/geco_logo_white_small.png" id="hexlogo" alt="GECO"></a>
+        <a class="external-link hidden-md hidden-lg" href="https://geco-group.org/">
+          <img src="https://raw.githubusercontent.com/computationales/GECO_template/main/geco_logo_white_small.png" id="hexlogo" alt="GECO"></a>
         <a class="navbar-brand" href="../index.html">
            <i>ingestr <small>v1.4</small></i>
         </a>
@@ -89,7 +89,7 @@
   <a href="../news/index.html">Changelog</a>
 </li>
         <li>
-  <a href="https://github.com/computationales/ingestr/" class="external-link">
+  <a href="https://github.com/geco-bern/ingestr/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -112,7 +112,7 @@
 Stocker</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/computationales/ingestr/blob/HEAD/vignettes/run_pmodel_points.Rmd" class="external-link"><code>vignettes/run_pmodel_points.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/geco-bern/ingestr/blob/HEAD/vignettes/run_pmodel_points.Rmd" class="external-link"><code>vignettes/run_pmodel_points.Rmd</code></a></small>
       <div class="hidden name"><code>run_pmodel_points.Rmd</code></div>
 
     </div>
@@ -120,7 +120,7 @@ Stocker</h4>
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/computationales/ingestr" class="external-link">ingestr</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/geco-bern/ingestr" class="external-link">ingestr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Attaching package: 'dplyr'</span></span></code></pre>
@@ -194,8 +194,7 @@ network. The site meta info data frame defined is used here for the
 <span><span class="co">## `.name_repair` is omitted as of tibble 2.0.0.</span></span>
 <span><span class="co">## <span style="color: #00BBBB;">ℹ</span> Using compatibility `.name_repair`.</span></span>
 <span><span class="co">## <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">ingestr</span> package.</span></span>
-<span><span class="co">##   Please report the issue at</span></span>
-<span><span class="co">##   <span style="color: #0000BB; font-style: italic;">&lt;</span></span></span></code></pre>
+<span><span class="co">##   Please report the issue at <span style="color: #0000BB; font-style: italic;">&lt;</span></span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="units-and-aggregation">Units and aggregation<a class="anchor" aria-label="anchor" href="#units-and-aggregation"></a>
@@ -283,17 +282,17 @@ months where the growth temperature is above 0 deg C.</p>
 <span>                            <span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>out <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">out</span>, <span class="op">~</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html" class="external-link">unnest</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">out</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning in rpmodel::rpmodel(tc = .x$tgrowth, vpd = .x$vpd, co2 = .x$co2, :</span></span>
-<span><span class="co">## Atmospheric pressure (patm) not provided. Calculating it as a function of</span></span>
-<span><span class="co">## elevation (elv), assuming standard atmosphere (101325 Pa at sea level).</span></span>
+<pre><code><span><span class="co">## Warning in rpmodel::rpmodel(tc = .x$tgrowth, vpd = .x$vpd, co2 = .x$co2, : Atmospheric pressure (patm) not provided. Calculating it as a</span></span>
+<span><span class="co">##       function of elevation (elv), assuming standard atmosphere </span></span>
+<span><span class="co">##       (101325 Pa at sea level).</span></span>
 <span></span>
-<span><span class="co">## Warning in rpmodel::rpmodel(tc = .x$tgrowth, vpd = .x$vpd, co2 = .x$co2, :</span></span>
-<span><span class="co">## Atmospheric pressure (patm) not provided. Calculating it as a function of</span></span>
-<span><span class="co">## elevation (elv), assuming standard atmosphere (101325 Pa at sea level).</span></span>
+<span><span class="co">## Warning in rpmodel::rpmodel(tc = .x$tgrowth, vpd = .x$vpd, co2 = .x$co2, : Atmospheric pressure (patm) not provided. Calculating it as a</span></span>
+<span><span class="co">##       function of elevation (elv), assuming standard atmosphere </span></span>
+<span><span class="co">##       (101325 Pa at sea level).</span></span>
 <span></span>
-<span><span class="co">## Warning in rpmodel::rpmodel(tc = .x$tgrowth, vpd = .x$vpd, co2 = .x$co2, :</span></span>
-<span><span class="co">## Atmospheric pressure (patm) not provided. Calculating it as a function of</span></span>
-<span><span class="co">## elevation (elv), assuming standard atmosphere (101325 Pa at sea level).</span></span></code></pre>
+<span><span class="co">## Warning in rpmodel::rpmodel(tc = .x$tgrowth, vpd = .x$vpd, co2 = .x$co2, : Atmospheric pressure (patm) not provided. Calculating it as a</span></span>
+<span><span class="co">##       function of elevation (elv), assuming standard atmosphere </span></span>
+<span><span class="co">##       (101325 Pa at sea level).</span></span></code></pre>
 <p>The returned object contains all forcing data in P-model units and
 aggregated over the thermal growing season, and all P-model outputs.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -461,9 +460,9 @@ aggregated over the thermal growing season, and all P-model outputs.</p>
             <div class="col-xs-10">
                 <div class="row">
                     <div class="col-md-4 col-xs-6">
-                        <a href="https://github.com/computationales" target="_blank" class="external-link">
+                        <a href="https://github.com/geco-bern" target="_blank" class="external-link">
                           <div class="icon fab fa-github"></div></a>
-                        <a href="https://computationales.ethz.ch/" target="_blank" class="external-link">
+                        <a href="https://geco-group.org" target="_blank" class="external-link">
                           <div class="icon fa fa-flask"></div></a>
                         <a href="http://twitter.com/SteniBocker/" target="_blank" class="external-link">
                           <div class="icon fab fa-twitter"></div></a>
@@ -473,17 +472,17 @@ aggregated over the thermal growing season, and all P-model outputs.</p>
                     <div class="col-md-2 col-sm-4">
                         <ul>
 <h5 class="bottom-2">About</h5>
-                            <li><a href="https://computationales.ethz.ch/" class="external-link">Computationales</a></li>
-                            <li><a href="https://computationales.ethz.ch/" class="external-link">Our Team</a></li>
-                            <li><a href="https://computationales.ethz.ch/" class="external-link">Contact Us</a></li>
+                            <li><a href="https://geco-group.org/" class="external-link">GECO</a></li>
+                            <li><a href="https://geco-group.org/people/" class="external-link">Our Team</a></li>
+                            <li><a href="https://geco-group.org/contact/" class="external-link">Contact Us</a></li>
                         </ul>
 </div>
                     <div class="col-md-2 col-sm-4">
                         <ul>
 <h5 class="bottom-2">Resources</h5>
-                            <li><a href="https://github.com/computationales" class="external-link">Packages</a></li>
-                            <li><a href="https://computationales.ethz.ch/" class="external-link">Publications</a></li>
-                            <li><a href="https://computationales.ethz.ch/" class="external-link">Blog</a></li>
+                            <li><a href="https://github.com/geco-bern" class="external-link">Packages</a></li>
+                            <li><a href="https://geco-group.org/publication/" class="external-link">Publications</a></li>
+                            <li><a href="https://geco-group.org/post/" class="external-link">Blog</a></li>
                         </ul>
 </div>
 

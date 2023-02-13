@@ -130,7 +130,7 @@ df_wise
 
 ### pH
 
-Can be obtained from HWSD. How to use rhwsd package? Not as documented in ingestr [link](https://computationales.github.io/ingestr/articles/example.html#hwsd-1)?
+Can be obtained from HWSD. How to use rhwsd package? Not as documented in ingestr [link](https://geco-bern.github.io/ingestr/articles/example.html#hwsd-1)?
 
 ## Nutrient inputs
 

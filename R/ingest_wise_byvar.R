@@ -38,14 +38,18 @@ ingest_wise_byvar <- function(var, df_lonlat, layer = 1, dir){
     sp::SpatialPoints(df_lonlat %>% dplyr::select(lon, lat)),
     sp = TRUE
     ) %>%
-    as_tibble() %>%
-    rename(ID = wise30sec_fin)
+    as_tibble() |> 
+    mutate(MU_GLOBAL = as.integer(MU_GLOBAL))
+    # rename(ID = wise30sec_fin)  # before bugfix
 
   # get the NEWSUID for a given ID
   df_out <- raster::levels(rasta)[[1]] %>%
     as_tibble() %>%
-    dplyr::filter(ID %in% df_out$ID) %>%
-    right_join(df_out, by = "ID") %>%
+    mutate(MU_GLOBAL = as.integer(MU_GLOBAL)) |> 
+    dplyr::filter(MU_GLOBAL %in% df_out$MU_GLOBAL) %>%
+    # dplyr::filter(ID %in% df_out$ID) %>%
+    # right_join(df_out, by = "ID") %>%
+    right_join(df_out, by = "MU_GLOBAL") %>%
     dplyr::select(lon, lat, NEWSUID)
 
   # map unit-area-weighted CN ratio for data table
