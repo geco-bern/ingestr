@@ -555,7 +555,7 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
   yr <- mo <- filename <- drop_na <- data <- sitename <- 
     dom <- myvar <- doy <- data_pre <- . <- NULL
   
-  dirn <- paste0( dir, "/", varnam, "/" )
+  dirn <- paste0( dir, "/", varnam)
   
   # loop over all year and months that are required
   year_start <- ddf %>%
