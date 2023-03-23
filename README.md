@@ -1,4 +1,4 @@
-[![R-CMD-check](https://github.com/computationales/ingestr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/computationales/ingestr/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/geco-bern/ingestr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/geco-bern/ingestr/actions/workflows/R-CMD-check.yaml)
 
 # ingestr
 
@@ -58,8 +58,8 @@ Use these variable names for specifying which variable names they correspond to 
 To install and load the rsofun package using the latest release run the following command in your R terminal:
 
 ``` r
-if(!require(devtools)){install.packages(devtools)}
-devtools::install_github("computationales/ingestr")
+if(!require(devtools)){install.packages("devtools")}
+devtools::install_github("geco-bern/ingestr")
 library(ingestr)
 ```
 

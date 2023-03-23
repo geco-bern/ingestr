@@ -1,0 +1,176 @@
+---
+title: "Collect point-scale climate and soil information"
+author: "Beni Stocker"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Collect point-scale climate and soil information}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
+---
+
+The package *ingestr* makes data collection for geographic locations easy and reproducible. This vignette provides an example for collecting climate and soil information for a set of variables which may be considered in analyses of environment-vegetation relationships.
+
+```{r setup, warning=FALSE, message=FALSE}
+library(ingestr)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(ggplot2)
+```
+
+
+The only information required for running point simulations with the P-model is the geographic position of the sites and their elevation. A site name is required as an ID for the output. The site meta information has to be provided as a data frame containing the following columns: `sitename, lon, lat, elv`. 
+
+Let's use the FLUXNET2015 site info data frame from ingestr as an example here.
+```{r}
+df_sites <- siteinfo_fluxnet2015 |> 
+  slice(1:3) |> 
+  select(sitename, lon, lat)
+df_sites
+```
+
+## Topography
+
+### Elevation
+
+Often, elevation is provided in datasets. If not, missing data can be obtained by using the geographic location of each point and extracting elevation data from a global digital elevation model, here ETOPO-1, obtained through ingestr.
+
+```{r eval=TRUE}
+df_etopo <- ingest(
+  df_sites,
+  source = "etopo1",
+  dir = "~/data/etopo/"  # adjust this with your local path
+  ) |> 
+  unnest(data)  # to get a flat table
+
+df_etopo
+```
+
+## Climate
+
+ingestr makes it easy to collect WorldClim data from files available locally (in directory `~/data/worldclim`). WorldClim provides monthly climatologies of different meteorological variables, Here, we collect them and aggregate them over the thermal growing season, i.e., over months where the growth temperature is above 0 deg C, and convert them to units and variables as used also for inputs to the P-model (see [here]()). This includes the following (non-trivial) calculations:
+
+- Conversion of vapour pressure to the vapour pressure deficit (VPD). To get daily values, we calculate the VPD for the daily minimum and maximum temperature and then take the arithmetic mean across the two VPD values to get a value, taken to be representative for daytime conditions. This is done due to the strong non-linearity of VPD (actually, the saturation vapour pressure) as a function of temperature. The calculation is implemented by `ingestr::calc_vpd()` (see code below).
+- Calculation of the growth temperature. See `?ingestr::calc_tgrowth`.
+
+### Collect WorldClim data
+
+```{r}
+settings_wc <- list(varnam = c("tmin", "tmax", "vapr", "srad"))
+
+df_wc <- ingest(
+  df_sites,
+  source    = "worldclim",
+  settings  = settings_wc,
+  dir       = "~/data/worldclim"
+  )
+df_wc
+```
+
+### Units and aggregation
+
+Next, we aggregate the monthly WorldClim climatology to means across the thermal growing season, i.e., over months where the growth temperature is above 0 deg C. Before aggregation, we also convert WorldClim variables to the units required for `rpmodel`. See `?rpmodel` for information about the arguments.
+```{r}
+get_growingseasonmean <- function(df){
+  df |> 
+    filter(tgrowth > 0) |> 
+    ungroup() |> 
+    summarise(across(c(tgrowth, vpd, ppfd), mean))
+}
+
+kfFEC <- 2.04
+
+df_wc <- df_wc |> 
+  
+  unnest(data) |> 
+
+  ## add latitude
+  left_join(df_sites, by = "sitename") |> 
+  
+  ## vapour pressure kPa -> Pa
+  mutate(vapr = vapr * 1e3) |>
+  
+  ## PPFD from solar radiation: kJ m-2 day-1 -> mol m−2 s−1 PAR
+  mutate(ppfd = 1e3 * srad * kfFEC * 1.0e-6 / (60 * 60 * 24)) |>
+
+  ## calculate VPD (Pa) based on tmin and tmax
+  rowwise() |> 
+  mutate(vpd = ingestr::calc_vpd(eact = vapr, tmin = tmin, tmax = tmax)) |> 
+  
+  ## calculate growth temperature (average daytime temperature)
+  mutate(doy = lubridate::yday(lubridate::ymd("2001-01-15") + months(month - 1))) |> 
+  mutate(tgrowth = ingestr::calc_tgrowth(tmin, tmax, lat, doy)) |> 
+  
+  ## average over growing season (where Tgrowth > 0 deg C)
+  group_by(sitename) |> 
+  nest() |> 
+  mutate(data_growingseason = purrr::map(data, ~get_growingseasonmean(.))) |> 
+  unnest(data_growingseason) |> 
+  select(-data)
+
+df_wc
+```
+
+## Soil
+
+### C:N
+
+```{r eval=TRUE}
+settings_wise <- get_settings_wise(varnam = c("CNrt"), layer = 1:3)
+
+df_wise <- ingest(
+  df_sites,
+  source    = "wise",
+  settings  = settings_wise,
+  dir       = "~/data/soil/wise"
+  )
+
+df_wise
+```
+
+### pH
+
+Can be obtained from HWSD. How to use rhwsd package? Not as documented in ingestr [link](https://geco-bern.github.io/ingestr/articles/example.html#hwsd-1)?
+
+## Nutrient inputs
+
+### Atmospheric N deposition
+
+This requires start and end years to be specified. Let's get data from 1990 to 2009 and then calculate the mean annual total.
+
+```{r eval=TRUE}
+df_ndep <- ingest(
+  df_sites |> 
+    mutate(year_start = 1990, year_end = 2009),
+  source    = "ndep",
+  timescale = "y",
+  dir       = "~/data/ndep_lamarque/",
+  verbose   = FALSE
+  ) |> 
+  unnest(cols = data) |> 
+  group_by(sitename) |> 
+  summarise(noy = mean(noy), nhx = mean(nhx)) |> 
+  mutate(ndep = noy + nhx) |> 
+  select(-noy, -nhx)
+
+df_ndep
+```
+
+
+## Combine data
+
+Let's combine the data frames collected above into a single data frame. Make sure that all data frames use the same unique identifier as the column named `sitename`. Make all data frames flat before (`unnest()`) and avoid duplicate columns in joined data frames.
+```{r}
+df <- df_sites |> 
+  left_join(df_etopo, 
+            by = "sitename") |> 
+  left_join(df_wc,
+            by = "sitename") |> 
+  left_join(df_ndep, by = "sitename") |> 
+  left_join(df_wise |> 
+              unnest(data), 
+            by = "sitename")
+
+df
+```
+

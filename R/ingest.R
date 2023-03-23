@@ -929,6 +929,12 @@ ingest <- function(
 	     layer = settings$varnam
 	   )
 
+    ddf <- purrr::map(
+      as.list(settings$varnam),
+      ~worldclim_pivot_longer(ddf, .)
+      ) |>
+      purrr::reduce(left_join, by = c("sitename", "month"))
+
 	 } else {
 
 	  rlang::warn(paste("you selected source =", source))
@@ -1040,4 +1046,18 @@ aggregate_layers_gsde <- function(df, varnam, use_layer){
     group_by(sitename) %>%
     summarise(var := sum(var_wgt)) %>%
     rename(!!varnam := var)
+}
+
+worldclim_pivot_longer <- function(df, varnam){
+
+  df |>
+    # tidyr::unnest(data) |> 
+    dplyr::select(sitename, starts_with(paste0(varnam, "_"))) |>
+    tidyr::pivot_longer(
+      cols = starts_with(paste0(varnam, "_")),
+      names_to = "month",
+      values_to = varnam,
+      names_prefix = paste0(varnam, "_")) |>
+    mutate(month = as.integer(month))
+
 }

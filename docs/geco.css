@@ -5,11 +5,11 @@ body {
 }
 
 a {
-  color: #767058;
+  color: #519F77;
 }
 
 a:focus, a:hover, a:active {
-  color: #767058;
+  color: #519F77;
   text-decoration: underline;
 }
 
@@ -30,7 +30,7 @@ a:focus, a:hover, a:active {
 }
 
 .navbar {
-  background-color: #519F77;
+  background-color: #3A3A3A;
   transition: all 0.3s ease;
   box-shadow: 0 0 15px 5px rgba(0,0,0,.15);
   border: none;
@@ -44,13 +44,13 @@ a:focus, a:hover, a:active {
 }
 
 .navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:focus, .navbar-default .navbar-nav > .open > a:hover {
-    color: #767058;
-    background-color: #519F77;
+    color: #519F77;
+    background-color: #3A3A3A;
 }
 
 .dropdown-menu > li > a:hover {
     text-decoration: none;
-    color: #767058;
+    color: #519F77;
     background-color: #fff;
 }
 
@@ -88,7 +88,7 @@ a:focus, a:hover, a:active {
 .navbar .info {
   width: 140px;
   margin-left: 5px;
-  background-color: #767058;
+  background-color: #3A3A3A;
 }
 
 .navbar-default .navbar-nav > li > a{
@@ -97,12 +97,12 @@ a:focus, a:hover, a:active {
 }
 
 .navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:focus, .navbar-default .navbar-nav > .active > a:hover{
-  background-color: #519F77;
-  color: #767058;
+  background-color: #3A3A3A;
+  color: #519F77;
 }
 
 .navbar-default .navbar-nav > li > a:hover, a:active {
-  color: #767058;
+  color: #519F77;
 }
 
 /* sidebar ----------------------------------------------- */
@@ -170,7 +170,7 @@ a:focus, a:hover, a:active {
  */
 
 footer {
-  background-color: #519F77;
+  background-color: #3A3A3A;
   font-size: 15.75px;
   color: #fff;
   line-height: 22px;

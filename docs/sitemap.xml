@@ -7,6 +7,9 @@
     <loc>/articles/calc_daytime_vpd.html</loc>
   </url>
   <url>
+    <loc>/articles/collect_point_environment.html</loc>
+  </url>
+  <url>
     <loc>/articles/example.html</loc>
   </url>
   <url>
@@ -22,7 +25,13 @@
     <loc>/articles/ingest_cru_rsofun.html</loc>
   </url>
   <url>
+    <loc>/articles/modis_interpolation.html</loc>
+  </url>
+  <url>
     <loc>/articles/rsconnect/documents/example.html</loc>
+  </url>
+  <url>
+    <loc>/articles/run_pmodel_points.html</loc>
   </url>
   <url>
     <loc>/authors.html</loc>
@@ -35,6 +44,9 @@
   </url>
   <url>
     <loc>/reference/calc_patm.html</loc>
+  </url>
+  <url>
+    <loc>/reference/calc_tgrowth.html</loc>
   </url>
   <url>
     <loc>/reference/calc_vp.html</loc>
@@ -62,6 +74,9 @@
   </url>
   <url>
     <loc>/reference/gapfill_interpol.html</loc>
+  </url>
+  <url>
+    <loc>/reference/gapfill_interpol_gee.html</loc>
   </url>
   <url>
     <loc>/reference/get_daily_prec.html</loc>

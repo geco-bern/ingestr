@@ -19,10 +19,10 @@ outliers ranged above and below the coef*IQR."><meta name="twitter:card" content
       </button>
 
       <div class="navbar-brand-container">
-        <a class="external-link hidden-sm hidden-xs" href="https://computationales.ethz.ch/">
-          <img src="https://raw.githubusercontent.com/computationales/GECO_template/main/geco_logo_small.png" id="hexlogo" alt="GECO"></a>
-        <a class="external-link hidden-md hidden-lg" href="https://computationales.ethz.ch/">
-          <img src="https://raw.githubusercontent.com/computationales/GECO_template/main/geco_logo_small.png" id="hexlogo" alt="GECO"></a>
+        <a class="external-link hidden-sm hidden-xs" href="https://geco-group.org/">
+          <img src="https://raw.githubusercontent.com/computationales/GECO_template/main/geco_logo_white_small.png" id="hexlogo" alt="GECO"></a>
+        <a class="external-link hidden-md hidden-lg" href="https://geco-group.org/">
+          <img src="https://raw.githubusercontent.com/computationales/GECO_template/main/geco_logo_white_small.png" id="hexlogo" alt="GECO"></a>
         <a class="navbar-brand" href="../index.html">
            <i>ingestr <small>v1.4</small></i>
         </a>
@@ -43,6 +43,9 @@ outliers ranged above and below the coef*IQR."><meta name="twitter:card" content
       <a href="../articles/calc_daytime_vpd.html">Derived fluxnet variables</a>
     </li>
     <li>
+      <a href="../articles/collect_point_environment.html">Collect point-scale climate and soil information</a>
+    </li>
+    <li>
       <a href="../articles/example.html">ingestr example</a>
     </li>
     <li>
@@ -51,12 +54,18 @@ outliers ranged above and below the coef*IQR."><meta name="twitter:card" content
     <li>
       <a href="../articles/ingest_cru_rsofun.html">ingest CRU</a>
     </li>
+    <li>
+      <a href="../articles/modis_interpolation.html">Interpolation of MODIS data</a>
+    </li>
+    <li>
+      <a href="../articles/run_pmodel_points.html">Run the P-model for point simulations</a>
+    </li>
   </ul></li>
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
         <li>
-  <a href="https://github.com/computationales/ingestr/" class="external-link">
+  <a href="https://github.com/geco-bern/ingestr/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -71,7 +80,7 @@ outliers ranged above and below the coef*IQR."><meta name="twitter:card" content
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Remove outliers</h1>
-    <small class="dont-index">Source: <a href="https://github.com/computationales/ingestr/blob/HEAD/R/remove_outliers.R" class="external-link"><code>R/remove_outliers.R</code></a></small>
+    <small class="dont-index">Source: <a href="https://github.com/geco-bern/ingestr/blob/HEAD/R/remove_outliers.R" class="external-link"><code>R/remove_outliers.R</code></a></small>
     <div class="hidden name"><code>remove_outliers.Rd</code></div>
     </div>
 
@@ -111,7 +120,6 @@ replaced with NA.</p></dd>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="va">vec</span> <span class="op">&lt;-</span> <span class="fu">remove_outliers</span><span class="op">(</span> <span class="va">vec</span>, coef<span class="op">=</span><span class="fl">3</span> <span class="op">)</span> </span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -127,9 +135,9 @@ replaced with NA.</p></dd>
             <div class="col-xs-10">
                 <div class="row">
                     <div class="col-md-4 col-xs-6">
-                        <a href="https://github.com/computationales" target="_blank" class="external-link">
+                        <a href="https://github.com/geco-bern" target="_blank" class="external-link">
                           <div class="icon fab fa-github"></div></a>
-                        <a href="https://computationales.ethz.ch/" target="_blank" class="external-link">
+                        <a href="https://geco-group.org" target="_blank" class="external-link">
                           <div class="icon fa fa-flask"></div></a>
                         <a href="http://twitter.com/SteniBocker/" target="_blank" class="external-link">
                           <div class="icon fab fa-twitter"></div></a>
@@ -138,15 +146,15 @@ replaced with NA.</p></dd>
                 <div class="row top-4">
                     <div class="col-md-2 col-sm-4">
                         <ul><h5 class="bottom-2">About</h5>
-                            <li><a href="https://computationales.ethz.ch/" class="external-link">Computationales</a></li>
-                            <li><a href="https://computationales.ethz.ch/" class="external-link">Our Team</a></li>
-                            <li><a href="https://computationales.ethz.ch/" class="external-link">Contact Us</a></li>
+                            <li><a href="https://geco-group.org/" class="external-link">GECO</a></li>
+                            <li><a href="https://geco-group.org/people/" class="external-link">Our Team</a></li>
+                            <li><a href="https://geco-group.org/contact/" class="external-link">Contact Us</a></li>
                         </ul></div>
                     <div class="col-md-2 col-sm-4">
                         <ul><h5 class="bottom-2">Resources</h5>
-                            <li><a href="https://github.com/computationales" class="external-link">Packages</a></li>
-                            <li><a href="https://computationales.ethz.ch/" class="external-link">Publications</a></li>
-                            <li><a href="https://computationales.ethz.ch/" class="external-link">Blog</a></li>
+                            <li><a href="https://github.com/geco-bern" class="external-link">Packages</a></li>
+                            <li><a href="https://geco-group.org/publication/" class="external-link">Publications</a></li>
+                            <li><a href="https://geco-group.org/post/" class="external-link">Blog</a></li>
                         </ul></div>
 
                 </div>

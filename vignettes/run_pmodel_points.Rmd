@@ -1,0 +1,139 @@
+---
+title: "Run the P-model for point simulations"
+author: "Beni Stocker"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Run the P-model for point simulations}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
+---
+
+```{r setup}
+library(ingestr)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(ggplot2)
+```
+
+Often, we want to compare the P-model's predicted leaf-level photosynthetic (and related) traits with values measured in the field. Field data is typically provided as data for a single point in time and accompanied by information about the geographic location of the observation. This vignette describes a workflow for simulations of P-model quantities based on growing season average conditions and using climate forcing data from a high-resolution product, here WorldClim, provided as monthly climatologies of a set of climate variables at ~800 m resolution globally. The high resolution of the climate forcing data is essential here since we want to account for small-scale climate variations mediated by topographic gradients (which are not captured when using, e.g., 0.5 deg data as provided in commonly used global climate data products).
+
+Since we're interested in point simulations with no temporal dimension (to be compared to point observations), we can use the simple P-model implementation from the rpmodel R package.
+
+The workflow below outlines the steps needed to collect the climate forcing data from WorldClim, reformat it and convert units so that it can be used as forcing for a call to the `rpmodel::rpmodel()` function. Use `?rpmodel` for a documentation of the variables and their units provided as function arguments.
+
+## Site meta information
+
+The only information required for running point simulations with the P-model is the geographic position of the sites and their elevation. A site name is required as an ID for the output. The site meta information has to be provided as a data frame containing the following columns: `sitename, lon, lat, elv`. 
+
+Let's use the FLUXNET2015 site info data frame from ingestr as an example here.
+```{r}
+df_sites <- siteinfo_fluxnet2015 |> 
+  slice(1:3) |> 
+  select(sitename, lon, lat, elv)
+```
+
+## Collect WorldClim data
+
+ingestr makes it easy to collect WorldClim data from files available locally (in directory `~/data/worldclim`). Here, we use the monthly climatologies of daily minimum and maximum temperatures, vapour pressure, and solar radiation. See [here]() for details about WorldClim variables and their units.
+
+This is done here for three example sites from the FLUXNET2015 network. The site meta info data frame defined is used here for the `ingest()` function call.
+
+```{r}
+settings_wc <- list(varnam = c("tmin", "tmax", "vapr", "srad"))
+
+df_wc <- ingest(
+  df_sites,
+  source    = "worldclim",
+  settings  = settings_wc,
+  dir       = "~/data/worldclim"
+  )
+```
+
+## Units and aggregation
+
+Next, we aggregate the monthly WorldClim climatology to means across the thermal growing season, i.e., over months where the growth temperature is above 0 deg C. Before aggregation, we also convert WorldClim variables to the units required for `rpmodel`. See `?rpmodel` for information about the arguments.
+```{r}
+get_growingseasonmean <- function(df){
+  df |> 
+    filter(tgrowth > 0) |> 
+    ungroup() |> 
+    summarise(across(c(tgrowth, vpd, ppfd), mean))
+}
+
+kfFEC <- 2.04
+
+df_wc <- df_wc |> 
+  
+  unnest(data) |> 
+
+  ## add latitude
+  left_join(df_sites, by = "sitename") |> 
+  
+  ## vapour pressure kPa -> Pa
+  mutate(vapr = vapr * 1e3) |>
+  
+  ## PPFD from solar radiation: kJ m-2 day-1 -> mol m−2 s−1 PAR
+  mutate(ppfd = 1e3 * srad * kfFEC * 1.0e-6 / (60 * 60 * 24)) |>
+
+  ## calculate VPD (Pa) based on tmin and tmax
+  rowwise() |> 
+  mutate(vpd = calc_vpd(eact = vapr, tmin = tmin, tmax = tmax)) |> 
+  
+  ## calculate growth temperature (average daytime temperature)
+  mutate(doy = lubridate::yday(lubridate::ymd("2001-01-15") + months(month - 1))) |> 
+  mutate(tgrowth = ingestr::calc_tgrowth(tmin, tmax, lat, doy)) |> 
+  
+  ## average over growing season (where Tgrowth > 0 deg C)
+  group_by(sitename) |> 
+  nest() |> 
+  mutate(data_growingseason = purrr::map(data, ~get_growingseasonmean(.))) |> 
+  unnest(data_growingseason) |> 
+  select(-data) |> 
+
+  ## since we don't know the year of measurement (often), we assume a "generic" concentration (ppm)
+  mutate(co2 = 380) |> 
+  
+  ## we're interested not in ecosystem fluxes, but in leaf-level quantities
+  ## therefore, apply a "dummy" fAPAR = 1
+  mutate(fapar = 1.0) |> 
+
+  ## add elevation (elv)
+  left_join(df_sites, by = "sitename")
+```
+
+## Run the P-model
+
+Now, we convert units of variables, derive the growth temperature, and average variables over the (thermal) growing season, i.e., over months where the growth temperature is above 0 deg C.
+```{r}
+df_wc <- df_wc |> 
+  
+  ## apply the P-model on each site (corresponding to each row)
+  group_by(sitename) |> 
+  nest() |> 
+  mutate(out = purrr::map(data, 
+                          ~rpmodel::rpmodel( 
+                            tc             = .x$tgrowth,
+                            vpd            = .x$vpd,
+                            co2            = .x$co2,
+                            fapar          = .x$fapar,
+                            ppfd           = .x$ppfd,
+                            elv            = .x$elv,
+                            kphio          = 0.049977,
+                            beta           = 146,
+                            c4             = FALSE,
+                            method_jmaxlim = "wang17",
+                            do_ftemp_kphio = FALSE,
+                            do_soilmstress = FALSE,
+                            verbose        = TRUE 
+                            ))) |> 
+  mutate(out = purrr::map(out, ~as_tibble(.))) %>% 
+  unnest(c(data, out))
+```
+
+The returned object contains all forcing data in P-model units and aggregated over the thermal growing season, and all P-model outputs.
+```{r}
+knitr::kable(df_wc)
+```
+
+
