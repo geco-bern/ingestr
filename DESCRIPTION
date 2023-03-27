@@ -1,6 +1,6 @@
 Package: ingestr
 Title: Environmental point data ingest
-Version: 1.4
+Version: 1.4.1
 Authors@R: c(
             person(
               family = "Benjamin",
