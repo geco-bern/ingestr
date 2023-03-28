@@ -2,7 +2,9 @@
 title: "Ingest P-model drivers from coordinates"
 author: "Pepa Aran"
 date: "2023-03-23"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 # Get all P-model drivers from a pair of coordinates
@@ -26,9 +28,9 @@ library(tibble)
 library(ingestr)
 library(raster)
 
-if(!require(devtools)){install.packages(devtools)}
-devtools::install_github("geco-bern/GECOr")
-library(GECOr)
+# if(!require(devtools)){install.packages(devtools)}
+# devtools::install_github("geco-bern/GECOr")
+# library(GECOr)
 ```
 
 ## Site information and coordinates
@@ -71,11 +73,11 @@ extract_whc <- function(file, siteinfo){
 path_whc <- "/data/archive/whc_stocker_2021/data"
 
 df_whc <- extract_whc(file = paste0(path_whc, "/cwdx80.nc"),
-            siteinfo = siteinfo)
+            siteinfo = siteinfo_globresp)
 
 # Merge whc with site information
 siteinfo <- dplyr::left_join(
-  siteinfo,
+  siteinfo_globresp,
   df_whc,
   by = c("lon", "lat")
   )
@@ -111,7 +113,8 @@ df_watch <- ingestr::ingest(
     correct_bias = "worldclim",    # 0.5 deg
     dir_bias = path_worldclim
   )
-)
+) |>
+  suppressWarnings()
 
 # Memory intensive, purge memory
 gc()
@@ -150,6 +153,11 @@ df_meteo <- df_watch %>%
   # ) %>% 
   # group_by(sitename) %>% 
   # tidyr::nest()
+
+# Quick fix to fill tmin and tmax
+df_meteo <- df_meteo |>
+  dplyr::mutate(tmin = temp,
+                tmax = temp)
 ```
 
 ### Get CO2 data
@@ -157,36 +165,73 @@ df_meteo <- df_watch %>%
 The following chunk downloads the CO2 yearly average data from the Mauna Loa 
 observatory and appends it to the meteorological drivers from above.
 ```{r}
-# Download and merge CO2 data
+# Download CO2 data
 df_co2 <- read.csv(
   url("https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_mlo.csv"),
   skip = 59) |>
   dplyr::select(year, mean) |>
   dplyr::rename(co2 = mean)
 
+# # expand to data frame for each site
+# purrr::map(
+#   as.list(seq(nrow(siteinfo))),
+#   ~
+# )
+# init_dates_dataframe(year_start, year_end, timescale = "d") |>
+#   dplyr::mutate(year = lubridate::year(date))
+# 	  ddf <- purrr::map(
+# 	    as.list(seq(nrow(siteinfo))),
+# 	    ~ingestr:::expand_co2_bysite(
+# 	      df_co2,
+# 	      sitename = siteinfo$sitename[.],
+# 	      year_start = siteinfo$year_start[.],
+# 	      year_end   = siteinfo$date_end[.],
+# 	      timescale = "d"
+# 	    )
+# 	  )
+
 df_meteo <- df_meteo |>
   dplyr::mutate(year = lubridate::year(date)) |>
-  dplyr::left_join(df_co2, by = "year") |> 
-  dplyr::group_by(sitename) |>
-  tidyr::nest()
+  dplyr::left_join(df_co2, by = "year")            # keep unnested
 ```
 
 ### Append fAPAR
 
-Set fAPAR by default to 1 for all observations.
+Set fAPAR by default to 1 for all observations, which is the same as what
+`ingest(siiteinfo_globresp, source = "fapar_unity")` would do.
 ```{r}
-df_fapar <- ingestr::ingest(
-  siteinfo = siteinfo_globresp,
-  source = "fapar_unity"
-)
+# Add fapar column with value 1
+df_meteo <- df_meteo |>
+  dplyr::mutate(fapar = 1)
+
+# df_fapar <- ingestr::ingest(
+#   siteinfo = siteinfo_globresp,
+#   source = "fapar_unity"
+# )
 ```
 
 ## Put all data together into rsofun object
 
-Finally, we can compile all the data together into a `p_model_drivers` object.
+Up to here, we have merged all of the forcing data into `df_meteo`. Let's
+put it in a nested format:
+```{r}
+# Nest forcing
+df_meteo <- df_meteo |>
+  dplyr::group_by(sitename) |>
+  tidyr::nest() |>
+  dplyr::rename(forcing = data)
+
+# Add site information
+df_siteinfo <- siteinfo_globresp |>
+  dplyr::group_by(sitename) |>
+  tidyr::nest() |>
+  dplyr::rename(site_info = data)
+```
+
+We will use default simulation and soil texture parameters. 
 ```{r}
 # Define default model parameters, soil data, etc
-params_siml = list(
+params_siml <- list(
     spinup             = TRUE,  # to bring soil moisture to steady state
     spinupyears        = 10,    # 10 is enough for soil moisture.
     recycle            = 1,     # number of years recycled during spinup 
@@ -204,14 +249,8 @@ params_siml = list(
     lgn3               = FALSE,
     lgr4               = FALSE
   )
-params_modl = list(
-    kphio           = 0.09423773,
-    soilm_par_a     = 0.33349283,
-    soilm_par_b     = 1.45602286,
-    tau_acclim_tempstress = 10,
-    par_shape_tempstress  = 0.0
-  )
-df_soiltexture = bind_rows(
+
+df_soiltexture <- bind_rows(
     top    = tibble(
       layer = "top",
       fsand = 0.4,
@@ -227,18 +266,19 @@ df_soiltexture = bind_rows(
   )
 ```
 
+Finally, we can compile all the data together into a `p_model_drivers` object.
 ```{r}
-# Put data into nested format
-drivers <- collect_drivers_sofun(
-  site_info       = siteinfo_globresp,
-  params_siml    = params_siml,
-  meteo          = df_meteo, 
-  fapar          = df_fapar_unity,
-  co2            = df_co2,
-  params_soil    = df_soiltexture
-)
+drivers <- df_meteo |>
+  dplyr::left_join(df_siteinfo,
+                   by = "sitename")
+
+drivers$params_siml <- list(dplyr::as_tibble(params_siml))
+drivers$params_soil <- list(df_soiltexture)
 ```
 
+# Run P-model example
+
+We can now run the P-model with the `rsofun` implementation.
 
 
-
+# Aggregate over 2001-2015 period to obtain across-years average forcing
