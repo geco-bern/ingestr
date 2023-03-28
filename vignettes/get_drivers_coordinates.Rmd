@@ -1,0 +1,244 @@
+---
+title: "Ingest P-model drivers from coordinates"
+author: "Pepa Aran"
+date: "2023-03-23"
+output: html_document
+---
+
+# Get all P-model drivers from a pair of coordinates
+
+This vignette runs through the workflow to obtain an object like
+`p_model_drivers` for an arbitrary location in the globe, given by its
+coordinates (lon, lat). This site isn't necessarily a flux site. 
+
+First, we compile all the necessary data
+(complete site information, meteorological data, climatic variables, etc.)
+from the raw data files. Here, we use the paths corresponding to the
+GECO data archive (more information [here](https://github.com/geco-bern/data_management)).
+Then, we format the data to run the [rsofun](https://geco-bern.github.io/rsofun/)
+P-model implementation.
+
+```{r}
+# Load libraries
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(ingestr)
+library(raster)
+
+if(!require(devtools)){install.packages(devtools)}
+devtools::install_github("geco-bern/GECOr")
+library(GECOr)
+```
+
+## Site information and coordinates
+
+As an example, we will use a subset of site locations from Atkin et al. 2017
+(the original data is available via the [TRY Plant Trait Database](https://www.try-db.org/de/Datasets.php)).
+
+```{r}
+# Load siteinfo data
+load("data/siteinfo_globresp.rda")
+```
+
+### Complement siteinfo with Water Holding Capacity
+
+We use data from Stocker et al. 2021 to get the WHC for
+our sites. The data is in 0.05 degree resolution, which is appropriate
+for this use case.
+
+```{r}
+# Define function to extract whc
+extract_whc <- function(file, siteinfo){
+
+  siteinfo <- siteinfo[, c("lon", "lat")] |>
+    unique()                                   # Remove repeated coordinates
+  
+  rasta <- raster::brick(file)
+  
+  raster::extract(
+    rasta,                                            # raster object
+    sp::SpatialPoints(siteinfo[, c("lon", "lat")]),   # points
+    sp = TRUE                                         # add raster values to siteinfo
+  ) |>
+    tibble::as_tibble() |>
+    dplyr::rename(whc = layer)
+}
+```
+
+```{r}
+# Get WHC data
+path_whc <- "/data/archive/whc_stocker_2021/data"
+
+df_whc <- extract_whc(file = paste0(path_whc, "/cwdx80.nc"),
+            siteinfo = siteinfo)
+
+# Merge whc with site information
+siteinfo <- dplyr::left_join(
+  siteinfo,
+  df_whc,
+  by = c("lon", "lat")
+  )
+
+# Fill gaps by median value (here there are no NAs)
+siteinfo$whc[is.na(siteinfo$whc)] <- median(siteinfo$whc,
+                                            na.rm = TRUE)
+```
+
+## Get forcing datasets
+
+### Meteorological forcing from WATCH-WFDEI
+
+The following meteorological variables are obtained for the P-model forcing
+from the WATCH-WFDEI data:
+- `temp`: Daily temperature
+- `prec`: Daily precipitation
+- `ppfd`: Photosynthetic photon flux density
+- `vpd`: Vapor pressure deficit
+- `patm`: Atmospheric pressure
+
+```{r}
+# Get WATCH data
+path_watch <- "/data/archive/wfdei_weedon_2014/data"
+path_worldclim <- "/data/archive/worldclim_fick_2017/data" # for debiasing
+
+df_watch <- ingestr::ingest(
+  siteinfo = siteinfo,
+  source = "watch_wfdei",
+  getvars = c("temp", "prec", "ppfd", "vpd", "patm"),
+  dir = path_watch,
+  settings = list(
+    correct_bias = "worldclim",    # 0.5 deg
+    dir_bias = path_worldclim
+  )
+)
+
+# Memory intensive, purge memory
+gc()
+```
+
+### Cloud cover from CRU
+
+Now, we'll complete the forcing with cloud cover `ccov` values from CRU data. 
+```{r}
+# Get CRU data
+path_cru <- "/data/archive/cru_NA_2021/data/"
+
+df_cru <- ingestr::ingest(
+  siteinfo = siteinfo,
+  source = "cru",
+  getvars = c("ccov"),
+  dir = path_cru,
+  settings = list(
+    correct_bias = NULL       # 0.5 deg resolution
+  )
+)
+
+```
+
+### Merge meteorological drivers
+
+Let's put together the previous data:
+```{r}
+df_meteo <- df_watch %>% 
+  tidyr::unnest(data) %>% 
+  left_join(
+    df_cru %>% 
+      tidyr::unnest(data),
+    by = c("sitename", "date")
+  )                              # leave ungrouped
+  # ) %>% 
+  # group_by(sitename) %>% 
+  # tidyr::nest()
+```
+
+### Get CO2 data
+
+The following chunk downloads the CO2 yearly average data from the Mauna Loa 
+observatory and appends it to the meteorological drivers from above.
+```{r}
+# Download and merge CO2 data
+df_co2 <- read.csv(
+  url("https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_mlo.csv"),
+  skip = 59) |>
+  dplyr::select(year, mean) |>
+  dplyr::rename(co2 = mean)
+
+df_meteo <- df_meteo |>
+  dplyr::mutate(year = lubridate::year(date)) |>
+  dplyr::left_join(df_co2, by = "year") |> 
+  dplyr::group_by(sitename) |>
+  tidyr::nest()
+```
+
+### Append fAPAR
+
+Set fAPAR by default to 1 for all observations.
+```{r}
+df_fapar <- ingestr::ingest(
+  siteinfo = siteinfo_globresp,
+  source = "fapar_unity"
+)
+```
+
+## Put all data together into rsofun object
+
+Finally, we can compile all the data together into a `p_model_drivers` object.
+```{r}
+# Define default model parameters, soil data, etc
+params_siml = list(
+    spinup             = TRUE,  # to bring soil moisture to steady state
+    spinupyears        = 10,    # 10 is enough for soil moisture.
+    recycle            = 1,     # number of years recycled during spinup 
+    soilmstress        = FALSE, # soil moisture stress function is included
+    tempstress         = FALSE, # temperature stress function is included
+    calc_aet_fapar_vpd = FALSE, # set to FALSE - should be dropped again
+    in_ppfd            = TRUE,  # if available from forcing files, set to TRUE
+    in_netrad          = FALSE, # if available from forcing files, set to TRUE
+    outdt              = 1,
+    ltre               = FALSE,
+    ltne               = FALSE,
+    ltrd               = FALSE,
+    ltnd               = FALSE,
+    lgr3               = TRUE,
+    lgn3               = FALSE,
+    lgr4               = FALSE
+  )
+params_modl = list(
+    kphio           = 0.09423773,
+    soilm_par_a     = 0.33349283,
+    soilm_par_b     = 1.45602286,
+    tau_acclim_tempstress = 10,
+    par_shape_tempstress  = 0.0
+  )
+df_soiltexture = bind_rows(
+    top    = tibble(
+      layer = "top",
+      fsand = 0.4,
+      fclay = 0.3,
+      forg = 0.1,
+      fgravel = 0.1),
+    bottom = tibble(
+      layer = "bottom",
+      fsand = 0.4,
+      fclay = 0.3,
+      forg = 0.1,
+      fgravel = 0.1)
+  )
+```
+
+```{r}
+# Put data into nested format
+drivers <- collect_drivers_sofun(
+  site_info       = siteinfo_globresp,
+  params_siml    = params_siml,
+  meteo          = df_meteo, 
+  fapar          = df_fapar_unity,
+  co2            = df_co2,
+  params_soil    = df_soiltexture
+)
+```
+
+
+
+
