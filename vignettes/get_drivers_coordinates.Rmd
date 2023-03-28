@@ -27,6 +27,7 @@ library(tidyr)
 library(tibble)
 library(ingestr)
 library(raster)
+library(ggplot2)
 
 # if(!require(devtools)){install.packages(devtools)}
 # devtools::install_github("geco-bern/GECOr")
@@ -150,14 +151,6 @@ df_meteo <- df_watch %>%
       tidyr::unnest(data),
     by = c("sitename", "date")
   )                              # leave ungrouped
-  # ) %>% 
-  # group_by(sitename) %>% 
-  # tidyr::nest()
-
-# Quick fix to fill tmin and tmax
-df_meteo <- df_meteo |>
-  dplyr::mutate(tmin = temp,
-                tmax = temp)
 ```
 
 ### Get CO2 data
@@ -172,24 +165,6 @@ df_co2 <- read.csv(
   dplyr::select(year, mean) |>
   dplyr::rename(co2 = mean)
 
-# # expand to data frame for each site
-# purrr::map(
-#   as.list(seq(nrow(siteinfo))),
-#   ~
-# )
-# init_dates_dataframe(year_start, year_end, timescale = "d") |>
-#   dplyr::mutate(year = lubridate::year(date))
-# 	  ddf <- purrr::map(
-# 	    as.list(seq(nrow(siteinfo))),
-# 	    ~ingestr:::expand_co2_bysite(
-# 	      df_co2,
-# 	      sitename = siteinfo$sitename[.],
-# 	      year_start = siteinfo$year_start[.],
-# 	      year_end   = siteinfo$date_end[.],
-# 	      timescale = "d"
-# 	    )
-# 	  )
-
 df_meteo <- df_meteo |>
   dplyr::mutate(year = lubridate::year(date)) |>
   dplyr::left_join(df_co2, by = "year")            # keep unnested
@@ -203,11 +178,6 @@ Set fAPAR by default to 1 for all observations, which is the same as what
 # Add fapar column with value 1
 df_meteo <- df_meteo |>
   dplyr::mutate(fapar = 1)
-
-# df_fapar <- ingestr::ingest(
-#   siteinfo = siteinfo_globresp,
-#   source = "fapar_unity"
-# )
 ```
 
 ## Put all data together into rsofun object
@@ -279,6 +249,41 @@ drivers$params_soil <- list(df_soiltexture)
 # Run P-model example
 
 We can now run the P-model with the `rsofun` implementation.
+```{r}
+# Run P-model with parameters from previous optimizations
+params_modl <- list(
+    kphio           = 0.09423773,
+    soilm_par_a     = 0.33349283,
+    soilm_par_b     = 1.45602286,
+    tau_acclim_tempstress = 10,
+    par_shape_tempstress  = 0.0
+  )
 
+# run the model for these parameters
+output <- rsofun::runread_pmodel_f(
+  drivers,
+  par = params_modl
+  )
+```
+
+And take a look at the results
+```{r}
+ggplot() +
+    geom_line(
+    data = output |> tidyr::unnest(),
+    aes(
+      x = date,
+      y = gpp
+    ),
+    colour = "red",
+    alpha = 0.8
+  ) +
+  facet_grid(sitename ~ .) +
+  labs(
+    x = "Date",
+    y = "GPP"
+  )
+
+```
 
 # Aggregate over 2001-2015 period to obtain across-years average forcing
