@@ -29,9 +29,9 @@ library(ingestr)
 library(raster)
 library(ggplot2)
 
-# if(!require(devtools)){install.packages(devtools)}
-# devtools::install_github("geco-bern/GECOr")
-# library(GECOr)
+if(!require(devtools)){install.packages(devtools)}
+devtools::install_github("geco-bern/rsofun")
+library(rsofun)
 ```
 
 ## Site information and coordinates
@@ -115,7 +115,7 @@ df_watch <- ingestr::ingest(
     dir_bias = path_worldclim
   )
 ) |>
-  suppressWarnings()
+  suppressWarnings() |> suppressMessages()
 # Variables tmin and tmax missing but not currently in use
 
 # Memory intensive, purge memory
@@ -151,9 +151,13 @@ df_meteo <- df_watch |>
     df_cru |>
       tidyr::unnest(data),
     by = c("sitename", "date")
-  ) |>                              # keep unnested
-  dplyr::mutate(tmin = temp,        # placeholders for variables tmin and tmax
-                tmax = temp)        # (not used in P-model runs)
+  ) |>
+  dplyr::ungroup() |>                         # keep unnested
+  dplyr::mutate(tmin = temp,                  # placeholders for variables tmin and tmax
+                tmax = temp) |>               # (not used in P-model runs)
+  dplyr::mutate(doy = lubridate::yday(date))  # add day of year
+
+head(df_meteo)
 ```
 
 ### Get CO2 data
@@ -194,13 +198,15 @@ put it in a nested format:
 df_meteo <- df_meteo |>
   dplyr::group_by(sitename) |>
   tidyr::nest() |>
-  dplyr::rename(forcing = data)
+  dplyr::rename(forcing = data) |>
+  dplyr::ungroup()
 
 # Add site information
-df_siteinfo <- siteinfo_globresp |>
+df_siteinfo <- siteinfo |>
   dplyr::group_by(sitename) |>
   tidyr::nest() |>
-  dplyr::rename(site_info = data)
+  dplyr::rename(site_info = data) |>
+  dplyr::ungroup()
 ```
 
 We will use default simulation and soil texture parameters. 
@@ -222,7 +228,9 @@ params_siml <- list(
     ltnd               = FALSE,
     lgr3               = TRUE,
     lgn3               = FALSE,
-    lgr4               = FALSE
+    lgr4               = FALSE,
+    firstyeartrend     = 2001,  # first year of running the model
+    nyeartrend         = 15     # number of years running the model
   )
 
 df_soiltexture <- bind_rows(
@@ -242,6 +250,7 @@ df_soiltexture <- bind_rows(
 ```
 
 Finally, we can compile all the data together into a `p_model_drivers` object.
+Note that this object must be an ungrouped tibble object.
 ```{r}
 drivers <- df_meteo |>
   dplyr::left_join(df_siteinfo,
@@ -266,9 +275,9 @@ params_modl <- list(
 
 # run the model for these parameters
 output <- rsofun::runread_pmodel_f(
-  drivers,
+  drivers = drivers,
   par = params_modl
-  )
+)
 ```
 
 And take a look at the results
@@ -278,9 +287,23 @@ ggplot() +
     data = output |> tidyr::unnest(),
     aes(
       x = date,
+      y = vcmax25
+    ),
+    alpha = 0.8
+  ) +
+  facet_grid(sitename ~ .) +
+  labs(
+    x = "Date",
+    y = "Vcmax25"
+  )
+
+ggplot() +
+    geom_line(
+    data = output |> tidyr::unnest(),
+    aes(
+      x = date,
       y = gpp
     ),
-    colour = "red",
     alpha = 0.8
   ) +
   facet_grid(sitename ~ .) +
@@ -288,7 +311,6 @@ ggplot() +
     x = "Date",
     y = "GPP"
   )
-
 ```
 
 # Aggregate over 2001-2015 period to obtain across-years average forcing
