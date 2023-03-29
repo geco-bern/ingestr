@@ -116,6 +116,7 @@ df_watch <- ingestr::ingest(
   )
 ) |>
   suppressWarnings()
+# Variables tmin and tmax missing but not currently in use
 
 # Memory intensive, purge memory
 gc()
@@ -144,13 +145,15 @@ df_cru <- ingestr::ingest(
 
 Let's put together the previous data:
 ```{r}
-df_meteo <- df_watch %>% 
-  tidyr::unnest(data) %>% 
+df_meteo <- df_watch |>
+  tidyr::unnest(data) |>
   left_join(
-    df_cru %>% 
+    df_cru |>
       tidyr::unnest(data),
     by = c("sitename", "date")
-  )                              # leave ungrouped
+  ) |>                              # keep unnested
+  dplyr::mutate(tmin = temp,        # placeholders for variables tmin and tmax
+                tmax = temp)        # (not used in P-model runs)
 ```
 
 ### Get CO2 data
@@ -165,6 +168,7 @@ df_co2 <- read.csv(
   dplyr::select(year, mean) |>
   dplyr::rename(co2 = mean)
 
+# Merge with meteo drivers
 df_meteo <- df_meteo |>
   dplyr::mutate(year = lubridate::year(date)) |>
   dplyr::left_join(df_co2, by = "year")            # keep unnested
@@ -173,7 +177,8 @@ df_meteo <- df_meteo |>
 ### Append fAPAR
 
 Set fAPAR by default to 1 for all observations, which is the same as what
-`ingest(siiteinfo_globresp, source = "fapar_unity")` would do.
+`ingest(siiteinfo_globresp, source = "fapar_unity")` would do. This makes
+sense for leaf-level simulations.
 ```{r}
 # Add fapar column with value 1
 df_meteo <- df_meteo |>
@@ -287,3 +292,7 @@ ggplot() +
 ```
 
 # Aggregate over 2001-2015 period to obtain across-years average forcing
+
+To run the P-model for leaf trait calibration, we may want to have the average
+daily forcing over a span of years. This is because leaf traits are measured once
+and assumed constant over a span of time. 
