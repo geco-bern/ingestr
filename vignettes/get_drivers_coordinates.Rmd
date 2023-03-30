@@ -228,9 +228,7 @@ params_siml <- list(
     ltnd               = FALSE,
     lgr3               = TRUE,
     lgn3               = FALSE,
-    lgr4               = FALSE,
-    firstyeartrend     = 2001,  # first year of running the model
-    nyeartrend         = 15     # number of years running the model
+    lgr4               = FALSE
   )
 
 df_soiltexture <- bind_rows(
