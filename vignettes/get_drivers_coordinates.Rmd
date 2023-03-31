@@ -9,13 +9,13 @@ output:
 
 # Get all P-model drivers from a pair of coordinates
 
-This vignette runs through the workflow to obtain an object like
-`p_model_drivers` for an arbitrary location in the globe, given by its
-coordinates (lon, lat). This site isn't necessarily a flux site. 
+This vignette runs through the workflow to obtain an object like `p_model_drivers` 
+(from the `rsofun` package) for arbitrary locations in the globe, given by their
+coordinates (lon, lat). These sites aren't necessarily flux sites. 
 
 First, we compile all the necessary data
 (complete site information, meteorological data, climatic variables, etc.)
-from the raw data files. Here, we use the paths corresponding to the
+from the raw data files. In this vignette, we use the paths corresponding to the
 GECO data archive (more information [here](https://github.com/geco-bern/data_management)).
 Then, we format the data to run the [rsofun](https://geco-bern.github.io/rsofun/)
 P-model implementation.
@@ -38,6 +38,11 @@ library(rsofun)
 
 As an example, we will use a subset of site locations from Atkin et al. 2017
 (the original data is available via the [TRY Plant Trait Database](https://www.try-db.org/de/Datasets.php)).
+All the columns in the `siteinfo_globresp` data.frame are necessary to retrieve
+the P-model drivers data: a site name for reference `sitename`, the coordinates
+of the site location in degrees `lon` and `lat`, its elevation in meters `elv`,
+and the first and last year of observations we want to collect `year_start` and 
+`year_end`.
 
 ```{r}
 # Load siteinfo data
@@ -46,9 +51,9 @@ load("data/siteinfo_globresp.rda")
 
 ### Complement siteinfo with Water Holding Capacity
 
-We use data from Stocker et al. 2021 to get the WHC for
-our sites. The data is in 0.05 degree resolution, which is appropriate
-for this use case.
+We use data from [Stocker et al. 2021](https://www.nature.com/articles/s41561-023-01125-2) 
+to get the WHC for our sites. The data is in 0.05 degree resolution, which is 
+appropriate for this use case.
 
 ```{r}
 # Define function to extract whc
@@ -90,15 +95,20 @@ siteinfo$whc[is.na(siteinfo$whc)] <- median(siteinfo$whc,
 
 ## Get forcing datasets
 
+Based on the `siteinfo` object, we collect all climate forcing data.
+
 ### Meteorological forcing from WATCH-WFDEI
 
 The following meteorological variables are obtained for the P-model forcing
-from the WATCH-WFDEI data:
+from the [WATCH-WFDEI](https://rda.ucar.edu/datasets/ds314.2/) data:
 - `temp`: Daily temperature
 - `prec`: Daily precipitation
 - `ppfd`: Photosynthetic photon flux density
 - `vpd`: Vapor pressure deficit
 - `patm`: Atmospheric pressure
+
+Loading this data can take a while, up to hours if you need several years of
+data for many sites.
 
 ```{r}
 # Get WATCH data
@@ -124,7 +134,9 @@ gc()
 
 ### Cloud cover from CRU
 
-Now, we'll complete the forcing with cloud cover `ccov` values from CRU data. 
+Now, let's complete the forcing with cloud cover `ccov` values from 
+[CRU](https://crudata.uea.ac.uk/cru/data/hrg/) data. 
+
 ```{r}
 # Get CRU data
 path_cru <- "/data/archive/cru_NA_2021/data/"
@@ -138,12 +150,11 @@ df_cru <- ingestr::ingest(
     correct_bias = NULL       # 0.5 deg resolution
   )
 )
-
 ```
 
 ### Merge meteorological drivers
 
-Let's put together the previous data:
+Let's put together the previous data, into a single data.frame:
 ```{r}
 df_meteo <- df_watch |>
   tidyr::unnest(data) |>
@@ -192,7 +203,7 @@ df_meteo <- df_meteo |>
 ## Put all data together into rsofun object
 
 Up to here, we have merged all of the forcing data into `df_meteo`. Let's
-put it in a nested format:
+put it in a nested format, such that there is a single data.frame per site:
 ```{r}
 # Nest forcing
 df_meteo <- df_meteo |>
@@ -278,7 +289,7 @@ output <- rsofun::runread_pmodel_f(
 )
 ```
 
-And take a look at the results
+And take a look at the results:
 ```{r}
 ggplot() +
     geom_line(
@@ -311,7 +322,7 @@ ggplot() +
   )
 ```
 
-# Aggregate over 2001-2015 period to obtain across-years average forcing
+## Aggregate over 2001-2015 period to obtain across-years average forcing
 
 To run the P-model for leaf trait calibration, we may want to have the average
 daily forcing over a span of years. This is because leaf traits are measured once
