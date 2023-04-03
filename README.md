@@ -58,7 +58,7 @@ Use these variable names for specifying which variable names they correspond to 
 To install and load the rsofun package using the latest release run the following command in your R terminal:
 
 ``` r
-if(!require(devtools)){install.packages(devtools)}
+if(!require(devtools)){install.packages("devtools")}
 devtools::install_github("geco-bern/ingestr")
 library(ingestr)
 ```

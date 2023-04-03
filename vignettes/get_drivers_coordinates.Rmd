@@ -1,0 +1,395 @@
+---
+title: "Ingest P-model drivers from coordinates"
+author: "Pepa Aran"
+date: "2023-03-23"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Get all P-model drivers from a pair of coordinates
+
+This vignette runs through the workflow to obtain an object like `p_model_drivers` 
+(from the `rsofun` package) for arbitrary locations in the globe, given by their
+coordinates (lon, lat). These sites aren't necessarily flux sites. 
+
+First, we compile all the necessary data
+(complete site information, meteorological data, climatic variables, etc.)
+from the raw data files. In this vignette, we use the paths corresponding to the
+GECO data archive (more information [here](https://github.com/geco-bern/data_management)).
+Then, we format the data to run the [rsofun](https://geco-bern.github.io/rsofun/)
+P-model implementation.
+
+```{r}
+# Load libraries
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(ingestr)
+library(raster)
+library(ggplot2)
+
+if(!require(devtools)){install.packages(devtools)}
+devtools::install_github("geco-bern/rsofun")
+library(rsofun)
+```
+
+## Site information and coordinates
+
+As an example, we will use a subset of site locations from Atkin et al. 2017
+(the original data is available via the [TRY Plant Trait Database](https://www.try-db.org/de/Datasets.php)).
+All the columns in the `siteinfo_globresp` data.frame are necessary to retrieve
+the P-model drivers data: a site name for reference `sitename`, the coordinates
+of the site location in degrees `lon` and `lat`, its elevation in meters `elv`,
+and the first and last year of observations we want to collect `year_start` and 
+`year_end`.
+
+```{r}
+# Load siteinfo data
+load("data/siteinfo_globresp.rda")
+```
+
+### Complement siteinfo with Water Holding Capacity
+
+We use data from [Stocker et al. 2021](https://www.nature.com/articles/s41561-023-01125-2) 
+to get the WHC for our sites. The data is in 0.05 degree resolution, which is 
+appropriate for this use case.
+
+```{r}
+# Define function to extract whc
+extract_whc <- function(file, siteinfo){
+
+  siteinfo <- siteinfo[, c("lon", "lat")] |>
+    unique()                                   # Remove repeated coordinates
+  
+  rasta <- raster::brick(file)
+  
+  raster::extract(
+    rasta,                                            # raster object
+    sp::SpatialPoints(siteinfo[, c("lon", "lat")]),   # points
+    sp = TRUE                                         # add raster values to siteinfo
+  ) |>
+    tibble::as_tibble() |>
+    dplyr::rename(whc = layer)
+}
+```
+
+```{r}
+# Get WHC data
+path_whc <- "/data/archive/whc_stocker_2021/data"
+
+df_whc <- extract_whc(file = paste0(path_whc, "/cwdx80.nc"),
+            siteinfo = siteinfo_globresp)
+
+# Merge whc with site information
+siteinfo <- dplyr::left_join(
+  siteinfo_globresp,
+  df_whc,
+  by = c("lon", "lat")
+  )
+
+# Fill gaps by median value (here there are no NAs)
+siteinfo$whc[is.na(siteinfo$whc)] <- median(siteinfo$whc,
+                                            na.rm = TRUE)
+```
+
+## Get forcing datasets
+
+Based on the `siteinfo` object, we collect all climate forcing data.
+
+### Meteorological forcing from WATCH-WFDEI
+
+The following meteorological variables are obtained for the P-model forcing
+from the [WATCH-WFDEI](https://rda.ucar.edu/datasets/ds314.2/) data:
+- `temp`: Daily temperature
+- `prec`: Daily precipitation
+- `ppfd`: Photosynthetic photon flux density
+- `vpd`: Vapor pressure deficit
+- `patm`: Atmospheric pressure
+
+Loading this data can take a while, up to hours if you need several years of
+data for many sites.
+
+```{r}
+# Get WATCH data
+path_watch <- "/data/archive/wfdei_weedon_2014/data"
+path_worldclim <- "/data/archive/worldclim_fick_2017/data" # for debiasing
+
+df_watch <- ingestr::ingest(
+  siteinfo = siteinfo,
+  source = "watch_wfdei",
+  getvars = c("temp", "prec", "ppfd", "vpd", "patm"),
+  dir = path_watch,
+  settings = list(
+    correct_bias = "worldclim",    # 0.5 deg
+    dir_bias = path_worldclim
+  )
+) |>
+  suppressWarnings() |> suppressMessages()
+# Variables tmin and tmax missing but not currently in use
+
+# Memory intensive, purge memory
+gc()
+```
+
+### Cloud cover from CRU
+
+Now, let's complete the forcing with cloud cover `ccov` values from 
+[CRU](https://crudata.uea.ac.uk/cru/data/hrg/) data. 
+
+```{r}
+# Get CRU data
+path_cru <- "/data/archive/cru_NA_2021/data/"
+
+df_cru <- ingestr::ingest(
+  siteinfo = siteinfo,
+  source = "cru",
+  getvars = c("ccov"),
+  dir = path_cru,
+  settings = list(
+    correct_bias = NULL       # 0.5 deg resolution
+  )
+)
+```
+
+### Merge meteorological drivers
+
+Let's put together the previous data, into a single data.frame:
+```{r}
+df_meteo <- df_watch |>
+  tidyr::unnest(data) |>
+  left_join(
+    df_cru |>
+      tidyr::unnest(data),
+    by = c("sitename", "date")
+  ) |>
+  dplyr::ungroup() |>                         # keep unnested
+  dplyr::mutate(tmin = temp,                  # placeholders for variables tmin and tmax
+                tmax = temp) |>               # (not used in P-model runs)
+  dplyr::mutate(doy = lubridate::yday(date))  # add day of year
+
+head(df_meteo)
+```
+
+### Get CO2 data
+
+The following chunk downloads the CO2 yearly average data from the Mauna Loa 
+observatory and appends it to the meteorological drivers from above.
+```{r}
+# Download CO2 data
+df_co2 <- read.csv(
+  url("https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_mlo.csv"),
+  skip = 59) |>
+  dplyr::select(year, mean) |>
+  dplyr::rename(co2 = mean)
+
+# Merge with meteo drivers
+df_meteo <- df_meteo |>
+  dplyr::mutate(year = lubridate::year(date)) |>
+  dplyr::left_join(df_co2, by = "year")            # keep unnested
+```
+
+### Append fAPAR
+
+Set fAPAR by default to 1 for all observations, which is the same as what
+`ingest(siiteinfo_globresp, source = "fapar_unity")` would do. This makes
+sense for leaf-level simulations.
+```{r}
+# Add fapar column with value 1
+df_meteo <- df_meteo |>
+  dplyr::mutate(fapar = 1)
+```
+
+## Put all data together into rsofun object
+
+Up to here, we have merged all of the forcing data into `df_meteo`. Let's
+put it in a nested format, such that there is a single data.frame per site:
+```{r}
+# Nest forcing
+df_meteo <- df_meteo |>
+  dplyr::group_by(sitename) |>
+  tidyr::nest() |>
+  dplyr::rename(forcing = data) |>
+  dplyr::ungroup()
+
+# Add site information
+df_siteinfo <- siteinfo |>
+  dplyr::group_by(sitename) |>
+  tidyr::nest() |>
+  dplyr::rename(site_info = data) |>
+  dplyr::ungroup()
+```
+
+We will use default simulation and soil texture parameters. 
+```{r}
+# Define default model parameters, soil data, etc
+params_siml <- list(
+    spinup             = TRUE,  # to bring soil moisture to steady state
+    spinupyears        = 10,    # 10 is enough for soil moisture.
+    recycle            = 1,     # number of years recycled during spinup 
+    soilmstress        = FALSE, # soil moisture stress function is included
+    tempstress         = FALSE, # temperature stress function is included
+    calc_aet_fapar_vpd = FALSE, # set to FALSE - should be dropped again
+    in_ppfd            = TRUE,  # if available from forcing files, set to TRUE
+    in_netrad          = FALSE, # if available from forcing files, set to TRUE
+    outdt              = 1,
+    ltre               = FALSE,
+    ltne               = FALSE,
+    ltrd               = FALSE,
+    ltnd               = FALSE,
+    lgr3               = TRUE,
+    lgn3               = FALSE,
+    lgr4               = FALSE
+  )
+
+df_soiltexture <- bind_rows(
+    top    = tibble(
+      layer = "top",
+      fsand = 0.4,
+      fclay = 0.3,
+      forg = 0.1,
+      fgravel = 0.1),
+    bottom = tibble(
+      layer = "bottom",
+      fsand = 0.4,
+      fclay = 0.3,
+      forg = 0.1,
+      fgravel = 0.1)
+  )
+```
+
+Finally, we can compile all the data together into a `p_model_drivers` object.
+Note that this object must be an ungrouped tibble object.
+```{r}
+drivers <- df_meteo |>
+  dplyr::left_join(df_siteinfo,
+                   by = "sitename")
+
+drivers$params_siml <- list(dplyr::as_tibble(params_siml))
+drivers$params_soil <- list(df_soiltexture)
+```
+
+# Run P-model example
+
+We can now run the P-model with the `rsofun` implementation.
+```{r}
+# Run P-model with parameters from previous optimizations
+params_modl <- list(
+    kphio           = 0.09423773,
+    soilm_par_a     = 0.33349283,
+    soilm_par_b     = 1.45602286,
+    tau_acclim_tempstress = 10,
+    par_shape_tempstress  = 0.0
+  )
+
+# run the model for these parameters
+output <- rsofun::runread_pmodel_f(
+  drivers = drivers,
+  par = params_modl
+)
+```
+
+And take a look at the results:
+```{r}
+ggplot() +
+    geom_line(
+    data = output |> tidyr::unnest(),
+    aes(
+      x = date,
+      y = vcmax25
+    ),
+    alpha = 0.8
+  ) +
+  facet_grid(sitename ~ .) +
+  labs(
+    x = "Date",
+    y = "Vcmax25"
+  )
+
+ggplot() +
+    geom_line(
+    data = output |> tidyr::unnest(),
+    aes(
+      x = date,
+      y = gpp
+    ),
+    alpha = 0.8
+  ) +
+  facet_grid(sitename ~ .) +
+  labs(
+    x = "Date",
+    y = "GPP"
+  )
+```
+
+## Aggregate over 2001-2015 period to obtain across-years average forcing
+
+To run the P-model for leaf trait calibration, we may want to have the average
+daily forcing over a span of years. This is because leaf traits are measured once
+and assumed constant over a span of time. 
+```{r}
+# Define function to aggregate forcing over day of year
+aggregate_forcing_doy <- function(forcing){
+  forcing |>
+    dplyr::group_by(doy) |>
+    summarise(date = first(date),                # 2001 as symbolic date
+              temp = mean(temp, na.rm = TRUE),
+              rain = mean(rain, na.rm = TRUE),
+              vpd = mean(vpd, na.rm = TRUE),
+              ppfd = mean(ppfd, na.rm = TRUE),
+              snow = mean(snow, na.rm = TRUE),
+              co2 = mean(co2, na.rm = TRUE),
+              fapar = mean(fapar, na.rm = TRUE),
+              patm = mean(patm, na.rm = TRUE),
+              tmin = mean(tmin, na.rm = TRUE),
+              tmax = mean(tmax, na.rm = TRUE),
+              ccov = mean(ccov, na.rm = TRUE)
+              ) |>                               # already ungrouped
+    dplyr::slice(1:365)                          # ignore leap years
+}
+
+# Compute aggregated drivers
+drivers_aggregated <- drivers |>
+  dplyr::mutate(forcing = 
+                  lapply(drivers$forcing, aggregate_forcing_doy))
+```
+
+Finally, let's run the P-model on the aggregated data and visualise the results.
+```{r}
+# run the model for these parameters
+output_aggregated <- rsofun::runread_pmodel_f(
+  drivers = drivers_aggregated,
+  par = params_modl
+)
+
+ggplot() +
+    geom_line(
+    data = output_aggregated |> tidyr::unnest(),
+    aes(
+      x = date,
+      y = vcmax25
+    ),
+    alpha = 0.8
+  ) +
+  facet_grid(sitename ~ .) +
+  labs(
+    x = "Date",
+    y = "Vcmax25"
+  )
+
+ggplot() +
+    geom_line(
+    data = output_aggregated |> tidyr::unnest(),
+    aes(
+      x = date,
+      y = gpp
+    ),
+    alpha = 0.8
+  ) +
+  facet_grid(sitename ~ .) +
+  labs(
+    x = "Date",
+    y = "GPP"
+  )
+```
+```
