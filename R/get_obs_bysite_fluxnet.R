@@ -1224,10 +1224,7 @@ get_obs_fluxnet2015_raw <- function(
     month <- year <-  NULL
   
   # get data
-  df <-  data.table::fread(path) %>% 
-    dplyr::mutate_all(
-      ~dplyr::na_if(.,"-9999")
-      )
+  df <-  data.table::fread(path, na.strings = c("","NA","-9999"))
   
   # get dates, their format differs slightly between temporal resolution
   if (freq == "y") {
