@@ -3,7 +3,7 @@ title: "Interpolation of MODIS data"
 author: "Beni Stocker"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{modis_interpolation}
+  %\VignetteIndexEntry{Interpolation of MODIS data}
   %\VignetteEngine{knitr::rmarkdown}
   %\usepackage[utf8]{inputenc}
 ---
