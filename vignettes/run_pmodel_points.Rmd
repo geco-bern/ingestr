@@ -39,7 +39,7 @@ ingestr makes it easy to collect WorldClim data from files available locally (in
 
 This is done here for three example sites from the FLUXNET2015 network. The site meta info data frame defined is used here for the `ingest()` function call.
 
-```{r}
+```{r eval=FALSE}
 settings_wc <- list(varnam = c("tmin", "tmax", "vapr", "srad"))
 
 df_wc <- ingest(
@@ -53,7 +53,7 @@ df_wc <- ingest(
 ## Units and aggregation
 
 Next, we aggregate the monthly WorldClim climatology to means across the thermal growing season, i.e., over months where the growth temperature is above 0 deg C. Before aggregation, we also convert WorldClim variables to the units required for `rpmodel`. See `?rpmodel` for information about the arguments.
-```{r}
+```{r eval=FALSE}
 get_growingseasonmean <- function(df){
   df |> 
     filter(tgrowth > 0) |> 
@@ -105,7 +105,7 @@ df_wc <- df_wc |>
 ## Run the P-model
 
 Now, we convert units of variables, derive the growth temperature, and average variables over the (thermal) growing season, i.e., over months where the growth temperature is above 0 deg C.
-```{r}
+```{r eval=FALSE}
 df_wc <- df_wc |> 
   
   ## apply the P-model on each site (corresponding to each row)
@@ -132,7 +132,7 @@ df_wc <- df_wc |>
 ```
 
 The returned object contains all forcing data in P-model units and aggregated over the thermal growing season, and all P-model outputs.
-```{r}
+```{r eval=FALSE}
 knitr::kable(df_wc)
 ```
 

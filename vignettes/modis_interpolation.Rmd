@@ -16,7 +16,6 @@ library(readr)
 library(ggplot2)
 ```
 
-
 ## Define sites
 
 ```{r}
