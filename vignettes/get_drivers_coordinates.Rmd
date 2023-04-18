@@ -20,7 +20,7 @@ GECO data archive (more information [here](https://github.com/geco-bern/data_man
 Then, we format the data to run the [rsofun](https://geco-bern.github.io/rsofun/)
 P-model implementation.
 
-```{r}
+```{r eval = FALSE}
 # Load libraries
 library(dplyr)
 library(tidyr)
