@@ -55,7 +55,7 @@ We use data from [Stocker et al. 2021](https://www.nature.com/articles/s41561-02
 to get the WHC for our sites. The data is in 0.05 degree resolution, which is 
 appropriate for this use case.
 
-```{r}
+```{r , eval=FALSE}
 # Define function to extract whc
 extract_whc <- function(file, siteinfo){
 
@@ -74,7 +74,7 @@ extract_whc <- function(file, siteinfo){
 }
 ```
 
-```{r}
+```{r eval=FALSE}
 # Get WHC data
 path_whc <- "/data/archive/whc_stocker_2021/data"
 
@@ -110,7 +110,7 @@ from the [WATCH-WFDEI](https://rda.ucar.edu/datasets/ds314.2/) data:
 Loading this data can take a while, up to hours if you need several years of
 data for many sites.
 
-```{r}
+```{r, eval=FALSE}
 # Get WATCH data
 path_watch <- "/data/archive/wfdei_weedon_2014/data"
 path_worldclim <- "/data/archive/worldclim_fick_2017/data" # for debiasing
@@ -137,7 +137,7 @@ gc()
 Now, let's complete the forcing with cloud cover `ccov` values from 
 [CRU](https://crudata.uea.ac.uk/cru/data/hrg/) data. 
 
-```{r}
+```{r, eval=FALSE}
 # Get CRU data
 path_cru <- "/data/archive/cru_NA_2021/data/"
 
@@ -155,7 +155,7 @@ df_cru <- ingestr::ingest(
 ### Merge meteorological drivers
 
 Let's put together the previous data, into a single data.frame:
-```{r}
+```{r, eval=FALSE}
 df_meteo <- df_watch |>
   tidyr::unnest(data) |>
   left_join(
@@ -175,7 +175,7 @@ head(df_meteo)
 
 The following chunk downloads the CO2 yearly average data from the Mauna Loa 
 observatory and appends it to the meteorological drivers from above.
-```{r}
+```{r, eval=FALSE}
 # Download CO2 data
 df_co2 <- read.csv(
   url("https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_mlo.csv"),
@@ -194,7 +194,7 @@ df_meteo <- df_meteo |>
 Set fAPAR by default to 1 for all observations, which is the same as what
 `ingest(siiteinfo_globresp, source = "fapar_unity")` would do. This makes
 sense for leaf-level simulations.
-```{r}
+```{r, eval=FALSE}
 # Add fapar column with value 1
 df_meteo <- df_meteo |>
   dplyr::mutate(fapar = 1)
@@ -204,7 +204,7 @@ df_meteo <- df_meteo |>
 
 Up to here, we have merged all of the forcing data into `df_meteo`. Let's
 put it in a nested format, such that there is a single data.frame per site:
-```{r}
+```{r, eval=FALSE}
 # Nest forcing
 df_meteo <- df_meteo |>
   dplyr::group_by(sitename) |>
@@ -221,7 +221,7 @@ df_siteinfo <- siteinfo |>
 ```
 
 We will use default simulation and soil texture parameters. 
-```{r}
+```{r, eval=FALSE}
 # Define default model parameters, soil data, etc
 params_siml <- list(
     spinup             = TRUE,  # to bring soil moisture to steady state
@@ -260,7 +260,7 @@ df_soiltexture <- bind_rows(
 
 Finally, we can compile all the data together into a `p_model_drivers` object.
 Note that this object must be an ungrouped tibble object.
-```{r}
+```{r, eval=FALSE}
 drivers <- df_meteo |>
   dplyr::left_join(df_siteinfo,
                    by = "sitename")
@@ -272,7 +272,7 @@ drivers$params_soil <- list(df_soiltexture)
 # Run P-model example
 
 We can now run the P-model with the `rsofun` implementation.
-```{r}
+```{r, eval=FALSE}
 # Run P-model with parameters from previous optimizations
 params_modl <- list(
     kphio           = 0.09423773,
@@ -290,7 +290,7 @@ output <- rsofun::runread_pmodel_f(
 ```
 
 And take a look at the results:
-```{r}
+```{r, eval=FALSE}
 ggplot() +
     geom_line(
     data = output |> tidyr::unnest(),
@@ -327,7 +327,7 @@ ggplot() +
 To run the P-model for leaf trait calibration, we may want to have the average
 daily forcing over a span of years. This is because leaf traits are measured once
 and assumed constant over a span of time. 
-```{r}
+```{r, eval=FALSE}
 # Define function to aggregate forcing over day of year
 aggregate_forcing_doy <- function(forcing){
   forcing |>
@@ -355,7 +355,7 @@ drivers_aggregated <- drivers |>
 ```
 
 Finally, let's run the P-model on the aggregated data and visualise the results.
-```{r}
+```{r, eval=FALSE}
 # run the model for these parameters
 output_aggregated <- rsofun::runread_pmodel_f(
   drivers = drivers_aggregated,

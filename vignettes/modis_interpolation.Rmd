@@ -27,7 +27,7 @@ use_sites <- c("CH-Dav", "AT-Neu", "US-MMS", "AU-Tum")
 - Data product: `"modis_fpar"`: MODIS collection 6, MCD15A3H, band `Fpar_500m`
 - Interpolation methods: LOESS spline (`method_interpol = "loess"`)
 
-```{r}
+```{r eval=FALSE}
 settings_modis <- get_settings_modis(
   bundle            = "modis_fpar",
   data_path         = "~/data/modis_subsets/",
@@ -42,7 +42,7 @@ settings_modis <- get_settings_modis(
 
 
 ## Get data
-```{r warning=FALSE}
+```{r warning=FALSE, eval=FALSE}
 df_modis_fpar <- ingest(
   siteinfo_fluxnet2015 %>% 
     filter(sitename %in% use_sites), 
@@ -55,7 +55,7 @@ df_modis_fpar <- ingest(
 ## Plot
 
 Define a function to plot the data.
-```{r}
+```{r eval=FALSE}
 plot_fapar_ingestr_bysite <- function(df, settings, sitename = NULL){
   
   if (is.null(sitename)) sitename <- df$sitename[[1]]
@@ -91,7 +91,7 @@ plot_fapar_ingestr_bysite <- function(df, settings, sitename = NULL){
 ```
 
 ### AT-Neu
-```{r warning=FALSE}
+```{r warning=FALSE, eval=FALSE}
 plot_fapar_ingestr_bysite(
   df_modis_fpar$data[[1]], 
   settings_modis
@@ -102,7 +102,7 @@ plot_fapar_ingestr_bysite(
 
 ### AU-Tum
 
-```{r warning=FALSE}
+```{r warning=FALSE, eval=FALSE}
 plot_fapar_ingestr_bysite(
   df_modis_fpar$data[[2]], 
   settings_modis
@@ -114,7 +114,7 @@ plot_fapar_ingestr_bysite(
 
 ### CH-Dav
 
-```{r warning=FALSE}
+```{r warning=FALSE, eval=FALSE}
 plot_fapar_ingestr_bysite(
   df_modis_fpar$data[[3]], 
   settings_modis
@@ -126,7 +126,7 @@ plot_fapar_ingestr_bysite(
 
 ### US-MMS 
 
-```{r warning=FALSE}
+```{r warning=FALSE, eval=FALSE}
 plot_fapar_ingestr_bysite(
   df_modis_fpar$data[[4]], 
   settings_modis
