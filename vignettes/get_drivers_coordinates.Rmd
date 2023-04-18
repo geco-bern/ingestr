@@ -44,7 +44,7 @@ of the site location in degrees `lon` and `lat`, its elevation in meters `elv`,
 and the first and last year of observations we want to collect `year_start` and 
 `year_end`.
 
-```{r}
+```{r eval=FALSE}
 # Load siteinfo data
 load("data/siteinfo_globresp.rda")
 ```
