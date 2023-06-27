@@ -5,9 +5,10 @@ articles:
   calc_daytime_vpd: calc_daytime_vpd.html
   collect_point_environment: collect_point_environment.html
   example: example.html
+  get_drivers_coordinates: get_drivers_coordinates.html
   get_evi_gee: get_evi_gee.html
   ingest_cru_rsofun: ingest_cru_rsofun.html
   modis_interpolation: modis_interpolation.html
   run_pmodel_points: run_pmodel_points.html
-last_built: 2023-02-13T21:53Z
+last_built: 2023-04-03T14:43Z
 

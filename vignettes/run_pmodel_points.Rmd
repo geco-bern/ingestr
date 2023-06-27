@@ -80,7 +80,7 @@ df_wc <- df_wc |>
   rowwise() |> 
   mutate(vpd = calc_vpd(eact = vapr, tmin = tmin, tmax = tmax)) |> 
   
-  ## calculate growth temperature (average daytime temperature)
+  ## calculate growth temperature (average daytime temperature), taking the 15 in each month
   mutate(doy = lubridate::yday(lubridate::ymd("2001-01-15") + months(month - 1))) |> 
   mutate(tgrowth = ingestr::calc_tgrowth(tmin, tmax, lat, doy)) |> 
   

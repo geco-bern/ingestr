@@ -46,7 +46,7 @@ and the first and last year of observations we want to collect `year_start` and
 
 ```{r}
 # Load siteinfo data
-load("data/siteinfo_globresp.rda")
+load("../data/siteinfo_globresp.rda")
 ```
 
 ### Complement siteinfo with Water Holding Capacity
