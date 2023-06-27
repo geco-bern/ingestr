@@ -40,7 +40,6 @@ Imports:
     sp,
     ncdf4,
     signal,
-    rgdal,
     sf,
     MODISTools,
     data.table

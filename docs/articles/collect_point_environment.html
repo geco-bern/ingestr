@@ -167,21 +167,9 @@ obtained through ingestr.</p>
 <span>  source <span class="op">=</span> <span class="st">"etopo1"</span>,</span>
 <span>  dir <span class="op">=</span> <span class="st">"~/data/etopo/"</span>  <span class="co"># adjust this with your local path</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html" class="external-link">unnest</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>  <span class="co"># to get a flat table</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning: The `x` argument of `as_tibble.matrix()` must have unique column names if</span></span>
-<span><span class="co">## `.name_repair` is omitted as of tibble 2.0.0.</span></span>
-<span><span class="co">## <span style="color: #00BBBB;">ℹ</span> Using compatibility `.name_repair`.</span></span>
-<span><span class="co">## <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">ingestr</span> package.</span></span>
-<span><span class="co">##   Please report the issue at <span style="color: #0000BB; font-style: italic;">&lt;</span></span></span></code></pre>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">df_etopo</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 3 × 2</span></span></span>
-<span><span class="co">## <span style="color: #949494;"># Groups:   sitename [3]</span></span></span>
-<span><span class="co">##   sitename   elv</span></span>
-<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> AR-SLu     499</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> AR-Vir      97</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">3</span> AT-Neu    <span style="text-decoration: underline;">1</span>083</span></span></code></pre>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>  <span class="co"># to get a flat table</span></span>
+<span></span>
+<span><span class="va">df_etopo</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -210,7 +198,7 @@ code below).</li>
 <div class="section level3">
 <h3 id="collect-worldclim-data">Collect WorldClim data<a class="anchor" aria-label="anchor" href="#collect-worldclim-data"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">settings_wc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>varnam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tmin"</span>, <span class="st">"tmax"</span>, <span class="st">"vapr"</span>, <span class="st">"srad"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">df_wc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
@@ -220,13 +208,6 @@ code below).</li>
 <span>  dir       <span class="op">=</span> <span class="st">"~/data/worldclim"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="va">df_wc</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 3 × 2</span></span></span>
-<span><span class="co">## <span style="color: #949494;"># Groups:   sitename [3]</span></span></span>
-<span><span class="co">##   sitename data             </span></span>
-<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;list&gt;</span>           </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> AR-SLu   <span style="color: #949494;">&lt;tibble [12 × 5]&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> AR-Vir   <span style="color: #949494;">&lt;tibble [12 × 5]&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">3</span> AT-Neu   <span style="color: #949494;">&lt;tibble [12 × 5]&gt;</span></span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="units-and-aggregation">Units and aggregation<a class="anchor" aria-label="anchor" href="#units-and-aggregation"></a>
@@ -236,7 +217,7 @@ the thermal growing season, i.e., over months where the growth
 temperature is above 0 deg C. Before aggregation, we also convert
 WorldClim variables to the units required for <code>rpmodel</code>. See
 <code>?rpmodel</code> for information about the arguments.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">get_growingseasonmean</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="va">df</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">tgrowth</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -248,7 +229,7 @@ WorldClim variables to the units required for <code>rpmodel</code>. See
 <span></span>
 <span><span class="va">df_wc</span> <span class="op">&lt;-</span> <span class="va">df_wc</span> <span class="op">|&gt;</span> </span>
 <span>  </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html" class="external-link">unnest</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span></span>
 <span>  <span class="co">## add latitude</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">df_sites</span>, by <span class="op">=</span> <span class="st">"sitename"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -271,17 +252,10 @@ WorldClim variables to the units required for <code>rpmodel</code>. See
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">sitename</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html" class="external-link">nest</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>data_growingseason <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">data</span>, <span class="op">~</span><span class="fu">get_growingseasonmean</span><span class="op">(</span><span class="va">.</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html" class="external-link">unnest</a></span><span class="op">(</span><span class="va">data_growingseason</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span><span class="va">data_growingseason</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">data</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">df_wc</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 3 × 4</span></span></span>
-<span><span class="co">## <span style="color: #949494;"># Groups:   sitename [3]</span></span></span>
-<span><span class="co">##   sitename tgrowth   vpd     ppfd</span></span>
-<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> AR-SLu     20.2  <span style="text-decoration: underline;">1</span>190. 0.000<span style="text-decoration: underline;">409</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> AR-Vir     21.7   872. 0.000<span style="text-decoration: underline;">379</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">3</span> AT-Neu      8.97  366. 0.000<span style="text-decoration: underline;">280</span></span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
@@ -290,7 +264,7 @@ WorldClim variables to the units required for <code>rpmodel</code>. See
 <div class="section level3">
 <h3 id="cn">C:N<a class="anchor" aria-label="anchor" href="#cn"></a>
 </h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">settings_wise</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_wise.html">get_settings_wise</a></span><span class="op">(</span>varnam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CNrt"</span><span class="op">)</span>, layer <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">df_wise</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
@@ -298,24 +272,9 @@ WorldClim variables to the units required for <code>rpmodel</code>. See
 <span>  source    <span class="op">=</span> <span class="st">"wise"</span>,</span>
 <span>  settings  <span class="op">=</span> <span class="va">settings_wise</span>,</span>
 <span>  dir       <span class="op">=</span> <span class="st">"~/data/soil/wise"</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="font-weight: bold;">Rows: </span><span style="color: #0000BB;">299957</span> <span style="font-weight: bold;">Columns: </span><span style="color: #0000BB;">51</span></span></span>
-<span><span class="co">## <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Column specification</span> <span style="color: #00BBBB;">────────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">## <span style="font-weight: bold;">Delimiter:</span> ","</span></span>
-<span><span class="co">## <span style="color: #BB0000;">chr</span>  (6): NEWSUID, CLAF, PRID, Drain, Layer, PSCL</span></span>
-<span><span class="co">## <span style="color: #00BB00;">dbl</span> (45): SCID, PROP, DrainNum, TopDep, BotDep, CFRAG, CFRAG_std, SDTO, SDTO...</span></span>
-<span><span class="co">## </span></span>
-<span><span class="co">## <span style="color: #00BBBB;">ℹ</span> Use `spec()` to retrieve the full column specification for this data.</span></span>
-<span><span class="co">## <span style="color: #00BBBB;">ℹ</span> Specify the column types or set `show_col_types = FALSE` to quiet this message.</span></span></code></pre>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">df_wise</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 3 × 2</span></span></span>
-<span><span class="co">## <span style="color: #949494;"># Groups:   sitename [3]</span></span></span>
-<span><span class="co">##   sitename data            </span></span>
-<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;list&gt;</span>          </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> AT-Neu   <span style="color: #949494;">&lt;tibble [1 × 1]&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> AR-SLu   <span style="color: #949494;">&lt;tibble [1 × 1]&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">3</span> AR-Vir   <span style="color: #949494;">&lt;tibble [1 × 1]&gt;</span></span></span></code></pre>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="va">df_wise</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="ph">pH<a class="anchor" aria-label="anchor" href="#ph"></a>
@@ -332,7 +291,7 @@ documented in ingestr <a href="https://geco-bern.github.io/ingestr/articles/exam
 </h3>
 <p>This requires start and end years to be specified. Let’s get data
 from 1990 to 2009 and then calculate the mean annual total.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_ndep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
 <span>  <span class="va">df_sites</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>year_start <span class="op">=</span> <span class="fl">1990</span>, year_end <span class="op">=</span> <span class="fl">2009</span><span class="op">)</span>,</span>
@@ -341,20 +300,13 @@ from 1990 to 2009 and then calculate the mean annual total.</p>
 <span>  dir       <span class="op">=</span> <span class="st">"~/data/ndep_lamarque/"</span>,</span>
 <span>  verbose   <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html" class="external-link">unnest</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">sitename</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>noy <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">noy</span><span class="op">)</span>, nhx <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">nhx</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>ndep <span class="op">=</span> <span class="va">noy</span> <span class="op">+</span> <span class="va">nhx</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">noy</span>, <span class="op">-</span><span class="va">nhx</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Loading required namespace: ncdf4</span></span></code></pre>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">df_ndep</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 3 × 2</span></span></span>
-<span><span class="co">##   sitename  ndep</span></span>
-<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> AR-SLu   0.303</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> AR-Vir   0.636</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">3</span> AT-Neu   1.42</span></span></code></pre>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">noy</span>, <span class="op">-</span><span class="va">nhx</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">df_ndep</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -363,9 +315,9 @@ from 1990 to 2009 and then calculate the mean annual total.</p>
 <p>Let’s combine the data frames collected above into a single data
 frame. Make sure that all data frames use the same unique identifier as
 the column named <code>sitename</code>. Make all data frames flat before
-(<code><a href="https://tidyr.tidyverse.org/reference/nest.html" class="external-link">unnest()</a></code>) and avoid duplicate columns in joined data
+(<code><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest()</a></code>) and avoid duplicate columns in joined data
 frames.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="va">df_sites</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">df_etopo</span>, </span>
 <span>            by <span class="op">=</span> <span class="st">"sitename"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -373,16 +325,10 @@ frames.</p>
 <span>            by <span class="op">=</span> <span class="st">"sitename"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">df_ndep</span>, by <span class="op">=</span> <span class="st">"sitename"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">df_wise</span> <span class="op">|&gt;</span> </span>
-<span>              <span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html" class="external-link">unnest</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>, </span>
+<span>              <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>, </span>
 <span>            by <span class="op">=</span> <span class="st">"sitename"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">df</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 3 × 9</span></span></span>
-<span><span class="co">##   sitename   lon   lat   elv tgrowth   vpd     ppfd  ndep  CNrt</span></span>
-<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> AR-SLu   -<span style="color: #BB0000;">66.5</span> -<span style="color: #BB0000;">33.5</span>   499   20.2  <span style="text-decoration: underline;">1</span>190. 0.000<span style="text-decoration: underline;">409</span> 0.303  9.37</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> AR-Vir   -<span style="color: #BB0000;">56.2</span> -<span style="color: #BB0000;">28.2</span>    97   21.7   872. 0.000<span style="text-decoration: underline;">379</span> 0.636  9.2 </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">3</span> AT-Neu    11.3  47.1  <span style="text-decoration: underline;">1</span>083    8.97  366. 0.000<span style="text-decoration: underline;">280</span> 1.42  12.8</span></span></code></pre>
 </div>
   </div>
 

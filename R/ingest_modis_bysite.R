@@ -273,11 +273,11 @@ ingest_modis_bysite <- function(
 
       # read from file, faster with fread()
       # df <- readr::read_csv( filnam_raw_csv )
-      df <- data.table::fread( filnam_raw_csv, sep = "," ) %>%
+      df <- data.table::fread(
+        filnam_raw_csv, sep = ",", na.strings = c("","NA","Not Available")
+        ) %>%
         as_tibble() %>%
-        mutate(scale = ifelse(scale == "Not Available", NA, scale)) %>%
         mutate(scale = as.numeric(scale))
-
     }
     
     # Reformat raw data
