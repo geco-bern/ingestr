@@ -1157,6 +1157,9 @@ extract_pointdata_allsites <- function(
 
 extract_pointdata_allsites_shp <- function(dir, df_lonlat, layer) {
   
+  # solves error, see https://stackoverflow.com/questions/75927165/error-in-wk-handle-wk-wkbwkb-s2-geography-writeroriented-oriented-loop-0
+  sf::sf_use_s2(FALSE)
+  
   # Load spatial data using sf
   shp <- sf::st_read(dsn = dir, layer = layer)
   
