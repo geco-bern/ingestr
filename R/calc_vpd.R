@@ -36,18 +36,18 @@ calc_vpd <- function(
   ##-----------------------------------------------------------------------
 
   ## calculate atmopheric pressure (Pa) assuming standard conditions at sea level (elv=0)
-  if (is.na(elv) && is.na(patm) && is.na(eact)){
+  # if (is.na(elv) && is.na(patm) && is.na(eact)){
+  #   
+  #   warning("calc_vpd(): Either patm or elv must be provided if eact is not given.")
+  #   vpd <- NA
+  #   
+  # } else {
     
-    warning("calc_vpd(): Either patm or elv must be provided if eact is not given.")
-    vpd <- NA
-    
-  } else {
-    
-    if (is.na(eact)){
+    # if (is.na(eact)){
       patm <- ifelse(is.na(patm),
-                     calc_patm(elv),
+                     ingestr::calc_patm(elv),
                      patm)
-    }
+    # }
     
     ## Calculate VPD as mean of VPD based on Tmin and VPD based on Tmax if they are availble.
     ## Otherwise, use just tc for calculating VPD.
@@ -57,7 +57,7 @@ calc_vpd <- function(
          calc_vpd_inst( qair=qair, eact=eact, tc=tmax, patm=patm))/2,
       calc_vpd_inst( qair=qair, eact=eact, tc=tc, patm=patm)
     )
-  }
+  # }
   return( vpd )
 }
 
@@ -94,20 +94,13 @@ calc_vpd_inst <- function(
   ##                 eact  = actual vapor pressure, Pa
   ##-----------------------------------------------------------------------
 
-  if (is.na(eact)){
-    # kTo = 288.15   # base temperature, K (Prentice, unpublished)
-    kR  = 8.3143   # universal gas constant, J/mol/K (Allen, 1973)
-    kMv = 18.02    # molecular weight of water vapor, g/mol (Tsilingiris, 2008)
-    kMa = 28.963   # molecular weight of dry air, g/mol (Tsilingiris, 2008)
-    
-    ## calculate the mass mixing ratio of water vapor to dry air (dimensionless)
-    wair <- qair / (1 - qair)
-    
-    ## calculate water vapor pressure 
-    rv <- kR / kMv
-    rd <- kR / kMa
-    eact = patm * wair * rv / (rd + wair * rv)  
-  }
+  # if actual vapour pressure (eact) is not available, calculate it from
+  # specific humidity
+  eact <- ifelse(
+    is.na(eact),
+    calc_eact(qair, patm),
+    eact
+  )
   
   ## calculate saturation water vapour pressure in Pa
   esat <- 611.0 * exp( (17.27 * tc)/(tc + 237.3) )
@@ -117,7 +110,29 @@ calc_vpd_inst <- function(
   
   ## this empirical equation may lead to negative values for VPD
   ## (happens very rarely). assume positive...
-  vpd <- max( 0.0, vpd )
+  vpd <- ifelse(
+    vpd < 0,
+    0,
+    vpd
+  )
   
   return( vpd )
+}
+
+calc_eact <- function(qair, patm){
+  
+  # kTo <- 288.15   # base temperature, K (Prentice, unpublished)
+  kR  <- 8.3143   # universal gas constant, J/mol/K (Allen, 1973)
+  kMv <- 18.02    # molecular weight of water vapor, g/mol (Tsilingiris, 2008)
+  kMa <- 28.963   # molecular weight of dry air, g/mol (Tsilingiris, 2008)
+  
+  ## calculate the mass mixing ratio of water vapor to dry air (dimensionless)
+  wair <- qair / (1 - qair)
+  
+  ## calculate water vapor pressure 
+  rv <- kR / kMv
+  rd <- kR / kMa
+  eact <- patm * wair * rv / (rd + wair * rv)
+  
+  return(eact)
 }

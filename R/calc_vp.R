@@ -27,16 +27,16 @@ calc_vp <- function(
 
   # calculate atmopheric pressure (Pa) assuming standard 
   # conditions at sea level (elv=0)
-  if (is.na(elv) && is.na(patm)){
-    
-    warning(
-      "
-      calc_vp(): Either patm or elv must be provided 
-      if eact is not given.
-      ")
-    vp <- NA
-    
-  } else {
+  # if (is.na(elv) && is.na(patm)){
+  #   
+  #   warning(
+  #     "
+  #     calc_vp(): Either patm or elv must be provided 
+  #     if eact is not given.
+  #     ")
+  #   vp <- NA
+  #   
+  # } else {
 
     patm <- ifelse(is.na(patm),
                    calc_patm(elv),
@@ -44,7 +44,7 @@ calc_vp <- function(
     
     # Calculate VP.
     vp <- calc_vp_inst(qair = qair, patm = patm)
-  }
+  # }
   return( vp )
   
 }
