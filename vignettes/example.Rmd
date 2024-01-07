@@ -1064,7 +1064,9 @@ df_wwf <- ingest(
   source = "wwf",
   dir = "~/data/biomes/wwf_ecoregions/official/",
   settings = list(layer = "wwf_terr_ecos")
-)
+) |> 
+  unnest(data) |> 
+  select(sitename, lon, lat, BIOME_NAME)
 ```
 
 The following provides the biome codes. This information is additionally added by the ingestr package in column `BIOME_NAME`:

@@ -1155,32 +1155,54 @@ extract_pointdata_allsites <- function(
 # Extracts point data for a set of sites given by df_lonlat for a
 # shapefile. df_lonlat requires columns sitename, lon, and lat.
 
-extract_pointdata_allsites_shp <- function( dir, df_lonlat, layer ){
+extract_pointdata_allsites_shp <- function(dir, df_lonlat, layer) {
   
-  # define variables
-  lon <-lat <- . <- NULL
+  # Load spatial data using sf
+  shp <- sf::st_read(dsn = dir, layer = layer)
   
-  shp <- rgdal::readOGR(dsn = dir, layer = layer)
-  
-  geo.proj <- sp::proj4string(shp)
-  
-  # create SpatialPoints object for plots
+  # Create SpatialPoints object for sites
   df_clean <- df_lonlat %>%
     ungroup() %>%
     dplyr::select(lon, lat) %>%
     tidyr::drop_na()
   
-  pts <- sp::SpatialPoints(df_clean, proj4string = sp::CRS(geo.proj))
+  # Create sf points object
+  pts <- sf::st_as_sf(df_clean, coords = c("lon", "lat"), crs = sf::st_crs(shp))
   
-  # creates object that assigns each plot index to an ecoregion
-  df <- sp::over(pts, shp) %>%
-    as_tibble() %>%
-    bind_cols(df_clean, .) %>%
-    right_join(df_lonlat, by = c("lon", "lat")) %>%
-    dplyr::select(-lon, -lat)
-  
+  # Spatial join and data manipulation
+  df <- sf::st_join(pts, shp) |> 
+    dplyr::select(-geometry) |> 
+    dplyr::bind_cols(df_lonlat)
+
   return(df)
 }
+
+# extract_pointdata_allsites_shp <- function( dir, df_lonlat, layer ){
+  
+#   # define variables
+#   lon <- lat <- . <- NULL
+  
+#   shp <- rgdal::readOGR(dsn = dir, layer = layer)
+  
+#   geo.proj <- sp::proj4string(shp)
+  
+#   # create SpatialPoints object for sites
+#   df_clean <- df_lonlat %>%
+#     ungroup() %>%
+#     dplyr::select(lon, lat) %>%
+#     tidyr::drop_na()
+  
+#   pts <- sp::SpatialPoints(df_clean, proj4string = sp::CRS(geo.proj))
+  
+#   # creates object that assigns each site index to an ecoregion
+#   df <- sp::over(pts, shp) %>%
+#     as_tibble() %>%
+#     bind_cols(df_clean, .) %>%
+#     right_join(df_lonlat, by = c("lon", "lat")) %>%
+#     dplyr::select(-lon, -lat)
+  
+#   return(df)
+# }
 
 #' Implements a weather generator
 #'
