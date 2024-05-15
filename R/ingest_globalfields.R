@@ -1158,27 +1158,24 @@ extract_pointdata_allsites <- function(
 extract_pointdata_allsites_shp <- function( dir, df_lonlat, layer ){
   
   # define variables
-  lon <-lat <- . <- NULL
-  
-  shp <- rgdal::readOGR(dsn = dir, layer = layer)
-  
-  geo.proj <- sp::proj4string(shp)
+  lon <- lat <- . <- NULL
+
+  sf::sf_use_s2(FALSE)
   
   # create SpatialPoints object for plots
-  df_clean <- df_lonlat %>%
-    ungroup() %>%
-    dplyr::select(lon, lat) %>%
+  df_clean <- df_lonlat |>
+    ungroup() |>
+    dplyr::select(lon, lat) |>
     tidyr::drop_na()
   
-  pts <- sp::SpatialPoints(df_clean, proj4string = sp::CRS(geo.proj))
-  
-  # creates object that assigns each plot index to an ecoregion
-  df <- sp::over(pts, shp) %>%
-    as_tibble() %>%
-    bind_cols(df_clean, .) %>%
-    right_join(df_lonlat, by = c("lon", "lat")) %>%
-    dplyr::select(-lon, -lat)
-  
+  shp <- sf::st_read(dsn = dir, layer = layer)
+  pts <- sf::st_as_sf(df_clean, coords = c("lon","lat"), crs = sf::st_crs(shp))
+  df <- sf::st_intersection(pts, shp) |>
+    as_tibble() |>
+    bind_cols(df_clean, .) |>
+    right_join(df_lonlat, by = c("lon", "lat"))
+    # dplyr::select(-lon, -lat)
+ 
   return(df)
 }
 
