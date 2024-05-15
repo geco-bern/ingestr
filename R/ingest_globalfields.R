@@ -1173,8 +1173,8 @@ extract_pointdata_allsites_shp <- function( dir, df_lonlat, layer ){
   df <- sf::st_intersection(pts, shp) |>
     as_tibble() |>
     bind_cols(df_clean, .) |>
-    right_join(df_lonlat, by = c("lon", "lat"))
-    # dplyr::select(-lon, -lat)
+    right_join(df_lonlat, by = c("lon", "lat")) |> 
+    dplyr::select(-lon, -lat)
  
   return(df)
 }
