@@ -1177,6 +1177,31 @@ extract_pointdata_allsites_shp <- function(dir, df_lonlat, layer) {
     dplyr::select(-geometry) |> 
     dplyr::bind_cols(df_lonlat)
 
+  # Alternative fix:
+  # define variables
+  # lon <- lat <- . <- NULL
+
+  # sf::sf_use_s2(FALSE)
+  
+  # create SpatialPoints object for plots
+  # df_clean <- df_lonlat |>
+  #   ungroup() |>
+  #   tidyr::drop_na(c(lon, lat))
+  
+  # shp <- sf::st_read(dsn = dir, layer = layer)
+  # pts <- sf::st_as_sf(
+  #   df_clean |>
+  #     dplyr::select(lon, lat), 
+  #   coords = c("lon","lat"), 
+  #   crs = sf::st_crs(shp)
+  #   )
+  # df <- sf::st_join(pts, shp, left = TRUE) |> 
+  #   as_tibble() |>
+  #   bind_cols(df_clean, .)
+    # dplyr::select(-geometry) |> 
+    # right_join(df_lonlat, by = join_by(lon, lat)) |>
+    # dplyr::select(-lon, -lat)
+ 
   return(df)
 }
 

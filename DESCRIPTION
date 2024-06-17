@@ -47,7 +47,7 @@ Remotes:
     bczernecki/climate
 LazyData: true
 ByteCompile: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Suggests:
     ggplot2,
     rmarkdown,
