@@ -1155,34 +1155,82 @@ extract_pointdata_allsites <- function(
 # Extracts point data for a set of sites given by df_lonlat for a
 # shapefile. df_lonlat requires columns sitename, lon, and lat.
 
-extract_pointdata_allsites_shp <- function( dir, df_lonlat, layer ){
+extract_pointdata_allsites_shp <- function(dir, df_lonlat, layer) {
   
-  # define variables
-  lon <- lat <- . <- NULL
-
+  # solves error, see https://stackoverflow.com/questions/75927165/error-in-wk-handle-wk-wkbwkb-s2-geography-writeroriented-oriented-loop-0
   sf::sf_use_s2(FALSE)
   
-  # create SpatialPoints object for plots
-  df_clean <- df_lonlat |>
-    ungroup() |>
-    tidyr::drop_na(c(lon, lat))
-  
+  # Load spatial data using sf
   shp <- sf::st_read(dsn = dir, layer = layer)
-  pts <- sf::st_as_sf(
-    df_clean |>
-      dplyr::select(lon, lat), 
-    coords = c("lon","lat"), 
-    crs = sf::st_crs(shp)
-    )
-  df <- sf::st_join(pts, shp, left = TRUE) |> 
-    as_tibble() |>
-    bind_cols(df_clean, .)
+  
+  # Create SpatialPoints object for sites
+  df_clean <- df_lonlat %>%
+    ungroup() %>%
+    dplyr::select(lon, lat) %>%
+    tidyr::drop_na()
+  
+  # Create sf points object
+  pts <- sf::st_as_sf(df_clean, coords = c("lon", "lat"), crs = sf::st_crs(shp))
+  
+  # Spatial join and data manipulation
+  df <- sf::st_join(pts, shp) |> 
+    dplyr::select(-geometry) |> 
+    dplyr::bind_cols(df_lonlat)
+
+  # Alternative fix:
+  # define variables
+  # lon <- lat <- . <- NULL
+
+  # sf::sf_use_s2(FALSE)
+  
+  # create SpatialPoints object for plots
+  # df_clean <- df_lonlat |>
+  #   ungroup() |>
+  #   tidyr::drop_na(c(lon, lat))
+  
+  # shp <- sf::st_read(dsn = dir, layer = layer)
+  # pts <- sf::st_as_sf(
+  #   df_clean |>
+  #     dplyr::select(lon, lat), 
+  #   coords = c("lon","lat"), 
+  #   crs = sf::st_crs(shp)
+  #   )
+  # df <- sf::st_join(pts, shp, left = TRUE) |> 
+  #   as_tibble() |>
+  #   bind_cols(df_clean, .)
     # dplyr::select(-geometry) |> 
     # right_join(df_lonlat, by = join_by(lon, lat)) |>
     # dplyr::select(-lon, -lat)
  
   return(df)
 }
+
+# extract_pointdata_allsites_shp <- function( dir, df_lonlat, layer ){
+  
+#   # define variables
+#   lon <- lat <- . <- NULL
+  
+#   shp <- rgdal::readOGR(dsn = dir, layer = layer)
+  
+#   geo.proj <- sp::proj4string(shp)
+  
+#   # create SpatialPoints object for sites
+#   df_clean <- df_lonlat %>%
+#     ungroup() %>%
+#     dplyr::select(lon, lat) %>%
+#     tidyr::drop_na()
+  
+#   pts <- sp::SpatialPoints(df_clean, proj4string = sp::CRS(geo.proj))
+  
+#   # creates object that assigns each site index to an ecoregion
+#   df <- sp::over(pts, shp) %>%
+#     as_tibble() %>%
+#     bind_cols(df_clean, .) %>%
+#     right_join(df_lonlat, by = c("lon", "lat")) %>%
+#     dplyr::select(-lon, -lat)
+  
+#   return(df)
+# }
 
 #' Implements a weather generator
 #'
