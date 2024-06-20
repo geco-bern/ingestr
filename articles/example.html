@@ -531,12 +531,12 @@ averaged across 1979-1988 is returned for all years before 1979.</p>
 <span>  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"temp"</span><span class="op">)</span>,</span>
 <span>  dir       <span class="op">=</span> <span class="st">"~/data/watch_wfdei/"</span>,</span>
 <span>  timescale <span class="op">=</span> <span class="st">"d"</span>,</span>
-<span>  year_start <span class="op">=</span> <span class="fl">2007</span>,</span>
-<span>  year_end  <span class="op">=</span> <span class="fl">2007</span>,</span>
+<span>  year_start <span class="op">=</span> <span class="fl">2018</span>,</span>
+<span>  year_end  <span class="op">=</span> <span class="fl">2018</span>,</span>
 <span>  lon       <span class="op">=</span> <span class="fl">3.5958</span>,</span>
 <span>  lat       <span class="op">=</span> <span class="fl">43.7414</span>,</span>
-<span>  verbose   <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  settings  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>correct_bias <span class="op">=</span> <span class="st">"worldclim"</span>, dir_bias <span class="op">=</span> <span class="st">"~/data/worldclim"</span><span class="op">)</span></span>
+<span>  verbose   <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="co">#settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="va">df_watch</span></span></code></pre></div>
 </div>
@@ -1596,11 +1596,16 @@ other than temperature) of its monthly means, averaged across
 averaged across 1979-1988 is returned for all years before 1979.</p>
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ddf_watch</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
-<span>  siteinfo <span class="op">=</span> <span class="va">siteinfo</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>,</span>
+<span>  siteinfo <span class="op">=</span> <span class="va">siteinfo</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
+<span>      year_star <span class="op">=</span> <span class="fl">2018</span>,</span>
+<span>      year_end <span class="op">=</span> <span class="fl">2018</span></span>
+<span>    <span class="op">)</span>,</span>
 <span>  source    <span class="op">=</span> <span class="st">"watch_wfdei"</span>,</span>
 <span>  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"temp"</span>, <span class="st">"prec"</span><span class="op">)</span>,</span>
-<span>  dir       <span class="op">=</span> <span class="st">"~/data/watch_wfdei/"</span>,  <span class="co"># adjust this with your local path</span></span>
-<span>  settings  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>correct_bias <span class="op">=</span> <span class="st">"worldclim"</span>, dir_bias <span class="op">=</span> <span class="st">"~/data/worldclim"</span><span class="op">)</span></span>
+<span>  dir       <span class="op">=</span> <span class="st">"~/data/watch_wfdei/"</span>  <span class="co"># adjust this with your local path</span></span>
+<span>  <span class="co"># settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -1805,6 +1810,21 @@ local path with the argument <code>dir</code>.</p>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
+<h3 id="root-zone-water-storage-capacity">Root-zone water-storage capacity<a class="anchor" aria-label="anchor" href="#root-zone-water-storage-capacity"></a>
+</h3>
+<p>This reads from the 0.05 degrees resolution map of root-zone
+water-storage capacity from <a href="https://www.nature.com/articles/s41561-023-01125-2" class="external-link">Stocker et
+al. (2023)</a>. The nested data column contains a tibble with one value
+for one variable <code>whc</code>. Download the data from <a href="https://doi.org/10.5281/zenodo.10885724" class="external-link">here</a> and specify the
+local path with the argument <code>dir</code>.</p>
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">df_stocker23</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
+<span>  <span class="va">siteinfo</span>,</span>
+<span>  source <span class="op">=</span> <span class="st">"stocker23"</span>,</span>
+<span>  dir  <span class="op">=</span><span class="st">"~/data/mct_data/"</span>  <span class="co"># adjust this with your local path</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
 <h3 id="hwsd-1">HWSD<a class="anchor" aria-label="anchor" href="#hwsd-1"></a>
 </h3>
 <p>Four steps are required before you can use <code><a href="../reference/ingest.html">ingest()</a></code> to
@@ -1813,13 +1833,13 @@ get HWSD data:</p>
 <li>The the modified version of David LeBauer’s <a href="https://github.com/dlebauer/rhwsd" class="external-link">rhwsd</a> R package. The
 modified version can be installed by:</li>
 </ol>
-<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/" class="external-link">devtools</a></span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"stineb/rhwsd"</span><span class="op">)</span></span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li>Install additionally required packages: DBI and RSQLite.</li>
 </ol>
-<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">list.of.packages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"DBI"</span>, <span class="st">"RSQLite"</span><span class="op">)</span></span>
 <span><span class="va">new.packages</span> <span class="op">&lt;-</span> <span class="va">list.of.packages</span><span class="op">[</span><span class="op">!</span><span class="op">(</span><span class="va">list.of.packages</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html" class="external-link">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>,<span class="st">"Package"</span><span class="op">]</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">new.packages</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="va">new.packages</span><span class="op">)</span></span></code></pre></div>
@@ -1832,7 +1852,7 @@ path in the <code>settings</code> argument accordingly (in this example:
 </ol>
 <p>Then, use similarly to above, with providing the path to the
 downloaded file with the <code>settings</code> argument:</p>
-<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_hwsd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
 <span>  <span class="va">siteinfo</span>,</span>
 <span>  source <span class="op">=</span> <span class="st">"hwsd"</span>,</span>
@@ -1850,7 +1870,7 @@ Download the zipped directory and adjust the argument <code>dir</code>
 to the path of the directory where file <code>wwf_terr_ecos.shp</code>
 is located. Set the settings list with
 <code>layer = "wwf_terr_ecos"</code>. Then, ingest data by:</p>
-<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_wwf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
 <span>  <span class="va">siteinfo</span>,</span>
 <span>  source <span class="op">=</span> <span class="st">"wwf"</span>,</span>
@@ -1941,7 +1961,7 @@ earth. BioScience, 51(11):933–938.</em></p>
 al. (2011). This provides annual data separately for NHx and NOy in gN
 m<span class="math inline">\(^{-2}\)</span> yr<span class="math inline">\(^{-1}\)</span> from a global map provided at
 half-degree resolution and covering years 1860-2009.</p>
-<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_ndep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
 <span>  <span class="va">siteinfo_fluxnet2015</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>,</span>
@@ -1963,10 +1983,10 @@ SoilGrids</em>) and <a href="https://www.isric.org/explore/soilgrids/faq-soilgri
 Which variable is to be extracted and for which soil depth layer can be
 specified in the settings, a list returned by the function call
 <code><a href="../reference/get_settings_soilgrids.html">get_settings_soilgrids()</a></code>.</p>
-<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">settings_soilgrids</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_soilgrids.html">get_settings_soilgrids</a></span><span class="op">(</span>varnam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nitrogen"</span>, <span class="st">"cec"</span><span class="op">)</span>, layer <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <p>Now, the data can be ingested.</p>
-<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_soilgrids</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
 <span>  <span class="va">siteinfo_fluxnet2015</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span>,</span>
 <span>  source    <span class="op">=</span> <span class="st">"soilgrids"</span>,</span>
@@ -1976,7 +1996,7 @@ specified in the settings, a list returned by the function call
 which contains actually just a 1 x 1 tibble. This is to be consistent
 with other ingest options. You may prefer to have a normal flat data
 frame. Just do:</p>
-<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_soilgrids</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -1993,10 +2013,10 @@ specifies the path to the downloaded data bundle. Don’t change the
 structure of it. ingestr reads from two files:
 <code>&lt;dir&gt;/GISfiles/wise30sec_fin</code> and
 <code>&lt;dir&gt;/Interchangeable_format/HW30s_FULL.txt</code>.</p>
-<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">settings_wise</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_settings_wise.html">get_settings_wise</a></span><span class="op">(</span>varnam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CNrt"</span>, <span class="st">"CECS"</span><span class="op">)</span>, layer <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <p>Now, the data can be ingested.</p>
-<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_wise</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
 <span>  <span class="va">siteinfo_fluxnet2015</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>,</span>
 <span>  source    <span class="op">=</span> <span class="st">"wise"</span>,</span>
@@ -2016,10 +2036,10 @@ above (<em>Examples for a single site - GSDE Soil</em>)</p>
 variables as defined in the table above), and <code>layer</code> (a
 vector of integers specifying the layers over which a depth-weighted
 average is taken).</p>
-<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">settings_gsde</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>varnam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PBR"</span>, <span class="st">"PHH2O"</span><span class="op">)</span>, layer <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">8</span><span class="op">)</span></span></code></pre></div>
 <p>Now, the data can be ingested.</p>
-<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_gsde</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
 <span>  <span class="va">siteinfo_fluxnet2015</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>,</span>
 <span>  source    <span class="op">=</span> <span class="st">"gsde"</span>,</span>
@@ -2029,7 +2049,7 @@ average is taken).</p>
 <p>And data is returned with variables along columns inside a nested
 column <code>data</code>, and sites along rows (as for all ingestr).
 Make it flat by:</p>
-<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_gsde</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -2099,10 +2119,10 @@ Available variables are:</p>
 variables as defined in the table above), and <code>layer</code> (a
 vector of integers specifying the layers over which a depth-weighted
 average is taken).</p>
-<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">settings_worldclim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>varnam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bio"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Now, the data can be ingested.</p>
-<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_worldclim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
 <span>  <span class="va">siteinfo_fluxnet2015</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>,</span>
 <span>  source    <span class="op">=</span> <span class="st">"worldclim"</span>,</span>
@@ -2120,7 +2140,7 @@ independent of fAPAR. Still, forcing for fAPAR (variable standard name
 <code>fapar</code>) is required and can be set to 1.0 for all sites and
 required dates. To get an object in the required standard format, use
 <code>ingest</code> with <code>source = "fapar_unity"</code>:</p>
-<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ddf_fapar_unity</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
 <span>  siteinfo  <span class="op">=</span> <span class="va">siteinfo</span>,</span>
 <span>  source    <span class="op">=</span> <span class="st">"fapar_unity"</span></span>
