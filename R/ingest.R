@@ -76,11 +76,13 @@ ingest <- function(
   if (!(source %in% c(
     "hwsd",
     "etopo1",
+    "stocker23",
     "wwf",
     "soilgrids",
     "wise",
     "gsde",
-    "worldclim"))
+    "worldclim"
+    ))
     ) {
     
     # complement dates information
@@ -842,14 +844,28 @@ ingest <- function(
 	  
 	  # Get ETOPO1 elevation data. year_start and year_end not required
 	  
-	  ddf <- ingest_globalfields(siteinfo,
-	                             source = source,
-	                             dir = dir,
-	                             getvars = NULL,
-	                             timescale = NULL,
-	                             verbose = FALSE
+	  ddf <- ingest_globalfields(
+	    siteinfo,
+	    source = source,
+	    dir = dir,
+	    getvars = NULL,
+	    timescale = NULL,
+	    verbose = FALSE
 	  )
-
+	  
+	} else if (source == "stocker23"){
+	  
+	  # Get root zone water storage capacity data. year_start and year_end not required
+	  
+	  ddf <- ingest_globalfields(
+	    siteinfo,
+	    source = source,
+	    dir = dir,
+	    getvars = NULL,
+	    timescale = NULL,
+	    verbose = FALSE
+	  )
+	  
 	} else if (source == "hwsd"){
 	  
 	  # Get HWSD soil data. year_start and year_end not required
@@ -893,8 +909,14 @@ ingest <- function(
 	                                       layer = settings$layer, dir = dir)) %>%
 	    purrr::reduce(left_join, by = c("lon", "lat")) %>%
 	    distinct() %>% 
-	    right_join(dplyr::select(
-	      siteinfo, sitename, lon, lat), by = c("lon", "lat")) %>%
+	    right_join(
+	      dplyr::select(all_of(
+	        siteinfo, 
+	        sitename, 
+	        lon, 
+	        lat
+	        )), 
+	      by = c("lon", "lat")) %>%
 	    dplyr::select(-lon, -lat)
 
 	} else if (source == "gsde"){
@@ -941,7 +963,7 @@ ingest <- function(
 	  stop(
 	    "ingest(): Argument 'source' could not be identified. 
 	     Use one of 'fluxnet', 'cru', 'watch_wfdei', 'wfde5',
-	     co2_mlo', 'etopo1', or 'gee'.")
+	     co2_mlo', 'etopo1', 'stocker23', or 'gee'.")
 	}
 
   ddf <- ddf %>%

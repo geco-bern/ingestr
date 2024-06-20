@@ -52,7 +52,7 @@ ingest_globalfields <- function(
     stop("At least one entry for siteinfo$sitename is missing.")
   }
   
-  if (!(source %in% c("etopo1", "wwf", "gsde", "worldclim"))){
+  if (!(source %in% c("etopo1", "stocker23", "wwf", "gsde", "worldclim"))){
     
     # get a daily (monthly) data frame with all dates for all sites
     # (if monthly, day 15 of each month)
@@ -424,11 +424,32 @@ ingest_globalfields <- function(
       lat      = siteinfo$lat
     )
     
-    df_out <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = FALSE ) %>%
-      dplyr::select(-lon, -lat) %>%
-      tidyr::unnest(data) %>%
-      dplyr::rename(elv = V1) %>%
+    df_out <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = FALSE ) |>
+      dplyr::ungroup() |> 
+      dplyr::select(-lon, -lat) |>
+      tidyr::unnest(data) |>
+      dplyr::rename(elv = ETOPO1_Bed_g_geotiff) |>
       dplyr::select(sitename, elv)
+    
+  } else if (source == "stocker23"){
+    
+    filename <- list.files(dir, pattern = "cwdx80_forcing_halfdeg.nc")
+    if (length(filename) > 1) stop("ingest_globalfields(): Found more than 1 file for source 'stocker23'.")
+    if (length(filename) == 0) stop("ingest_globalfields(): Found no files for source 'stocker23' in the directory provided by argument 'dir'.")
+    
+    # re-construct this data frame (tibble) - otherwise SpatialPointsDataframe() won't work
+    df_lonlat <- tibble(
+      sitename = siteinfo$sitename,
+      lon      = siteinfo$lon,
+      lat      = siteinfo$lat
+    )
+    
+    df_out <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = FALSE ) |>
+      dplyr::ungroup() |> 
+      dplyr::select(-lon, -lat) |>
+      tidyr::unnest(data) |>
+      dplyr::rename(whc = cwdx80_forcing) |>
+      dplyr::select(sitename, whc)
     
   } else if (source == "gsde"){
     
@@ -611,15 +632,15 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
     rowwise() %>%
     dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), ".nc" )) %>%
     ungroup() %>%
-    dplyr::mutate(data = purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat, get_time = FALSE ) ))
+    dplyr::mutate(data = purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat, get_time = TRUE ) ))
   
   # rearrange to a daily data frame
   complement_df <- function(df){
-    df <- df %>%
-      stats::setNames(., c("myvar")) %>%
-      mutate( dom = 1:nrow(.))
+    df <- df |> 
+      dplyr::select(dom = tstep, myvar = value)
     return(df)
   }
+  
   ddf <- df %>%
     tidyr::unnest(data) %>%
     dplyr::mutate(data = purrr::map(data, ~complement_df(.))) %>%
@@ -1122,33 +1143,68 @@ extract_pointdata_allsites <- function(
   # load file using the raster library
   #print(paste("Creating raster brick from file", filename))
   if (!file.exists(filename)) stop(paste0("File not found: ", filename))
+  
   # message(paste0("Reading file: ", filename))
-  rasta <- raster::brick(filename)
-  
-  df_lonlat <- raster::extract(
-    rasta,
-    sp::SpatialPoints(dplyr::select(df_lonlat, lon, lat)), # , proj4string = rasta@crs
-    sp = TRUE
-  ) %>%
-    as_tibble() %>%
-    tidyr::nest(data = c(-lon, -lat)) %>%
-    right_join(df_lonlat, by = c("lon", "lat")) %>%
-    mutate( data = purrr::map(data, ~dplyr::slice(., 1)) ) %>%
-    dplyr::mutate(data = purrr::map(data, ~t(.))) %>%
-    dplyr::mutate(data = purrr::map(data, ~as_tibble(.)))
-  
-  # xxx todo: use argument df = TRUE in the extract() function call in order to
-  # return a data frame directly (and not having to rearrange the data afterwards)
-  # xxx todo: implement the GWR method for interpolating using elevation as a
-  # covariate here.
+
+  # new code with terra library
+  rasta <- terra::rast(filename)
+  coords <- dplyr::select(df_lonlat, lon, lat)
+  points <- terra::vect(coords, geom = c("lon", "lat"), crs = "EPSG:4326")
+  values <- terra::extract(rasta, points, xy = FALSE, ID = FALSE, method = "bilinear")
   
   if (get_time){
-    timevals <- raster::getZ(rasta)
-    df_lonlat <- df_lonlat %>%
-      mutate( data = purrr::map(data, ~bind_cols(., tibble(date = timevals))))
+
+    out <- df_lonlat |> 
+      dplyr::select(sitename, lon, lat) |> 
+      bind_cols(
+        values
+      ) |> 
+      tidyr::pivot_longer(-one_of(c("lon", "lat", "sitename")), names_to = "tstep") |> 
+      tidyr::separate_wider_delim(
+        tstep,
+        delim = "=",
+        names = c("varnam", "tstep")
+      ) |> 
+      dplyr::mutate(
+        tstep = as.numeric(tstep) + 1,
+        varnam = stringr::str_remove(varnam, "_tstep")
+      ) |> 
+      dplyr::group_by(sitename, lon, lat) |> 
+      tidyr::nest()
+    
+  } else {
+    
+    out <- df_lonlat |> 
+      dplyr::select(sitename, lon, lat) |> 
+      bind_cols(
+        values
+      ) |> 
+      dplyr::group_by(sitename, lon, lat) |> 
+      tidyr::nest()
+    
   }
   
-  return(df_lonlat)
+  # # old code with {raster} library:
+  # rasta <- raster::brick(filename)
+  # df_lonlat <- raster::extract(
+  #   rasta,
+  #   sp::SpatialPoints(dplyr::select(df_lonlat, lon, lat)), # , proj4string = rasta@crs
+  #   sp = TRUE
+  # ) %>%
+  #   as_tibble() %>%
+  #   tidyr::nest(data = c(-lon, -lat)) %>%
+  #   right_join(df_lonlat, by = c("lon", "lat")) %>%
+  #   mutate( data = purrr::map(data, ~dplyr::slice(., 1)) ) %>%
+  #   dplyr::mutate(data = purrr::map(data, ~t(.))) %>%
+  #   dplyr::mutate(data = purrr::map(data, ~as_tibble(.)))
+  # 
+  # if (get_time){
+  #   timevals <- raster::getZ(rasta)
+  #   df_lonlat <- df_lonlat %>%
+  #     mutate( data = purrr::map(data, ~bind_cols(., tibble(date = timevals))))
+  # }
+  
+  return(out)
 }
 
 

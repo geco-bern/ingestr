@@ -89,4 +89,6 @@ findna_tail <- function( vec ){
   
 }
 
-na.omit.list <- function(y) { return(y[!sapply(y, function(x) all(is.na(x)))]) }
+na.omit.list <- function(y){ 
+  return(y[!sapply(y, function(x) all(is.na(x)))]) 
+  }

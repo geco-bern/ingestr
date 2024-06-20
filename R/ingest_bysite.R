@@ -66,6 +66,7 @@ ingest_bysite <- function(
   
   if (!(source %in% c(
     "etopo1",
+    "stocker23",
     "hwsd",
     "soilgrids",
     "wise",
@@ -640,6 +641,25 @@ ingest_bysite <- function(
       verbose = FALSE
     )
 
+  } else if (source == "stocker23"){
+    
+    # Get ETOPO1 elevation data. year_start and year_end not required
+    
+    siteinfo <- tibble(
+      sitename = sitename,
+      lon = lon,
+      lat = lat
+    )
+    
+    df <- ingest_globalfields(
+      siteinfo,
+      source = source,
+      getvars = NULL,
+      dir = dir,
+      timescale = NULL,
+      verbose = FALSE
+    )
+    
   } else if (source == "hwsd"){
     
     # Get HWSD soil data. year_start and year_end not required
@@ -784,11 +804,11 @@ ingest_bysite <- function(
     rlang::warn(paste("you selected source =", source))
     stop("ingest(): Argument 'source' could not be identified. 
          Use one of 'fluxnet', 'cru', 'watch_wfdei', 'wfde5',
-         'co2_mlo', 'etopo1', or 'gee'.")
+         'co2_mlo', 'etopo1', 'stocker23', or 'gee'.")
   }
 
   # add data frame to nice data frame containing all required time steps
-  if (!(source %in% c("etopo1", "hwsd", "soilgrids", "wise", "gsde", "worldclim"))){
+  if (!(source %in% c("etopo1", "stocker23", "hwsd", "soilgrids", "wise", "gsde", "worldclim"))){
     if (timescale=="m"){
       df <- df_tmp %>%
         mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%

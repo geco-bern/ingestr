@@ -71,6 +71,7 @@ ingest_modis_bysite <- function(
       )
     
   } else {
+    
     filnam_daily_csv <- file.path(
       dirnam_daily_csv,
       paste0(

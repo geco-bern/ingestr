@@ -178,12 +178,12 @@ df_watch <- ingest_bysite(
   getvars   = c("temp"),
   dir       = "~/data/watch_wfdei/",
   timescale = "d",
-  year_start = 2007,
-  year_end  = 2007,
+  year_start = 2018,
+  year_end  = 2018,
   lon       = 3.5958,
   lat       = 43.7414,
-  verbose   = TRUE,
-  settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
+  verbose   = TRUE
+  #settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
   )
 df_watch
 ```
@@ -855,11 +855,16 @@ WATCH-WFDEI data is available for years from 1979. If `year_start` is before tha
 
 ```{r warning=FALSE, eval = FALSE}
 ddf_watch <- ingest(
-  siteinfo = siteinfo %>% slice(1:2),
+  siteinfo = siteinfo %>% 
+    slice(1:2) |> 
+    mutate(
+      year_star = 2018,
+      year_end = 2018
+    ),
   source    = "watch_wfdei",
   getvars   = c("temp", "prec"),
-  dir       = "~/data/watch_wfdei/",  # adjust this with your local path
-  settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
+  dir       = "~/data/watch_wfdei/"  # adjust this with your local path
+  # settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
   )
 ```
 
@@ -1019,6 +1024,19 @@ df_etopo <- ingest(
   siteinfo,
   source = "etopo1",
   dir = "~/data/etopo/"  # adjust this with your local path
+)
+```
+
+## Root-zone water-storage capacity
+
+This reads from the 0.05 degrees resolution map of root-zone water-storage capacity from [Stocker et al. (2023)](https://www.nature.com/articles/s41561-023-01125-2). The nested data column contains a tibble with one value for one variable `whc`. Download the data from [here](https://doi.org/10.5281/zenodo.10885724) and specify the local path with the argument `dir`.
+
+
+```{r warning=FALSE, eval = FALSE}
+df_stocker23 <- ingest(
+  siteinfo,
+  source = "stocker23",
+  dir  ="~/data/mct_data/"  # adjust this with your local path
 )
 ```
 
