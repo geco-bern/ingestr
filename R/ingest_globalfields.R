@@ -413,7 +413,7 @@ ingest_globalfields <- function(
     
   } else if (source == "etopo1"){
     
-    filename <- list.files(dir, pattern = ".tif")
+    filename <- list.files(dir, pattern = "ETOPO1_Bed_g_geotiff.tif")
     if (length(filename) > 1) stop("ingest_globalfields(): Found more than 1 file for source 'etopo1'.")
     if (length(filename) == 0) stop("ingest_globalfields(): Found no files for source 'etopo1' in the directory provided by argument 'dir'.")
     
