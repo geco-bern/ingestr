@@ -868,8 +868,9 @@ ingest <- function(
 	  
 	} else if (source == "hwsd"){
 	  
-	  # Get HWSD soil data. year_start and year_end not required
 	  
+	  # https://github.com/bluegreen-labs/hwsdr
+	  # Get HWSD soil data. year_start and year_end not required
 	  
 	  # TODO replace with {hwsdr} call
 	  # con <- rhwsd::get_hwsd_con()
