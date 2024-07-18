@@ -19,12 +19,10 @@
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../pkgdown.js"></script><!-- geco --><link href="../geco.css" rel="stylesheet">
 <meta property="og:title" content="ingestr example">
-<meta property="og:description" content="ingestr">
-<meta name="twitter:card" content="summary">
 <!-- Mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js" async integrity="sha256-nlrDrBTHxJJlDDX22AS33xYI1OJHnGMDhiYMSe2U0e0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/config/TeX-AMS-MML_HTMLorMML.js" async integrity="sha256-4zys9A4hMQmtq2EUL+JRoXc0NZi8jVJMzb8onewOaSQ=" crossorigin="anonymous"></script>
 </head>
 <body data-spy="scroll" data-target="#toc">
-    
+
 
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -58,7 +56,7 @@
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
-     
+
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
@@ -94,7 +92,7 @@
         <li>
   <a href="https://github.com/geco-bern/ingestr/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
-     
+
   </a>
 </li>
       </ul>
@@ -105,7 +103,7 @@
 </div>
 <!--/.navbar -->
 
-      
+
 
       </header><div class="row">
   <div class="col-md-9 contents">
@@ -115,7 +113,7 @@
 Stocker</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/geco-bern/ingestr/blob/HEAD/vignettes/example.Rmd" class="external-link"><code>vignettes/example.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/geco-bern/ingestr/blob/master/vignettes/example.Rmd" class="external-link"><code>vignettes/example.Rmd</code></a></small>
       <div class="hidden name"><code>example.Rmd</code></div>
 
     </div>
@@ -331,31 +329,34 @@ local files, and always cite original references.</p>
 <tr class="odd">
 <td>Gross primary production</td>
 <td><code>gpp</code></td>
-<td>g CO<span class="math inline">\(^{-2}\)</span> m<span class="math inline">\(^{-2}\)</span>
+<td>g
+CO<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>2</mn></mrow></msup><annotation encoding="application/x-tex">^{-2}</annotation></semantics></math>
+m<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>2</mn></mrow></msup><annotation encoding="application/x-tex">^{-2}</annotation></semantics></math>
 </td>
 </tr>
 <tr class="even">
 <td>Air temperature</td>
 <td><code>temp</code></td>
 <td>
-<span class="math inline">\(^\circ\)</span>C</td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>∘</mo></msup><annotation encoding="application/x-tex">^\circ</annotation></semantics></math>C</td>
 </tr>
 <tr class="odd">
 <td>Daily minimum air temperature</td>
 <td><code>tmin</code></td>
 <td>
-<span class="math inline">\(^\circ\)</span>C</td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>∘</mo></msup><annotation encoding="application/x-tex">^\circ</annotation></semantics></math>C</td>
 </tr>
 <tr class="even">
 <td>Daily maximum air temperature</td>
 <td><code>tmax</code></td>
 <td>
-<span class="math inline">\(^\circ\)</span>C</td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>∘</mo></msup><annotation encoding="application/x-tex">^\circ</annotation></semantics></math>C</td>
 </tr>
 <tr class="odd">
 <td>Precipitation</td>
 <td><code>prec</code></td>
-<td>mm s<span class="math inline">\(^{-1}\)</span>
+<td>mm
+s<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">^{-1}</annotation></semantics></math>
 </td>
 </tr>
 <tr class="even">
@@ -371,13 +372,19 @@ local files, and always cite original references.</p>
 <tr class="even">
 <td>Net radiation</td>
 <td><code>netrad</code></td>
-<td>J m<span class="math inline">\(^{-2}\)</span> s<span class="math inline">\(^{-1}=\)</span> W m<span class="math inline">\(^{-2}\)</span>
+<td>J
+m<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>2</mn></mrow></msup><annotation encoding="application/x-tex">^{-2}</annotation></semantics></math>
+s<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi></mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo>=</mo></mrow><annotation encoding="application/x-tex">^{-1}=</annotation></semantics></math>
+W
+m<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>2</mn></mrow></msup><annotation encoding="application/x-tex">^{-2}</annotation></semantics></math>
 </td>
 </tr>
 <tr class="odd">
 <td>Photosynthetic photon flux density</td>
 <td><code>ppfd</code></td>
-<td>mol m<span class="math inline">\(^{-2}\)</span> s<span class="math inline">\(^{-1}\)</span>
+<td>mol
+m<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>2</mn></mrow></msup><annotation encoding="application/x-tex">^{-2}</annotation></semantics></math>
+s<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">^{-1}</annotation></semantics></math>
 </td>
 </tr>
 <tr class="even">
@@ -393,7 +400,10 @@ correspond to in the original data source (see argument
 <code><a href="../reference/ingest_bysite.html">ingest_bysite()</a></code>). <code>gpp</code> is cumulative,
 corresponding to the time scale of the data. For example, if daily data
 is read, <code>gpp</code> is the total gross primary production per day
-(g CO<span class="math inline">\(^{-2}\)</span> m<span class="math inline">\(^{-2}\)</span> d<span class="math inline">\(^{-1}\)</span>).</p>
+(g
+CO<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>2</mn></mrow></msup><annotation encoding="application/x-tex">^{-2}</annotation></semantics></math>
+m<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>2</mn></mrow></msup><annotation encoding="application/x-tex">^{-2}</annotation></semantics></math>
+d<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">^{-1}</annotation></semantics></math>).</p>
 </div>
 </div>
 <div class="section level2">
@@ -890,8 +900,10 @@ downloaded file with the <code>settings</code> argument:</p>
 </h3>
 <p>This reads nitrogen deposition from global annual maps by Lamarque et
 al. (2011). This provides annual data separately for NHx and NOy in gN
-m<span class="math inline">\(^{-2}\)</span> yr<span class="math inline">\(^{-1}\)</span> from a global map provided at
-half-degree resolution and covering years 1860-2009.</p>
+m<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>2</mn></mrow></msup><annotation encoding="application/x-tex">^{-2}</annotation></semantics></math>
+yr<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">^{-1}</annotation></semantics></math>
+from a global map provided at half-degree resolution and covering years
+1860-2009.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_ndep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest_bysite.html">ingest_bysite</a></span><span class="op">(</span></span>
 <span>  sitename  <span class="op">=</span> <span class="st">"CH-Lae"</span>,</span>
@@ -1835,7 +1847,9 @@ modified version can be installed by:</li>
 </ol>
 <div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/" class="external-link">devtools</a></span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="va">devtools</span><span class="op">)</span><span class="op">}</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"stineb/rhwsd"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"stineb/rhwsd"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># XXX to change to https://github.com/bluegreen-labs/hwsdr</span></span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li>Install additionally required packages: DBI and RSQLite.</li>
 </ol>
@@ -1959,8 +1973,10 @@ earth. BioScience, 51(11):933–938.</em></p>
 </h3>
 <p>This reads nitrogen deposition from global annual maps by Lamarque et
 al. (2011). This provides annual data separately for NHx and NOy in gN
-m<span class="math inline">\(^{-2}\)</span> yr<span class="math inline">\(^{-1}\)</span> from a global map provided at
-half-degree resolution and covering years 1860-2009.</p>
+m<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>2</mn></mrow></msup><annotation encoding="application/x-tex">^{-2}</annotation></semantics></math>
+yr<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">^{-1}</annotation></semantics></math>
+from a global map provided at half-degree resolution and covering years
+1860-2009.</p>
 <div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_ndep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
 <span>  <span class="va">siteinfo_fluxnet2015</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
@@ -2044,7 +2060,7 @@ average is taken).</p>
 <span>  <span class="va">siteinfo_fluxnet2015</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>,</span>
 <span>  source    <span class="op">=</span> <span class="st">"gsde"</span>,</span>
 <span>  settings  <span class="op">=</span> <span class="va">settings_gsde</span>,</span>
-<span>  dir       <span class="op">=</span> <span class="st">"~/data/soil/shangguan"</span></span>
+<span>  dir       <span class="op">=</span> <span class="st">"/data/archive/soil_shangguan_2014/data/"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>And data is returned with variables along columns inside a nested
 column <code>data</code>, and sites along rows (as for all ingestr).
@@ -2153,9 +2169,7 @@ required dates. To get an object in the required standard format, use
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
 
-        <nav id="toc" data-toggle="toc"><h2 data-toc-skip>Contents</h2>
-    </nav>
-</div>
+      </div>
 
 </div>
 
@@ -2203,10 +2217,10 @@ required dates. To get an object in the required standard format, use
       </footer>
 </div>
 
-  
 
 
-  
+
+
 
   </body>
 </html>
