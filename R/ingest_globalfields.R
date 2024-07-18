@@ -467,8 +467,10 @@ ingest_globalfields <- function(
     df_out_top <- extract_pointdata_allsites( paste0(dir, "/", filename), df_lonlat, get_time = FALSE ) %>%
       dplyr::select(-lon, -lat) %>%
       tidyr::unnest(data) %>%
-      dplyr::rename(!!layer := V1) %>%
-      dplyr::select(sitename, !!layer)
+      tidyr::pivot_longer(cols = starts_with("PBR_depth")) %>% 
+      dplyr::rename(!!layer := value, depth = name) %>%
+      dplyr::mutate(depth = as.numeric(str_remove(depth, "PBR_depth="))) %>% 
+      dplyr::select(sitename, !!layer, depth)
     
     # bottom soil layers
     filename <- list.files(dir, pattern = paste0(layer, "2.nc"))
@@ -477,8 +479,10 @@ ingest_globalfields <- function(
     df_out_bottom <- extract_pointdata_allsites( paste0(dir, "/", filename), df_lonlat, get_time = FALSE ) %>%
       dplyr::select(-lon, -lat) %>%
       tidyr::unnest(data) %>%
-      dplyr::rename(!!layer := V1) %>%
-      dplyr::select(sitename, !!layer)
+      tidyr::pivot_longer(cols = starts_with("PBR_depth")) %>% 
+      dplyr::rename(!!layer := value, depth = name) %>%
+      dplyr::mutate(depth = as.numeric(str_remove(depth, "PBR_depth="))) %>% 
+      dplyr::select(sitename, !!layer, depth)
     
     # combine for layers read from each file
     df_out <- bind_rows(df_out_top, df_out_bottom) %>% 
@@ -497,7 +501,8 @@ ingest_globalfields <- function(
       rename(value = !!layer) %>% 
       
       # interpret missing values
-      na_if(-999) %>% 
+      ungroup() %>% 
+      mutate(value = ifelse(value == -999, NA, value)) %>% 
       mutate(value = ifelse(varnam %in% c("PHH2O", "PHK", "PHCA") & value == 100,
                             NA,
                             value)) %>% 

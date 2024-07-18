@@ -1192,7 +1192,7 @@ df_gsde <- ingest(
   siteinfo_fluxnet2015 %>% slice(1:2),
   source    = "gsde",
   settings  = settings_gsde,
-  dir       = "~/data/soil/shangguan"
+  dir       = "/data/archive/soil_shangguan_2014/data/"
   )
 ```
 
