@@ -1049,6 +1049,8 @@ Four steps are required before you can use `ingest()` to get HWSD data:
 ```{r warning=FALSE, eval = FALSE}
 if(!require(devtools)){install.packages(devtools)}
 devtools::install_github("stineb/rhwsd")
+
+# XXX to change to https://github.com/bluegreen-labs/hwsdr
 ```
 
 2.  Install additionally required packages: DBI and RSQLite.
