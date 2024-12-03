@@ -230,6 +230,8 @@ ingest_globalfields <- function(
     }
     
   } else if (source=="cru"){
+    # TODO: currently not supported variables from cru: 'dtr', 'frs', 'pet'
+    
     
     # Read CRU monthly data (extracting from NetCDF files for this site)
     
@@ -916,8 +918,13 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   filename <- list.files( dir, pattern=paste0( varnam, ".dat.nc$" ) , full.names = TRUE)
   if (length(filename)!=1) stop(paste("Aborting. Found no or multiple files for CRU variable", varnam))
   df <- extract_pointdata_allsites( filename, df_lonlat, get_time = TRUE ) %>%
-    dplyr::mutate(data = purrr::map(data, ~dplyr::rename(. , !!varnam := value)))
-  # ggplot(tidyr::unnest(df, data), aes(x=date, y=value, color = sitename)) + geom_line()
+    # ensure only the main variable is returned, 
+    # e.g. for 'prec' also 'mae' and 'maea' are extracted
+    # hence we filter them out and then rename the value column
+    dplyr::mutate(data = purrr::map(data, \(df) df |> 
+                                      dplyr::filter(varnam == !!varnam)|>
+                                      dplyr::rename(!!varnam := value)))
+  # ggplot(tidyr::unnest(df, data), aes(x=date, y=!!sym(varnam), color = sitename)) + geom_line()
   
   mdf <- df %>% tidyr::unnest(data) %>% dplyr::ungroup() %>%
     # previous versions of lubridate used always the 15th of each month 
