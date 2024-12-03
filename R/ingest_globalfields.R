@@ -913,28 +913,16 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   )
   
   # extract the data
-  filename <- list.files( dir, pattern=paste0( varnam, ".dat.nc" ) )
-  if (length(filename)==0) stop(paste("Aborting. No files found for CRU variable", varnam))
-  df <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = TRUE ) %>%
-    dplyr::mutate(data = purrr::map(data, ~stats::setNames(., c("myvar", "date"))))
+  filename <- list.files( dir, pattern=paste0( varnam, ".dat.nc$" ) , full.names = TRUE)
+  if (length(filename)!=1) stop(paste("Aborting. Found no or multiple files for CRU variable", varnam))
+  df <- extract_pointdata_allsites( filename, df_lonlat, get_time = TRUE ) %>%
+    dplyr::mutate(data = purrr::map(data, ~dplyr::rename(. , !!varnam := value)))
+  # ggplot(tidyr::unnest(df, data), aes(x=date, y=value, color = sitename)) + geom_line()
   
-  # rearrange to a monthly data frame. Necesary work-around with date,
-  # because unnest() seems to have a bug
-  # when unnesting a dataframe that contains a lubridate ymd objet.
-  get_month_year <- function(df){
-    df %>%
-      mutate(year = lubridate::year(date),
-             moy = lubridate::month(date))
-  }
-  
-  mdf <- df %>%
-    mutate(data = purrr::map(data, ~get_month_year(.))) %>%
-    mutate(data = purrr::map(data, ~dplyr::select(., -date))) %>%
-    tidyr::unnest(data) %>%
-    rowwise() %>%
-    mutate(date = lubridate::ymd(paste0(as.character(year),
-                                        "-", sprintf( "%02d", moy), "-15"))) %>%
-    dplyr::select(-year, -moy)
+  mdf <- df %>% tidyr::unnest(data) %>% dplyr::ungroup() %>%
+    # previous versions of lubridate used always the 15th of each month 
+    # instead of the 16th (or 15th) as specified by CRU
+    mutate(date = lubridate::floor_date(date, "month") + 14) # TODO(fabern): use the information from CRU
   
   return( mdf )
 }
@@ -1162,6 +1150,34 @@ extract_pointdata_allsites <- function(
     if (grepl("cru_ts4.08|5", filename)) {
       # # CRU has time stamp information in the file
       # # CRU values contain e.g. columns named tmn_1 to tmn_1440, but also auxiliary stn_1 to stn_1440 (is removed)
+      timevals  <- terra::time(rasta) # NOTE that this has the same length as values
+      #                                   # I.e. it contains 2880 values, but only 1440
+      #                                   # are distinct. Since values contain e.g.
+      #                                   # columns named tmn_1 to tmn_1440 and stn_1
+      #                                   # to stn_1440
+      stopifnot(length(timevals) == ncol(values))
+      # stopifnot(all(timevals[1:1440] == timevals[1441:2880])) # replaced by a
+      # more general check:
+      stopifnot(all(head(timevals, length(timevals)/2)
+                    == tail(timevals, length(timevals)/2)))
+
+      delim <- ifelse(grepl("cru_ts4.08|5",filename), "_", "=") # fix for CRU v4.08 that defines e.g. tmn_1, tmn_2
+      out <- df_lonlat |>
+        dplyr::select(sitename, lon, lat) |>
+        bind_cols(
+          values
+        ) |>
+        tidyr::pivot_longer(-one_of(c("lon", "lat", "sitename")), names_to = "tstep") |>
+        tidyr::separate_wider_delim(
+          tstep,
+          delim = delim,
+          names = c("varnam", "tstep")
+        ) |>
+        dplyr::filter(varnam != "stn") |> # remove the auxiliary variable stn
+        dplyr::mutate(date  = timevals[as.integer(tstep)],
+                      tstep = as.numeric(tstep) + 1) |>   # TODO(fabern): remove tstep, only kept for backwards compatibility
+        dplyr::group_by(sitename, lon, lat) |>
+        tidyr::nest()
     } else if (grepl("WFDEI", filename)) {
       # WFDEI has not time stamp information in the file
       # WFDEI values contain e.g. columns named Tair_tstep=0, Tair_tstep=1
