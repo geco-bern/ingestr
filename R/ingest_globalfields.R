@@ -1161,7 +1161,7 @@ extract_pointdata_allsites <- function(
   
   if (get_time){
     
-    if (grepl("cru_ts4.08|5", filename)) {
+    if (grepl("cru_ts4.0(8|5)", filename)) {
       # # CRU has time stamp information in the file
       # # CRU values contain e.g. columns named tmn_1 to tmn_1440, but also auxiliary stn_1 to stn_1440 (is removed)
       timevals  <- terra::time(rasta) # NOTE that this has the same length as values
