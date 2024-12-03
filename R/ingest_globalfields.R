@@ -940,6 +940,13 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
 
 expand_clim_cru_monthly <- function( mdf, cruvars ){
   
+  # ensure this function is always called with a single site only
+  stopifnot(length(unique(mdf$sitename)) == 1)
+  # for multiple sites the code would need to be adapted, e.g.:
+  # ddf2 <- mdf |>
+  #   group_split(sitename, year) |>
+  #   purrr::map(\(df) expand_clim_cru_monthly_byyr(first(df$year), df, cruvars))
+
   ddf <- purrr::map(as.list(unique(mdf$year)),
       ~expand_clim_cru_monthly_byyr( ., mdf, cruvars ) ) %>%
     bind_rows()
