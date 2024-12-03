@@ -246,8 +246,8 @@ ingest_globalfields <- function(
     if ("temp" %in% getvars){
       cruvars <- c(cruvars, "temp")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "tmp" ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(temp = myvar) %>%
+        dplyr::select(sitename, date, "tmp") %>%
+        dplyr::rename(temp = "tmp") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -257,8 +257,8 @@ ingest_globalfields <- function(
     if ("tmin" %in% getvars){
       cruvars <- c(cruvars, "tmin")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "tmn" ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(tmin = myvar) %>%
+        dplyr::select(sitename, date, "tmn") %>%
+        dplyr::rename(tmin = "tmn") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -268,8 +268,8 @@ ingest_globalfields <- function(
     if ("tmax" %in% getvars){
       cruvars <- c(cruvars, "tmax")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "tmx" ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(tmax = myvar) %>%
+        dplyr::select(sitename, date, "tmx") %>%
+        dplyr::rename(tmax = "tmx") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -279,8 +279,8 @@ ingest_globalfields <- function(
     if ("prec" %in% getvars){
       cruvars <- c(cruvars, "prec")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "pre" ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(prec = myvar) %>%
+        dplyr::select(sitename, date, "pre") %>%
+        dplyr::rename(prec = "pre") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -288,8 +288,8 @@ ingest_globalfields <- function(
       # also get wet days to generate daily values
       cruvars <- c(cruvars, "wetd")
       mdf <- ingest_globalfields_cru_byvar(siteinfo,  dir, "wet" ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(wetd = myvar) %>%
+        dplyr::select(sitename, date, "wet") %>%
+        dplyr::rename(wetd = "wet") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -299,8 +299,8 @@ ingest_globalfields <- function(
     if ("vpd" %in% getvars){
       cruvars <- c(cruvars, "vap")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "vap" ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(vap = myvar) %>%
+        dplyr::select(sitename, date, "vap") %>%
+        dplyr::rename(vap = "vap") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -309,8 +309,8 @@ ingest_globalfields <- function(
       if (!("tmin" %in% names(mdf))){
         if (!("tmin" %in% cruvars)) cruvars <- c(cruvars, "tmin")
         mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "tmn" ) %>%
-          dplyr::select(sitename, date, myvar) %>%
-          dplyr::rename(tmin = myvar) %>%
+          dplyr::select(sitename, date, "tmn") %>%
+          dplyr::rename(tmin = "tmn") %>%
           dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
           dplyr::select(-date) %>%
           dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -319,8 +319,8 @@ ingest_globalfields <- function(
       if (!("tmax" %in% names(mdf))){
         if (!("tmax" %in% cruvars)) cruvars <- c(cruvars, "tmax")
         mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "tmx" ) %>%
-          dplyr::select(sitename, date, myvar) %>%
-          dplyr::rename(tmax = myvar) %>%
+          dplyr::select(sitename, date, "tmx") %>%
+          dplyr::rename(tmax = "tmx") %>%
           dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
           dplyr::select(-date) %>%
           dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -332,8 +332,8 @@ ingest_globalfields <- function(
     if ("ccov" %in% getvars){
       cruvars <- c(cruvars, "ccov")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "cld" ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(ccov = myvar) %>%
+        dplyr::select(sitename, date, "cld") %>%
+        dplyr::rename(ccov = "cld") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
