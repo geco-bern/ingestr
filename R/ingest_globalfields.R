@@ -381,7 +381,7 @@ ingest_globalfields <- function(
         # convert units -> mm/sec
         df_out <- df_out %>% 
           mutate(moy = lubridate::month(date)) %>% 
-          mutate(prec = prec / days_in_month(moy)) %>%   # mm/month -> mm/d
+          mutate(prec = prec / lubridate::days_in_month(moy)) %>%   # mm/month -> mm/d
           mutate(prec = prec / (60 * 60 * 24))  # mm/d -> mm/sec
       }
     }
