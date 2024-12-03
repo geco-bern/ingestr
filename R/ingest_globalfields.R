@@ -1158,24 +1158,31 @@ extract_pointdata_allsites <- function(
   values <- terra::extract(rasta, points, xy = FALSE, ID = FALSE, method = "bilinear")
   
   if (get_time){
-
-    out <- df_lonlat |> 
-      dplyr::select(sitename, lon, lat) |> 
-      bind_cols(
-        values
-      ) |> 
-      tidyr::pivot_longer(-one_of(c("lon", "lat", "sitename")), names_to = "tstep") |> 
-      tidyr::separate_wider_delim(
-        tstep,
-        delim = "=",
-        names = c("varnam", "tstep")
-      ) |> 
-      dplyr::mutate(
-        tstep = as.numeric(tstep) + 1,
-        varnam = stringr::str_remove(varnam, "_tstep")
-      ) |> 
-      dplyr::group_by(sitename, lon, lat) |> 
-      tidyr::nest()
+    
+    if (grepl("cru_ts4.08|5", filename)) {
+      # # CRU has time stamp information in the file
+      # # CRU values contain e.g. columns named tmn_1 to tmn_1440, but also auxiliary stn_1 to stn_1440 (is removed)
+    } else if (grepl("WFDEI", filename)) {
+      # WFDEI has not time stamp information in the file
+      # WFDEI values contain e.g. columns named Tair_tstep=0, Tair_tstep=1
+      out <- df_lonlat |>
+        dplyr::select(sitename, lon, lat) |> 
+        bind_cols(
+          values
+        ) |> 
+        tidyr::pivot_longer(-one_of(c("lon", "lat", "sitename")), names_to = "tstep") |> 
+        tidyr::separate_wider_delim(
+          tstep,
+          delim = "=",
+          names = c("varnam", "tstep")
+        ) |>
+        dplyr::mutate(
+          tstep = as.numeric(tstep) + 1,
+          varnam = stringr::str_remove(varnam, "_tstep")
+        ) |> 
+        dplyr::group_by(sitename, lon, lat) |> 
+        tidyr::nest()
+    }
     
   } else {
     
