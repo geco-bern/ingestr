@@ -589,7 +589,7 @@ ingest_globalfields <- function(
 ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
   
   # define variables
-  yr <- mo <- filename <- drop_na <- data <- sitename <- 
+  yr <- mo <- filename <- data <- sitename <- 
     dom <- myvar <- doy <- data_pre <- . <- NULL
   
   dirn <- paste0( dir, "/", varnam)
@@ -678,7 +678,7 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
     names(ddf_tmp) <- siteinfo$sitename
     ddf_pre <- ddf_tmp %>%
       bind_rows(.id = "sitename") %>%
-      drop_na() %>% 
+      tidyr::drop_na() %>% 
       mutate(doy = lubridate::yday(date)) %>%
       left_join(ddf_meandoy, by = c("sitename", "doy")) %>%
       dplyr::select(-doy)
@@ -713,7 +713,7 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
 ingest_globalfields_wfde5_byvar <- function(ddf, siteinfo, dir, varnam) {
   
   yr <- mo  <- filename <- . <- data <- sitename <- dom <- hod <- 
-    myvar <- doy <- drop_na <- data_pre <- NULL
+    myvar <- doy <- data_pre <- NULL
   
   dirn <- paste0( dir, "/", varnam)
   
@@ -833,7 +833,7 @@ ingest_globalfields_wfde5_byvar <- function(ddf, siteinfo, dir, varnam) {
     
     ddf_pre <- ddf_tmp %>%
       bind_rows(.id = "sitename") %>%
-      drop_na() %>% 
+      tidyr::drop_na() %>% 
       mutate(hod = rep(0:23, nrow(.)/24),
              doy = lubridate::yday(date)) %>%
       left_join(ddf_mean, by = c("sitename", "doy", "hod")) %>%
