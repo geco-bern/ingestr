@@ -633,29 +633,21 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
   # extract all the data for all the dates (cutting to required dates by site is done in ingest())
   allmonths <- 1:12
   allyears <- year_start_read:year_end_read
-  df <- expand.grid(allmonths, allyears) %>%
+  ddf <- expand.grid(allmonths, allyears) %>%
     dplyr::as_tibble() %>%
     stats::setNames(c("mo", "yr")) %>%
     rowwise() %>%
     dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), ".nc" )) %>%
     ungroup() %>%
-    dplyr::mutate(data = purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat, get_time = TRUE ) ))
-  
-  # rearrange to a daily data frame
-  complement_df <- function(df){
-    df <- df |> 
-      dplyr::select(dom = tstep, myvar = value)
-    return(df)
-  }
-  
-  ddf <- df %>%
-    tidyr::unnest(data) %>%
-    dplyr::mutate(data = purrr::map(data, ~complement_df(.))) %>%
-    tidyr::unnest(data) %>%
-    dplyr::select(sitename, mo, yr, dom, myvar) %>%
-    dplyr::mutate(date = lubridate::ymd(paste0(as.character(yr), "-", sprintf( "%02d", mo), "-", sprintf( "%02d", dom))) ) %>%
-    dplyr::select(-mo, -yr, -dom)
-  
+    dplyr::mutate(data = purrr::pmap(., function(filename, yr, mo, ...){
+      extract_pointdata_allsites(filename, df_lonlat, 
+                                 get_time  = TRUE, 
+                                 year_arg  = yr, 
+                                 month_arg = mo ) 
+      } )) %>% 
+    tidyr::unnest(data) %>% tidyr::unnest(data) %>%
+    dplyr::select(sitename, myvar=value, date)
+
   # create data frame containing all dates, using mean annual cycle (of 1979-1988) for all years before 1979
   if (pre_data){
     message("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1988) for all years before 1979.")
@@ -920,7 +912,7 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   df <- extract_pointdata_allsites( filename, df_lonlat, get_time = TRUE ) %>%
     # ensure only the main variable is returned, 
     # e.g. for 'prec' also 'mae' and 'maea' are extracted
-    # hence we filter them out and then rename the value column
+    # hence we filter them out and then rename the value column to the name of the main variable e.g. `prec`
     dplyr::mutate(data = purrr::map(data, \(df) df |> 
                                       dplyr::filter(varnam == !!varnam)|>
                                       dplyr::rename(!!varnam := value)))
@@ -929,7 +921,7 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   mdf <- df %>% tidyr::unnest(data) %>% dplyr::ungroup() %>%
     # previous versions of lubridate used always the 15th of each month 
     # instead of the 16th (or 15th) as specified by CRU
-    mutate(date = lubridate::floor_date(date, "month") + 14) # TODO(fabern): use the information from CRU
+    mutate(date = lubridate::floor_date(date, "month") + 14) # TODO(fabern): remove this line to use the information from CRU
   
   return( mdf )
 }
@@ -1141,8 +1133,11 @@ find_nearest_cruland_by_lat <- function( lon, lat, filn ){
 extract_pointdata_allsites <- function(
   filename,
   df_lonlat,
-  get_time = FALSE
+  get_time = FALSE,
+  year_arg = NA_integer_, month_arg = NA_integer_ # only used for WFDEI in combination with get_time
   ) {
+  
+  stopifnot((is.na(year_arg) && is.na(month_arg)) || grepl("WFDEI", filename)) # must be NA, unless case WFDEI
   
   # define variables
   lon <- lat <- data <- NULL
@@ -1159,72 +1154,70 @@ extract_pointdata_allsites <- function(
   points <- terra::vect(coords, geom = c("lon", "lat"), crs = "EPSG:4326")
   values <- terra::extract(rasta, points, xy = FALSE, ID = FALSE, method = "bilinear")
   
+  # generate 'out'
+  out <- df_lonlat |> 
+    dplyr::select(sitename, lon, lat) |> 
+    bind_cols(values)
+  
   if (get_time){
     
-    if (grepl("cru_ts4.0(8|5)", filename)) {
+    delim <- if (grepl("WFDEI", filename)) {
+      "=" # fix for WFDEI that defines Tair_tstep=0, Tair_tstep=1
+    } else if (grepl("cru_ts4.0(8|5)", filename)) {
+      "_" # fix for CRU v4.08 that defines e.g. tmn_1, tmn_2
+    } else {
+      stop("Currently only special treatment of WFDEI and CRU define. Please extend the code.")
+    }
+    
+    out <- out |>
+      tidyr::pivot_longer(-all_of(c("lon", "lat", "sitename")), names_to = "tstep") |>
+      tidyr::separate_wider_delim(
+        tstep,
+        delim = delim,
+        names = c("varnam", "tstep")
+      ) 
+    
+    # define colum 'date'
+    if (grepl("WFDEI", filename)) {
+      # WFDEI has not time stamp information in the file
+      #       it has only the day of month (dom), therefore we need to combine
+      #       this with the year and month from the filename (provided as arguments)
+      # WFDEI values contain e.g. columns named Tair_tstep=0, Tair_tstep=1, which
+      #       are read out as day of month
+      out <- out |>
+        dplyr::mutate(
+          dom     = as.numeric(tstep) + 1,                # day of month
+          varnam = stringr::str_remove(varnam, "_tstep")) |>
+        dplyr::mutate(date = lubridate::make_date(year_arg, month_arg, dom)) |>
+        dplyr::select(all_of(c('sitename', 'lon', 'lat', 'varnam', 'date', 'value')))
+      
+    } else if (grepl("cru_ts4.0(8|5)", filename)) {
       # # CRU has time stamp information in the file
       # # CRU values contain e.g. columns named tmn_1 to tmn_1440, but also auxiliary stn_1 to stn_1440 (is removed)
       timevals  <- terra::time(rasta) # NOTE that this has the same length as values
-      #                                   # I.e. it contains 2880 values, but only 1440
-      #                                   # are distinct. Since values contain e.g.
-      #                                   # columns named tmn_1 to tmn_1440 and stn_1
-      #                                   # to stn_1440
+      #                               # I.e. it contains 2880 values, but only 1440
+      #                               # are distinct. Since values contain e.g.
+      #                               # columns named tmn_1 to tmn_1440 and stn_1
+      #                               # to stn_1440
+      
+      # sanity checks
       stopifnot(length(timevals) == ncol(values))
-      # stopifnot(all(timevals[1:1440] == timevals[1441:2880])) # replaced by a
-      # more general check:
-      stopifnot(all(head(timevals, length(timevals)/2)
-                    == tail(timevals, length(timevals)/2)))
-
-      delim <- ifelse(grepl("cru_ts4.08|5",filename), "_", "=") # fix for CRU v4.08 that defines e.g. tmn_1, tmn_2
-      out <- df_lonlat |>
-        dplyr::select(sitename, lon, lat) |>
-        bind_cols(
-          values
-        ) |>
-        tidyr::pivot_longer(-one_of(c("lon", "lat", "sitename")), names_to = "tstep") |>
-        tidyr::separate_wider_delim(
-          tstep,
-          delim = delim,
-          names = c("varnam", "tstep")
-        ) |>
+      # stopifnot(all(timevals[1:1440] == timevals[1441:2880])) # replaced by a more general check:
+      stopifnot(all(head(timevals, length(timevals)/2) == tail(timevals, length(timevals)/2)))
+      
+      out <- out |>
+        dplyr::mutate(date  = timevals[as.integer(tstep)]) |>
         dplyr::filter(varnam != "stn") |> # remove the auxiliary variable stn
-        dplyr::mutate(date  = timevals[as.integer(tstep)],
-                      tstep = as.numeric(tstep) + 1) |>   # TODO(fabern): remove tstep, only kept for backwards compatibility
-        dplyr::group_by(sitename, lon, lat) |>
-        tidyr::nest()
-    } else if (grepl("WFDEI", filename)) {
-      # WFDEI has not time stamp information in the file
-      # WFDEI values contain e.g. columns named Tair_tstep=0, Tair_tstep=1
-      out <- df_lonlat |>
-        dplyr::select(sitename, lon, lat) |> 
-        bind_cols(
-          values
-        ) |> 
-        tidyr::pivot_longer(-one_of(c("lon", "lat", "sitename")), names_to = "tstep") |> 
-        tidyr::separate_wider_delim(
-          tstep,
-          delim = "=",
-          names = c("varnam", "tstep")
-        ) |>
-        dplyr::mutate(
-          tstep = as.numeric(tstep) + 1,
-          varnam = stringr::str_remove(varnam, "_tstep")
-        ) |> 
-        dplyr::group_by(sitename, lon, lat) |> 
-        tidyr::nest()
+        dplyr::select(all_of(c('sitename', 'lon', 'lat', 'varnam', 'date', 'value'))) # remove tstep
     }
     
-  } else {
-    
-    out <- df_lonlat |> 
-      dplyr::select(sitename, lon, lat) |> 
-      bind_cols(
-        values
-      ) |> 
-      dplyr::group_by(sitename, lon, lat) |> 
-      tidyr::nest()
-    
+  } else { # i.e. when get_time == FALSE
+    # nothing done in addition
   }
+  
+  out <- out |> 
+    dplyr::group_by(sitename, lon, lat) |> 
+    tidyr::nest()
   
   # # old code with {raster} library:
   # rasta <- raster::brick(filename)
