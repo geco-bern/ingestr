@@ -744,7 +744,7 @@ df_worldclim <- ingest_bysite(
   lon       = 8.36439,
   lat       = 47.47833,
   settings  = settings_worldclim,
-  dir       = "~/data/worldclim"
+  dir       = "/data/archive/worldclim_fick_2017/data"
   )
 ```
 

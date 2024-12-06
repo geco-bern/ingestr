@@ -550,20 +550,22 @@ ingest_globalfields <- function(
     
     ingest_globalfields_worldclim_byvar <- function(varnam){
       
-      vec_filn <- list.files(dir, pattern = paste0(varnam, ".*.tif"))
-      
+      vec_filn <- list.files(dir, pattern = paste0(varnam, ".*.tif"), full.names = TRUE)
+        
       if (length(vec_filn) > 0){
-        df_out <- purrr::map2(
+        df_out <- purrr::map(
           as.list(vec_filn),
-          as.list(stringr::str_remove(vec_filn,
-                                      paste0("wc2.1_30s_", varnam, "_")) %>%
-                    stringr::str_remove(".tif")),
-          ~{extract_pointdata_allsites( paste0(dir, "/", .x),
-                                        df_lonlat, get_time = FALSE ) %>%
+          function(filpath){
+            # filpath <- "/data/archive/worldclim_fick_2017/data/wc2.1_30s_tavg_01.tif"
+            fn <- basename(filpath)
+            mo <- gsub('.*_([0-9]*).tif','\\1',fn)
+            vn <- gsub('.tif','',fn) # we assume that internal the column name is this
+            extract_pointdata_allsites( filpath, df_lonlat, get_time = FALSE ) %>%
+              tidyr::unnest(data) %>% dplyr::ungroup() %>%
               dplyr::select(-lon, -lat) %>%
-              tidyr::unnest(data) %>%
-              dplyr::rename(!!paste0(varnam, "_", .y) := V1) %>%
-              dplyr::select(sitename, !!paste0(varnam, "_", .y))}) %>% 
+              dplyr::rename(!!paste0(varnam, "_", mo) := vn) %>%
+              dplyr::select(sitename, !!paste0(varnam, "_", mo))
+            }) %>% 
           purrr::reduce(left_join, by = "sitename")
       } else {
         df_out <- tibble()
