@@ -175,8 +175,8 @@ test_that("test CRU data multisite downscaling (monthly and downscaled daily)", 
   #       getvars = c("temp", "ccov"), # , "prec" NOTE: we can't test prec, unless we specify a seed somewhere
   #       dir = "/data/archive/cru_harris_2024/data", 
   #       timescale = "m")}) |> bind_rows() |> ungroup() |> unnest(data)
-  
-  # Illustration of failing test
+  # 
+  # # Illustration of failing test
   # library(ggplot2)
   # p1 <- ggplot(df_cru_monthly_combined, aes(y=temp, x=date, linetype=sitename, color=sitename)) + ggtitle("df_cru_monthly_combined") + geom_point() # CORRECT
   # p2 <- ggplot(df_cru_daily_separate, aes(y=temp, x=date, linetype=sitename, color=sitename))   + ggtitle("df_cru_daily_separate")   + geom_line()   # CORRECT DOWNSCALING
