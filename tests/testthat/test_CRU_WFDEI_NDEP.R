@@ -122,6 +122,70 @@ test_that("test CRU data (monthly and downscaled daily)", {
 
 })
 
+
+test_that("test CRU data multisite downscaling (monthly and downscaled daily)", {
+  skip_on_cran()
+  library(dplyr)
+  library(tidyr)
+  library(ingestr)
+  library(testthat)
+
+  siteinfo_test <- tibble(
+    sitename   = c("Reichetal_Colorado", "Reichetal_New_Mexico", "Reichetal_Venezuela", "Reichetal_Wisconsin", "Lulea"),
+    lon        = c(-105.60, -107.00, -67.05, -90.00, 22.15),
+    lat        = c(  40.05,   34.00,   1.93,  42.50, 65.59),
+    elv        = c(  3360L,   1620L,   120L,   275L,    0L),
+    year_start = c(2010, 2010, 2010, 2010, 2010),
+    year_end   = c(2015, 2015, 2015, 2015, 2015))
+
+  # Daily:
+  # site-separate downscaling
+  df_cru_daily_separate <- siteinfo_test[c(2,3,5),] |> 
+    rowwise() |> group_split() |> # do it separately for each row
+    lapply(function(curr_site_inf){
+      ingestr::ingest(
+        siteinfo = curr_site_inf,
+        source = "cru",
+        getvars = c("temp", "ccov"), # , "prec" NOTE: we can't test prec, unless we specify a seed somewhere
+        dir = "/data/archive/cru_harris_2024/data", 
+        timescale = "d")}) |> bind_rows() |> ungroup() |> unnest(data)
+  
+  # site-combined downscaling
+  df_cru_daily_combined <- siteinfo_test[c(2,3,5),] |> 
+    ungroup() |> group_split() |> # do it together for all rows
+    lapply(function(curr_site_inf){
+      ingestr::ingest(
+        siteinfo = curr_site_inf,
+        source = "cru",
+        getvars = c("temp", "ccov"), # , "prec" NOTE: we can't test prec, unless we specify a seed somewhere
+        dir = "/data/archive/cru_harris_2024/data", 
+        timescale = "d")}) |> bind_rows() |> ungroup() |> unnest(data)
+  
+  testthat::expect_equal(df_cru_daily_separate, 
+                         df_cru_daily_combined)
+  
+  # # Monthly:
+  # # site-combined monthly
+  # df_cru_monthly_combined <- siteinfo_test[c(2,3,5),] |> 
+  #   ungroup() |> group_split() |> # do it together for all rows
+  #   lapply(function(curr_site_inf){
+  #     ingestr::ingest(
+  #       siteinfo = curr_site_inf,
+  #       source = "cru",
+  #       getvars = c("temp", "ccov"), # , "prec" NOTE: we can't test prec, unless we specify a seed somewhere
+  #       dir = "/data/archive/cru_harris_2024/data", 
+  #       timescale = "m")}) |> bind_rows() |> ungroup() |> unnest(data)
+  
+  # Illustration of failing test
+  # library(ggplot2)
+  # p1 <- ggplot(df_cru_monthly_combined, aes(y=temp, x=date, linetype=sitename, color=sitename)) + ggtitle("df_cru_monthly_combined") + geom_point() # CORRECT
+  # p2 <- ggplot(df_cru_daily_separate, aes(y=temp, x=date, linetype=sitename, color=sitename))   + ggtitle("df_cru_daily_separate")   + geom_line()   # CORRECT DOWNSCALING
+  # p3 <- ggplot(df_cru_daily_combined, aes(y=temp, x=date, linetype=sitename, color=sitename))   + ggtitle("df_cru_daily_combined")   + geom_line()   # WRONG DOWNSCALING: Gives same time series for each site
+  # gridExtra::grid.arrange(p1, p2, p3) 
+  
+})
+
+
 test_that("test WATCH_WFDEI data (daily)", {
   skip_on_cran()
   
