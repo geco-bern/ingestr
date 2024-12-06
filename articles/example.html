@@ -1469,7 +1469,7 @@ average is taken).</p>
 <span>  lon       <span class="op">=</span> <span class="fl">8.36439</span>,</span>
 <span>  lat       <span class="op">=</span> <span class="fl">47.47833</span>,</span>
 <span>  settings  <span class="op">=</span> <span class="va">settings_worldclim</span>,</span>
-<span>  dir       <span class="op">=</span> <span class="st">"~/data/worldclim"</span></span>
+<span>  dir       <span class="op">=</span> <span class="st">"/data/archive/worldclim_fick_2017/data"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>And for Flat-Earthers:</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
@@ -1531,9 +1531,9 @@ this data source are provided in the <code>settings</code> list.</p>
 <span>                   netrad <span class="op">=</span> <span class="st">"NETRAD"</span>, </span>
 <span>                   patm <span class="op">=</span> <span class="st">"PA_F"</span></span>
 <span>                   <span class="op">)</span>,</span>
-<span>  dir       <span class="op">=</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/DD/"</span>,  <span class="co"># adjust this with your local path</span></span>
+<span>  dir       <span class="op">=</span> <span class="st">"/data/scratch/bstocker/FLUXNET-2015_Tier1/20191024/DD/"</span>,  <span class="co"># adjust this with your local path</span></span>
 <span>  settings  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    dir_hh <span class="op">=</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/HH/"</span>, <span class="co"># adjust this with your local path</span></span>
+<span>    dir_hh <span class="op">=</span> <span class="st">"/data/scratch/bstocker/FLUXNET-2015_Tier1/20191024/HH/"</span>, <span class="co"># adjust this with your local path</span></span>
 <span>    getswc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
 <span>  timescale <span class="op">=</span> <span class="st">"d"</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
@@ -1546,9 +1546,9 @@ obtained as follows:</p>
 <span>  siteinfo  <span class="op">=</span> <span class="va">siteinfo</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span>,</span>
 <span>  source    <span class="op">=</span> <span class="st">"fluxnet"</span>,</span>
 <span>  getvars   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>tmin <span class="op">=</span> <span class="st">"TMIN_F"</span><span class="op">)</span>,</span>
-<span>  dir       <span class="op">=</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/DD/"</span>,  <span class="co"># adjust this with your local path</span></span>
+<span>  dir       <span class="op">=</span> <span class="st">"/data/scratch/bstocker/FLUXNET-2015_Tier1/20191024/DD/"</span>,  <span class="co"># adjust this with your local path</span></span>
 <span>  settings  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    dir_hh <span class="op">=</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/HH/"</span>, <span class="co"># adjust this with your local path</span></span>
+<span>    dir_hh <span class="op">=</span> <span class="st">"/data/scratch/bstocker/FLUXNET-2015_Tier1/20191024/HH/"</span>, <span class="co"># adjust this with your local path</span></span>
 <span>    getswc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
 <span>  timescale <span class="op">=</span> <span class="st">"d"</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
@@ -1581,7 +1581,7 @@ difference is below the the 97.5% and above the 2.5% quantile
 <span>  source   <span class="op">=</span> <span class="st">"fluxnet"</span>,</span>
 <span>  getvars  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>gpp <span class="op">=</span> <span class="st">"GPP_NT_VUT_REF"</span>,</span>
 <span>  pp_unc   <span class="op">=</span> <span class="st">"GPP_NT_VUT_SE"</span><span class="op">)</span>,</span>
-<span>  dir      <span class="op">=</span> <span class="st">"~/data/FLUXNET-2015_Tier1/20191024/DD/"</span>, <span class="co"># adjust this with your local path</span></span>
+<span>  dir      <span class="op">=</span> <span class="st">"/data/scratch/bstocker/FLUXNET-2015_Tier1/20191024/DD/"</span>, <span class="co"># adjust this with your local path</span></span>
 <span>  settings <span class="op">=</span> <span class="va">settings_fluxnet</span>,</span>
 <span>  timescale<span class="op">=</span> <span class="st">"d"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
