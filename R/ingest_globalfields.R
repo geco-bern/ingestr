@@ -230,6 +230,8 @@ ingest_globalfields <- function(
     }
     
   } else if (source=="cru"){
+    # TODO: currently not supported variables from cru: 'dtr', 'frs', 'pet'
+    
     
     # Read CRU monthly data (extracting from NetCDF files for this site)
     
@@ -246,8 +248,8 @@ ingest_globalfields <- function(
     if ("temp" %in% getvars){
       cruvars <- c(cruvars, "temp")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "tmp" ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(temp = myvar) %>%
+        dplyr::select(sitename, date, "tmp") %>%
+        dplyr::rename(temp = "tmp") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -257,8 +259,8 @@ ingest_globalfields <- function(
     if ("tmin" %in% getvars){
       cruvars <- c(cruvars, "tmin")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "tmn" ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(tmin = myvar) %>%
+        dplyr::select(sitename, date, "tmn") %>%
+        dplyr::rename(tmin = "tmn") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -268,8 +270,8 @@ ingest_globalfields <- function(
     if ("tmax" %in% getvars){
       cruvars <- c(cruvars, "tmax")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "tmx" ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(tmax = myvar) %>%
+        dplyr::select(sitename, date, "tmx") %>%
+        dplyr::rename(tmax = "tmx") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -279,8 +281,8 @@ ingest_globalfields <- function(
     if ("prec" %in% getvars){
       cruvars <- c(cruvars, "prec")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "pre" ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(prec = myvar) %>%
+        dplyr::select(sitename, date, "pre") %>%
+        dplyr::rename(prec = "pre") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -288,8 +290,8 @@ ingest_globalfields <- function(
       # also get wet days to generate daily values
       cruvars <- c(cruvars, "wetd")
       mdf <- ingest_globalfields_cru_byvar(siteinfo,  dir, "wet" ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(wetd = myvar) %>%
+        dplyr::select(sitename, date, "wet") %>%
+        dplyr::rename(wetd = "wet") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -299,8 +301,8 @@ ingest_globalfields <- function(
     if ("vpd" %in% getvars){
       cruvars <- c(cruvars, "vap")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "vap" ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(vap = myvar) %>%
+        dplyr::select(sitename, date, "vap") %>%
+        dplyr::rename(vap = "vap") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -309,8 +311,8 @@ ingest_globalfields <- function(
       if (!("tmin" %in% names(mdf))){
         if (!("tmin" %in% cruvars)) cruvars <- c(cruvars, "tmin")
         mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "tmn" ) %>%
-          dplyr::select(sitename, date, myvar) %>%
-          dplyr::rename(tmin = myvar) %>%
+          dplyr::select(sitename, date, "tmn") %>%
+          dplyr::rename(tmin = "tmn") %>%
           dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
           dplyr::select(-date) %>%
           dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -319,8 +321,8 @@ ingest_globalfields <- function(
       if (!("tmax" %in% names(mdf))){
         if (!("tmax" %in% cruvars)) cruvars <- c(cruvars, "tmax")
         mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "tmx" ) %>%
-          dplyr::select(sitename, date, myvar) %>%
-          dplyr::rename(tmax = myvar) %>%
+          dplyr::select(sitename, date, "tmx") %>%
+          dplyr::rename(tmax = "tmx") %>%
           dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
           dplyr::select(-date) %>%
           dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -332,8 +334,8 @@ ingest_globalfields <- function(
     if ("ccov" %in% getvars){
       cruvars <- c(cruvars, "ccov")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "cld" ) %>%
-        dplyr::select(sitename, date, myvar) %>%
-        dplyr::rename(ccov = myvar) %>%
+        dplyr::select(sitename, date, "cld") %>%
+        dplyr::rename(ccov = "cld") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
@@ -381,7 +383,7 @@ ingest_globalfields <- function(
         # convert units -> mm/sec
         df_out <- df_out %>% 
           mutate(moy = lubridate::month(date)) %>% 
-          mutate(prec = prec / days_in_month(moy)) %>%   # mm/month -> mm/d
+          mutate(prec = prec / lubridate::days_in_month(moy)) %>%   # mm/month -> mm/d
           mutate(prec = prec / (60 * 60 * 24))  # mm/d -> mm/sec
       }
     }
@@ -548,20 +550,22 @@ ingest_globalfields <- function(
     
     ingest_globalfields_worldclim_byvar <- function(varnam){
       
-      vec_filn <- list.files(dir, pattern = paste0(varnam, ".*.tif"))
-      
+      vec_filn <- list.files(dir, pattern = paste0(varnam, ".*.tif"), full.names = TRUE)
+        
       if (length(vec_filn) > 0){
-        df_out <- purrr::map2(
+        df_out <- purrr::map(
           as.list(vec_filn),
-          as.list(stringr::str_remove(vec_filn,
-                                      paste0("wc2.1_30s_", varnam, "_")) %>%
-                    stringr::str_remove(".tif")),
-          ~{extract_pointdata_allsites( paste0(dir, "/", .x),
-                                        df_lonlat, get_time = FALSE ) %>%
+          function(filpath){
+            # filpath <- "/data/archive/worldclim_fick_2017/data/wc2.1_30s_tavg_01.tif"
+            fn <- basename(filpath)
+            mo <- gsub('.*_([0-9]*).tif','\\1',fn)
+            vn <- gsub('.tif','',fn) # we assume that internal the column name is this
+            extract_pointdata_allsites( filpath, df_lonlat, get_time = FALSE ) %>%
+              tidyr::unnest(data) %>% dplyr::ungroup() %>%
               dplyr::select(-lon, -lat) %>%
-              tidyr::unnest(data) %>%
-              dplyr::rename(!!paste0(varnam, "_", .y) := V1) %>%
-              dplyr::select(sitename, !!paste0(varnam, "_", .y))}) %>% 
+              dplyr::rename(!!paste0(varnam, "_", mo) := vn) %>%
+              dplyr::select(sitename, !!paste0(varnam, "_", mo))
+            }) %>% 
           purrr::reduce(left_join, by = "sitename")
       } else {
         df_out <- tibble()
@@ -587,7 +591,7 @@ ingest_globalfields <- function(
 ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
   
   # define variables
-  yr <- mo <- filename <- drop_na <- data <- sitename <- 
+  yr <- mo <- filename <- data <- sitename <- 
     dom <- myvar <- doy <- data_pre <- . <- NULL
   
   dirn <- paste0( dir, "/", varnam)
@@ -631,29 +635,21 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
   # extract all the data for all the dates (cutting to required dates by site is done in ingest())
   allmonths <- 1:12
   allyears <- year_start_read:year_end_read
-  df <- expand.grid(allmonths, allyears) %>%
+  ddf <- expand.grid(allmonths, allyears) %>%
     dplyr::as_tibble() %>%
     stats::setNames(c("mo", "yr")) %>%
     rowwise() %>%
     dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), ".nc" )) %>%
     ungroup() %>%
-    dplyr::mutate(data = purrr::map(filename, ~extract_pointdata_allsites(., df_lonlat, get_time = TRUE ) ))
-  
-  # rearrange to a daily data frame
-  complement_df <- function(df){
-    df <- df |> 
-      dplyr::select(dom = tstep, myvar = value)
-    return(df)
-  }
-  
-  ddf <- df %>%
-    tidyr::unnest(data) %>%
-    dplyr::mutate(data = purrr::map(data, ~complement_df(.))) %>%
-    tidyr::unnest(data) %>%
-    dplyr::select(sitename, mo, yr, dom, myvar) %>%
-    dplyr::mutate(date = lubridate::ymd(paste0(as.character(yr), "-", sprintf( "%02d", mo), "-", sprintf( "%02d", dom))) ) %>%
-    dplyr::select(-mo, -yr, -dom)
-  
+    dplyr::mutate(data = purrr::pmap(., function(filename, yr, mo, ...){
+      extract_pointdata_allsites(filename, df_lonlat, 
+                                 get_time  = TRUE, 
+                                 year_arg  = yr, 
+                                 month_arg = mo ) 
+      } )) %>% 
+    tidyr::unnest(data) %>% tidyr::unnest(data) %>%
+    dplyr::select(sitename, myvar=value, date)
+
   # create data frame containing all dates, using mean annual cycle (of 1979-1988) for all years before 1979
   if (pre_data){
     message("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1988) for all years before 1979.")
@@ -676,7 +672,7 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
     names(ddf_tmp) <- siteinfo$sitename
     ddf_pre <- ddf_tmp %>%
       bind_rows(.id = "sitename") %>%
-      drop_na() %>% 
+      tidyr::drop_na() %>% 
       mutate(doy = lubridate::yday(date)) %>%
       left_join(ddf_meandoy, by = c("sitename", "doy")) %>%
       dplyr::select(-doy)
@@ -711,7 +707,7 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
 ingest_globalfields_wfde5_byvar <- function(ddf, siteinfo, dir, varnam) {
   
   yr <- mo  <- filename <- . <- data <- sitename <- dom <- hod <- 
-    myvar <- doy <- drop_na <- data_pre <- NULL
+    myvar <- doy <- data_pre <- NULL
   
   dirn <- paste0( dir, "/", varnam)
   
@@ -831,7 +827,7 @@ ingest_globalfields_wfde5_byvar <- function(ddf, siteinfo, dir, varnam) {
     
     ddf_pre <- ddf_tmp %>%
       bind_rows(.id = "sitename") %>%
-      drop_na() %>% 
+      tidyr::drop_na() %>% 
       mutate(hod = rep(0:23, nrow(.)/24),
              doy = lubridate::yday(date)) %>%
       left_join(ddf_mean, by = c("sitename", "doy", "hod")) %>%
@@ -878,20 +874,10 @@ ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
   # extract the data
   filename <- list.files(
     dir, paste0("ndep_", varnam, "_lamarque11cc_historical_halfdeg.nc") )
-  df <- extract_pointdata_allsites(
+  adf <- extract_pointdata_allsites(
     paste0(dir, filename), df_lonlat, get_time = TRUE) %>%
-    dplyr::mutate(
-      data = purrr::map(data, ~stats::setNames(., c(varnam, "year")))
-      ) %>% 
-    dplyr::mutate(
-      data = purrr::map(
-        data,
-        ~mutate(., date = lubridate::ymd(paste0(as.character(year), "-01-01")))
-        )
-      )
-  
-  adf <- df %>%
-    tidyr::unnest(data)
+    tidyr::unnest(data) %>% dplyr::ungroup() %>%
+    dplyr::rename(!!varnam := value)
   
   return(adf)
 }
@@ -913,28 +899,21 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   )
   
   # extract the data
-  filename <- list.files( dir, pattern=paste0( varnam, ".dat.nc" ) )
-  if (length(filename)==0) stop(paste("Aborting. No files found for CRU variable", varnam))
-  df <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = TRUE ) %>%
-    dplyr::mutate(data = purrr::map(data, ~stats::setNames(., c("myvar", "date"))))
+  filename <- list.files( dir, pattern=paste0( varnam, ".dat.nc$" ) , full.names = TRUE)
+  if (length(filename)!=1) stop(paste("Aborting. Found no or multiple files for CRU variable", varnam))
+  df <- extract_pointdata_allsites( filename, df_lonlat, get_time = TRUE ) %>%
+    # ensure only the main variable is returned, 
+    # e.g. for 'prec' also 'mae' and 'maea' are extracted
+    # hence we filter them out and then rename the value column to the name of the main variable e.g. `prec`
+    dplyr::mutate(data = purrr::map(data, \(df) df |> 
+                                      dplyr::filter(varnam == !!varnam)|>
+                                      dplyr::rename(!!varnam := value)))
+  # ggplot(tidyr::unnest(df, data), aes(x=date, y=!!sym(varnam), color = sitename)) + geom_line()
   
-  # rearrange to a monthly data frame. Necesary work-around with date,
-  # because unnest() seems to have a bug
-  # when unnesting a dataframe that contains a lubridate ymd objet.
-  get_month_year <- function(df){
-    df %>%
-      mutate(year = lubridate::year(date),
-             moy = lubridate::month(date))
-  }
-  
-  mdf <- df %>%
-    mutate(data = purrr::map(data, ~get_month_year(.))) %>%
-    mutate(data = purrr::map(data, ~dplyr::select(., -date))) %>%
-    tidyr::unnest(data) %>%
-    rowwise() %>%
-    mutate(date = lubridate::ymd(paste0(as.character(year),
-                                        "-", sprintf( "%02d", moy), "-15"))) %>%
-    dplyr::select(-year, -moy)
+  mdf <- df %>% tidyr::unnest(data) %>% dplyr::ungroup() %>%
+    # previous versions of lubridate used always the 15th of each month 
+    # instead of the 16th (or 15th) as specified by CRU
+    mutate(date = lubridate::floor_date(date, "month") + 14) # TODO(fabern): remove this line to use the information from CRU
   
   return( mdf )
 }
@@ -945,6 +924,13 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
 
 expand_clim_cru_monthly <- function( mdf, cruvars ){
   
+  # ensure this function is always called with a single site only
+  stopifnot(length(unique(mdf$sitename)) == 1)
+  # for multiple sites the code would need to be adapted, e.g.:
+  # ddf2 <- mdf |>
+  #   group_split(sitename, year) |>
+  #   purrr::map(\(df) expand_clim_cru_monthly_byyr(first(df$year), df, cruvars))
+
   ddf <- purrr::map(as.list(unique(mdf$year)),
       ~expand_clim_cru_monthly_byyr( ., mdf, cruvars ) ) %>%
     bind_rows()
@@ -1139,8 +1125,11 @@ find_nearest_cruland_by_lat <- function( lon, lat, filn ){
 extract_pointdata_allsites <- function(
   filename,
   df_lonlat,
-  get_time = FALSE
+  get_time = FALSE,
+  year_arg = NA_integer_, month_arg = NA_integer_ # only used for WFDEI in combination with get_time
   ) {
+  
+  stopifnot((is.na(year_arg) && is.na(month_arg)) || grepl("WFDEI", filename)) # must be NA, unless case WFDEI
   
   # define variables
   lon <- lat <- data <- NULL
@@ -1157,37 +1146,78 @@ extract_pointdata_allsites <- function(
   points <- terra::vect(coords, geom = c("lon", "lat"), crs = "EPSG:4326")
   values <- terra::extract(rasta, points, xy = FALSE, ID = FALSE, method = "bilinear")
   
+  # generate 'out'
+  out <- df_lonlat |> 
+    dplyr::select(sitename, lon, lat) |> 
+    bind_cols(values)
+  
   if (get_time){
-
-    out <- df_lonlat |> 
-      dplyr::select(sitename, lon, lat) |> 
-      bind_cols(
-        values
-      ) |> 
-      tidyr::pivot_longer(-one_of(c("lon", "lat", "sitename")), names_to = "tstep") |> 
+    
+    delim <- if (grepl("WFDEI", filename)) {
+      "=" # fix for WFDEI that defines Tair_tstep=0, Tair_tstep=1
+    } else if (grepl("ndep_(.*)_lamarque11cc_historical_halfdeg", filename)) {
+      "=" # fix for NDEP that defines e.g. NHx_TIME=1850, NHx_TIME=1851, ... NHx_TIME=2009
+    } else if (grepl("cru_ts4.0(8|5)", filename)) {
+      "_" # fix for CRU v4.08 that defines e.g. tmn_1, tmn_2
+    } else {
+      stop("Currently only special treatment of WFDEI, CRU, and NDEP defined. Please extend the code.")
+    }
+    
+    out <- out |>
+      tidyr::pivot_longer(-all_of(c("lon", "lat", "sitename")), names_to = "tstep") |>
       tidyr::separate_wider_delim(
         tstep,
-        delim = "=",
+        delim = delim,
         names = c("varnam", "tstep")
-      ) |> 
-      dplyr::mutate(
-        tstep = as.numeric(tstep) + 1,
-        varnam = stringr::str_remove(varnam, "_tstep")
-      ) |> 
-      dplyr::group_by(sitename, lon, lat) |> 
-      tidyr::nest()
+      ) 
     
-  } else {
+    # define colum 'date'
+    if (grepl("WFDEI", filename)) {
+      # WFDEI has not time stamp information in the file
+      #       it has only the day of month (dom), therefore we need to combine
+      #       this with the year and month from the filename (provided as arguments)
+      # WFDEI values contain e.g. columns named Tair_tstep=0, Tair_tstep=1, which
+      #       are read out as day of month
+      out <- out |>
+        dplyr::mutate(
+          dom     = as.numeric(tstep) + 1,                # day of month
+          varnam = stringr::str_remove(varnam, "_tstep")) |>
+        dplyr::mutate(date = lubridate::make_date(year_arg, month_arg, dom)) |>
+        dplyr::select(all_of(c('sitename', 'lon', 'lat', 'varnam', 'date', 'value')))
+    } else if (grepl("ndep_(.*)_lamarque11cc_historical_halfdeg", filename)) {
+      # WFDEI has not the yearly time stamp information in the file as column names
+      # WFDEI values contain e.g. columns named NHx_TIME=1850, NHx_TIME=1851, ... NHx_TIME=2009
+      out <- out |> 
+        dplyr::rename('year' = 'tstep') |>
+        dplyr::mutate(date = lubridate::make_date(year, 01, 01)) |>
+        dplyr::select(all_of(c('sitename', 'lon', 'lat', 'varnam', 'date', 'value')))
+    } else if (grepl("cru_ts4.0(8|5)", filename)) {
+      # # CRU has time stamp information in the file
+      # # CRU values contain e.g. columns named tmn_1 to tmn_1440, but also auxiliary stn_1 to stn_1440 (is removed)
+      timevals  <- terra::time(rasta) # NOTE that this has the same length as values
+      #                               # I.e. it contains 2880 values, but only 1440
+      #                               # are distinct. Since values contain e.g.
+      #                               # columns named tmn_1 to tmn_1440 and stn_1
+      #                               # to stn_1440
+      
+      # sanity checks
+      stopifnot(length(timevals) == ncol(values))
+      # stopifnot(all(timevals[1:1440] == timevals[1441:2880])) # replaced by a more general check:
+      stopifnot(all(head(timevals, length(timevals)/2) == tail(timevals, length(timevals)/2)))
+      
+      out <- out |>
+        dplyr::mutate(date  = timevals[as.integer(tstep)]) |>
+        dplyr::filter(varnam != "stn") |> # remove the auxiliary variable stn
+        dplyr::select(all_of(c('sitename', 'lon', 'lat', 'varnam', 'date', 'value'))) # remove tstep
+    }
     
-    out <- df_lonlat |> 
-      dplyr::select(sitename, lon, lat) |> 
-      bind_cols(
-        values
-      ) |> 
-      dplyr::group_by(sitename, lon, lat) |> 
-      tidyr::nest()
-    
+  } else { # i.e. when get_time == FALSE
+    # nothing done in addition
   }
+  
+  out <- out |> 
+    dplyr::group_by(sitename, lon, lat) |> 
+    tidyr::nest()
   
   # # old code with {raster} library:
   # rasta <- raster::brick(filename)
