@@ -872,20 +872,10 @@ ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
   # extract the data
   filename <- list.files(
     dir, paste0("ndep_", varnam, "_lamarque11cc_historical_halfdeg.nc") )
-  df <- extract_pointdata_allsites(
+  adf <- extract_pointdata_allsites(
     paste0(dir, filename), df_lonlat, get_time = TRUE) %>%
-    dplyr::mutate(
-      data = purrr::map(data, ~stats::setNames(., c(varnam, "year")))
-      ) %>% 
-    dplyr::mutate(
-      data = purrr::map(
-        data,
-        ~mutate(., date = lubridate::ymd(paste0(as.character(year), "-01-01")))
-        )
-      )
-  
-  adf <- df %>%
-    tidyr::unnest(data)
+    tidyr::unnest(data) %>% dplyr::ungroup() %>%
+    dplyr::rename(!!varnam := value)
   
   return(adf)
 }
@@ -1163,10 +1153,12 @@ extract_pointdata_allsites <- function(
     
     delim <- if (grepl("WFDEI", filename)) {
       "=" # fix for WFDEI that defines Tair_tstep=0, Tair_tstep=1
+    } else if (grepl("ndep_(.*)_lamarque11cc_historical_halfdeg", filename)) {
+      "=" # fix for NDEP that defines e.g. NHx_TIME=1850, NHx_TIME=1851, ... NHx_TIME=2009
     } else if (grepl("cru_ts4.0(8|5)", filename)) {
       "_" # fix for CRU v4.08 that defines e.g. tmn_1, tmn_2
     } else {
-      stop("Currently only special treatment of WFDEI and CRU define. Please extend the code.")
+      stop("Currently only special treatment of WFDEI, CRU, and NDEP defined. Please extend the code.")
     }
     
     out <- out |>
@@ -1190,7 +1182,13 @@ extract_pointdata_allsites <- function(
           varnam = stringr::str_remove(varnam, "_tstep")) |>
         dplyr::mutate(date = lubridate::make_date(year_arg, month_arg, dom)) |>
         dplyr::select(all_of(c('sitename', 'lon', 'lat', 'varnam', 'date', 'value')))
-      
+    } else if (grepl("ndep_(.*)_lamarque11cc_historical_halfdeg", filename)) {
+      # WFDEI has not the yearly time stamp information in the file as column names
+      # WFDEI values contain e.g. columns named NHx_TIME=1850, NHx_TIME=1851, ... NHx_TIME=2009
+      out <- out |> 
+        dplyr::rename('year' = 'tstep') |>
+        dplyr::mutate(date = lubridate::make_date(year, 01, 01)) |>
+        dplyr::select(all_of(c('sitename', 'lon', 'lat', 'varnam', 'date', 'value')))
     } else if (grepl("cru_ts4.0(8|5)", filename)) {
       # # CRU has time stamp information in the file
       # # CRU values contain e.g. columns named tmn_1 to tmn_1440, but also auxiliary stn_1 to stn_1440 (is removed)

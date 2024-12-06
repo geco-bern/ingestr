@@ -188,6 +188,8 @@ ingest_bysite <- function(
             mutate(
               year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
               year_end   = ifelse(year_end > year_end_wc, year_end, year_end_wc))
+        } else if (source == "ndep") {
+          # nothing done in this case
         }
       }
     }
