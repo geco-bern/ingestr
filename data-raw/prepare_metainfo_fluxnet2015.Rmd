@@ -75,7 +75,7 @@ The file "fluxnet_site_info_all.csv" was downloaded from downloaded from https:/
 
 ```{r}
 ## Get additional meta information for sites: Koeppen-Geiger Class
-## The file "siteinfo_climate_koeppengeiger_flunxet2015.csv" was downloaded from downloaded from https://daac.ornl.gov/cgi-bin/dsviewer.pl?ds_id=1530 (placed in my ~/data/FLUXNET-2015_Tier1/meta/)
+## The file "siteinfo_climate_koeppengeiger_flunxet2015.csv" was downloaded from downloaded from https://daac.ornl.gov/cgi-bin/dsviewer.pl?ds_id=1530 (placed in my /data/scratch/bstocker/data/FLUXNET-2015_Tier1/meta/)
 siteinfo <- read_csv("../inst/extdata/fluxnet_site_info_all.csv") %>%
   dplyr::select(-sitename) %>% 
   dplyr::rename( sitename = fluxnetid ) %>% 
@@ -104,7 +104,7 @@ siteinfo %>%
 
 The original FLUXNET 2015 meta info file name doesn't contain clean information on start and end years for which data is available. Complement this information using names of the FLUXNET 2015 data files. This is more reliable data than in the meta info file. To run this step, data needs to be downloaded. Here, I'm using the daily data files and specify the path where they are located.
 ```{r}
-dir_DD_fluxnet2015 <-  "~/data/FLUXNET-2015_Tier1/20160128/point-scale_none_1d/original/unpacked/"
+dir_DD_fluxnet2015 <-  "/data/scratch/bstocker/data/FLUXNET-2015_Tier1/20160128/point-scale_none_1d/original/unpacked/"
 
 ## "Manually" get year start and year end from file names
 # moredata <- as.data.frame( read.table( paste0( settings_input$path_cx1data, "/FLUXNET-2015_Tier1/doc/filelist_DD.txt") ) )
