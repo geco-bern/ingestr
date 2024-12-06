@@ -3,7 +3,7 @@ test_that("test HH data", {
   skip_on_cran()
   
   siteinfo <- ingestr::siteinfo_fluxnet2015 %>%
-    filter(sitename == "FR-Pue")
+    dplyr::filter(sitename == "FR-Pue")
   
   settings_fluxnet <- list(
     getswc       = FALSE,
@@ -12,20 +12,22 @@ test_that("test HH data", {
     remove_neg   = FALSE,
     dir_hh = paste0(path.package("ingestr"), "/extdata/")
   )
-  
-  df <- ingestr::ingest(
+
+  df <-testthat::expect_warning(ingestr::ingest(
     siteinfo,
     source    = "fluxnet",
     getvars   = list(
-      gpp = "GPP_VUT_REF"
-      ),
+      gpp = "GPP_NT_VUT_REF"
+    ),
     dir       = paste0(path.package("ingestr"), "/extdata/"),
     settings  = settings_fluxnet,
     timescale = "hh",
     verbose = TRUE
-  )
-  
+  ))
+
   expect_type(df, "list")
+  testthat::expect_equal(c("sitename","date","gpp"),
+                         df |> tidyr::unnest(data) |> colnames())
 })
 
 test_that("test Daily data", {
@@ -42,7 +44,7 @@ test_that("test Daily data", {
     dir_hh = paste0(path.package("ingestr"), "/extdata/")
   )
   
-  df <- ingestr::ingest(
+  df <- testthat::expect_warning(ingestr::ingest(
     siteinfo,
     source    = "fluxnet",
     getvars   = list(
@@ -53,7 +55,10 @@ test_that("test Daily data", {
     settings  = settings_fluxnet,
     timescale = "d",
     verbose = TRUE
-  )
+  ))
   
   expect_type(df, "list")
+  testthat::expect_equal(c("sitename","date","gpp", "gpp_unc"),
+                         df |> tidyr::unnest(data) |> colnames())
+  
 })
