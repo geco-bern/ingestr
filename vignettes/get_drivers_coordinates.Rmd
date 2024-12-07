@@ -66,7 +66,8 @@ extract_whc <- function(file, siteinfo){
   
   raster::extract(
     rasta,                                            # raster object
-    sp::SpatialPoints(siteinfo[, c("lon", "lat")]),   # points
+    sp::SpatialPoints(siteinfo[, c("lon", "lat")] |>
+                        as.data.frame()),   # points
     sp = TRUE                                         # add raster values to siteinfo
   ) |>
     tibble::as_tibble() |>
