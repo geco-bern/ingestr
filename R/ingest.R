@@ -85,52 +85,37 @@ ingest <- function(
     ))
     ) {
     
-    # complement dates information
-    if (!("year_start" %in% names(siteinfo))){
-      if ("date_start" %in% names(siteinfo)){
-        siteinfo <- siteinfo %>%
-          mutate(year_start = lubridate::year(date_start))
-      } else {
-        stop("ingest(): Columns 'year_start' and 'date_start' missing
+    # complement dates information, need to have all four columns:
+    # year_start, year_end, as well as date_start, date_end
+    # a) make check that not both are missing
+    if (!("year_start" %in% names(siteinfo)) && !("date_start" %in% names(siteinfo))){
+      stop("ingest(): Columns 'year_start' and 'date_start' missing
                      in object provided by argument 'siteinfo'")
-      }
+    }
+    if (!("year_end" %in% names(siteinfo)) && !("date_end" %in% names(siteinfo))){
+      stop("ingest(): Columns 'year_end' and 'date_end' missing 
+             in object provided by argument 'siteinfo'")
+    }
+    # b) complete if necessary based on the other:
+    if (!("year_start" %in% names(siteinfo))){
+      siteinfo <- siteinfo %>%
+        mutate(year_start = lubridate::year(date_start))
     }
     if (!("year_end" %in% names(siteinfo))){
-      if ("date_end" %in% names(siteinfo)){
-        siteinfo <- siteinfo %>%
-          mutate(year_end = lubridate::year(date_end))
-      } else {
-        stop("ingest(): Columns 'year_end' and 'date_end' missing 
-             in object provided by argument 'siteinfo'")
-      }
+      siteinfo <- siteinfo %>%
+        mutate(year_end = lubridate::year(date_end))
     }
-
     if (!("date_start" %in% names(siteinfo))){
-      if ("year_start" %in% names(siteinfo)){
-        siteinfo <- siteinfo %>%
-          mutate(
-            date_start = lubridate::ymd(paste0(as.character(year_start),
-                                               "-01-01")
-                                        )
-            )
-      } else {
-        stop("ingest(): Columns 'year_start' and 'date_start' missing
-             in object provided by argument 'siteinfo'")
-      }
+      siteinfo <- siteinfo %>%
+        mutate(date_start = lubridate::make_datetime(year_start,1L,1L))
     }
     if (!("date_end" %in% names(siteinfo))){
-      if ("year_end" %in% names(siteinfo)){
-        siteinfo <- siteinfo %>%
-          mutate(
-            date_end = lubridate::ymd(paste0(as.character(year_end),
-                                                  "-12-31")
-                                      )
-            )
-      } else {
-        stop("ingest(): Columns 'year_end' and 'date_end' missing
-             in object provided by argument 'siteinfo'")
-      }
+      siteinfo <- siteinfo %>%
+        mutate(date_end = lubridate::make_datetime(year_end,12L,31L))
     }
+    # c) additional check if both are provided, do they agree on the year?
+    stopifnot(all(lubridate::year(siteinfo$date_start) == siteinfo$year_start))
+    stopifnot(all(lubridate::year(siteinfo$date_end) == siteinfo$year_end))
     
     # check start < end
     if (siteinfo %>% 
@@ -213,7 +198,7 @@ ingest <- function(
         if (source == "watch_wfdei"){
           message(
           "Beware: WorldClim data is for years 1970-2000.
-          Therefore WATCH_WFDEI data is ingested for 1979-(at least) 2000.")
+          Therefore WATCH_WFDEI data is ingested for 1979 (at earliest) to 2000.")
           year_start_wc <- 1979  # no earlier years available
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
@@ -221,7 +206,7 @@ ingest <- function(
         } else if (source == "wfde5"){
           message(
             "Beware: WorldClim data is for years 1970-2000.
-            Therefore WFDE5 data is ingested for 1979-(at least) 2000.")
+            Therefore WFDE5 data is ingested for 1979 (at earliest) to 2000.")
           year_start_wc <- 1979  # no earlier years available
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc, year_start, year_start_wc),
@@ -230,7 +215,7 @@ ingest <- function(
         } else if (source == "cru"){
           message(
             "Beware: WorldClim data is for years 1970-2000. 
-            Therefore CRU data is ingested for 1970-(at least) 2000.")
+            Therefore CRU data is ingested for 1970 (at earliest) to 2000.")
           siteinfo <- siteinfo %>% 
             mutate(year_start = ifelse(year_start < year_start_wc,
                                        year_start, year_start_wc),
@@ -250,7 +235,7 @@ ingest <- function(
       verbose = FALSE
       )
     
-    
+    # redo ingest_globalfields() if some sites were not extracted
     if (find_closest){
       # check if data was extracted for all sites (may be located over ocean)
       sites_missing <- ddf %>%
@@ -329,7 +314,8 @@ ingest <- function(
         
       }
     }
-
+    
+    # bias-correct other variables form worldclim or (only vpd) other sources
     if (!identical(NULL, settings$correct_bias)){
       if (settings$correct_bias == "worldclim"){
         
