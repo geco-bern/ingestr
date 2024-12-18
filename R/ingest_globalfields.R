@@ -299,6 +299,7 @@ ingest_globalfields <- function(
     
     # vpd from vapour pressure
     if ("vpd" %in% getvars){
+      # first get vapor pressure
       cruvars <- c(cruvars, "vap")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "vap" ) %>%
         dplyr::select(sitename, date, "vap") %>%
@@ -328,6 +329,11 @@ ingest_globalfields <- function(
           dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
       }      
       
+      # calculate monthly VPD based on monthly data (vap is in hPa)
+      mdf <- mdf %>% 
+        rowwise() %>%
+        mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax )) %>%
+        ungroup()
     }
     
     # cloud cover
@@ -341,52 +347,45 @@ ingest_globalfields <- function(
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
     }
     
-    if (timescale == "d"){
+    # create df_out
+    if (timescale == "m"){
+      
+      # filter out only requested dates
+      df_out <- left_join(df_out %>% mutate(year = lubridate::year(date), moy = lubridate::month(date)),
+                          mdf,
+                          by = c("sitename", "year", "moy")) %>% 
+        dplyr::select(-year, -moy)
+      
+    } else if (timescale == "d"){
       
       # expand monthly to daily data
-      
       if (length(cruvars)>0){
-        df_out <- left_join(df_out,
-                            expand_clim_cru_monthly( mdf, cruvars ),
+        ddf <- expand_clim_cru_monthly( mdf, cruvars )
+        # filter out only requested dates (e.g. potentially removing leap days if requested, etc.)
+        df_out <- left_join(df_out, 
+                            ddf, 
                             by = c("date", "sitename") )
       }
       
       if ("vpd" %in% getvars){
-        # Calculate VPD based on monthly data (vap is in hPa) - important: after downscaling to daily because of non-linearity
+        # Re-Calculate daily VPD based on monthly vapor pressure data (vap is in hPa) - important: after downscaling to daily because of non-linearity
         df_out <- df_out %>% 
           rowwise() %>%
           mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax ))
         
       }
       
-      if ("prec" %in% getvars){
-        # convert units -> mm/sec
+    } 
+    
+    # fix units of prec: convert units from mm/month or mm/d -> mm/sec
+    if ("prec" %in% getvars){
+      if (timescale == "m"){
         df_out <- df_out %>% 
-          mutate(prec = prec / (60 * 60 * 24))  # mm/d -> mm/sec
+          mutate(prec = prec / lubridate::days_in_month(date))   # mm/month -> mm/d
       }
-      
-    } else if (timescale == "m"){
-      
-      if ("vpd" %in% getvars){
-        # Calculate VPD based on monthly data (vap is in hPa)
-        mdf <- mdf %>% 
-          rowwise() %>%
-          mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax ))
-      }
-      
-      df_out <- mdf %>% 
-        right_join(df_out %>% 
-                     mutate(year = lubridate::year(date), moy = lubridate::month(date)), 
-                   by = c("sitename", "year", "moy")) %>% 
-        dplyr::select(-year, -moy)
-      
-      if ("prec" %in% getvars){
-        # convert units -> mm/sec
-        df_out <- df_out %>% 
-          mutate(moy = lubridate::month(date)) %>% 
-          mutate(prec = prec / lubridate::days_in_month(moy)) %>%   # mm/month -> mm/d
-          mutate(prec = prec / (60 * 60 * 24))  # mm/d -> mm/sec
-      }
+
+      df_out <- df_out %>% 
+        mutate(prec = prec / (60 * 60 * 24))  # mm/d -> mm/sec
     }
     
   } else if (source == "ndep"){
@@ -1060,7 +1059,7 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
   }
   
   
-  # VPD: interpolate using polynomial
+  # VPD: interpolate vapor pressure 'vap' using polynomial
   
   if ("vap" %in% cruvars){
     mvap     <- dplyr::filter( mdf, year==yr     )$vap
