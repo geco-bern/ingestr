@@ -299,7 +299,7 @@ ingest_globalfields <- function(
     
     # vpd from vapour pressure
     if ("vpd" %in% getvars){
-      # first get vapor pressure
+      # a) get vapor pressure (and tmin, tmax)
       cruvars <- c(cruvars, "vap")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "vap" ) %>%
         dplyr::select(sitename, date, "vap") %>%
@@ -329,11 +329,7 @@ ingest_globalfields <- function(
           dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
       }      
       
-      # calculate monthly VPD based on monthly data (vap is in hPa)
-      mdf <- mdf %>% 
-        rowwise() %>%
-        mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax )) %>%
-        ungroup()
+      # b) calculate VPD (this is done after potential downscaling to daily values)
     }
     
     # cloud cover
@@ -366,16 +362,16 @@ ingest_globalfields <- function(
                             ddf, 
                             by = c("date", "sitename") )
       }
-      
-      # Re-Calculate **daily** VPD based on monthly vapor pressure data (vap is in hPa) - important: after downscaling to daily because of non-linearity
-      if ("vpd" %in% getvars){
-        df_out <- df_out %>% 
-          rowwise() %>%
-          mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax )) %>%
-          ungroup() # undo
-      }
     } 
     
+    # calculate **daily** or **monthly** VPD based on **daily** or **monthly** vap (in hPa)
+    if ("vpd" %in% getvars){
+      df_out <- df_out %>% 
+        rowwise() %>%
+        mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax )) %>%
+        ungroup() # undo rowwise()
+    }
+
     # calculate **daily** or **monthly** ppfd
     if ("ppfd" %in% getvars){
       df_out <- df_out %>% 
@@ -393,7 +389,8 @@ ingest_globalfields <- function(
         ungroup() %>% # undo rowwise()
         dplyr::select(-lat,-elv, -doy)
     }
-
+    
+    # calculate (**daily** or **monthly**) contant patm
     if ("patm" %in% getvars){
       df_out <- df_out %>%
         # add elv for patm calculation
