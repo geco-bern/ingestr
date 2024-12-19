@@ -11,6 +11,7 @@ vignette: >
 ```{r setup, include=FALSE, eval = FALSE}
 library(ingestr)
 library(dplyr)
+library(ggplot2)
 
 # Below definition of analyse_modobs2() 
 # was copy-pasted from: https://github.com/stineb/rbeni/blob/2f9d26d0a286c550cb90ee9d30a1f2b6c3b112f6/R/analyse_modobs2.R
@@ -308,6 +309,8 @@ CRU TS provides monthly climate fields at 0.5 degree resolution from 1901 to tod
 | prec                       | prc, wtd                          | Weather generator conserving monthly sums and number of monthly wet days
 | vpd                        | vap, tmin, tmax                   | Using `calc_vpd()` 
 | ccov                       | cld                               | 
+| ppfd                       | cld and lat, elv                  | Using `calc_daily_solar()` for theoretical maximum solar radiation, reduced by the cloud cover fraction
+| patm                       |                                   | Using `calc_patm()` reduced by elevation (and default pressure of 101325 Pa at 0 masl)
 
 
 ```{r warning=FALSE, eval = FALSE}
@@ -315,7 +318,7 @@ CRU TS provides monthly climate fields at 0.5 degree resolution from 1901 to tod
 mdf <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "cru",
-  getvars   = c("tmax", "tmin", "prec", "vpd", "ppfd"),
+  getvars   = c("tmax", "tmin", "prec", "vpd", "ppfd", "patm"),
   # dir       = "/data/archive/cru_NA_2021/data/",
   dir       = "/data/archive/cru_harris_2024/data/",
   timescale = "m",
@@ -331,7 +334,7 @@ mdf <- ingest_bysite(
 ddf <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "cru",
-  getvars   = c("tmax", "tmin", "prec", "vpd", "ppfd"),
+  getvars   = c("tmax", "tmin", "prec", "vpd", "ppfd", "patm"),
   dir       = "/data/archive/cru_harris_2024/data/",
   timescale = "d",
   year_start = 1901,
@@ -375,6 +378,38 @@ gg <- mdf_test %>% analyse_modobs2("prec_orig", "prec_agg")
 gg$gg + labs(x = "Original monthly prec (mm)", y = "Aggregated monthly prec (mm)")
 ```
 
+Monthly means are further conserved for cloud cover CCOV and consequently for the photosynthetic phothon flux density PPFD. This is because PPFD is a linear function of cloud cover (CRU TS provided, either as daily or monthl cloud cover). Further input factors are time-invariant, such as the elevation 'elv' and latitude. The values are derived with the function `calc_daily_solar()`. Below equations show the linear relationship of PPFD with 'ccov':
+$$
+  sf = 1 - ccov/100 \\
+  \tau_o = (kc + kd*sf) \\
+  \tau = \tau_o*(1 + (2.67 \cdot 10^{-5})*elv) \\
+  ppfd_{daily} <- (1\cdot 10^{-6})*kfFEC*(1 - kalb_{vis}) \cdot \tau \cdot ra_d
+$$
+
+```{r warning=FALSE, eval = FALSE}
+mdf_test_ccov <- ddf %>% 
+  mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
+  group_by(year, month) %>% 
+  summarise(ccov = mean(ccov)) %>% 
+  rename(ccov_agg = ccov) %>% 
+  ungroup() %>% 
+  left_join(mdf %>% select(year, month, ccov_orig = ccov))
+mdf_test_ppfd <- ddf %>% 
+  mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
+  group_by(year, month) %>% 
+  summarise(ppfd = mean(ppfd)) %>% 
+  rename(ppfd_agg = ppfd) %>% 
+  ungroup() %>% 
+  left_join(mdf %>% select(year, month, ppfd_orig = ppfd))
+
+gg_ccov <- mdf_test_ccov %>% analyse_modobs2("ccov_orig", "ccov_agg")
+gg_ccov$gg + labs(x = "Original monthly CCOV (Percent)", y = "Aggregated monthly CCOV (Percent)")
+```
+```{r warning=FALSE, eval = FALSE}
+gg_ppfd <- mdf_test_ppfd %>% analyse_modobs2("ppfd_orig", "ppfd_agg")
+gg_ppfd$gg + labs(x = "Original monthly PPFD (mol/m2/s)", y = "Aggregated monthly PPFD (mol/m2/s)")
+```
+
 Monthly means are not conserved for VPD. This is because CRU TS provides vapour pressure (VAP) data and VPD is calculated by ingestr as 
 $$
 VPD = (f(VAP, TMIN) + f(VAP, TMAX))/2
@@ -396,6 +431,8 @@ gg <- mdf_test %>% analyse_modobs2("vpd_orig", "vpd_agg")
 gg$gg + labs(x = "Original monthly VPD (Pa)", y = "Aggregated monthly VPD (Pa)")
 ```
 
+
+
 ## Bias correction with WorldClim
 
 Bias correction based on high-resolution WorldClim 1970-2000 monthly climatology is available for variables temp, prec, and vpd.
@@ -404,13 +441,14 @@ Bias correction based on high-resolution WorldClim 1970-2000 monthly climatology
 mdf_corr <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "cru",
-  getvars   = c("temp", "tmin", "tmax", "prec", "vpd", "ccov"),
+  getvars   = c("temp", "tmin", "tmax", "prec", "vpd", "ccov", "ppfd"),
   dir       = "/data/archive/cru_harris_2024/data/",
   timescale = "m",
   year_start = 1901,
   year_end  = 2018,
   lon       = 8.365,
   lat       = 47.4781,
+  elv       = 689,
   verbose   = FALSE,
   settings  = list(correct_bias = "worldclim", dir_bias = "/data/archive/worldclim_fick_2017/data")
   )
@@ -419,13 +457,14 @@ mdf_corr <- ingest_bysite(
 ddf_corr <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "cru",
-  getvars   = c("temp", "tmin", "tmax", "prec", "vpd", "ccov"),
+  getvars   = c("temp", "tmin", "tmax", "prec", "vpd", "ccov", "ppfd"),
   dir       = "/data/archive/cru_harris_2024/data/",
   timescale = "d",
   year_start = 1901,
   year_end  = 2018,
   lon       = 8.365,
   lat       = 47.4781,
+  elv       = 689,
   verbose   = FALSE,
   settings  = list(correct_bias = "worldclim", dir_bias = "/data/archive/worldclim_fick_2017/data")
   )
@@ -457,9 +496,23 @@ mdf_test <- ddf_corr %>%
               select(year, month, vpd_orig = vpd))
 
 gg <- mdf_test %>% analyse_modobs2("vpd_orig", "vpd_agg")
-gg$gg + labs(x = "Original monthly vpd (deg C)", y = "Aggregated monthly vpd (deg C)")
+gg$gg + labs(x = "Original monthly vpd (Pa)", y = "Aggregated monthly vpd (Pa)")
 ```
 
+Check conservation of PPFD means after bias correction.
+```{r warning=FALSE, eval = FALSE}
+mdf_test <- ddf_corr %>% 
+  mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
+  group_by(year, month) %>% 
+  summarise(ppfd = mean(ppfd)) %>% 
+  rename(ppfd_agg = ppfd) %>% 
+  ungroup() %>% 
+  left_join(mdf_corr %>% 
+              select(year, month, ppfd_orig = ppfd))
+
+gg <- mdf_test %>% analyse_modobs2("ppfd_orig", "ppfd_agg")
+gg$gg + labs(x = "Original monthly ppfd (mol/m2/s)", y = "Aggregated monthly ppfd (mol/m2/s)")
+```
 ## Check against station data
 
 Comparison of bias-corrected data to FLUXNET site-level observations. For CH-Lae, this is available for 2004-2014. Visualize for three years (2012-2014). 
@@ -524,6 +577,35 @@ ggplot() +
   geom_line(data = ddf_corr %>% 
               dplyr::filter(lubridate::year(date) %in% 2012:2014), 
             aes(date, vpd),
+            color = "red")
+
+out <- ddf_fluxnet %>% 
+  mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
+  group_by(year, month) %>% 
+  summarise(vpd_fluxnet = mean(vpd)) %>% 
+  left_join(ddf_corr %>% 
+              mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
+              group_by(year, month) %>% 
+              summarise(vpd_cru_wc = mean(vpd)),
+            by = c("year", "month")) %>% 
+  analyse_modobs2("vpd_fluxnet", "vpd_cru_wc")
+out$gg
+```
+
+
+Looks fine for PPFD
+```{r warning=FALSE, eval = FALSE}
+ggplot() +
+  geom_line(data = ddf_fluxnet %>% 
+              dplyr::filter(lubridate::year(date) %in% 2012:2014), 
+            aes(date, ppfd)) +
+  geom_line(data = ddf %>% 
+              dplyr::filter(lubridate::year(date) %in% 2012:2014), 
+            aes(date, ppfd),
+            color = "red") +
+  geom_line(data = ddf_corr %>% 
+              dplyr::filter(lubridate::year(date) %in% 2012:2014), 
+            aes(date, ppfd),
             color = "red")
 
 out <- ddf_fluxnet %>% 

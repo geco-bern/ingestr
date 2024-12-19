@@ -96,6 +96,16 @@ ingest <- function(
       stop("ingest(): Columns 'year_end' and 'date_end' missing 
              in object provided by argument 'siteinfo'")
     }
+    # ensure year_start is integer (e.g. siteinfo_fluxnet2015 has them as character)
+    if (all(is.character(siteinfo$year_start))){
+      siteinfo <- siteinfo %>%
+        mutate(year_start = as.integer(year_start))
+    }
+    if (all(is.character(siteinfo$year_end))){
+      siteinfo <- siteinfo %>%
+        mutate(year_end = as.integer(year_end))
+    }
+    
     # b) complete if necessary based on the other:
     if (!("year_start" %in% names(siteinfo))){
       siteinfo <- siteinfo %>%
