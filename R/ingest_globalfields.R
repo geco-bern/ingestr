@@ -347,6 +347,23 @@ ingest_globalfields <- function(
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
     }
     
+    # calculate monthly average ppfd
+    if ("ppfd" %in% getvars){
+      mdf <- mdf %>%
+        # add lat, elv for ppfd calculation
+        dplyr::left_join(dplyr::select(siteinfo, sitename, lat, elv), by = c("sitename")) %>%
+        # add doy for ppfd calculation
+        dplyr::mutate(doy  = lubridate::yday(lubridate::make_date(year, moy, 15L))) %>%
+        rowwise() %>%
+        dplyr::mutate(ppfd = calc_daily_solar( # returns ppfd in units of mol m-2 day-1
+          lat = lat,
+          n   = doy,
+          elv = elv,
+          sf  = 1,
+          year = year)$ppfd/3600/24) %>%       # to go to mol m-2 s-1
+        ungroup() %>% # undo rowwise()
+        dplyr::select(-lat,-elv, -doy)
+    }
     # create df_out
     if (timescale == "m"){
       
@@ -374,6 +391,22 @@ ingest_globalfields <- function(
           mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax )) %>%
           ungroup() # undo
       }
+      # Re-Calculate **daily** ppfd
+      if ("ppfd" %in% getvars){
+        df_out <- df_out %>% 
+          # add lat, elv for ppfd calculation
+          dplyr::left_join(dplyr::select(siteinfo, sitename, lat, elv), by = c("sitename")) %>%
+          # add doy for ppfd calculation
+          dplyr::mutate(doy  = lubridate::yday(date)) %>%
+          rowwise() %>%
+          dplyr::mutate(ppfd = calc_daily_solar( # returns ppfd in units of mol m-2 day-1
+            lat = lat,
+            n   = doy,
+            elv = elv,
+            sf  = 1,
+            year = lubridate::year(date))$ppfd/3600/24) %>%       # to go to mol m-2 s-1
+          ungroup() %>% # undo rowwise()
+          dplyr::select(-lat,-elv, -doy)
       }
       
     } 
@@ -1084,6 +1117,12 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
       ddf <- ddf %>% mutate(vpd = NA_real_)
     }
   }
+  
+  # ppfd: ppfd for cru is recomputed outside of this function
+  
+  # generate placeholder column:
+  if ("ppfd" %in% names(mdf)){
+    ddf <- ddf %>% mutate(ppfd = NA_real_)
   }
   
   return( ddf )
