@@ -68,37 +68,9 @@ ingest_bysite <- function(
     co2 <- lon...1 <- lat...2 <- bottom <- top <- depth <- var <-
     var_wgt <- depth_tot_cm <- NULL
   
-  if (!(source %in% c(
-    "etopo1",
-    "stocker23",
-    "hwsd",
-    "soilgrids",
-    "wise",
-    "gsde",
-    "worldclim"
-    ))){
-    
-    # initialise data frame with all required dates
-    df <- init_dates_dataframe(
-      year_start,
-      year_end,
-      noleap = TRUE,
-      timescale = timescale
-      )
-
-    if (timescale=="m"){
-      df <- df %>%
-        mutate(month = lubridate::month(date), year = lubridate::year(date))
-    } else if (timescale=="y"){
-      df <- df %>%
-        mutate(year = lubridate::year(date))
-    }
-  }
-
-  
-  # FLUXNET 2015 reading
-  
-  if (source == "fluxnet"){
+  # define `df_tmp` to be merged with `df` later on (in cases fluxnet, cru, watch_wfdei, ndep, wfde5) or
+  # directly define final `df`                      (in cases etopo1, stocker23, hwsd, soilgrids, wise, gsde, worldclim):
+  if (source == "fluxnet"){  # FLUXNET 2015 reading
 
     # complement un-specified settings with default
     settings_default <- get_settings_fluxnet()
@@ -139,7 +111,6 @@ ingest_bysite <- function(
     source == "ndep" ||
     source == "wfde5"
     ){
-    
     
     # Get data from global fields and one single site
     
@@ -814,8 +785,26 @@ ingest_bysite <- function(
          'co2_mlo', 'etopo1', 'stocker23', or 'gee'.")
   }
 
-  # add data frame to nice data frame containing all required time steps
   if (!(source %in% c("etopo1", "stocker23", "hwsd", "soilgrids", "wise", "gsde", "worldclim"))){
+    
+    # a) initialise data frame `df` with all required dates:
+    df <- init_dates_dataframe(
+      year_start,
+      year_end,
+      noleap = TRUE,
+      timescale = timescale
+    )
+    
+    # b) add data frame `df_tmp` (defined in first part) to 
+    #    nice data frame `df` (defined just above) containing all required time steps:
+    if (timescale=="m"){
+      df <- df %>%
+        mutate(month = lubridate::month(date), year = lubridate::year(date))
+    } else if (timescale=="y"){
+      df <- df %>%
+        mutate(year = lubridate::year(date))
+    }
+    
     if (timescale=="m"){
       df <- df_tmp %>%
         mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%
@@ -833,9 +822,6 @@ ingest_bysite <- function(
         right_join(df, by = "date")
     }
   }
-
-  # df <- df %>%
-  #   tidyr::drop_na(sitename)
 
   return( df )
 
