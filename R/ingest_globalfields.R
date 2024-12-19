@@ -346,8 +346,8 @@ ingest_globalfields <- function(
     # ppfd, derived from cloud cover and with SPLASH method calc_daily_solar()
     if ("ppfd" %in% getvars){
       # a) get cloud cover
-      if (!("tmin" %in% names(mdf))){
-        if (!("tmin" %in% cruvars)) cruvars <- c(cruvars, "tmin")
+      if (!("ccov" %in% names(mdf))){
+        if (!("ccov" %in% cruvars)) cruvars <- c(cruvars, "ccov")
         mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "cld" ) %>%
           dplyr::select(sitename, date, "cld") %>%
           dplyr::rename(ccov = "cld") %>%
