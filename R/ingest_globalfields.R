@@ -395,7 +395,12 @@ ingest_globalfields <- function(
     }
 
     if ("patm" %in% getvars){
-      stop("ingest_globalfields() for source = cru: come up with solution to compute patm")
+      df_out <- df_out %>%
+        # add elv for patm calculation
+        dplyr::left_join(dplyr::select(siteinfo, sitename, elv), by = c("sitename")) %>%
+        # compute patm
+        dplyr::mutate(patm = ingestr::calc_patm(elv, patm0 = 101325)) %>% # returns patm in Pa
+        dplyr::select(-elv)
     }
     
     

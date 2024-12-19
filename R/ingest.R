@@ -302,7 +302,8 @@ ingest <- function(
         df_patm_base <- siteinfo %>%
           dplyr::select(sitename, elv) %>%
           mutate(patm_base = calc_patm(elv))
-        
+
+        # scale patm with a factor so that mean(patm) corresponds to patm_base:
         ddf <- ddf %>%
           group_by(sitename) %>%
           summarise(patm_mean = mean(patm, na.rm = TRUE)) %>%
