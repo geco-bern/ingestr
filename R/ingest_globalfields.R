@@ -393,6 +393,10 @@ ingest_globalfields <- function(
         ungroup() %>% # undo rowwise()
         dplyr::select(-lat,-elv, -doy)
     }
+
+    if ("patm" %in% getvars){
+      stop("ingest_globalfields() for source = cru: come up with solution to compute patm")
+    }
     
     
     # fix units of prec: convert units from mm/month or mm/d -> mm/sec
