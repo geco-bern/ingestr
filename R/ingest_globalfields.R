@@ -1101,18 +1101,7 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
       mutate( vap = monthly2daily( mvap, "polynom", mvap_pvy[nmonth], mvap_nxt[1], leapyear = lubridate::leap_year(yr) ) ) %>%
       right_join( ddf, by = c("date") )
     
-    # vpd: vpd for daily cru output is recomputed outside of this function
-    # generate placeholder column:
-    if ("vpd" %in% names(mdf)){
-      ddf <- ddf %>% mutate(vpd = NA_real_)
-    }
-  }
-  
-  # ppfd: ppfd for cru is recomputed outside of this function
-  
-  # generate placeholder column:
-  if ("ppfd" %in% names(mdf)){
-    ddf <- ddf %>% mutate(ppfd = NA_real_)
+    # vpd: vpd for daily cru output is computed outside of this function based on downscaled vap, tmin, tmax
   }
   
   return( ddf )
