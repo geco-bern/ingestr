@@ -299,6 +299,7 @@ ingest_globalfields <- function(
     
     # vpd from vapour pressure
     if ("vpd" %in% getvars){
+      # a) get vapor pressure (and tmin, tmax)
       cruvars <- c(cruvars, "vap")
       mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "vap" ) %>%
         dplyr::select(sitename, date, "vap") %>%
@@ -328,6 +329,7 @@ ingest_globalfields <- function(
           dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
       }      
       
+      # b) calculate VPD (this is done after potential downscaling to daily values)
     }
     
     # cloud cover
@@ -340,53 +342,74 @@ ingest_globalfields <- function(
         dplyr::select(-date) %>%
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
     }
-    
-    if (timescale == "d"){
+
+    # create df_out
+    if (timescale == "m"){
       
-      # expand monthly to daily data
-      
-      if (length(cruvars)>0){
-        df_out <- left_join(df_out,
-                            expand_clim_cru_monthly( mdf, cruvars ),
-                            by = c("date", "sitename") )
-      }
-      
-      if ("vpd" %in% getvars){
-        # Calculate VPD based on monthly data (vap is in hPa) - important: after downscaling to daily because of non-linearity
-        df_out <- df_out %>% 
-          rowwise() %>%
-          mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax ))
-        
-      }
-      
-      if ("prec" %in% getvars){
-        # convert units -> mm/sec
-        df_out <- df_out %>% 
-          mutate(prec = prec / (60 * 60 * 24))  # mm/d -> mm/sec
-      }
-      
-    } else if (timescale == "m"){
-      
-      if ("vpd" %in% getvars){
-        # Calculate VPD based on monthly data (vap is in hPa)
-        mdf <- mdf %>% 
-          rowwise() %>%
-          mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax ))
-      }
-      
-      df_out <- mdf %>% 
-        right_join(df_out %>% 
-                     mutate(year = lubridate::year(date), moy = lubridate::month(date)), 
-                   by = c("sitename", "year", "moy")) %>% 
+      # filter out only requested dates
+      df_out <- left_join(df_out %>% mutate(year = lubridate::year(date), moy = lubridate::month(date)),
+                          mdf,
+                          by = c("sitename", "year", "moy")) %>% 
         dplyr::select(-year, -moy)
       
-      if ("prec" %in% getvars){
-        # convert units -> mm/sec
-        df_out <- df_out %>% 
-          mutate(moy = lubridate::month(date)) %>% 
-          mutate(prec = prec / lubridate::days_in_month(moy)) %>%   # mm/month -> mm/d
-          mutate(prec = prec / (60 * 60 * 24))  # mm/d -> mm/sec
+    } else if (timescale == "d"){
+      
+      # expand monthly to daily data
+      if (length(cruvars)>0){
+        ddf <- expand_clim_cru_monthly( mdf, cruvars )
+        # filter out only requested dates (e.g. potentially removing leap days if requested, etc.)
+        df_out <- left_join(df_out, 
+                            ddf, 
+                            by = c("date", "sitename") )
       }
+    } 
+    
+    # calculate **daily** or **monthly** VPD based on **daily** or **monthly** vap (in hPa)
+    if ("vpd" %in% getvars){
+      df_out <- df_out %>% 
+        rowwise() %>%
+        mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax )) %>%
+        ungroup() # undo rowwise()
+    }
+
+    # calculate **daily** or **monthly** ppfd
+    if ("ppfd" %in% getvars){
+      df_out <- df_out %>% 
+        # add lat, elv for ppfd calculation
+        dplyr::left_join(dplyr::select(siteinfo, sitename, lat, elv), by = c("sitename")) %>%
+        # add doy for ppfd calculation
+        dplyr::mutate(doy  = lubridate::yday(date)) %>%
+        rowwise() %>%
+        dplyr::mutate(ppfd = calc_daily_solar( # returns ppfd in units of mol m-2 day-1
+          lat = lat,
+          n   = doy,
+          elv = elv,
+          sf  = 1,
+          year = lubridate::year(date))$ppfd/3600/24) %>%       # to go to mol m-2 s-1
+        ungroup() %>% # undo rowwise()
+        dplyr::select(-lat,-elv, -doy)
+    }
+    
+    # calculate (**daily** or **monthly**) contant patm
+    if ("patm" %in% getvars){
+      df_out <- df_out %>%
+        # add elv for patm calculation
+        dplyr::left_join(dplyr::select(siteinfo, sitename, elv), by = c("sitename")) %>%
+        # compute patm
+        dplyr::mutate(patm = ingestr::calc_patm(elv, patm0 = 101325)) %>% # returns patm in Pa
+        dplyr::select(-elv)
+    }
+    
+    
+    # fix units of prec: convert units from mm/month or mm/d -> mm/sec
+    if ("prec" %in% getvars){
+      if (timescale == "m"){
+        df_out <- df_out %>% 
+          mutate(prec = prec / lubridate::days_in_month(date))   # mm/month -> mm/d
+      }
+
+      df_out <- df_out %>% 
+        mutate(prec = prec / (60 * 60 * 24))  # mm/d -> mm/sec
     }
     
   } else if (source == "ndep"){
@@ -1056,12 +1079,13 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
       mutate( ccov_int = monthly2daily( mccov, "polynom", mccov_pvy[nmonth], mccov_nxt[1], leapyear = lubridate::leap_year(yr) ) ) %>%
       # Reduce CCOV to a maximum 100%
       mutate( ccov = ifelse( ccov_int > 100, 100, ccov_int ) ) %>%
-      right_join( ddf, by = c("date") )
+      right_join( ddf, by = c("date") ) %>%
+      select(-ccov_int)
   }
   
   
-  # VPD: interpolate using polynomial
-  
+  # VPD: interpolate vapor pressure 'vap' using polynomial
+
   if ("vap" %in% cruvars){
     mvap     <- dplyr::filter( mdf, year==yr     )$vap
     mvap_pvy <- dplyr::filter( mdf, year==yr_pvy )$vap
@@ -1077,6 +1101,7 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
       mutate( vap = monthly2daily( mvap, "polynom", mvap_pvy[nmonth], mvap_nxt[1], leapyear = lubridate::leap_year(yr) ) ) %>%
       right_join( ddf, by = c("date") )
     
+    # vpd: vpd for daily cru output is computed outside of this function based on downscaled vap, tmin, tmax
   }
   
   return( ddf )
