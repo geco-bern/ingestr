@@ -1055,7 +1055,8 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
       mutate( ccov_int = monthly2daily( mccov, "polynom", mccov_pvy[nmonth], mccov_nxt[1], leapyear = lubridate::leap_year(yr) ) ) %>%
       # Reduce CCOV to a maximum 100%
       mutate( ccov = ifelse( ccov_int > 100, 100, ccov_int ) ) %>%
-      right_join( ddf, by = c("date") )
+      right_join( ddf, by = c("date") ) %>%
+      select(-ccov_int)
   }
   
   
