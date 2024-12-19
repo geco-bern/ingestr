@@ -315,7 +315,7 @@ CRU TS provides monthly climate fields at 0.5 degree resolution from 1901 to tod
 mdf <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "cru",
-  getvars   = c("tmax", "tmin", "prec", "vpd"),
+  getvars   = c("tmax", "tmin", "prec", "vpd", "ppfd"),
   # dir       = "/data/archive/cru_NA_2021/data/",
   dir       = "/data/archive/cru_harris_2024/data/",
   timescale = "m",
@@ -323,6 +323,7 @@ mdf <- ingest_bysite(
   year_end  = 2018,
   lon       = 8.365,
   lat       = 47.4781,
+  elv       = 689,
   verbose   = FALSE
   )
 
@@ -330,13 +331,14 @@ mdf <- ingest_bysite(
 ddf <- ingest_bysite(
   sitename  = "CH-Lae",
   source    = "cru",
-  getvars   = c("tmax", "tmin", "prec", "vpd"),
+  getvars   = c("tmax", "tmin", "prec", "vpd", "ppfd"),
   dir       = "/data/archive/cru_harris_2024/data/",
   timescale = "d",
   year_start = 1901,
   year_end  = 2018,
   lon       = 8.365,
   lat       = 47.4781,
+  elv       = 689,
   verbose   = FALSE
   )
 ```

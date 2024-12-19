@@ -25,12 +25,16 @@
 #' @param year_end An integer specifying the last year for which data is to be ingested (full years
 #' are read, i.e. all days, or hours, or months in each year).
 #' @param lon A numeric value specifying the longitude for which data is extraced from global files
-#' or remote data servers. If \code{source = "fluxnet"}, this is not required and set ot \code{NA}.
+#' or remote data servers. If \code{source = "fluxnet"}, this is not required and set to \code{NA}.
 #' @param lat A numeric value specifying the longitude for which data is extraced from global files
-#' or remote data servers. If \code{source = "fluxnet"}, this is not required and set ot \code{NA}.
+#' or remote data servers. If \code{source = "fluxnet"}, this is not required and set to \code{NA}.
+#' If \code{source = "cru"} this is required to compute photosynthetic photon flux density (ppfd)
+#' (implemented by \link{calc_daily_solar}).
 #' @param elv A numeric value specifying the elevation of the site in m a.s.l., This is only required
-#' for \code{source = "watch_wfdei"}, where the ingested data for atmospheric pressure (\code{patm}) 
+#' for \code{source = "watch_wfdei" or "cru"}. For "watch_wfdei" the ingested data for atmospheric pressure (\code{patm}) 
 #' is bias-corrected by elevation using  the adiabatic lapse rate (implemented by \link{calc_patm}).
+#' For "cru" the elevation is used to compute atmospheric pressure (patm) and photosynthetic photon flux density (ppfd)
+#' (implemented by \link{calc_daily_solar}).
 #' @param verbose if \code{TRUE}, additional messages are printed. Defaults to \code{FALSE}.
 #'
 #' @return A data frame (tibble) containing the time series of ingested data.
@@ -55,7 +59,7 @@ ingest_bysite <- function(
 
   # CRAN compliance, declaring unstated variables
   date_start <- date_end <- problem <-
-    year_start_tmp <- x <- y <- lat_orig <- success <- elv <- patm <-
+    year_start_tmp <- x <- y <- lat_orig <- success <- patm <-
     patm_base <-patm_mean <- month <- tavg <- temp <- temp_fine <-
     tmax <- tmax_fine <- tmin <- tmin_fine <- prec <- prec_fine <-
     days_in_month <- rain <- snow <- srad <- srad_fine <- ppfd <-
@@ -139,11 +143,12 @@ ingest_bysite <- function(
     
     # Get data from global fields and one single site
     
-    
+    # Create siteinfo for this single site
     siteinfo <- tibble(
         sitename = sitename,
         lon = lon,
-        lat = lat) %>%
+        lat = lat,
+        elv = elv) %>%
       mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
       mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
     

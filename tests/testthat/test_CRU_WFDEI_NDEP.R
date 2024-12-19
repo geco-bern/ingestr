@@ -14,7 +14,8 @@ test_that("test CRU data (monthly and downscaled daily)", {
     year_start = 1901,
     year_end  = 2018,
     lon       = 8.365,
-    lat       = 47.4781,
+    lat       = 47.4781, 
+    elv       = 689,
     verbose   = FALSE
   )
   
@@ -29,6 +30,7 @@ test_that("test CRU data (monthly and downscaled daily)", {
     year_end  = 2018,
     lon       = 8.365,
     lat       = 47.4781,
+    elv       = 689,
     verbose   = FALSE
   )
   
@@ -43,6 +45,7 @@ test_that("test CRU data (monthly and downscaled daily)", {
   #   year_end  = 2018,
   #   lon       = 8.365,
   #   lat       = 47.4781,
+  #   elv       = 689,
   #   verbose   = FALSE
   # )
   
@@ -105,6 +108,7 @@ test_that("test CRU data (monthly and downscaled daily)", {
   #   year_end  = 2018,
   #   lon       = 8.365,
   #   lat       = 47.4781,
+  #   elv       = 689,
   #   verbose   = FALSE
   # ) |> tail()
   # ingest_bysite(
@@ -117,6 +121,7 @@ test_that("test CRU data (monthly and downscaled daily)", {
   #   year_end  = 2018,
   #   lon       = 8.365,
   #   lat       = 47.4781,
+  #   elv       = 689,
   #   verbose   = FALSE
   # ) |> tail()
 
