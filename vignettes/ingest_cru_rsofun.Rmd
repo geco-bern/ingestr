@@ -593,20 +593,27 @@ out$gg
 ```
 
 
-Looks fine for PPFD
+Looks fine for PPFD (albeit the monthly bias-correction introduces discontinuous steps between months.)
 ```{r warning=FALSE, eval = FALSE}
 ggplot() +
   geom_line(data = ddf_fluxnet %>% 
               dplyr::filter(lubridate::year(date) %in% 2012:2014), 
-            aes(date, ppfd)) +
+            aes(date, ppfd, color = "fluxnet")) +
   geom_line(data = ddf %>% 
               dplyr::filter(lubridate::year(date) %in% 2012:2014), 
-            aes(date, ppfd),
-            color = "red") +
+            aes(date, ppfd, color = "CRU downscaled"), 
+            linewidth = 1) +
   geom_line(data = ddf_corr %>% 
               dplyr::filter(lubridate::year(date) %in% 2012:2014), 
-            aes(date, ppfd),
-            color = "red")
+            aes(date, ppfd, color = "CRU downscaled +\nWorldClim bias-corrected"),
+            linewidth = 1) +
+  scale_color_manual("", values = c("fluxnet" = "black",
+                                    "CRU downscaled" = "skyblue",
+                                    "CRU downscaled +\nWorldClim bias-corrected" = "red")) + 
+  theme_bw() + theme(legend.position.inside = c(0.02,0.98), legend.justification = c(0,1),
+                     legend.position = "inside") +
+  scale_x_date("", date_breaks = "6 month", date_minor_breaks = "1 month") +
+  labs(y = "ppfd (mol / m2 / s)")
 
 out <- ddf_fluxnet %>% 
   mutate(year = lubridate::year(date), month = lubridate::month(date)) %>% 
