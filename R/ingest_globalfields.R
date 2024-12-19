@@ -297,6 +297,17 @@ ingest_globalfields <- function(
         dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
     }
     
+    # cloud cover
+    if ("ccov" %in% getvars){
+      cruvars <- c(cruvars, "ccov")
+      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "cld" ) %>%
+        dplyr::select(sitename, date, "cld") %>%
+        dplyr::rename(ccov = "cld") %>%
+        dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
+        dplyr::select(-date) %>%
+        dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
+    }
+    
     # vpd from vapour pressure
     if ("vpd" %in% getvars){
       # a) get vapor pressure (and tmin, tmax)
@@ -332,15 +343,20 @@ ingest_globalfields <- function(
       # b) calculate VPD (this is done after potential downscaling to daily values)
     }
     
-    # cloud cover
-    if ("ccov" %in% getvars){
-      cruvars <- c(cruvars, "ccov")
-      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "cld" ) %>%
-        dplyr::select(sitename, date, "cld") %>%
-        dplyr::rename(ccov = "cld") %>%
-        dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
-        dplyr::select(-date) %>%
-        dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
+    # ppfd, derived from cloud cover and with SPLASH method calc_daily_solar()
+    if ("ppfd" %in% getvars){
+      # a) get cloud cover
+      if (!("tmin" %in% names(mdf))){
+        if (!("tmin" %in% cruvars)) cruvars <- c(cruvars, "tmin")
+        mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "cld" ) %>%
+          dplyr::select(sitename, date, "cld") %>%
+          dplyr::rename(ccov = "cld") %>%
+          dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
+          dplyr::select(-date) %>%
+          dplyr::right_join(mdf, by = c("sitename", "year", "moy"))
+      }
+
+      # b) calculate VPD (this is done after potential downscaling to daily values)
     }
 
     # create df_out
@@ -372,7 +388,7 @@ ingest_globalfields <- function(
         ungroup() # undo rowwise()
     }
 
-    # calculate **daily** or **monthly** ppfd
+    # calculate **daily** or **monthly** ppfd, based on lat, elv, and ccov
     if ("ppfd" %in% getvars){
       df_out <- df_out %>% 
         # add lat, elv for ppfd calculation
@@ -384,7 +400,7 @@ ingest_globalfields <- function(
           lat = lat,
           n   = doy,
           elv = elv,
-          sf  = 1,
+          sf  = 1 - (ccov/100),
           year = lubridate::year(date))$ppfd/3600/24) %>%       # to go to mol m-2 s-1
         ungroup() %>% # undo rowwise()
         dplyr::select(-lat,-elv, -doy)
