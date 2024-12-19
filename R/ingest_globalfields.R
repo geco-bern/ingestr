@@ -367,12 +367,13 @@ ingest_globalfields <- function(
                             by = c("date", "sitename") )
       }
       
+      # Re-Calculate **daily** VPD based on monthly vapor pressure data (vap is in hPa) - important: after downscaling to daily because of non-linearity
       if ("vpd" %in% getvars){
-        # Re-Calculate daily VPD based on monthly vapor pressure data (vap is in hPa) - important: after downscaling to daily because of non-linearity
         df_out <- df_out %>% 
           rowwise() %>%
-          mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax ))
-        
+          mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax )) %>%
+          ungroup() # undo
+      }
       }
       
     } 
@@ -1061,7 +1062,7 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
   
   
   # VPD: interpolate vapor pressure 'vap' using polynomial
-  
+
   if ("vap" %in% cruvars){
     mvap     <- dplyr::filter( mdf, year==yr     )$vap
     mvap_pvy <- dplyr::filter( mdf, year==yr_pvy )$vap
@@ -1077,6 +1078,12 @@ expand_clim_cru_monthly_byyr <- function( yr, mdf, cruvars ){
       mutate( vap = monthly2daily( mvap, "polynom", mvap_pvy[nmonth], mvap_nxt[1], leapyear = lubridate::leap_year(yr) ) ) %>%
       right_join( ddf, by = c("date") )
     
+    # vpd: vpd for daily cru output is recomputed outside of this function
+    # generate placeholder column:
+    if ("vpd" %in% names(mdf)){
+      ddf <- ddf %>% mutate(vpd = NA_real_)
+    }
+  }
   }
   
   return( ddf )
