@@ -68,6 +68,13 @@ ingest_bysite <- function(
     co2 <- lon...1 <- lat...2 <- bottom <- top <- depth <- var <-
     var_wgt <- depth_tot_cm <- NULL
   
+  # Create siteinfo for this single site
+  siteinfo <- tibble(
+    sitename = sitename,
+    lon = lon,
+    lat = lat
+  )  
+  
   # define `df_tmp` to be merged with `df` later on (in cases fluxnet, cru, watch_wfdei, ndep, wfde5) or
   # directly define final `df`                      (in cases etopo1, stocker23, hwsd, soilgrids, wise, gsde, worldclim):
   if (source == "fluxnet"){  # FLUXNET 2015 reading
@@ -114,12 +121,8 @@ ingest_bysite <- function(
     
     # Get data from global fields and one single site
     
-    # Create siteinfo for this single site
-    siteinfo <- tibble(
-        sitename = sitename,
-        lon = lon,
-        lat = lat,
-        elv = elv) %>%
+    siteinfo <- siteinfo %>%
+      mutate(elv = elv) %>%
       mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
       mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
     
@@ -495,14 +498,12 @@ ingest_bysite <- function(
       lat = NA
     }
 
-    siteinfo <- tibble(
-      sitename = sitename,
-      lon = lon,
-      lat = lat,
-      year_start = year_start,
-      year_end = year_end,
-      date_start = lubridate::ymd(paste0(year_start, "-01-01")),
-      date_end = lubridate::ymd(paste0(year_end, "-12-31"))
+    siteinfo <- siteinfo %>%
+      mutate(
+        year_start = year_start,
+        year_end = year_end,
+        date_start = lubridate::ymd(paste0(year_start, "-01-01")),
+        date_end = lubridate::ymd(paste0(year_end, "-12-31"))
       )
     
     df_tmp <- ingest_modis_bysite(siteinfo, settings)
@@ -511,12 +512,9 @@ ingest_bysite <- function(
     
     # Get data from Google Earth Engine
     
-    siteinfo <- tibble(
-      sitename = sitename,
-      lon = lon,
-      lat = lat) %>%
+    siteinfo <- siteinfo %>%
       mutate(date_start = lubridate::ymd(paste0(year_start, "-01-01"))) %>%
-      mutate(date_end = lubridate::ymd(paste0(year_end, "-12-31")))
+      mutate(date_end   = lubridate::ymd(paste0(year_end, "-12-31")))
 
     df_tmp <- ingest_gee_bysite(
       siteinfo,
@@ -556,6 +554,7 @@ ingest_bysite <- function(
       df_co2 <- climate::meteo_noaa_co2() %>%
         dplyr::select(year = yy, month = mm, co2_avg)
     }
+    browser()
     
     df_tmp <- init_dates_dataframe( year_start, year_end, timescale = timescale ) %>%
       dplyr::mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%
@@ -578,7 +577,7 @@ ingest_bysite <- function(
     } else {
       stop("File cCO2_rcp85_const850-1765.csv must be available in directory specified by 'dir'.")     
     }
-    
+    browser()
     df_tmp <- init_dates_dataframe( year_start, year_end, timescale = timescale ) %>%
       dplyr::mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%
       dplyr::left_join(
@@ -592,7 +591,7 @@ ingest_bysite <- function(
   } else if (source == "fapar_unity"){
     
     # Assume fapar = 1 for all dates
-    
+    browser()
     df_tmp <- init_dates_dataframe(
         year_start,
         year_end,
@@ -604,12 +603,7 @@ ingest_bysite <- function(
     
     # Get ETOPO1 elevation data. year_start and year_end not required
     
-    siteinfo <- tibble(
-        sitename = sitename,
-        lon = lon,
-        lat = lat
-      )
-
+    
     df <- ingest_globalfields(
       siteinfo,
       source = source,
@@ -623,11 +617,6 @@ ingest_bysite <- function(
     
     # Get ETOPO1 elevation data. year_start and year_end not required
     
-    siteinfo <- tibble(
-      sitename = sitename,
-      lon = lon,
-      lat = lat
-    )
     
     df <- ingest_globalfields(
       siteinfo,
@@ -642,10 +631,6 @@ ingest_bysite <- function(
     
     # Get HWSD soil data. year_start and year_end not required
     
-    siteinfo <- tibble(
-      lon = lon,
-      lat = lat
-    )
     
     # TODO: replace by hwsdr call
     
@@ -657,21 +642,14 @@ ingest_bysite <- function(
     # Get SoilGrids soil data. year_start and year_end not required
     # Code from https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/blob/master/markdown/xy_info_from_R.md
     
-    df <- ingest_soilgrids(
-      tibble(sitename = sitename, lon = lon, lat = lat), 
-      settings
-      )
+    
+    df <- ingest_soilgrids(siteinfo, settings)
 
   } else if (source == "wise"){
     
     # Get WISE30secs soil data. year_start and year_end not required
     
-    siteinfo <- data.frame(
-      sitename = sitename,
-      lon = lon,
-      lat = lat
-    )
-
+    
     df <- purrr::map_dfc(
         as.list(settings$varnam),
         ~ingest_wise_byvar(., siteinfo, layer = settings$layer, dir = dir)
@@ -703,19 +681,12 @@ ingest_bysite <- function(
   } else if (source == "gsde"){
     
     # Get GSDE soil data from tif files (2 files, for bottom and top layers)
-    
-    siteinfo <- tibble(
-      sitename = sitename,
-      lon = lon,
-      lat = lat
-    )
-    
     aggregate_layers <- function(df, varnam, layer){
       
       df_layers <- tibble(
         layer = 1:8,
         bottom = c(4.5, 9.1, 16.6, 28.9, 49.3, 82.9, 138.3, 229.6)
-        ) %>% 
+      ) %>% 
         mutate(top = lag(bottom)) %>% 
         mutate(top = ifelse(is.na(top), 0, top)) %>% 
         rowwise() %>% 
@@ -739,6 +710,7 @@ ingest_bysite <- function(
         rename(!!varnam := var)
     }
     
+    
     df <- purrr::map(
       as.list(settings$varnam),
       ~ingest_globalfields(siteinfo,
@@ -756,17 +728,10 @@ ingest_bysite <- function(
       group_by(sitename) %>%
       tidyr::nest()
     
-    
   }  else if (source == "worldclim"){
     
+    
     # Get WorldClim data from global raster file
-    
-    siteinfo <- tibble(
-      sitename = sitename,
-      lon = lon,
-      lat = lat
-    )
-    
     df <- ingest_globalfields(siteinfo,
                                source = source,
                                dir = dir,
@@ -788,7 +753,7 @@ ingest_bysite <- function(
   if (!(source %in% c("etopo1", "stocker23", "hwsd", "soilgrids", "wise", "gsde", "worldclim"))){
     
     # a) initialise data frame `df` with all required dates:
-    df <- init_dates_dataframe(
+    df_times <- init_dates_dataframe(
       year_start,
       year_end,
       noleap = TRUE,
@@ -796,30 +761,27 @@ ingest_bysite <- function(
     )
     
     # b) add data frame `df_tmp` (defined in first part) to 
-    #    nice data frame `df` (defined just above) containing all required time steps:
+    #    nice data frame `df_times` (defined just above) containing all required time steps:
     if (timescale=="m"){
-      df <- df %>%
+      df_times <- df_times %>%
         mutate(month = lubridate::month(date), year = lubridate::year(date))
-    } else if (timescale=="y"){
-      df <- df %>%
-        mutate(year = lubridate::year(date))
-    }
-    
-    if (timescale=="m"){
-      df <- df_tmp %>%
+      df_tmp <- df_tmp %>%
         mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%
-        dplyr::select(-date) %>%
-        right_join(df, by = c("year", "month"))
+        dplyr::select(-date)
+      
+      df <- right_join(df_tmp, df_times, by = c("year", "month"))
 
     } else if (timescale=="y"){
-      df <- df_tmp %>%
+      df_times <- df_times %>%
+        mutate(year = lubridate::year(date))
+      df_tmp <- df_tmp %>%
         mutate(year = lubridate::year(date)) %>%
-        dplyr::select(-date) %>%
-        right_join(df, by = "year")
+        dplyr::select(-date)
+      
+      df <- right_join(df_tmp, df_times, by = "year")
 
     } else if (timescale %in% c("d", "h", "hh")){
-      df <- df_tmp %>%
-        right_join(df, by = "date")
+      df <- right_join(df_tmp, df_times, by = "date")
     }
   }
 
