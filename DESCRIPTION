@@ -41,7 +41,8 @@ Imports:
     signal,
     sf,
     MODISTools,
-    data.table
+    data.table,
+    magrittr
 Remotes:
     bczernecki/climate
 LazyData: true
