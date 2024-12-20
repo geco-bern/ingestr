@@ -92,6 +92,13 @@ ingest_globalfields <- function(
             dplyr::rename(patm = myvar),
           by = c("sitename", "date")
         )
+      
+      # calculate VPD based on humidity, air temperature, and atmospheric pressure
+      df_out <- df_out %>%
+        rowwise() %>%
+        mutate(vapr = calc_vp(qair = qair, patm = patm)) %>%
+        mutate(vpd  = calc_vpd(eact = vapr, tc = temp)) %>%
+        ungroup()
     }
     
     # precipitation
@@ -163,6 +170,13 @@ ingest_globalfields <- function(
             dplyr::rename(patm = myvar),
           by = c("sitename", "date")
         )
+      
+      # calculate VPD based on humidity, air temperature, and atmospheric pressure
+      df_out <- df_out %>%
+        rowwise() %>%
+        mutate(vapr = calc_vp(qair = qair, patm = patm)) %>%
+        mutate(vpd  = calc_vpd(eact = vapr, tc = temp)) %>%
+        ungroup()
     }
     
     # precipitation
@@ -385,7 +399,8 @@ ingest_globalfields <- function(
     if ("vpd" %in% getvars){
       df_out <- df_out %>% 
         rowwise() %>%
-        mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax )) %>%
+        mutate(vapr = 1e2 * vap) %>% # to go from hPa to Pa
+        mutate(vpd  = calc_vpd( eact = vapr, tmin = tmin, tmax = tmax )) %>%
         ungroup() # undo rowwise()
     }
 
