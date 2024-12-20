@@ -25,7 +25,7 @@ test_that("test HH data", {
     verbose = TRUE
   ))
 
-  expect_type(df, "list")
+  testthat::expect_type(df, "list")
   testthat::expect_equal(c("sitename","date","gpp"),
                          df |> tidyr::unnest(data) |> colnames())
 })
@@ -57,8 +57,9 @@ test_that("test Daily data", {
     verbose = TRUE
   ))
   
-  expect_type(df, "list")
+  testthat::expect_type(df, "list")
   testthat::expect_equal(c("sitename","date","gpp", "gpp_unc"),
                          df |> tidyr::unnest(data) |> colnames())
   
 })
+

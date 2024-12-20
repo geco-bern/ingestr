@@ -2,7 +2,10 @@
 
 test_that("test CRU data (monthly and downscaled daily)", {
   skip_on_cran()
-  
+
+  is_workstation2 <- grepl('dash', Sys.info()['nodename'])
+  skip_if_not(is_workstation2) # Tests only work on workstation 02
+
   ## get monthly CRU data
   mdf <- ingest_bysite(
     sitename  = "CH-Lae",
@@ -129,6 +132,10 @@ test_that("test CRU data (monthly and downscaled daily)", {
 
 test_that("test CRU data multisite downscaling (monthly and downscaled daily)", {
   skip_on_cran()
+
+  is_workstation2 <- grepl('dash', Sys.info()['nodename'])
+  skip_if_not(is_workstation2) # Tests only work on workstation 02
+  
   library(dplyr)
   library(tidyr)
   library(ingestr)
@@ -193,6 +200,9 @@ test_that("test CRU data multisite downscaling (monthly and downscaled daily)", 
 test_that("test WATCH_WFDEI data (daily)", {
   skip_on_cran()
   
+  is_workstation2 <- grepl('dash', Sys.info()['nodename'])
+  skip_if_not(is_workstation2) # Tests only work on workstation 02
+  
   # df_watch <- ingest_bysite(
   #   sitename  = "FR-Pue",
   #   source    = "watch_wfdei",
@@ -246,6 +256,9 @@ test_that("test WATCH_WFDEI data (daily)", {
 
 test_that("test CRU data (monthly and downscaled daily)", {
   skip_on_cran()
+  
+  is_workstation2 <- grepl('dash', Sys.info()['nodename'])
+  skip_if_not(is_workstation2) # Tests only work on workstation 02
   
   df_ndep <- ingest(
     ingestr::siteinfo_fluxnet2015 |> 
