@@ -647,35 +647,11 @@ ingest <- function(
       }
 
     } else {
-
-      # Calculate vapour pressure deficit from specific humidity
-      # this calculates this variable for cases where there is
-      # no bias correction
-      
       if ("vpd" %in% getvars){
-
-        if (source == "watch_wfdei" || source == "wfde5"){
-          # use daily mean temperature
-          ddf <- ddf %>%
-            rowwise() %>%
-            dplyr::mutate(
-              vapr = calc_vp(qair = qair, patm = patm),
-              vpd = calc_vpd(eact = vapr, tc = temp)
-              ) %>% 
-            ungroup()
-          
-        } else if (source == "cru"){
-          # use daily minimum and maximum temperatures
-          ddf <- ddf %>%
-            rowwise() %>%
-            dplyr::mutate(
-              vpd = calc_vpd(eact = vapr, tmin = tmin, tmax = tmax)
-              ) %>% 
-            ungroup()
-        }
-
+        # For cases where there is no bias correction,
+        # (of sources cru, watch_wfdei, wfde5; but not ndep)
+        # vapour pressure deficit has already been computed within `ingest_globalfields()`
       }
-
     }
 
 	} else if (source == "gee"){

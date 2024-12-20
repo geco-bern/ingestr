@@ -448,46 +448,10 @@ ingest_bysite <- function(
       }
       
     } else {
-
-      # Calculate vapour pressure deficit from specific humidity
-      # this calculates this variable for cases where there is
-      # no bias correction
-      
       if ("vpd" %in% getvars){
-        
-        # xxxxxxx
-        if (!("vapr" %in% names(df_tmp))){
-          # calculate vapour pressure from specific humidity - needed for bias correction with worldclim data
-          if (source == "watch_wfdei"){
-            # specific humidity (qair, g g-1) is read, convert to vapour pressure (vapr, Pa)
-            df_tmp <- df_tmp %>% 
-              rowwise() %>% 
-              dplyr::mutate(vapr = calc_vp(qair = qair, patm = patm)) %>% 
-              ungroup()
-            
-          } else if (source == "cru"){
-            # vapour pressure is read from file, convert from hPa to Pa
-            df_tmp <- df_tmp %>% 
-              dplyr::mutate(vapr = 1e2 * vap) %>% 
-              dplyr::select(-vap)
-            
-          }
-        }
-
-        if (source == "watch_wfdei"){
-          # use daily mean temperature
-          df_tmp <- df_tmp %>%
-            rowwise() %>%
-            dplyr::mutate(vpd = calc_vpd(eact = vapr, tc = temp)) %>% 
-            ungroup()
-          
-        } else if (source == "cru"){
-          # use daily minimum and maximum temperatures
-          df_tmp <- df_tmp %>%
-            rowwise() %>%
-            dplyr::mutate(vpd = calc_vpd(eact = vapr, tmin = tmin, tmax = tmax)) %>% 
-            ungroup()
-        }
+        # For cases where there is no bias correction,
+        # (of sources cru, watch_wfdei, wfde5; but not ndep)
+        # vapour pressure deficit has already been computed within `ingest_globalfields()`
       }
     }
     
