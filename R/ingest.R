@@ -609,10 +609,6 @@ ingest <- function(
             ddf <- ddf %>%
               rowwise() %>%
               dplyr::mutate(
-                vapr = calc_vp(
-                  qair = qair,
-                  patm = patm
-                ),
                 vpd = calc_vpd(eact = vapr, tc = temp)) %>% 
               ungroup()
             
