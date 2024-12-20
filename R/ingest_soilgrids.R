@@ -42,8 +42,8 @@ ingest_soilgrids <- function(siteinfo, settings){
       valonly = TRUE))
     
     soillayer_nam <- stringr::str_remove(VOI_LYR, paste0(VOI, "_"))
-    
-    if (length(out) > 0 && class(out) != "try-error"){
+     
+    if (length(out) > 0 && !inherits(out, 'try-error')){
       df <- data %>% 
         mutate(value = as.numeric(out) * factor,
                name = !!VOI,

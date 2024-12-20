@@ -1063,10 +1063,13 @@ aggregate_layers_gsde <- function(df, varnam, use_layer){
 }
 
 worldclim_pivot_longer <- function(df, varnam){
-
+  
+  # CRAN compliance, declaring unstated variables
+  month <- NULL
+    
   df |>
     # tidyr::unnest(data) |> 
-    dplyr::select(sitename, starts_with(paste0(varnam, "_"))) |>
+    dplyr::select('sitename', starts_with(paste0(varnam, "_"))) |>
     tidyr::pivot_longer(
       cols = starts_with(paste0(varnam, "_")),
       names_to = "month",

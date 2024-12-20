@@ -721,10 +721,10 @@ gapfill_interpol_gee <- function(
 
     # predict stats::loess to all dates with missing data
     tmp <- try(stats::predict( myloess, newdata = ddf ) )
-    if (class(tmp)!="try-error"){
-      ddf$loess <- tmp
-    } else {
+    if (inherits(tmp, 'try-error')){
       ddf$loess <- rep( NA, nrow(ddf) )
+    } else {
+      ddf$loess <- tmp
     }
   }
 
@@ -741,12 +741,11 @@ gapfill_interpol_gee <- function(
 
     # predict SPLINE
     tmp <- try( with( ddf, stats::predict( spline, year_dec ) )$y)
-    if (class(tmp)!="try-error"){
-      ddf$spline <- tmp
-    } else {
+    if (inherits(tmp, 'try-error')){
       ddf$spline <- rep( NA, nrow(ddf) )
+    } else {
+      ddf$spline <- tmp
     }
-
   }
 
   if (method_interpol == "linear" || keep){
@@ -768,9 +767,12 @@ gapfill_interpol_gee <- function(
     ddf$sgfilter <- rep( NA, nrow(ddf) )
     idxs <- which(!is.na(ddf$modisvar_filtered))
     tmp <- try(signal::sgolayfilt( ddf$modisvar_filtered[idxs], p=3, n=51 ))
-    if (class(tmp)!="try-error"){
+    if (inherits(tmp, 'try-error')){
+      #
+    } else {
       ddf$sgfilter[idxs] <- tmp
     }
+    
   }
 
   

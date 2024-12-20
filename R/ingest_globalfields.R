@@ -45,8 +45,9 @@ ingest_globalfields <- function(
   # CRAN compliance, define state variables
   myvar <- temp <- rain <- snow <- sitename <- year <- moy <- 
   vap <- tmin <- tmax <- prec <- days_in_month <- nhx <- noy <-
-    lon <- lat <- data <- V1 <- elv <- varnam <- value <- fact <- NULL
-  
+    lon <- lat <- data <- V1 <- elv <- varnam <- value <- fact <- 
+    doy <- ccov <- depth <- NULL
+    
   if (any(is.na(siteinfo$sitename)) ||
       any(is.null(siteinfo$sitename))){
     stop("At least one entry for siteinfo$sitename is missing.")
@@ -473,7 +474,7 @@ ingest_globalfields <- function(
       dplyr::ungroup() |> 
       dplyr::select(-lon, -lat) |>
       tidyr::unnest(data) |>
-      dplyr::rename(elv = ETOPO1_Bed_g_geotiff) |>
+      dplyr::rename(elv = 'ETOPO1_Bed_g_geotiff') |>
       dplyr::select(sitename, elv)
     
   } else if (source == "stocker23"){
@@ -493,8 +494,8 @@ ingest_globalfields <- function(
       dplyr::ungroup() |> 
       dplyr::select(-lon, -lat) |>
       tidyr::unnest(data) |>
-      dplyr::rename(whc = cwdx80_forcing) |>
-      dplyr::select(sitename, whc)
+      dplyr::rename('whc' = 'cwdx80_forcing') |>
+      dplyr::select('sitename', 'whc')
     
   } else if (source == "gsde"){
     
@@ -513,8 +514,8 @@ ingest_globalfields <- function(
       dplyr::select(-lon, -lat) %>%
       tidyr::unnest(data) %>%
       tidyr::pivot_longer(cols = starts_with("PBR_depth")) %>% 
-      dplyr::rename(!!layer := value, depth = name) %>%
-      dplyr::mutate(depth = as.numeric(str_remove(depth, "PBR_depth="))) %>% 
+      dplyr::rename(!!layer := value) %>% dplyr::rename('depth' = 'name') %>%
+      dplyr::mutate(depth = as.numeric(stringr::str_remove(depth, "PBR_depth="))) %>% 
       dplyr::select(sitename, !!layer, depth)
     
     # bottom soil layers
@@ -525,8 +526,8 @@ ingest_globalfields <- function(
       dplyr::select(-lon, -lat) %>%
       tidyr::unnest(data) %>%
       tidyr::pivot_longer(cols = starts_with("PBR_depth")) %>% 
-      dplyr::rename(!!layer := value, depth = name) %>%
-      dplyr::mutate(depth = as.numeric(str_remove(depth, "PBR_depth="))) %>% 
+      dplyr::rename(!!layer := value) %>% dplyr::rename('depth' = 'name') %>%
+      dplyr::mutate(depth = as.numeric(stringr::str_remove(depth, "PBR_depth="))) %>% 
       dplyr::select(sitename, !!layer, depth)
     
     # combine for layers read from each file
@@ -691,7 +692,7 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
                                  month_arg = mo ) 
       } )) %>% 
     tidyr::unnest(data) %>% tidyr::unnest(data) %>%
-    dplyr::select(sitename, myvar=value, date)
+    dplyr::select(sitename, myvar='value', date)
 
   # create data frame containing all dates, using mean annual cycle (of 1979-1988) for all years before 1979
   if (pre_data){
@@ -905,7 +906,7 @@ ingest_globalfields_wfde5_byvar <- function(ddf, siteinfo, dir, varnam) {
 ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
   
   # define variable
-  data <- NULL
+  data <- value <- NULL
   
   # construct data frame holding longitude and latitude info
   df_lonlat <- tibble(
@@ -932,7 +933,7 @@ ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
 ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   
   # define variables
-  data <- year <- moy <- NULL 
+  data <- year <- moy <- value <- NULL 
   
   # construct data frame holding longitude and latitude info
   df_lonlat <- tibble(
@@ -969,9 +970,9 @@ expand_clim_cru_monthly <- function( mdf, cruvars ){
   
   ddf <- mdf |>
     # apply it separately for each site and each year
-    group_split(sitename, year) |>
+    group_split('sitename', 'year') |>
     purrr::map(\(df) expand_clim_cru_monthly_byyr(first(df$year), df, cruvars) |>
-                 mutate(sitename = first(df$sitename)) #ensure to keep sitename
+                 mutate('sitename' = first(df$sitename)) #ensure to keep sitename
                  ) |>
     bind_rows()
   
@@ -1174,8 +1175,8 @@ extract_pointdata_allsites <- function(
   stopifnot((is.na(year_arg) && is.na(month_arg)) || grepl("WFDEI", filename)) # must be NA, unless case WFDEI
   
   # define variables
-  lon <- lat <- data <- NULL
-  
+  lon <- lat <- sitename <- data <- tstep <- varnam <- dom <- year <- NULL
+
   # load file using the raster library
   #print(paste("Creating raster brick from file", filename))
   if (!file.exists(filename)) stop(paste0("File not found: ", filename))
@@ -1184,13 +1185,13 @@ extract_pointdata_allsites <- function(
 
   # new code with terra library
   rasta <- terra::rast(filename)
-  coords <- dplyr::select(df_lonlat, lon, lat)
+  coords <- dplyr::select(df_lonlat, 'lon', 'lat')
   points <- terra::vect(coords, geom = c("lon", "lat"), crs = "EPSG:4326")
   values <- terra::extract(rasta, points, xy = FALSE, ID = FALSE, method = "bilinear")
   
   # generate 'out'
   out <- df_lonlat |> 
-    dplyr::select(sitename, lon, lat) |> 
+    dplyr::select('sitename', 'lon', 'lat') |> 
     bind_cols(values)
   
   if (get_time){
@@ -1222,8 +1223,8 @@ extract_pointdata_allsites <- function(
       #       are read out as day of month
       out <- out |>
         dplyr::mutate(
-          dom     = as.numeric(tstep) + 1,                # day of month
-          varnam = stringr::str_remove(varnam, "_tstep")) |>
+          'dom'     = as.numeric(tstep) + 1,                # day of month
+          'varnam' = stringr::str_remove(varnam, "_tstep")) |>
         dplyr::mutate(date = lubridate::make_date(year_arg, month_arg, dom)) |>
         dplyr::select(all_of(c('sitename', 'lon', 'lat', 'varnam', 'date', 'value')))
     } else if (grepl("ndep_(.*)_lamarque11cc_historical_halfdeg", filename)) {
@@ -1245,7 +1246,7 @@ extract_pointdata_allsites <- function(
       # sanity checks
       stopifnot(length(timevals) == ncol(values))
       # stopifnot(all(timevals[1:1440] == timevals[1441:2880])) # replaced by a more general check:
-      stopifnot(all(head(timevals, length(timevals)/2) == tail(timevals, length(timevals)/2)))
+      stopifnot(all(utils::head(timevals, length(timevals)/2) == utils::tail(timevals, length(timevals)/2)))
       
       out <- out |>
         dplyr::mutate(date  = timevals[as.integer(tstep)]) |>
@@ -1299,7 +1300,7 @@ extract_pointdata_allsites_shp <- function(dir, df_lonlat, layer) {
   # Create SpatialPoints object for sites
   df_clean <- df_lonlat %>%
     ungroup() %>%
-    dplyr::select(lon, lat) %>%
+    dplyr::select('lon', 'lat') %>%
     tidyr::drop_na()
   
   # Create sf points object
@@ -1307,7 +1308,7 @@ extract_pointdata_allsites_shp <- function(dir, df_lonlat, layer) {
   
   # Spatial join and data manipulation
   df <- sf::st_join(pts, shp) |> 
-    dplyr::select(-geometry) |> 
+    dplyr::select(-'geometry') |> 
     dplyr::bind_cols(df_lonlat)
 
   # Alternative fix:

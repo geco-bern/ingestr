@@ -34,7 +34,6 @@ Imports:
     tidyselect,
     multidplyr,
     readr,
-    hwsdr,
     terra,
     stringr,
     ncdf4,
@@ -42,7 +41,10 @@ Imports:
     sf,
     MODISTools,
     data.table,
-    magrittr
+    magrittr,
+    climate,
+    raster,
+    sp
 Remotes:
     bczernecki/climate
 LazyData: true
