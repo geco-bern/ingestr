@@ -907,14 +907,8 @@ ingest <- function(
 	                                       layer = settings$layer, dir = dir)) %>%
 	    purrr::reduce(left_join, by = c("lon", "lat")) %>%
 	    distinct() %>% 
-	    right_join(
-	      dplyr::select(all_of(
-	        siteinfo, 
-	        sitename, 
-	        lon, 
-	        lat
-	        )), 
-	      by = c("lon", "lat")) %>%
+	    right_join(dplyr::select(siteinfo, all_of(c(sitename, lon, lat))),
+	               by = c("lon", "lat")) %>%
 	    dplyr::select(-lon, -lat)
 
 	} else if (source == "gsde"){
