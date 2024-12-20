@@ -12,12 +12,14 @@
 <url><loc>/authors.html</loc></url>
 <url><loc>/index.html</loc></url>
 <url><loc>/news/index.html</loc></url>
+<url><loc>/reference/calc_daily_solar.html</loc></url>
 <url><loc>/reference/calc_patm.html</loc></url>
 <url><loc>/reference/calc_tgrowth.html</loc></url>
 <url><loc>/reference/calc_vp.html</loc></url>
 <url><loc>/reference/calc_vp_inst.html</loc></url>
 <url><loc>/reference/calc_vpd.html</loc></url>
 <url><loc>/reference/calc_vpd_inst.html</loc></url>
+<url><loc>/reference/collect_drivers_sofun.html</loc></url>
 <url><loc>/reference/df_drivers.html</loc></url>
 <url><loc>/reference/gapfill_interpol.html</loc></url>
 <url><loc>/reference/gapfill_interpol_gee.html</loc></url>
@@ -45,8 +47,10 @@
 <url><loc>/reference/ingest_wise_byvar.html</loc></url>
 <url><loc>/reference/init_dates_dataframe.html</loc></url>
 <url><loc>/reference/monthly2daily.html</loc></url>
+<url><loc>/reference/prepare_setup_sofun.html</loc></url>
 <url><loc>/reference/read_plumber.html</loc></url>
 <url><loc>/reference/remove_outliers.html</loc></url>
 <url><loc>/reference/siteinfo_fluxnet2015.html</loc></url>
+<url><loc>/reference/siteinfo_globresp.html</loc></url>
 </urlset>
 

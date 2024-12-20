@@ -173,9 +173,9 @@ resolution, which is appropriate for this use case.</p>
 <span>  <span class="va">siteinfo</span> <span class="op">&lt;-</span> <span class="va">siteinfo</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span><span class="op">]</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="op">)</span>                                   <span class="co"># Remove repeated coordinates</span></span>
 <span>  </span>
-<span>  <span class="va">rasta</span> <span class="op">&lt;-</span> <span class="fu">raster</span><span class="fu">::</span><span class="fu">brick</span><span class="op">(</span><span class="va">file</span><span class="op">)</span></span>
+<span>  <span class="va">rasta</span> <span class="op">&lt;-</span> <span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/brick.html" class="external-link">brick</a></span><span class="op">(</span><span class="va">file</span><span class="op">)</span></span>
 <span>  </span>
-<span>  <span class="fu">raster</span><span class="fu">::</span><span class="fu">extract</span><span class="op">(</span></span>
+<span>  <span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/extract.html" class="external-link">extract</a></span><span class="op">(</span></span>
 <span>    <span class="va">rasta</span>,                                            <span class="co"># raster object</span></span>
 <span>    <span class="fu">sp</span><span class="fu">::</span><span class="fu"><a href="https://edzer.github.io/sp/reference/SpatialPoints.html" class="external-link">SpatialPoints</a></span><span class="op">(</span><span class="va">siteinfo</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>,   <span class="co"># points</span></span>
 <span>    sp <span class="op">=</span> <span class="cn">TRUE</span>                                         <span class="co"># add raster values to siteinfo</span></span>
@@ -247,7 +247,7 @@ values from <a href="https://crudata.uea.ac.uk/cru/data/hrg/" class="external-li
 data.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get CRU data</span></span>
-<span><span class="va">path_cru</span> <span class="op">&lt;-</span> <span class="st">"/data/archive/cru_NA_2021/data/"</span></span>
+<span><span class="va">path_cru</span> <span class="op">&lt;-</span> <span class="st">"/data/archive/cru_harris_2024/data/"</span></span>
 <span></span>
 <span><span class="va">df_cru</span> <span class="op">&lt;-</span> <span class="fu">ingestr</span><span class="fu">::</span><span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
 <span>  siteinfo <span class="op">=</span> <span class="va">siteinfo</span>,</span>
@@ -498,7 +498,6 @@ the results.</p>
 <span>    x <span class="op">=</span> <span class="st">"Date"</span>,</span>
 <span>    y <span class="op">=</span> <span class="st">"GPP"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p>```</p>
 </div>
 </div>
   </div>

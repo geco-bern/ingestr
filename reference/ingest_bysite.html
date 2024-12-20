@@ -158,18 +158,22 @@ are read, i.e. all days, or hours, or months in each year).</p></dd>
 
 <dt id="arg-lon">lon<a class="anchor" aria-label="anchor" href="#arg-lon"></a></dt>
 <dd><p>A numeric value specifying the longitude for which data is extraced from global files
-or remote data servers. If <code>source = "fluxnet"</code>, this is not required and set ot <code>NA</code>.</p></dd>
+or remote data servers. If <code>source = "fluxnet"</code>, this is not required and set to <code>NA</code>.</p></dd>
 
 
 <dt id="arg-lat">lat<a class="anchor" aria-label="anchor" href="#arg-lat"></a></dt>
 <dd><p>A numeric value specifying the longitude for which data is extraced from global files
-or remote data servers. If <code>source = "fluxnet"</code>, this is not required and set ot <code>NA</code>.</p></dd>
+or remote data servers. If <code>source = "fluxnet"</code>, this is not required and set to <code>NA</code>.
+If <code>source = "cru"</code> this is required to compute photosynthetic photon flux density (ppfd)
+(implemented by <a href="calc_daily_solar.html">calc_daily_solar</a>).</p></dd>
 
 
 <dt id="arg-elv">elv<a class="anchor" aria-label="anchor" href="#arg-elv"></a></dt>
 <dd><p>A numeric value specifying the elevation of the site in m a.s.l., This is only required
-for <code>source = "watch_wfdei"</code>, where the ingested data for atmospheric pressure (<code>patm</code>)
-is bias-corrected by elevation using  the adiabatic lapse rate (implemented by <a href="calc_patm.html">calc_patm</a>).</p></dd>
+for <code>source = "watch_wfdei" or "cru"</code>. For "watch_wfdei" the ingested data for atmospheric pressure (<code>patm</code>)
+is bias-corrected by elevation using  the adiabatic lapse rate (implemented by <a href="calc_patm.html">calc_patm</a>).
+For "cru" the elevation is used to compute atmospheric pressure (patm) and photosynthetic photon flux density (ppfd)
+(implemented by <a href="calc_daily_solar.html">calc_daily_solar</a>).</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
