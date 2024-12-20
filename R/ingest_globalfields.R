@@ -967,10 +967,12 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
 # for a single year
 
 expand_clim_cru_monthly <- function( mdf, cruvars ){
+  # define variables  
+  sitename <- year <- NULL
   
   ddf <- mdf |>
     # apply it separately for each site and each year
-    group_split('sitename', 'year') |>
+    group_split(sitename, year) |>
     purrr::map(\(df) expand_clim_cru_monthly_byyr(first(df$year), df, cruvars) |>
                  mutate('sitename' = first(df$sitename)) #ensure to keep sitename
                  ) |>
