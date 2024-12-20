@@ -480,10 +480,10 @@ gapfill_interpol <- function(
                         xout=ddf$year_dec
                         ),
                    silent = TRUE)
-        if (class(tmp) == "try-error"){
-          ddf <- ddf %>% mutate(linear = NA)
+        if (inherits(tmp, 'try-error')){
+          ddf$linear <- rep( NA, nrow(ddf) )
         } else {
-          ddf$linear <- tmp$y
+          ddf$linear <- tmp$y # TODO: this could be replaced with tryCatch({tmp <- ; ddf$linear <- tmp$y}, error = function(e){ddf$linear...})
         }
       }
       

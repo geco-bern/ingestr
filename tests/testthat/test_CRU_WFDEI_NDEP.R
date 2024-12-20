@@ -2,19 +2,22 @@
 
 test_that("test CRU data (monthly and downscaled daily)", {
   skip_on_cran()
-  
+
+  is_workstation2 <- grepl('dash', Sys.info()['nodename'])
+  skip_if_not(is_workstation2) # Tests only work on workstation 02
+
   ## get monthly CRU data
   mdf <- ingest_bysite(
     sitename  = "CH-Lae",
     source    = "cru",
     getvars   = c("tmax", "tmin", "prec", "vpd"),
-    # dir       = "/data/archive/cru_NA_2021/data/",
     dir       = "/data/archive/cru_harris_2024/data/",
     timescale = "m",
     year_start = 1901,
     year_end  = 2018,
     lon       = 8.365,
-    lat       = 47.4781,
+    lat       = 47.4781, 
+    elv       = 689,
     verbose   = FALSE
   )
   
@@ -29,9 +32,9 @@ test_that("test CRU data (monthly and downscaled daily)", {
     year_end  = 2018,
     lon       = 8.365,
     lat       = 47.4781,
+    elv       = 689,
     verbose   = FALSE
   )
-  
   ## get yearly data (not supported)
   # ydf <- ingest_bysite(
   #   sitename  = "CH-Lae",
@@ -43,6 +46,7 @@ test_that("test CRU data (monthly and downscaled daily)", {
   #   year_end  = 2018,
   #   lon       = 8.365,
   #   lat       = 47.4781,
+  #   elv       = 689,
   #   verbose   = FALSE
   # )
   
@@ -73,7 +77,6 @@ test_that("test CRU data (monthly and downscaled daily)", {
                   tmax = c(-0.0131488023838055, 13.764172279623, 4.65204431463909), 
                   tmin = c(-5.86579624579048, 3.4969638061452, 0.201791803788692), 
                   vpd = c(97.352996115735, 423.985071897943, 108.397108058279), 
-                  moy = c(1, 4, 12), 
                   vapr = c(415.709569987869, 756.009354235459, 634.833568499851), 
                   month = c(1, 4, 12), 
                   year = c(1901, 1909, 2018), 
@@ -82,11 +85,11 @@ test_that("test CRU data (monthly and downscaled daily)", {
   
   testthat::expect_equal(tolerance = 0.001, # we need a tolerance because of precip zeroes
                          ddf[c(1,100,1416, 43070),], # use dput() to derive below hardcoded reference
-                         tidyr::tibble(date = lubridate::ymd(c("1901-01-01","1901-04-10","1904-11-17","2018-12-31")), 
+                         tidyr::tibble(sitename = c("CH-Lae", "CH-Lae", "CH-Lae", "CH-Lae"), 
+                                       date = lubridate::ymd(c("1901-01-01","1901-04-10","1904-11-17","2018-12-31")), 
                                        prec = c(0, 0, 0, 0), 
                                        tmax = c(1.36408937038989, 11.3535456681846, 4.26505071209226, 5.3088883537248), 
                                        tmin = c(-3.7938395642009, 2.84610676114661, -1.17652509826678, 0.529165441280156), 
-                                       sitename = c("CH-Lae", "CH-Lae", "CH-Lae", "CH-Lae"), 
                                        vpd = c(75.4734411654391, 445.173057078465, 136.571370463, 136.784738582639), 
                                        vapr = c(523.440022615601, 601.876765774174, 558.154229833713, 626.47826413593)
                          )
@@ -105,6 +108,7 @@ test_that("test CRU data (monthly and downscaled daily)", {
   #   year_end  = 2018,
   #   lon       = 8.365,
   #   lat       = 47.4781,
+  #   elv       = 689,
   #   verbose   = FALSE
   # ) |> tail()
   # ingest_bysite(
@@ -117,6 +121,7 @@ test_that("test CRU data (monthly and downscaled daily)", {
   #   year_end  = 2018,
   #   lon       = 8.365,
   #   lat       = 47.4781,
+  #   elv       = 689,
   #   verbose   = FALSE
   # ) |> tail()
 
@@ -125,6 +130,10 @@ test_that("test CRU data (monthly and downscaled daily)", {
 
 test_that("test CRU data multisite downscaling (monthly and downscaled daily)", {
   skip_on_cran()
+
+  is_workstation2 <- grepl('dash', Sys.info()['nodename'])
+  skip_if_not(is_workstation2) # Tests only work on workstation 02
+  
   library(dplyr)
   library(tidyr)
   library(ingestr)
@@ -189,6 +198,9 @@ test_that("test CRU data multisite downscaling (monthly and downscaled daily)", 
 test_that("test WATCH_WFDEI data (daily)", {
   skip_on_cran()
   
+  is_workstation2 <- grepl('dash', Sys.info()['nodename'])
+  skip_if_not(is_workstation2) # Tests only work on workstation 02
+  
   # df_watch <- ingest_bysite(
   #   sitename  = "FR-Pue",
   #   source    = "watch_wfdei",
@@ -199,6 +211,7 @@ test_that("test WATCH_WFDEI data (daily)", {
   #   year_end  = 1982,
   #   lon       = 3.5958,
   #   lat       = 43.7414,
+  #   elv       = 270,
   #   verbose   = TRUE
   #   #settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
   # )
@@ -218,6 +231,7 @@ test_that("test WATCH_WFDEI data (daily)", {
     year_end  = 1982,
     lon       = 3.5958,
     lat       = 43.7414,
+    elv       = 270,
     verbose   = TRUE
     #settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
   )
@@ -242,6 +256,9 @@ test_that("test WATCH_WFDEI data (daily)", {
 
 test_that("test CRU data (monthly and downscaled daily)", {
   skip_on_cran()
+  
+  is_workstation2 <- grepl('dash', Sys.info()['nodename'])
+  skip_if_not(is_workstation2) # Tests only work on workstation 02
   
   df_ndep <- ingest(
     ingestr::siteinfo_fluxnet2015 |> 

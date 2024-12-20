@@ -34,19 +34,22 @@ Imports:
     tidyselect,
     multidplyr,
     readr,
-    hwsdr,
     terra,
     stringr,
     ncdf4,
     signal,
     sf,
     MODISTools,
-    data.table
+    data.table,
+    magrittr,
+    climate,
+    raster,
+    sp
 Remotes:
     bczernecki/climate
 LazyData: true
 ByteCompile: true
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Suggests:
     ggplot2,
     rmarkdown,

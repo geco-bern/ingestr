@@ -1115,7 +1115,7 @@ get_obs_bysite_wcont_fluxnet2015 <- function(
   if (timescale=="d"){
     # Daily
     filn <- list.files( dir,
-      pattern = glob2rx(paste0( "FLX_", sitename, "*_FULLSET_DD*csv" )),
+      pattern = utils::glob2rx(paste0( "FLX_", sitename, "*_FULLSET_DD*csv" )),
       recursive = TRUE
       )
   } else  if (timescale=="w"){

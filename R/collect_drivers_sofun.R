@@ -8,8 +8,8 @@
 #'  "year_end", "lon", "lat", "elv"}. See \code{\link{prepare_setup_sofun}} for
 #'  details.
 #' @param params_siml A nested data frame with rows for each site containing 
-#'  simulation parameters for SOFUN. See \code{\link{run_pmodel_f_bysite}} or
-#'  \code{\link{run_biomee_f_bysite}}.
+#'  simulation parameters for SOFUN. See \code{rsofun:run_pmodel_f_bysite} or
+#'  \code{rsofun:run_biomee_f_bysite}.
 #' @param meteo A nested data frame with rows for each site and meteorological
 #'  forcing data time series nested inside a column named \code{"data"}.
 #' @param fapar A nested data frame with rows for each site and fAPAR 
@@ -19,7 +19,7 @@
 #' @param params_soil Soil texture data descriptor, a data frame with columns
 #' \code{"layer", "fsand", "fclay", "forg" } and \code{"fgravel"}.
 #'
-#' @return A \code{rsofun} input data frame (see \link{p_model_drivers} for a detailed
+#' @return A \code{rsofun} input data frame (see \code{rsofun:p_model_drivers}) for a detailed
 #' description of its structure and contents).
 #' @export
 

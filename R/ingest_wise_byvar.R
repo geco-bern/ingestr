@@ -23,7 +23,7 @@ ingest_wise_byvar <- function(var, df_lonlat, layer = 1, dir){
   # CRAN compliance, variable declaration
   lon <- lat <- ID <- NEWSUID <- PROP <- Layer <- var_wgt <-
     depth_cm <- depth_tot_cm <- wise30sec_fin <- 
-    modisvar_interpol <- NULL
+    modisvar_interpol <- MU_GLOBAL <- NULL
   
   # read as a raster
   rasta <- raster::raster(paste0(dir, "/GISfiles/wise30sec_fin"))
