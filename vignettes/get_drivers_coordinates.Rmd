@@ -139,7 +139,7 @@ Now, let's complete the forcing with cloud cover `ccov` values from
 
 ```{r, eval=FALSE}
 # Get CRU data
-path_cru <- "/data/archive/cru_NA_2021/data/"
+path_cru <- "/data/archive/cru_harris_2024/data/"
 
 df_cru <- ingestr::ingest(
   siteinfo = siteinfo,
@@ -391,5 +391,4 @@ ggplot() +
     x = "Date",
     y = "GPP"
   )
-```
 ```

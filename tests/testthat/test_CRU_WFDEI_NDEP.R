@@ -11,7 +11,6 @@ test_that("test CRU data (monthly and downscaled daily)", {
     sitename  = "CH-Lae",
     source    = "cru",
     getvars   = c("tmax", "tmin", "prec", "vpd"),
-    # dir       = "/data/archive/cru_NA_2021/data/",
     dir       = "/data/archive/cru_harris_2024/data/",
     timescale = "m",
     year_start = 1901,
