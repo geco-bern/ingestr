@@ -554,8 +554,7 @@ ingest_bysite <- function(
       df_co2 <- climate::meteo_noaa_co2() %>%
         dplyr::select(year = yy, month = mm, co2_avg)
     }
-    browser()
-    
+
     df_tmp <- init_dates_dataframe( year_start, year_end, timescale = timescale ) %>%
       dplyr::mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%
       dplyr::left_join(
@@ -577,7 +576,6 @@ ingest_bysite <- function(
     } else {
       stop("File cCO2_rcp85_const850-1765.csv must be available in directory specified by 'dir'.")     
     }
-    browser()
     df_tmp <- init_dates_dataframe( year_start, year_end, timescale = timescale ) %>%
       dplyr::mutate(month = lubridate::month(date), year = lubridate::year(date)) %>%
       dplyr::left_join(
@@ -591,7 +589,6 @@ ingest_bysite <- function(
   } else if (source == "fapar_unity"){
     
     # Assume fapar = 1 for all dates
-    browser()
     df_tmp <- init_dates_dataframe(
         year_start,
         year_end,
