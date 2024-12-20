@@ -399,7 +399,8 @@ ingest_globalfields <- function(
     if ("vpd" %in% getvars){
       df_out <- df_out %>% 
         rowwise() %>%
-        mutate(vpd = calc_vpd( eact = 1e2 * vap, tmin = tmin, tmax = tmax )) %>%
+        mutate(vapr = 1e2 * vap) %>% # to go from hPa to Pa
+        mutate(vpd  = calc_vpd( eact = vapr, tmin = tmin, tmax = tmax )) %>%
         ungroup() # undo rowwise()
     }
 

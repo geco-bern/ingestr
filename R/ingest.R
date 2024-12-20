@@ -64,7 +64,7 @@ ingest <- function(
   patm_base <-patm_mean <- month <- tavg <-temp <- temp_fine <-
   tmax <- tmax_fine <- tmin <- tmin_fine <- prec <- prec_fine <-
   days_in_month <- rain <- snow <- srad <- srad_fine <- ppfd <-
-  ppfd_fine <- wind <- wind_fine <- qair <- vap <- vapr <- vapr_fine <-
+  ppfd_fine <- wind <- wind_fine <- qair <- vapr <- vapr_fine <-
   ilon <- data <- yy <- mm <- co2_avg <- year <- . <- bias <- NULL
   
   # Check: all sites are distinct wrt name, lon and lat
@@ -563,25 +563,15 @@ ingest <- function(
         }
 
         # Bias correction for relative humidity (actually vapour pressure): scale
-        if ("vapr" %in% getvars_wc){
+        if ("vapr" %in% getvars_wc){ # i.e. equivalent with: "if (vpd" %in% getvars)"
 
-          # calculate vapour pressure from specific humidity - needed for bias correction with worldclim data
+          # a) correct vapor pressure (vapr, Pa) with worldclim data
           if (source == "watch_wfdei" || source == "wfde5"){
-            # specific humidity (qair, g g-1) is read, convert to vapour pressure (vapr, Pa)
-            ddf <- ddf %>% 
-              rowwise() %>% 
-              dplyr::mutate(
-                vapr = calc_vp(qair = qair,
-                               patm = patm)
-                ) %>% 
-              ungroup()
-            
+            # For watch_wfdei, wfde5, vapr has already been computed based on qair and patm 
+            # within `ingest_globalfields()`. Since there is no bias-correction of qair and ptm
+            # it does not need to be recomputed here
           } else if (source == "cru"){
-            # vapour pressure is read from file, convert from hPa to Pa
-            ddf <- ddf %>% 
-              dplyr::mutate(vapr = 1e2 * vap) %>% 
-              dplyr::select(-vap)
-            
+            # For cru, vapr has already been unit-transformed based on vap within `ingest_globalfields()`
           }
 
           df_bias <- df_fine %>%
@@ -612,11 +602,8 @@ ingest <- function(
             mutate(vapr = ifelse(is.na(scale), vapr, vapr * scale)) %>%
             dplyr::select(-scale, -month)
 
-        }
-
-        # Calculate vapour pressure deficit from specific humidity
-        if ("vpd" %in% getvars){
-          
+          # b) re-calculate vapour pressure deficit VPD from bias-corrected vapor pressure
+          #    (Note: this overwrites the vpd that has been computed within `ingest_globalfields()`)
           if (source == "watch_wfdei" || source == "wfde5"){
             # use daily mean temperature
             ddf <- ddf %>%
@@ -625,7 +612,7 @@ ingest <- function(
                 vapr = calc_vp(
                   qair = qair,
                   patm = patm
-                  ),
+                ),
                 vpd = calc_vpd(eact = vapr, tc = temp)) %>% 
               ungroup()
             
@@ -635,7 +622,7 @@ ingest <- function(
               rowwise() %>%
               dplyr::mutate(
                 vpd = calc_vpd(eact = vapr, tmin = tmin, tmax = tmax)
-                ) %>% 
+              ) %>% 
               ungroup()
           }
         }
@@ -646,12 +633,6 @@ ingest <- function(
 
       }
 
-    } else {
-      if ("vpd" %in% getvars){
-        # For cases where there is no bias correction,
-        # (of sources cru, watch_wfdei, wfde5; but not ndep)
-        # vapour pressure deficit has already been computed within `ingest_globalfields()`
-      }
     }
 
 	} else if (source == "gee"){
