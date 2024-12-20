@@ -389,7 +389,7 @@ ingest_globalfields <- function(
         ungroup() # undo rowwise()
     }
 
-    # calculate **daily** or **monthly** ppfd, based on lat, elv, and ccov
+    # calculate **daily** or **monthly** ppfd, based on lat, elv, and **daily** or **monthly** ccov
     if ("ppfd" %in% getvars){
       stopifnot('lat' %in% names(siteinfo)); if(any(is.na(siteinfo$lat))){stop("lat is NA")}
       stopifnot('elv' %in% names(siteinfo)); if(any(is.na(siteinfo$elv))){stop("elv is NA")}
@@ -409,7 +409,7 @@ ingest_globalfields <- function(
         dplyr::select(-lat,-elv, -doy)
     }
     
-    # calculate (**daily** or **monthly**) contant patm
+    # calculate **daily** or **monthly** (actually constant) patm, based on elv
     if ("patm" %in% getvars){
       stopifnot('elv' %in% names(siteinfo)); if(any(is.na(siteinfo$elv))){stop("elv is NA")}
       df_out <- df_out %>%
