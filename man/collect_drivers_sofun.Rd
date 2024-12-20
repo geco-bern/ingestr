@@ -13,8 +13,8 @@ Required columns are: \code{"sitename", "year_start",
 details.}
 
 \item{params_siml}{A nested data frame with rows for each site containing 
-simulation parameters for SOFUN. See \code{\link{rsofun::run_pmodel_f_bysite}} or
-\code{\link{rsofun::run_biomee_f_bysite}}.}
+simulation parameters for SOFUN. See \code{rsofun:run_pmodel_f_bysite} or
+\code{rsofun:run_biomee_f_bysite}.}
 
 \item{meteo}{A nested data frame with rows for each site and meteorological
 forcing data time series nested inside a column named \code{"data"}.}
@@ -29,7 +29,7 @@ forcing data time series nested inside a column named \code{"data"}.}
 \code{"layer", "fsand", "fclay", "forg" } and \code{"fgravel"}.}
 }
 \value{
-A \code{rsofun} input data frame (see \link{rsofun::p_model_drivers} for a detailed
+A \code{rsofun} input data frame (see \code{rsofun:p_model_drivers}) for a detailed
 description of its structure and contents).
 }
 \description{
