@@ -223,44 +223,73 @@ dsin <- function(d) {
   sin(d*pir)
 }
 
-
-# ************************************************************************
-# Name:     calc_daily_solar
-# Inputs:   - double, latitude, degrees (lat)
-#           - double, day of year (n)
-#           - double, elevation (elv)  *optional
-#           - double, year (y)         *optional
-#           - double, fraction of sunshine hours (sf)        *optional
-#           - double, mean daily air temperature, deg C (tc) *optional
-# Returns:  list object (et.srad)
-#             $nu_deg ............ true anomaly, degrees
-#             $lambda_deg ........ true longitude, degrees
-#             $dr ................ distance factor, unitless
-#             $delta_deg ......... declination angle, degrees
-#             $hs_deg ............ sunset angle, degrees
-#             $ra_j.m2 ........... daily extraterrestrial radiation, J/m^2
-#             $tau ............... atmospheric transmittivity, unitless
-#             $ppfd_mol.m2 ....... daily photosyn. photon flux density, mol/m^2
-#             $hn_deg ............ net radiation hour angle, degrees
-#             $rn_j.m2 ........... daily net radiation, J/m^2
-#             $rnn_j.m2 .......... daily nighttime net radiation, J/m^2
-# Features: This function calculates daily radiation fluxes.
-# Depends:  - kalb_sw ........ shortwave albedo
-#           - kalb_vis ....... visible light albedo
-#           - kb ............. empirical constant for longwave rad
-#           - kc ............. empirical constant for shortwave rad
-#           - kd ............. empirical constant for shortwave rad
-#           - ke ............. eccentricity
-#           - keps ........... obliquity
-#           - kfFEC .......... from-flux-to-energy conversion, umol/J
-#           - kGsc ........... solar constant
-#           - berger_tls() ... calc true anomaly and longitude
-#           - dcos() ......... cos(x*pi/180), where x is in degrees
-#           - dsin() ......... sin(x*pi/180), where x is in degrees
-#           - julian_day() ... date to julian day
-# ************************************************************************
-calc_daily_solar <- function(lat, n, elv=0, y=0, sf=1, # commented out since not needed for ppfd: tc=23.0, 
+#' Calculates daily photosynthetic photon flux density (ppfd) and other solar parameters
+#'
+#' Calculates daily photosynthetic photon flux density (ppfd) and other solar parameters
+#' as a function of latitude, day of year, elevation, and fraction of sunshine hours. 
+#' Unless specified differently (by setting argument `y` different from `y=0`) 
+#' it assumes 365-day years. 
+#'
+#' @param year year for calculation of orbital parameters 
+#' @param y (Optional) year for day-of-year calculation, defaults to y=0 which disables leap years
+#' @param lat latitude (degrees)
+#' @param n day of year
+#' @param elv (Optional) elevation (m.a.s.l), defaults to 0 m.a.s.l
+#' @param sf (Optional) fraction of sunshine hours, defaults to 1.0
+# @param tc (Optional) mean daily air temperature (deg C), defaults to 23.0 deg C
+#'
+#' @details The method uses orbital parameters of earth to compute photosynthetic
+#' photon flux density for any latitude, year and day of year. It computes top-of-
+#' the-atmosphere irradiation ('extraterrestrial') and considers atmosphere's
+#' transmissivity and the elevation of the study area to derive ppfd.
+#' 
+#' Orbital parameters as a function of year are calculated by the method outlines in: 
+#' Andre L. Berger, 1978, "Long-Term Variations of Daily Insolation and Quaternary
+#' Climatic Changes", JAS, v.35, p.2362.
+#' 
+#'
+#' @return A list of numeric values for various parameters, namely:
+#'             nu_deg ............ true anomaly, degrees
+#'             lambda_deg ........ true longitude, degrees
+#'             dr ................ distance factor, unitless
+#'             delta_deg ......... declination angle, degrees
+#'             hs_deg ............ sunset angle, degrees
+#'             ra_j.m2 ........... daily extraterrestrial radiation, J/m^2
+#'             tau ............... atmospheric transmittivity, unitless
+#'             ppfd_mol.m2 ....... daily photosyn. photon flux density, mol/m^2
+#             hn_deg ............ net radiation hour angle, degrees
+#             rn_j.m2 ........... daily net radiation, J/m^2
+#             rnn_j.m2 .......... daily nighttime net radiation, J/m^2
+#'
+#' @examples print("Daily ppfd, in mol/m2/day, on a sunny day (sf=1.0) in summer 2024 (DOY=180):")
+#'           print(calc_daily_solar(lat=46.95, n=180, elv=558, sf=1.0, year=2024)$ppfd_mol.m2)
+#' 
+#' @references  Andre L. Berger, 1978, "Long-Term Variations of Daily Insolation 
+#'              and Quaternary Climatic Changes", JAS, v.35, p.2362.
+#' @references  Berger et al. (1993), Woolf (1968), Eq. 1.10.3, Duffy & Beckman (1993), 
+#'              Eq. 11, Linacre (1968); Eq. 2, Allen (1996)
+#'              
+#' @export
+#' 
+calc_daily_solar <- function(lat, n, elv=0, y=0, sf=1, # commented out since not needed for ppfd: tc=23.0,
                              year=2000) {
+  
+  # Internally depends on definition of:  
+  #           - kalb_sw ........ shortwave albedo
+  #           - kalb_vis ....... visible light albedo
+  #           - kb ............. empirical constant for longwave rad
+  #           - kc ............. empirical constant for shortwave rad
+  #           - kd ............. empirical constant for shortwave rad
+  #           - ke ............. eccentricity
+  #           - keps ........... obliquity
+  #           - kfFEC .......... from-flux-to-energy conversion, umol/J
+  #           - kGsc ........... solar constant
+  #           - berger_tls() ... calc true anomaly and longitude
+  #           - dcos() ......... cos(x*pi/180), where x is in degrees
+  #           - dsin() ......... sin(x*pi/180), where x is in degrees
+  #           - julian_day() ... date to julian day
+  
+  
   # ~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTION WARNINGS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
   if (lat > 90 || lat < -90) {
     stop("Warning: Latitude outside range of validity (-90 to 90)!")
