@@ -76,7 +76,6 @@ test_that("test CRU data (monthly and downscaled daily)", {
                   tmax = c(-0.0131488023838055, 13.764172279623, 4.65204431463909), 
                   tmin = c(-5.86579624579048, 3.4969638061452, 0.201791803788692), 
                   vpd = c(97.352996115735, 423.985071897943, 108.397108058279), 
-                  moy = c(1, 4, 12), 
                   vapr = c(415.709569987869, 756.009354235459, 634.833568499851), 
                   month = c(1, 4, 12), 
                   year = c(1901, 1909, 2018), 
@@ -85,11 +84,11 @@ test_that("test CRU data (monthly and downscaled daily)", {
   
   testthat::expect_equal(tolerance = 0.001, # we need a tolerance because of precip zeroes
                          ddf[c(1,100,1416, 43070),], # use dput() to derive below hardcoded reference
-                         tidyr::tibble(date = lubridate::ymd(c("1901-01-01","1901-04-10","1904-11-17","2018-12-31")), 
+                         tidyr::tibble(sitename = c("CH-Lae", "CH-Lae", "CH-Lae", "CH-Lae"), 
+                                       date = lubridate::ymd(c("1901-01-01","1901-04-10","1904-11-17","2018-12-31")), 
                                        prec = c(0, 0, 0, 0), 
                                        tmax = c(1.36408937038989, 11.3535456681846, 4.26505071209226, 5.3088883537248), 
                                        tmin = c(-3.7938395642009, 2.84610676114661, -1.17652509826678, 0.529165441280156), 
-                                       sitename = c("CH-Lae", "CH-Lae", "CH-Lae", "CH-Lae"), 
                                        vpd = c(75.4734411654391, 445.173057078465, 136.571370463, 136.784738582639), 
                                        vapr = c(523.440022615601, 601.876765774174, 558.154229833713, 626.47826413593)
                          )
