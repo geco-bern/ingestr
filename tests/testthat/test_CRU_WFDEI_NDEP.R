@@ -36,7 +36,6 @@ test_that("test CRU data (monthly and downscaled daily)", {
     elv       = 689,
     verbose   = FALSE
   )
-  
   ## get yearly data (not supported)
   # ydf <- ingest_bysite(
   #   sitename  = "CH-Lae",
@@ -213,6 +212,7 @@ test_that("test WATCH_WFDEI data (daily)", {
   #   year_end  = 1982,
   #   lon       = 3.5958,
   #   lat       = 43.7414,
+  #   elv       = 270,
   #   verbose   = TRUE
   #   #settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
   # )
@@ -232,6 +232,7 @@ test_that("test WATCH_WFDEI data (daily)", {
     year_end  = 1982,
     lon       = 3.5958,
     lat       = 43.7414,
+    elv       = 270,
     verbose   = TRUE
     #settings  = list(correct_bias = "worldclim", dir_bias = "~/data/worldclim")
   )

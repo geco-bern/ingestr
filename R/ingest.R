@@ -169,8 +169,11 @@ ingest <- function(
 	      dir = dir,
 	      settings = settings,
 	      timescale = timescale,
+	      # lon = siteinfo$lon[.], lon,lat,elv are dropped since fluxnet identifies sites by sitename only
+	      # lat = siteinfo$lat[.], lon,lat,elv are dropped since fluxnet identifies sites by sitename only
+	      # elv = siteinfo$elv[.], lon,lat,elv are dropped since fluxnet identifies sites by sitename only
 	      year_start = lubridate::year(siteinfo$date_start[.]),
-	      year_end = lubridate::year(siteinfo$date_end[.]),
+	      year_end   = lubridate::year(siteinfo$date_end[.]),
 	      verbose = verbose
 	    )
 	  ) %>%
@@ -788,6 +791,9 @@ ingest <- function(
 	    ~expand_co2_bysite(
 	      df_co2,
 	      sitename = siteinfo$sitename[.],
+	      # lon = siteinfo$lon[.],  # NOTE: lon,lat,elv are unused since co2 distributes globally
+	      # lat = siteinfo$lat[.],  # NOTE: lon,lat,elv are unused since co2 distributes globally
+	      # elv = siteinfo$elv[.],  # NOTE: lon,lat,elv are unused since co2 distributes globally
 	      year_start = lubridate::year(siteinfo$date_start[.]),
 	      year_end   = lubridate::year(siteinfo$date_end[.]),
 	      timescale  = timescale
@@ -816,6 +822,9 @@ ingest <- function(
 	    ~expand_co2_bysite(
 	      df_co2,
 	      sitename = siteinfo$sitename[.],
+	      # lon = siteinfo$lon[.],  # NOTE: lon,lat,elv are unused since co2 distributes globally
+	      # lat = siteinfo$lat[.],  # NOTE: lon,lat,elv are unused since co2 distributes globally
+	      # elv = siteinfo$elv[.],  # NOTE: lon,lat,elv are unused since co2 distributes globally
 	      year_start = lubridate::year(siteinfo$date_start[.]),
 	      year_end   = lubridate::year(siteinfo$date_end[.]),
 	      timescale = timescale
@@ -830,6 +839,9 @@ ingest <- function(
 	    as.list(seq(nrow(siteinfo))),
 	    ~expand_bysite(
 	      sitename   = siteinfo$sitename[.],
+	      # lon = siteinfo$lon[.],  # NOTE: lon,lat,elv are unused since fapar is set to 1 globally
+	      # lat = siteinfo$lat[.],  # NOTE: lon,lat,elv are unused since fapar is set to 1 globally
+	      # elv = siteinfo$elv[.],  # NOTE: lon,lat,elv are unused since fapar is set to 1 globally
 	      year_start = lubridate::year(siteinfo$date_start[.]),
 	      year_end   = lubridate::year(siteinfo$date_end[.]),
 	      timescale  = timescale
