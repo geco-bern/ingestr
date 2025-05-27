@@ -2136,14 +2136,14 @@ variables as defined in the table above), and <code>layer</code> (a
 vector of integers specifying the layers over which a depth-weighted
 average is taken).</p>
 <div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">settings_worldclim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>varnam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bio"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">settings_worldclim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>varnam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tavg"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Now, the data can be ingested.</p>
 <div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_worldclim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ingest.html">ingest</a></span><span class="op">(</span></span>
 <span>  <span class="va">siteinfo_fluxnet2015</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>,</span>
 <span>  source    <span class="op">=</span> <span class="st">"worldclim"</span>,</span>
 <span>  settings  <span class="op">=</span> <span class="va">settings_worldclim</span>,</span>
-<span>  dir       <span class="op">=</span> <span class="st">"~/data/worldclim"</span></span>
+<span>  dir       <span class="op">=</span> <span class="st">"~/data/archive/worldclim_fick_2017/data"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
