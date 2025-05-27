@@ -42,9 +42,7 @@ Imports:
     MODISTools,
     data.table,
     magrittr,
-    climate,
-    raster,
-    sp
+    climate
 Remotes:
     bczernecki/climate
 LazyData: true

@@ -269,9 +269,12 @@ ingest <- function(
           stop(paste0("Looking for elevation file for determining 
                     closest land cell, but not found under ", path))
         }
+        
         rasta <- raster::raster(path)
+        
         siteinfo_missing <- siteinfo %>%
           dplyr::filter(sitename %in% sites_missing)
+        
         siteinfo_missing <- siteinfo_missing %>%
           dplyr::select(x = lon, y = lat) %>%
           mutate(
@@ -335,7 +338,6 @@ ingest <- function(
       if (settings$correct_bias == "worldclim"){
         
         # Bias correction using WorldClim data
-        
         getvars_wc <- c()
         if ("temp" %in% getvars){getvars_wc <- c(getvars_wc, "tavg")}
         if ("tmin" %in% getvars){getvars_wc <- c(getvars_wc, "tmin")}

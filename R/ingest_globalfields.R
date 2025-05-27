@@ -607,34 +607,10 @@ ingest_globalfields <- function(
       lat      = siteinfo$lat
     )
     
-    ingest_globalfields_worldclim_byvar <- function(varnam){
-      
-      vec_filn <- list.files(dir, pattern = paste0(varnam, ".*.tif"), full.names = TRUE)
-        
-      if (length(vec_filn) > 0){
-        df_out <- purrr::map(
-          as.list(vec_filn),
-          function(filpath){
-            # filpath <- "/data/archive/worldclim_fick_2017/data/wc2.1_30s_tavg_01.tif"
-            fn <- basename(filpath)
-            mo <- gsub('.*_([0-9]*).tif','\\1',fn)
-            vn <- gsub('.tif','',fn) # we assume that internal the column name is this
-            extract_pointdata_allsites( filpath, df_lonlat, get_time = FALSE ) %>%
-              tidyr::unnest(data) %>% dplyr::ungroup() %>%
-              dplyr::select(-lon, -lat) %>%
-              dplyr::rename(!!paste0(varnam, "_", mo) := vn) %>%
-              dplyr::select(sitename, !!paste0(varnam, "_", mo))
-            }) %>% 
-          purrr::reduce(left_join, by = "sitename")
-      } else {
-        df_out <- tibble()
-      }
-      
-      return(df_out)
-    }
-    
-    df_out <- purrr::map(as.list(layer),
-                         ~ingest_globalfields_worldclim_byvar(.)) %>% 
+    df_out <- purrr::map(
+      as.list(layer),
+      ~ingest_globalfields_worldclim_byvar(., dir, df_lonlat)
+      ) %>% 
       purrr::reduce(left_join, by = c("sitename"))
     
   }
@@ -977,6 +953,31 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   return( mdf )
 }
 
+ingest_globalfields_worldclim_byvar <- function(varnam, dir, df_lonlat){
+  
+  vec_filn <- list.files(dir, pattern = paste0(varnam, ".*.tif"), full.names = TRUE)
+  
+  if (length(vec_filn) > 0){
+    df_out <- purrr::map(
+      as.list(vec_filn),
+      function(filpath){
+        # filpath <- "/data/archive/worldclim_fick_2017/data/wc2.1_30s_tavg_01.tif"
+        fn <- basename(filpath)
+        mo <- gsub('.*_([0-9]*).tif','\\1',fn)
+        vn <- gsub('.tif','',fn) # we assume that internal the column name is this
+        extract_pointdata_allsites( filpath, df_lonlat, get_time = FALSE ) %>%
+          tidyr::unnest(data) %>% dplyr::ungroup() %>%
+          dplyr::select(-lon, -lat) %>%
+          dplyr::rename(!!paste0(varnam, "_", mo) := vn) %>%
+          dplyr::select(sitename, !!paste0(varnam, "_", mo))
+      }) %>% 
+      purrr::reduce(left_join, by = "sitename")
+  } else {
+    df_out <- tibble()
+  }
+  
+  return(df_out)
+}
 
 # Interpolates monthly data to daily data using polynomials or linear
 # for a single year
@@ -1186,7 +1187,8 @@ extract_pointdata_allsites <- function(
   filename,
   df_lonlat,
   get_time = FALSE,
-  year_arg = NA_integer_, month_arg = NA_integer_ # only used for WFDEI in combination with get_time
+  year_arg = NA, 
+  month_arg = NA # only used for WFDEI in combination with get_time
   ) {
   
   stopifnot((is.na(year_arg) && is.na(month_arg)) || grepl("WFDEI", filename)) # must be NA, unless case WFDEI
@@ -1244,6 +1246,7 @@ extract_pointdata_allsites <- function(
           'varnam' = stringr::str_remove(varnam, "_tstep")) |>
         dplyr::mutate(date = lubridate::make_date(year_arg, month_arg, dom)) |>
         dplyr::select(all_of(c('sitename', 'lon', 'lat', 'varnam', 'date', 'value')))
+      
     } else if (grepl("ndep_(.*)_lamarque11cc_historical_halfdeg", filename)) {
       # WFDEI has not the yearly time stamp information in the file as column names
       # WFDEI values contain e.g. columns named NHx_TIME=1850, NHx_TIME=1851, ... NHx_TIME=2009
@@ -1251,6 +1254,7 @@ extract_pointdata_allsites <- function(
         dplyr::rename('year' = 'tstep') |>
         dplyr::mutate(date = lubridate::make_date(year, 01, 01)) |>
         dplyr::select(all_of(c('sitename', 'lon', 'lat', 'varnam', 'date', 'value')))
+      
     } else if (grepl("cru_ts4.0(8|5)", filename)) {
       # # CRU has time stamp information in the file
       # # CRU values contain e.g. columns named tmn_1 to tmn_1440, but also auxiliary stn_1 to stn_1440 (is removed)

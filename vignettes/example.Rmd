@@ -1230,7 +1230,7 @@ This ingests Worldclim monthly climatology (averaged over 1970-2000) at 30 secon
 Specify the settings directly as a list with elements `varnam` (a vector of character strings specifying the variables as defined in the table above), and `layer` (a vector of integers specifying the layers over which a depth-weighted average is taken).
 
 ```{r warning=FALSE, eval = FALSE}
-settings_worldclim <- list(varnam = c("bio"))
+settings_worldclim <- list(varnam = c("tavg"))
 ```
 
 Now, the data can be ingested.
@@ -1240,7 +1240,7 @@ df_worldclim <- ingest(
   siteinfo_fluxnet2015 %>% slice(1:2),
   source    = "worldclim",
   settings  = settings_worldclim,
-  dir       = "~/data/worldclim"
+  dir       = "~/data/archive/worldclim_fick_2017/data"
   )
 ```
 
