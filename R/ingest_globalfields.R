@@ -911,7 +911,8 @@ ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
     dir, paste0("ndep_", varnam, "_lamarque11cc_historical_halfdeg.nc") )
   adf <- extract_pointdata_allsites(
     paste0(dir, filename), df_lonlat, get_time = TRUE) %>%
-    tidyr::unnest(data) %>% dplyr::ungroup() %>%
+    tidyr::unnest(data) %>% 
+    dplyr::ungroup() %>%
     dplyr::rename(!!varnam := value)
   
   return(adf)
