@@ -1,0 +1,266 @@
+# Aim
+
+In this vignette, I try to extract the T air and Q air, to obtain patm, vpd and ppfd
+
+Fapar still to do
+
+I modified only the function extract_pointdata_allsites_shp and ingest_globalfields_watch_byvar. The latter is modified in such a way that (in theory) using the coordinates points instead of the shapefile doesn't change anything. The first function is called only when there is a shapefile.
+
+Now we'll have a look at the new function extract_pointdata_allsites_shp
+
+```{r}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(terra)
+library(lubridate)
+library(ingestr)
+# data preparation, currently only on my folder
+
+# will take at random 10 catchements and see what happens
+
+vector_path <- "~/data_scratch/shapefiles/camels/camels_basin_shapes.shp"
+
+shapefile <- terra::vect(vector_path)
+
+shapefile <- shapefile[300:309,]
+
+siteinfo <- read.csv("~/data_scratch/camels_timeseries/camels/attributes_other_camels.csv")
+
+siteinfo <- siteinfo[siteinfo$gauge_id %in% shapefile$gauge_id,]
+
+# we add the year of interest, for example 2004
+
+date_start = lubridate::ymd(paste0(2005, "-01-01"))
+date_end = lubridate::ymd(paste0(2005, "-12-31"))
+
+
+siteinfo <- siteinfo |>
+  dplyr::mutate(date_start = date_start) |>
+  dplyr::mutate(date_end = date_end) |>
+  mutate(sitename = gauge_id) |>
+  rename(lon = gauge_lon,
+         lat = gauge_lat)
+
+```
+
+
+## CO2
+
+Get CO2 before so I can put directly in driver_data
+
+```{r}
+df_co2 <- ingest_bysite(
+  sitename  = "anyone",
+  source  = "co2_mlo",
+  year_start= lubridate::year(date_start),
+  year_end  = lubridate::year(date_end),
+  verbose = FALSE
+  )
+```
+
+
+
+```{r}
+# laod CSV data and driver data preparation
+
+
+timeseries <- list.files(path = "~/data_scratch/camels_timeseries/camels/csv/", pattern = "\\.csv$", full.names = T)
+
+
+timeseries <- timeseries[substr(timeseries,60,74) %in% siteinfo$gauge_id]
+
+driver_data <- NULL
+
+for(i in timeseries){
+  sitename <- substr(i,60,74)
+  
+  params_siml <- rsofun::p_model_drivers$params_siml[[1]] |>
+    mutate(use_gs = TRUE, use_phydro = FALSE, use_pml= TRUE) |>
+    nest(params_siml = c(spinup, spinupyears, recycle, outdt, ltre,  ltne,  ltrd,  ltnd,
+                         lgr3,  lgn3,  lgr4 ,
+                         use_gs, use_phydro, use_pml))
+  
+  site_info <- siteinfo[siteinfo$gauge_id == sitename,] |>
+    select(lat,lon) |>
+    mutate(canopy_height =12, # TODO 
+           reference_height = 10) |> # I select 10 beacuse the wind velocity is measured at 10 m
+    nest(site_info = c(lat,lon,canopy_height,reference_height))
+  
+  forcing <- read_csv(i)
+  forcing <- forcing |>
+    filter(lubridate::date(date) >= date_start, lubridate::date(date) <= date_end) |> 
+    rename(rain = total_precipitation_sum,
+           runoff = streamflow,
+           tmin = temperature_2m_min,
+           tmax = temperature_2m_max,
+           temp = temperature_2m_mean,
+           vwind = u_component_of_wind_10m_max) |>
+    mutate(netrad = NA,
+           snow = 0,
+           co2 = df_co2$co2,
+           fapar = 1, # TODO
+           rain = rain / (24*60*60)) |>
+    select(date,temp,netrad,snow,rain,tmin,tmax,vwind,fapar,co2,runoff) |>
+    filter(!(lubridate::month(date) == 2 & lubridate::day(date) == 29)) |>
+    nest(forcing = c(date,temp,netrad,snow,rain,tmin,tmax,vwind,fapar,co2,runoff))
+  
+  tmp <- data.frame(sitename = sitename,
+                    params_siml = tibble(params_siml),
+                    site_info = tibble(site_info),
+                    forcing = tibble(forcing))
+  
+  driver_data <- rbind(driver_data,tmp)
+  
+}
+
+```
+
+
+```{r}
+df_out <- tibble()
+
+getvars <- c("vpd",'ppfd')
+
+source <- "watch_wfdei"
+
+dir <- "/data/archive/wfdei_weedon_2014/data/"
+
+timescale <- "d"
+
+df_out <- ingest_globalfields(siteinfo = siteinfo,source = source,getvars = getvars,
+                               dir = dir, timescale= timescale,is_shapefile = T, shapefile = shapefile)
+
+
+driver_data <- 
+  left_join(driver_data |>
+  unnest(forcing),
+  df_out |>
+    dplyr::select(sitename,date,ppfd,patm,vpd),
+  by =c("sitename","date")) |>
+  nest(forcing = c(date,temp,vpd,ppfd,netrad,patm,snow,rain,tmin,tmax,vwind,fapar,co2,runoff))
+
+```
+
+
+## extract WHC
+
+To further prove that the shapefile works, I extract the WHC using the coordinates and the shapefile,
+They should be different
+
+```{r}
+df_out <- tibble()
+
+getvars <- NULL #c("vpd",'ppfd')
+
+source <- "stocker23"
+
+dir <- "/data/archive/whc_stocker_2023/data/"
+
+
+# WHC point scale
+df_out <- ingest_globalfields(siteinfo = siteinfo,source = source,getvars = getvars,
+                               dir = dir, timescale= timescale,is_shapefile = F, shapefile = NULL)
+
+print(df_out)
+
+```
+
+```{r}
+# based on shapefile
+
+df_out <- tibble()
+
+df_out <- ingest_globalfields(siteinfo = siteinfo,source = source,getvars = getvars,
+                               dir = dir, timescale= timescale,is_shapefile = T, shapefile = shapefile)
+
+driver_data <- 
+  left_join(driver_data |>
+  unnest(site_info),
+  df_out ,
+  by ="sitename")|>
+  nest(site_info = c(lat,lon,whc,canopy_height,reference_height))
+
+print(df_out)
+```
+
+## Elevation
+
+```{r}
+df_out <- tibble()
+
+source <- "etopo1"
+
+dir <- "/data/archive/etopo_NA_NA/data/"
+
+df_out <- ingest_globalfields(siteinfo = siteinfo,source = source,getvars = getvars,
+                               dir = dir, timescale= timescale,is_shapefile = T, shapefile = shapefile)
+
+
+driver_data <- 
+  left_join(driver_data |>
+  unnest(site_info),
+  df_out ,
+  by ="sitename")|>
+  nest(site_info = c(lat,lon,elv,whc,canopy_height,reference_height))
+
+```
+
+
+## CLoud coverage (to fix)
+
+```{r}
+df_cld <- ingestr:::extract_pointdata_allsites_shp(
+  filename = "/data/archive/cru_harris_2024/data/cru_ts4.08.1901.2023.cld.dat.nc",
+  df_shapefile = shapefile,
+  get_time = T,
+  year_arg = NA_integer_, month_arg = NA_integer_ # only used for WFDEI in combination with get_time
+) 
+
+df_cld <- df_cld |> unnest(data) |>
+  filter(varnam == "cld") |>
+  filter(date > date_start & date < date_end) |>
+  mutate(value = value /100) |>
+  mutate(date = floor_date(date, "month"))
+
+
+df_cld <- df_cld |>
+  group_by(sitename) |>
+  mutate(date = purrr::map(date, ~ seq(.x, ceiling_date(.x, "month") - days(1), by = "day"))) |>
+  unnest(date) |>
+  unnest(sitename) |>
+  select(sitename,date, value) |>
+  rename(ccov = value)
+
+driver_data <- left_join(
+  driver_data |> 
+    unnest(forcing),
+  df_cld, by=c("sitename","date")
+  ) |> 
+  nest(forcing =c(date,temp,vpd,ppfd,netrad,patm,snow,rain,tmin,tmax,vwind,fapar,co2,ccov,runoff))
+```
+
+
+
+```{r}
+params_modl <- list(
+    kphio              = 0.04998,    # setup ORG in Stocker et al. 2020 GMD
+    kphio_par_a        = 0.0,        # set to zero to disable temperature-dependence of kphio
+    kphio_par_b        = 1.0,
+    soilm_thetastar    = 0.6 * 240,  # to recover old setup with soil moisture stress
+    beta_unitcostratio = 146.0,
+    rd_to_vcmax        = 0.014,      # value from Atkin et al. 2015 for C3 herbaceous
+    tau_acclim         = 30.0,
+    kc_jmax            = 0.41,
+    gw_calib =2
+  )
+
+# run the model for these parameters
+output <- rsofun::runread_pmodel_f(
+   driver_data,
+  par = params_modl
+  )
+```
+
+
+

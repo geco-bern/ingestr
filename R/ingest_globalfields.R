@@ -39,7 +39,9 @@ ingest_globalfields <- function(
   timescale,
   standardise_units = TRUE,
   layer = NULL,
-  verbose = FALSE
+  verbose = FALSE,
+  is_shapefile = F,
+  shapefile = NULL
 ){
   
   # CRAN compliance, define state variables
@@ -78,17 +80,17 @@ ingest_globalfields <- function(
     
     # vpd based on relative humidity, air temperature, and atmospheric pressure
     if ("vpd" %in% getvars){
-      df_out <- ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "Qair_daily" ) %>%
+      df_out <- ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "Qair_daily", is_shapefile = is_shapefile, shapefile = shapefile) %>%
         dplyr::rename(qair = myvar) %>%
         dplyr::right_join(df_out, by = c("sitename", "date")) %>%
         left_join(
-          ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "Tair_daily" ) %>%
+          ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "Tair_daily", is_shapefile = is_shapefile, shapefile = shapefile ) %>%
             dplyr::rename(temp = myvar) %>%
             dplyr::mutate(temp = temp - 273.15),
           by = c("sitename", "date")
         ) %>%
         left_join(
-          ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "PSurf_daily" ) %>%
+          ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "PSurf_daily", is_shapefile = is_shapefile, shapefile = shapefile ) %>%
             dplyr::rename(patm = myvar),
           by = c("sitename", "date")
         )
@@ -103,10 +105,10 @@ ingest_globalfields <- function(
     
     # precipitation
     if ("prec" %in% getvars){
-      df_out <- ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "Rainf_daily" ) %>%
+      df_out <- ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "Rainf_daily", is_shapefile = is_shapefile, shapefile = shapefile ) %>%
         dplyr::rename( rain = myvar ) %>%
         left_join(
-          ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "Snowf_daily" ) %>%
+          ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "Snowf_daily", is_shapefile = is_shapefile, shapefile = shapefile ) %>%
             dplyr::rename( snow = myvar ),
           by = c("sitename", "date")
         ) %>%
@@ -116,7 +118,7 @@ ingest_globalfields <- function(
     
     # temperature
     if ("temp" %in% getvars && !("temp" %in% names(df_out))){
-      df_out <- ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "Tair_daily" ) %>%
+      df_out <- ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "Tair_daily", is_shapefile = is_shapefile, shapefile = shapefile ) %>%
         dplyr::rename(temp = myvar) %>%
         dplyr::mutate(temp = temp - 273.15) %>%
         dplyr::right_join(df_out, by = c("sitename", "date"))
@@ -124,7 +126,7 @@ ingest_globalfields <- function(
     
     # atmospheric pressure
     if ("patm" %in% getvars && !("patm" %in% names(df_out))){
-      df_out <- ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "PSurf_daily" ) %>%
+      df_out <- ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "PSurf_daily", is_shapefile = is_shapefile, shapefile = shapefile ) %>%
         dplyr::rename(patm = myvar) %>%
         dplyr::right_join(df_out, by = c("sitename", "date"))
     }
@@ -132,7 +134,7 @@ ingest_globalfields <- function(
     # PPFD
     if ("ppfd" %in% getvars){
       kfFEC <- 2.04
-      df_out <- ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "SWdown_daily" ) %>%
+      df_out <- ingest_globalfields_watch_byvar( df_out, siteinfo, dir, "SWdown_daily", is_shapefile = is_shapefile, shapefile = shapefile ) %>%
         dplyr::mutate(ppfd = myvar * kfFEC * 1.0e-6 ) %>%  # W m-2 -> mol m-2 s-1
         dplyr::right_join(df_out, by = c("sitename", "date"))
     }
@@ -315,7 +317,7 @@ ingest_globalfields <- function(
     # cloud cover
     if ("ccov" %in% getvars){
       cruvars <- c(cruvars, "ccov")
-      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "cld" ) %>%
+      mdf <- ingest_globalfields_cru_byvar(siteinfo, dir, "cld",is_shapefile = is_shapefile, shapefile = shapefile ) %>%
         dplyr::select(sitename, date, "cld") %>%
         dplyr::rename(ccov = "cld") %>%
         dplyr::mutate(year = lubridate::year(date), moy = lubridate::month(date)) %>%
@@ -485,16 +487,29 @@ ingest_globalfields <- function(
       lat      = siteinfo$lat
     )
     
-    df_out <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = FALSE ) |>
+    if(!is_shapefile){
+      df_out <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = FALSE ) |>
       dplyr::ungroup() |> 
       dplyr::select(-lon, -lat) |>
       tidyr::unnest(data) |>
       dplyr::rename(elv = 'ETOPO1_Bed_g_geotiff') |>
       dplyr::select(sitename, elv)
+    }else{
+      df_out <- extract_pointdata_allsites_shp(paste0(dir, filename), df_lonlat, get_time = FALSE ) |>
+        dplyr::ungroup() |> 
+        tidyr::unnest(data) |>
+        dplyr::rename(elv = 'ETOPO1_Bed_g_geotiff') |>
+        dplyr::select(sitename, elv)  
+      }
+    
+    
     
   } else if (source == "stocker23"){
     
-    filename <- list.files(dir, pattern = "cwdx80_forcing_halfdeg.nc")
+    filename <- list.files(dir, pattern = "cwdx80_forcing.nc")
+    
+    filename <- filename[filename == "cwdx80_forcing.nc"]
+    
     if (length(filename) > 1) stop("ingest_globalfields(): Found more than 1 file for source 'stocker23'.")
     if (length(filename) == 0) stop("ingest_globalfields(): Found no files for source 'stocker23' in the directory provided by argument 'dir'.")
     
@@ -505,12 +520,23 @@ ingest_globalfields <- function(
       lat      = siteinfo$lat
     )
     
-    df_out <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = FALSE ) |>
-      dplyr::ungroup() |> 
-      dplyr::select(-lon, -lat) |>
-      tidyr::unnest(data) |>
-      dplyr::rename('whc' = 'cwdx80_forcing') |>
-      dplyr::select('sitename', 'whc')
+    if(!is_shapefile){
+      df_out <- extract_pointdata_allsites( paste0(dir, filename), df_lonlat, get_time = FALSE ) |>
+        dplyr::ungroup() |> 
+        dplyr::select(-lon, -lat) |>
+        tidyr::unnest(data) |>
+        dplyr::rename('whc' = 'cwdx80_forcing') |>
+        dplyr::select('sitename', 'whc')
+    }else{
+      df_out <- extract_pointdata_allsites_shp( paste0(dir, filename), df_lonlat, get_time = FALSE ) |>
+        dplyr::ungroup() |> 
+        dplyr::select(-lon, -lat) |>
+        tidyr::unnest(data) |>
+        dplyr::rename('whc' = 'cwdx80_forcing') |>
+        dplyr::select('sitename', 'whc')
+    }
+    
+    
     
   } else if (source == "gsde"){
     
@@ -623,24 +649,17 @@ ingest_globalfields <- function(
 # Extract temperature time series for a set of sites at once (opening
 # each file only once).
 
-ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
+ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam, is_shapefile = F, shapefile = NULL ) {
+  
   
   # define variables
   yr <- mo <- filename <- data <- sitename <- 
     dom <- myvar <- doy <- data_pre <- . <- NULL
   
-  dirn <- paste0( dir, "/", varnam)
-  
   # loop over all year and months that are required
-  year_start <- ddf %>%
-    dplyr::pull(date) %>%
-    min() %>%
-    lubridate::year()
+  year_start <- siteinfo$date_start[1]
   
-  year_end <- ddf %>%
-    dplyr::pull(date) %>%
-    max() %>%
-    lubridate::year()
+  year_end <- siteinfo$date_end[1]
   
   # check if data is required for years before 1979 (when watch wfdei is available)
   pre_data <- year_start < 1979
@@ -650,8 +669,8 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
     year_start_read <- 1979
     year_end_read <- max(1988, year_end)
   } else {
-    year_start_read <- year_start
-    year_end_read <- year_end
+    year_start_read <- lubridate::year(year_start)
+    year_end_read <- lubridate::year(year_end)
   }
   
   # construct data frame holding longitude and latitude info
@@ -670,74 +689,93 @@ ingest_globalfields_watch_byvar <- function( ddf, siteinfo, dir, varnam ) {
   # extract all the data for all the dates (cutting to required dates by site is done in ingest())
   allmonths <- 1:12
   allyears <- year_start_read:year_end_read
-  ddf <- expand.grid(allmonths, allyears) %>%
-    dplyr::as_tibble() %>%
-    stats::setNames(c("mo", "yr")) %>%
-    rowwise() %>%
-    dplyr::mutate(filename = paste0( dirn, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), ".nc" )) %>%
-    ungroup() %>%
-    dplyr::mutate(data = purrr::pmap(., function(filename, yr, mo, ...){
-      extract_pointdata_allsites(filename, df_lonlat, 
-                                 get_time  = TRUE, 
-                                 year_arg  = yr, 
-                                 month_arg = mo ) 
+  
+  if(!is_shapefile){
+    ddf <- expand.grid(allmonths, allyears) %>%
+      dplyr::as_tibble() %>%
+      stats::setNames(c("mo", "yr")) %>%
+      rowwise() %>%
+      dplyr::mutate(filename = paste0( dir, "/", varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), ".nc" )) %>%
+      ungroup() %>%
+      dplyr::mutate(data = purrr::pmap(., function(filename, yr, mo, ...){
+        extract_pointdata_allsites(filename, df_lonlat, 
+                                   get_time  = TRUE, 
+                                   year_arg  = yr, 
+                                   month_arg = mo ) 
       } )) %>% 
-    tidyr::unnest(data) %>% tidyr::unnest(data) %>%
-    dplyr::select(sitename, myvar='value', date)
-
-  # create data frame containing all dates, using mean annual cycle (of 1979-1988) for all years before 1979
-  if (pre_data){
-    message("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1988) for all years before 1979.")
+      tidyr::unnest(data) %>% tidyr::unnest(data) %>%
+      dplyr::select(sitename, myvar='value', date)
     
-    # get mean seasonal cycle, averaged over 1979:1988
-    ddf_meandoy <- ddf %>% 
-      dplyr::filter(lubridate::year(date) %in% 1979:1988) %>% 
-      mutate(doy = lubridate::yday(date)) %>% 
-      group_by(sitename, doy) %>% 
-      summarise(myvar = mean(myvar))
-    
-    # get a data frame with all dates for all sites
-    ddf_tmp <- purrr::map(
-      as.list(seq(nrow(siteinfo))),
-      ~ingestr::init_dates_dataframe(
-        lubridate::year(siteinfo$date_start[.]),
-        min(1978, lubridate::year(siteinfo$date_end[.])),
-        noleap = TRUE,
-        timescale = "d"))
-    names(ddf_tmp) <- siteinfo$sitename
-    ddf_pre <- ddf_tmp %>%
-      bind_rows(.id = "sitename") %>%
-      tidyr::drop_na() %>% 
-      mutate(doy = lubridate::yday(date)) %>%
-      left_join(ddf_meandoy, by = c("sitename", "doy")) %>%
-      dplyr::select(-doy)
-    
-    # ddf_pre <- init_dates_dataframe(year_start, min(1978, year_end)) %>% 
-    #   mutate(doy = lubridate::yday(date)) %>% 
-    #   left_join(ddf_pre, by = "doy") %>% 
-    #   dplyr::select(-doy)
-    
-    # combine the two along rows
-    ddf <- left_join(
-      ddf %>% 
-        ungroup() %>% 
-        group_by(sitename) %>% 
-        tidyr::nest(),
-      ddf_pre %>% 
-        ungroup() %>% 
-        group_by(sitename) %>% 
-        tidyr::nest() %>% 
-        rename(data_pre = data),
-      by = "sitename") %>% 
-      mutate(data = purrr::map2(data_pre, data, ~bind_rows(.x, .y))) %>% 
-      dplyr::select(-data_pre) %>% 
-      tidyr::unnest(data) %>% 
-      arrange(date) %>%   # to make sure
-      distinct() # out of desperation
+    # create data frame containing all dates, using mean annual cycle (of 1979-1988) for all years before 1979
+    if (pre_data){
+      message("Data for years before 1979 requested. Taking mean annual cycle of 10 years (1979-1988) for all years before 1979.")
+      
+      # get mean seasonal cycle, averaged over 1979:1988
+      ddf_meandoy <- ddf %>% 
+        dplyr::filter(lubridate::year(date) %in% 1979:1988) %>% 
+        mutate(doy = lubridate::yday(date)) %>% 
+        group_by(sitename, doy) %>% 
+        summarise(myvar = mean(myvar))
+      
+      # get a data frame with all dates for all sites
+      ddf_tmp <- purrr::map(
+        as.list(seq(nrow(siteinfo))),
+        ~ingestr::init_dates_dataframe(
+          lubridate::year(siteinfo$date_start[.]),
+          min(1978, lubridate::year(siteinfo$date_end[.])),
+          noleap = TRUE,
+          timescale = "d"))
+      names(ddf_tmp) <- siteinfo$sitename
+      ddf_pre <- ddf_tmp %>%
+        bind_rows(.id = "sitename") %>%
+        tidyr::drop_na() %>% 
+        mutate(doy = lubridate::yday(date)) %>%
+        left_join(ddf_meandoy, by = c("sitename", "doy")) %>%
+        dplyr::select(-doy)
+      
+      # ddf_pre <- init_dates_dataframe(year_start, min(1978, year_end)) %>% 
+      #   mutate(doy = lubridate::yday(date)) %>% 
+      #   left_join(ddf_pre, by = "doy") %>% 
+      #   dplyr::select(-doy)
+      
+      # combine the two along rows
+      ddf <- left_join(
+        ddf %>% 
+          ungroup() %>% 
+          group_by(sitename) %>% 
+          tidyr::nest(),
+        ddf_pre %>% 
+          ungroup() %>% 
+          group_by(sitename) %>% 
+          tidyr::nest() %>% 
+          rename(data_pre = data),
+        by = "sitename") %>% 
+        mutate(data = purrr::map2(data_pre, data, ~bind_rows(.x, .y))) %>% 
+        dplyr::select(-data_pre) %>% 
+        tidyr::unnest(data) %>% 
+        arrange(date) %>%   # to make sure
+        distinct() # out of desperation
+    }
+  }else{
+    ddf <- expand.grid(allmonths, allyears) %>%
+      dplyr::as_tibble() %>%
+      stats::setNames(c("mo", "yr")) %>%
+      rowwise() %>%
+      dplyr::mutate(filename = paste0( dir, "/", varnam,"/",varnam, addstring, sprintf( "%4d", yr ), sprintf( "%02d", mo ), ".nc" )) %>%
+      ungroup() %>%
+      dplyr::mutate(data = purrr::pmap(., function(filename, yr, mo, ...){
+        extract_pointdata_allsites_shp(filename, df_shapefile = shapefile, 
+                                    get_time  = TRUE, 
+                                    year_arg  = yr, 
+                                    month_arg = mo ) 
+      } )) %>% 
+      tidyr::unnest(data) %>% tidyr::unnest(data) %>%
+      dplyr::select(sitename, myvar='value', date)
   }
   
   return( ddf )
 }
+
 
 ingest_globalfields_wfde5_byvar <- function(ddf, siteinfo, dir, varnam) {
   
@@ -922,7 +960,7 @@ ingest_globalfields_ndep_byvar <- function(siteinfo, dir, varnam){
 # Extract temperature time series for a set of sites at once (opening
 # each file only once).
 
-ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
+ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam,is_shapefile =F, shapefile = NULL ){
   
   # define variables
   data <- year <- moy <- value <- NULL 
@@ -937,13 +975,28 @@ ingest_globalfields_cru_byvar <- function( siteinfo, dir, varnam ){
   # extract the data
   filename <- list.files( dir, pattern=paste0( varnam, ".dat.nc$" ) , full.names = TRUE)
   if (length(filename)!=1) stop(paste("Aborting. Found no or multiple files for CRU variable", varnam))
-  df <- extract_pointdata_allsites( filename, df_lonlat, get_time = TRUE ) %>%
-    # ensure only the main variable is returned, 
-    # e.g. for 'prec' also 'mae' and 'maea' are extracted
-    # hence we filter them out and then rename the value column to the name of the main variable e.g. `prec`
-    dplyr::mutate(data = purrr::map(data, \(df) df |> 
-                                      dplyr::filter(varnam == !!varnam)|>
-                                      dplyr::rename(!!varnam := value)))
+  
+  if(!is_shapefile){
+    df <- extract_pointdata_allsites( filename, df_lonlat, get_time = FALSE ) %>%
+      # ensure only the main variable is returned, 
+      # e.g. for 'prec' also 'mae' and 'maea' are extracted
+      # hence we filter them out and then rename the value column to the name of the main variable e.g. `prec`
+      dplyr::mutate(data = purrr::map(data, \(df) df |> 
+                                        dplyr::filter(varnam == !!varnam)|>
+                                        dplyr::rename(!!varnam := value)))
+  }else{
+    df <- extract_pointdata_allsites_shp(filename,df_shapefile = shapefile, df_lonlat, get_time = FALSE ) %>%
+      # ensure only the main variable is returned, 
+      # e.g. for 'prec' also 'mae' and 'maea' are extracted
+      # hence we filter them out and then rename the value column to the name of the main variable e.g. `prec`
+      dplyr::mutate(data = purrr::map(data, \(df) df |> 
+                                        dplyr::filter(varnam == !!varnam)|>
+                                        dplyr::rename(!!varnam := value)))
+    print("a")
+  }
+  
+  
+  
   # ggplot(tidyr::unnest(df, data), aes(x=date, y=!!sym(varnam), color = sitename)) + geom_line()
   
   mdf <- df %>% tidyr::unnest(data) %>% dplyr::ungroup() %>%
@@ -1311,82 +1364,169 @@ extract_pointdata_allsites <- function(
 # Extracts point data for a set of sites given by df_lonlat for a
 # shapefile. df_lonlat requires columns sitename, lon, and lat.
 
-extract_pointdata_allsites_shp <- function(dir, df_lonlat, layer) {
-  
-  # solves error, see https://stackoverflow.com/questions/75927165/error-in-wk-handle-wk-wkbwkb-s2-geography-writeroriented-oriented-loop-0
-  sf::sf_use_s2(FALSE)
-  
-  # Load spatial data using sf
-  shp <- sf::st_read(dsn = dir, layer = layer)
-  
-  # Create SpatialPoints object for sites
-  df_clean <- df_lonlat %>%
-    ungroup() %>%
-    dplyr::select('lon', 'lat') %>%
-    tidyr::drop_na()
-  
-  # Create sf points object
-  pts <- sf::st_as_sf(df_clean, coords = c("lon", "lat"), crs = sf::st_crs(shp))
-  
-  # Spatial join and data manipulation
-  df <- sf::st_join(pts, shp) |> 
-    dplyr::select(-'geometry') |> 
-    dplyr::bind_cols(df_lonlat)
 
-  # Alternative fix:
+extract_pointdata_allsites_shp <- function(
+    filename,
+    df_shapefile,
+    get_time = FALSE,
+    year_arg = NA_integer_, month_arg = NA_integer_ # only used for WFDEI in combination with get_time
+) {
+  
+  stopifnot((is.na(year_arg) && is.na(month_arg)) || grepl("WFDEI", filename)) # must be NA, unless case WFDEI
+  
   # define variables
-  # lon <- lat <- . <- NULL
+  data <- tstep <- varnam <- dom <- year <- NULL
+  
+  # load file using the raster library
+  #print(paste("Creating raster brick from file", filename))
+  if (!file.exists(filename)) stop(paste0("File not found: ", filename))
+  
+  # message(paste0("Reading file: ", filename))
+  
+  # new code with terra library
+  raster <- terra::rast(filename)  # Replace with the correct variable name
+  
+  if (crs(raster) != crs(shapefile)) {
+    
+    shapefile2 <- project(shapefile, crs(raster)) # Reproject shapefile
+    
+    out <- terra::extract(raster, shapefile2, fun = mean, na.rm = TRUE, weights = TRUE, exact = TRUE)
+    
+    out <- out |> mutate(sitename = siteinfo$sitename)
+    
+  }else{ #do as normal
+    
+    out <- terra::extract(raster, shapefile, fun = mean, na.rm = TRUE, weights = TRUE, exact = TRUE)
+    
+    out <- out |> mutate(sitename = siteinfo$sitename)
+  }
+  
 
-  # sf::sf_use_s2(FALSE)
   
-  # create SpatialPoints object for plots
-  # df_clean <- df_lonlat |>
-  #   ungroup() |>
-  #   tidyr::drop_na(c(lon, lat))
   
-  # shp <- sf::st_read(dsn = dir, layer = layer)
-  # pts <- sf::st_as_sf(
-  #   df_clean |>
-  #     dplyr::select(lon, lat), 
-  #   coords = c("lon","lat"), 
-  #   crs = sf::st_crs(shp)
-  #   )
-  # df <- sf::st_join(pts, shp, left = TRUE) |> 
-  #   as_tibble() |>
-  #   bind_cols(df_clean, .)
-    # dplyr::select(-geometry) |> 
-    # right_join(df_lonlat, by = join_by(lon, lat)) |>
-    # dplyr::select(-lon, -lat)
- 
-  return(df)
+  if (get_time){
+    
+    delim <- if (grepl("WFDEI", filename)) {
+      "=" # fix for WFDEI that defines Tair_tstep=0, Tair_tstep=1
+    } else if (grepl("ndep_(.*)_lamarque11cc_historical_halfdeg", filename)) {
+      "=" # fix for NDEP that defines e.g. NHx_TIME=1850, NHx_TIME=1851, ... NHx_TIME=2009
+    } else if (grepl("cru_ts4.0(8|5)", filename)) {
+      "_" # fix for CRU v4.08 that defines e.g. tmn_1, tmn_2
+    } else {
+      stop("Currently only special treatment of WFDEI, CRU, and NDEP defined. Please extend the code.")
+    }
+    
+    
+    out <- out |> pivot_longer(-all_of(c("ID","sitename")), names_to = "tstep") |>
+      tidyr::separate_wider_delim(
+        tstep,
+        delim = delim,
+        names = c("varnam", "tstep"))
+    
+    # define colum 'date'
+    if (grepl("WFDEI", filename)) {
+      # WFDEI has not time stamp information in the file
+      #       it has only the day of month (dom), therefore we need to combine
+      #       this with the year and month from the filename (provided as arguments)
+      # WFDEI values contain e.g. columns named Tair_tstep=0, Tair_tstep=1, which
+      #       are read out as day of month
+      out <- out |>
+        dplyr::mutate(
+          'dom'     = as.numeric(tstep) + 1,                # day of month
+          'varnam' = stringr::str_remove(varnam, "_tstep")) |>
+        dplyr::mutate(date = lubridate::make_date(year_arg, month_arg, dom)) |>
+        dplyr::select(all_of(c("ID", 'varnam', 'date', 'value',"sitename")))
+    } else if (grepl("ndep_(.*)_lamarque11cc_historical_halfdeg", filename)) {
+      # WFDEI has not the yearly time stamp information in the file as column names
+      # WFDEI values contain e.g. columns named NHx_TIME=1850, NHx_TIME=1851, ... NHx_TIME=2009
+      out <- out |> 
+        dplyr::rename('year' = 'tstep') |>
+        dplyr::mutate(date = lubridate::make_date(year, 01, 01)) |>
+        dplyr::select(all_of(c("ID", 'date', 'value',"sitename")))
+    } else if (grepl("cru_ts4.0(8|5)", filename)) {
+      # # CRU has time stamp information in the file
+      # # CRU values contain e.g. columns named tmn_1 to tmn_1440, but also auxiliary stn_1 to stn_1440 (is removed)
+      timevals  <- terra::time(raster) # NOTE that this has the same length as values
+      #                               # I.e. it contains 2880 values, but only 1440
+      #                               # are distinct. Since values contain e.g.
+      #                               # columns named tmn_1 to tmn_1440 and stn_1
+      #                               # to stn_1440
+      
+      # sanity checks
+      stopifnot(length(timevals) == ncol(values))
+      # stopifnot(all(timevals[1:1440] == timevals[1441:2880])) # replaced by a more general check:
+      stopifnot(all(utils::head(timevals, length(timevals)/2) == utils::tail(timevals, length(timevals)/2)))
+      
+      out <- out |>
+        dplyr::mutate(date  = timevals[as.integer(tstep)]) |>
+        dplyr::filter(varnam != "stn") |> # remove the auxiliary variable stn
+        dplyr::select(all_of(c("ID", 'varnam', 'date', 'value',"sitename"))) # remove tstep
+    }
+    
+  } else { # i.e. when get_time == FALSE
+    # nothing done in addition
+  }
+  
+  out <- out |> 
+    dplyr::group_by(ID) |> 
+    tidyr::nest()
+  
+  return(out)
 }
 
-# extract_pointdata_allsites_shp <- function( dir, df_lonlat, layer ){
-  
-#   # define variables
-#   lon <- lat <- . <- NULL
-  
-#   shp <- rgdal::readOGR(dsn = dir, layer = layer)
-  
-#   geo.proj <- sp::proj4string(shp)
-  
-#   # create SpatialPoints object for sites
+
+
+# extract_pointdata_allsites_shp <- function(dir, df_lonlat, layer) {
+#   
+#   # solves error, see https://stackoverflow.com/questions/75927165/error-in-wk-handle-wk-wkbwkb-s2-geography-writeroriented-oriented-loop-0
+#   sf::sf_use_s2(FALSE)
+#   
+#   # Load spatial data using sf
+#   shp <- sf::st_read(dsn = dir, layer = layer)
+#   
+#   # Create SpatialPoints object for sites
 #   df_clean <- df_lonlat %>%
 #     ungroup() %>%
-#     dplyr::select(lon, lat) %>%
+#     dplyr::select('lon', 'lat') %>%
 #     tidyr::drop_na()
-  
-#   pts <- sp::SpatialPoints(df_clean, proj4string = sp::CRS(geo.proj))
-  
-#   # creates object that assigns each site index to an ecoregion
-#   df <- sp::over(pts, shp) %>%
-#     as_tibble() %>%
-#     bind_cols(df_clean, .) %>%
-#     right_join(df_lonlat, by = c("lon", "lat")) %>%
-#     dplyr::select(-lon, -lat)
-  
+#   
+#   # Create sf points object
+#   pts <- sf::st_as_sf(df_clean, coords = c("lon", "lat"), crs = sf::st_crs(shp))
+#   
+#   # Spatial join and data manipulation
+#   df <- sf::st_join(pts, shp) |> 
+#     dplyr::select(-'geometry') |> 
+#     dplyr::bind_cols(df_lonlat)
+# 
+#   # Alternative fix:
+#   # define variables
+#   # lon <- lat <- . <- NULL
+# 
+#   # sf::sf_use_s2(FALSE)
+#   
+#   # create SpatialPoints object for plots
+#   # df_clean <- df_lonlat |>
+#   #   ungroup() |>
+#   #   tidyr::drop_na(c(lon, lat))
+#   
+#   # shp <- sf::st_read(dsn = dir, layer = layer)
+#   # pts <- sf::st_as_sf(
+#   #   df_clean |>
+#   #     dplyr::select(lon, lat), 
+#   #   coords = c("lon","lat"), 
+#   #   crs = sf::st_crs(shp)
+#   #   )
+#   # df <- sf::st_join(pts, shp, left = TRUE) |> 
+#   #   as_tibble() |>
+#   #   bind_cols(df_clean, .)
+#     # dplyr::select(-geometry) |> 
+#     # right_join(df_lonlat, by = join_by(lon, lat)) |>
+#     # dplyr::select(-lon, -lat)
+#  
 #   return(df)
 # }
+
+
 
 #' Implements a weather generator
 #'
